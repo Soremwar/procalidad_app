@@ -1,0 +1,8 @@
+
+{
+   "imports": {
+      "React": "https://dev.jspm.io/react@16.13.0",
+      "ReactDOMServer": "https://dev.jspm.io/react-dom@16.13.0/server",
+      "deno_http/": "https://deno.land/std@v0.35.0/http/"
+   }
+}
