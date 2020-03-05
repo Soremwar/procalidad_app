@@ -1,0 +1,1 @@
+Esta es una app empresarial para realizar planeación y asignación de recursos
