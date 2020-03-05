@@ -1,5 +1,5 @@
-import React from "React";
-import ReactDOMServer from "ReactDOMServer";
+import React from "react";
+import ReactDOMServer from "react-dom/server";
 import { Button } from "@material-ui/core";
 import { serve } from "deno_http/server.ts";
 
