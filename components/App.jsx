@@ -1,9 +1,8 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { Button } from "@material-ui/core";
-import { serve } from "deno_http/server.ts";
 
-const App = (a) => {
+const App = () => {
   return (
     <React.Fragment>
       <h1>React App with Deno</h1>
@@ -14,10 +13,6 @@ const App = (a) => {
   );
 };
 
-const body = ReactDOMServer.renderToString(<App />);
-const s = serve({ port: 8080 });
-console.log("Server running at http://localhost:8080/");
+const static_app = ReactDOMServer.renderToString(<App />);
 
-for await (const req of s) {
-  req.respond({ body });
-}
+export default static_app;
