@@ -1,18 +1,28 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { Button } from "@material-ui/core";
 
 const App = () => {
   return (
     <React.Fragment>
-      <h1>React App with Deno</h1>
-      <Button variant="contained" color="primary">
-        Hello World
-      </Button>
+      <h1>Aplicación en Construcción</h1>
+      Proximámente...
     </React.Fragment>
   );
 };
 
-const static_app = ReactDOMServer.renderToString(<App />);
+const app_html = ReactDOMServer.renderToString(<App />);
 
-export default static_app;
+const html_document = (
+  `<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+  <body>
+    ${app_html}
+  </body>
+  </html>`
+);
+
+export default html_document;

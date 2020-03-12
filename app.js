@@ -1,10 +1,19 @@
+import { Application } from "oak";
+import { routes, allowedMethods } from "./web/routes.ts";
 import config from "./config.json";
-import App from "./components/App.jsx";
-import { serve } from "deno_http/server.ts";
+import middleware from "./web/middleware.ts";
 
-const s = serve({ port: config.client.port });
+const app = new Application();
+
+app.use(middleware);
+app.use(routes);
+app.use(allowedMethods);
+// TODO replace with calculations on return view or JSON
+app.use(async () => {
+  response.status = 404;
+  response.body = { message: "Not found" };
+});
+
 console.log(`Server running on port ${config.client.port}`);
 
-for await (const req of s) {
-  req.respond({ body: App });
-}
+await app.listen({ port: config.client.port });

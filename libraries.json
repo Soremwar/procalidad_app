@@ -1,11 +1,11 @@
 
 {
    "imports": {
-      "deno_http/": "https://deno.land/std@v0.35.0/http/",
       "deno_postgres": "https://deno.land/x/postgres/mod.ts",
       "@material-ui/core": "./lib/@material-ui/core@4.9.5/mod.js",
+      "oak": "https://deno.land/x/oak/mod.ts",
       "react": "https://dev.jspm.io/react@16.13.0",
-      "react-dom": "https://dev.jspm.io/react-dom@16.13.0",
+      "react-dom": "https://cdn.pika.dev/react-dom@16.13.0",
       "react-dom/server": "https://dev.jspm.io/react-dom@16.13.0/server"
    }
 }
