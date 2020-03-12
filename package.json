@@ -1,0 +1,42 @@
+{
+  "name": "procalidad_app",
+  "version": "1.0.0",
+  "description": "Esta es una app empresarial para realizar planeación y asignación de recursos",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "compile": "parcel components/App.jsx --out-dir public/resources --out-file app.js",
+    "compile-dev": "parcel watch components/App.jsx --out-dir public/resources --out-file app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Soremwar/procalidad_app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Soremwar/procalidad_app/issues"
+  },
+  "homepage": "https://github.com/Soremwar/procalidad_app#readme",
+  "dependencies": {
+    "@material-ui/core": "4.9.10",
+    "@material-ui/icons": "4.9.1",
+    "@material-ui/lab": "4.0.0-alpha.49",
+    "@material-ui/styles": "4.9.10",
+    "parcel-bundler": "1.12.4",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-hot-loader": "4.12.20",
+    "react-router-dom": "5.1.2",
+    "tinycolor2": "1.4.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.9.0",
+    "@babel/plugin-transform-runtime": "7.9.0"
+  }
+}

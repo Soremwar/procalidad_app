@@ -1,4 +1,8 @@
 .vscode/
+.cache/
+node_modules/
 config.json
 *.bat
 *.sh
+*.lock
+*.log
