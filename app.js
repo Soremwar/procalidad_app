@@ -10,9 +10,18 @@ app.use(routes);
 app.use(allowedMethods);
 
 app.use(async context => {
-  await send(context, context.request.path, {
-    root: 'public',
-    index: "index.html"
+  //Send to the app or serve static file
+  let resource;
+  switch(context.request.path.split('/')[1]){
+    case 'resources':
+      resource = context.request.path;
+      break;
+    default:
+      resource = 'index.html';
+  }
+
+  await send(context, resource, {
+    root: 'public'
   });
 });
 // TODO replace with calculations on return view or JSON

@@ -1,28 +1,42 @@
 import React from "react";
-import ReactDOMServer from "react-dom/server";
+import ReactDOM from "react-dom";
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 const App = () => {
   return (
-    <React.Fragment>
-      <h1>Aplicación en Construcción</h1>
-      Proximámente...
-    </React.Fragment>
+    <BrowserRouter>
+      <ul>
+        <li>
+          <Link to="/home">Home</Link>
+        </li>
+        <li>
+          <Link to="/about">About</Link>
+        </li>
+        <li>
+          <Link to="/dashboard">Dashboard</Link>
+        </li>
+      </ul>
+      <Switch>
+        <h4>
+          This is
+          <Route exact path="/">
+            Home
+          </Route>
+          <Route path="/about">
+            About
+          </Route>
+          <Route path="/dashboard">
+            Dashboard
+          </Route>
+        </h4>
+      </Switch>
+    </BrowserRouter>
   );
 };
 
-const app_html = ReactDOMServer.renderToString(<App />);
-
-const html_document = (
-  `<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-  </head>
-  <body>
-    ${app_html}
-  </body>
-  </html>`
-);
-
-export default html_document;
+ReactDOM.render(<App />, document.getElementById("root"));
