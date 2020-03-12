@@ -7,4 +7,6 @@ deno --importmap=libraries.json --allow-read=public/ --allow-net app.js
 
 Para compilar la aplicación React necesaria para correr la página
 ```bash
+npm install
+npx webpack --config ./webpack.config.js --mode production
 ```
