@@ -1,41 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import {
-  BrowserRouter,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
+import Router from "./Router.jsx";
+
+import theme from "./utils/themes/index.js";
+import { CssBaseline } from "@material-ui/core";
+import { ThemeProvider } from "@material-ui/styles";
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <ul>
-        <li>
-          <Link to="/home">Home</Link>
-        </li>
-        <li>
-          <Link to="/about">About</Link>
-        </li>
-        <li>
-          <Link to="/dashboard">Dashboard</Link>
-        </li>
-      </ul>
-      <Switch>
-        <h4>
-          This is
-          <Route exact path="/">
-            Home
-          </Route>
-          <Route path="/about">
-            About
-          </Route>
-          <Route path="/dashboard">
-            Dashboard
-          </Route>
-        </h4>
-      </Switch>
-    </BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router />
+    </ThemeProvider>
   );
 };
 
