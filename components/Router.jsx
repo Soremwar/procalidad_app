@@ -5,6 +5,7 @@ import {
   Route,
 } from "react-router-dom";
 
+import Layout from "./layout/Layout.jsx";
 import NotFound from "./utils/errors/NotFound.jsx";
 
 export default () => {
@@ -12,7 +13,7 @@ export default () => {
     <BrowserRouter>
       <Switch>
         <Route exact path="/">
-          Home
+          <Layout />
         </Route>
         <Route component={NotFound} />
       </Switch>
