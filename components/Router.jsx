@@ -12,7 +12,7 @@ export default () => {
   return (
     <BrowserRouter>
       <Switch>
-        <Route exact path="/">
+        <Route exact path={["/", "/home"]}>
           <Layout />
         </Route>
         <Route component={NotFound} />
