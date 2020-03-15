@@ -4,17 +4,20 @@ import Router from "./Router.jsx";
 
 import theme from "./utils/themes/index.js";
 import { CssBaseline } from "@material-ui/core";
+import { UserProvider } from "./context/User.jsx";
 import { LayoutProvider } from "./context/Layout.jsx";
 import { ThemeProvider } from "@material-ui/styles";
 
 const App = () => {
   return (
-    <LayoutProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router />
-      </ThemeProvider>
-    </LayoutProvider>
+    <UserProvider>
+      <LayoutProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Router />
+        </ThemeProvider>
+      </LayoutProvider>
+    </UserProvider>
   );
 };
 

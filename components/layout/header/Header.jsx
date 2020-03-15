@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   AppBar,
   Toolbar,
@@ -20,12 +20,13 @@ import {
   useLayoutDispatch,
   toggleSidebar
 } from "../../context/Layout.jsx";
+import { UserContext, signOutUser } from "../../context/User.jsx";
 
 export default function Header(props) {
   const classes = useStyles();
   const layoutState = useLayoutState();
   const layoutDispatch = useLayoutDispatch();
-
+  const [userState, userDispatch] = useContext(UserContext);
   const [profileMenu, setProfileMenu] = useState(null);
 
   return (
@@ -84,7 +85,7 @@ export default function Header(props) {
         >
           <div className={classes.profileMenuUser}>
             <Typography variant="h4" weight="medium">
-              John Smith
+              {userState.name}
             </Typography>
             <Typography
               className={classes.profileMenuLink}
@@ -92,7 +93,7 @@ export default function Header(props) {
               color="primary"
               href="https://flatlogic.com"
             >
-              Flalogic.com
+              {userState.email}
             </Typography>
           </div>
           <MenuItem
@@ -120,7 +121,7 @@ export default function Header(props) {
             <Typography
               className={classes.profileMenuLink}
               color="primary"
-              onClick={() => console.log("sign out user")}
+              onClick={() => signOutUser(userDispatch, props.history)}
             >
               Sign Out
             </Typography>

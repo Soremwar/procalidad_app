@@ -27,9 +27,7 @@ const structure = [
   {
     label: "Clientes",
     icon: <AccountBoxIcon />,
-    children: [
-      
-    ]
+    children: []
   }
 ];
 
