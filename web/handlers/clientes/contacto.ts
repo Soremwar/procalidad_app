@@ -23,7 +23,7 @@ export const createContact = async ({ request, response }: RouterContext) => {
   response = formatResponse(
     response,
     Status.OK,
-    Message.OK
+    Message.OK,
   );
 };
 
@@ -38,7 +38,7 @@ export const getContact = async ({ params, response }: RouterContext) => {
 };
 
 export const updateContact = async (
-  { params, request, response }: RouterContext
+  { params, request, response }: RouterContext,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -70,6 +70,6 @@ export const deleteContact = async ({ params, response }: RouterContext) => {
   response = formatResponse(
     response,
     Status.OK,
-    Message.OK
+    Message.OK,
   );
 };

@@ -3,11 +3,11 @@ import postgres from "../../services/postgres.js";
 class Sector {
   constructor(
     public readonly pk_sector: number,
-    public nombre: string
+    public nombre: string,
   ) {}
 
   async update(
-    nombre: string = this.nombre
+    nombre: string = this.nombre,
   ): Promise<
     Sector
   > {
@@ -15,7 +15,7 @@ class Sector {
     await postgres.query(
       "UPDATE CLIENTES.SECTOR SET NOMBRE = $2 WHERE PK_SECTOR = $1",
       this.pk_sector,
-      this.nombre
+      this.nombre,
     );
 
     return this;
@@ -24,14 +24,14 @@ class Sector {
   async delete(): Promise<void> {
     await postgres.query(
       "DELETE FROM CLIENTES.SECTOR WHERE PK_SECTOR = $1",
-      this.pk_sector
+      this.pk_sector,
     );
   }
 }
 
 export const findAll = async (): Promise<Sector[]> => {
   const { rows } = await postgres.query(
-    "SELECT PK_SECTOR, NOMBRE FROM CLIENTES.SECTOR"
+    "SELECT PK_SECTOR, NOMBRE FROM CLIENTES.SECTOR",
   );
   return rows.map((row: [number, string]) => new Sector(...row));
 };
@@ -39,7 +39,7 @@ export const findAll = async (): Promise<Sector[]> => {
 export const findById = async (id: number): Promise<Sector | null> => {
   const { rows } = await postgres.query(
     "SELECT PK_SECTOR, NOMBRE FROM CLIENTES.SECTOR WHERE PK_SECTOR = $1",
-    id
+    id,
   );
   if (!rows[0]) return null;
   const result: [number, string] = rows[0];
@@ -47,10 +47,10 @@ export const findById = async (id: number): Promise<Sector | null> => {
 };
 
 export const createNew = async (
-  nombre: string
+  nombre: string,
 ): Promise<void> => {
   await postgres.query(
     "INSERT INTO CLIENTES.SECTOR (NOMBRE) VALUES ($1)",
-    nombre
+    nombre,
   );
 };

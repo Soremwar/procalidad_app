@@ -22,7 +22,7 @@ export default function SidebarLink({
   location,
   isSidebarOpened,
   nested,
-  type
+  type,
 }) {
   const classes = useStyles();
 
@@ -43,7 +43,7 @@ export default function SidebarLink({
         className={[
           classes.linkText,
           classes.sectionTitle,
-          ...(isSidebarOpened ? [] : [classes.linkTextHidden])
+          ...(isSidebarOpened ? [] : [classes.linkTextHidden]),
         ].join(" ")}
       >
         {label}
@@ -64,15 +64,15 @@ export default function SidebarLink({
           root: [
             classes.linkRoot,
             ...((isLinkActive && !nested) ? [classes.linkActive] : []),
-            ...(nested ? [classes.linkNested] : [])
-          ].join(" ")
+            ...(nested ? [classes.linkNested] : []),
+          ].join(" "),
         }}
         disableRipple
       >
         <ListItemIcon
           className={[
             classes.linkIcon,
-            ...(isLinkActive ? [classes.linkIconActive] : [])
+            ...(isLinkActive ? [classes.linkIconActive] : []),
           ].join(" ")}
         >
           {nested ? <Dot color={isLinkActive && "primary"} /> : icon}
@@ -82,8 +82,8 @@ export default function SidebarLink({
             primary: [
               classes.linkText,
               ...(isLinkActive ? [classes.linkTextActive] : []),
-              ...(isSidebarOpened ? [] : [classes.linkTextHidden])
-            ].join(" ")
+              ...(isSidebarOpened ? [] : [classes.linkTextHidden]),
+            ].join(" "),
           }}
           primary={label}
         />
@@ -104,7 +104,7 @@ export default function SidebarLink({
         <ListItemIcon
           className={[
             classes.linkIcon,
-            ...(isLinkActive ? [classes.linkIconActive] : [])
+            ...(isLinkActive ? [classes.linkIconActive] : []),
           ].join(" ")}
         >
           {icon || <InboxIcon />}
@@ -114,8 +114,8 @@ export default function SidebarLink({
             primary: [
               classes.linkText,
               ...(isLinkActive ? [classes.linkTextActive] : []),
-              ...(isSidebarOpened ? [] : [classes.linkTextHidden])
-            ].join(" ")
+              ...(isSidebarOpened ? [] : [classes.linkTextHidden]),
+            ].join(" "),
           }}
           primary={label}
         />
@@ -128,17 +128,16 @@ export default function SidebarLink({
           className={classes.nestedList}
         >
           <List component="div" disablePadding>
-            {children.map(childrenLink =>
-              (
-                <SidebarLink
-                  key={childrenLink && childrenLink.link}
-                  location={location}
-                  isSidebarOpened={isSidebarOpened}
-                  classes={classes}
-                  nested
-                  {...childrenLink}
-                />
-              )
+            {children.map((childrenLink) => (
+              <SidebarLink
+                key={childrenLink && childrenLink.link}
+                location={location}
+                isSidebarOpened={isSidebarOpened}
+                classes={classes}
+                nested
+                {...childrenLink}
+              />
+            )
             )}
           </List>
         </Collapse>

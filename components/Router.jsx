@@ -19,7 +19,7 @@ const PublicRoute = ({ component, ...props }) => {
       {...props}
       //TODO
       //Replace "false" with logging status
-      render={children_props =>
+      render={(children_props) =>
         userState.isAuthenticated
           ? <Redirect to={"/home"} />
           : React.createElement(component, children_props)}
@@ -35,7 +35,7 @@ const PrivateRoute = ({ component, ...props }) => {
       {...props}
       //TODO
       //Replace "false" with logging status
-      render={children_props =>
+      render={(children_props) =>
         userState.isAuthenticated
           ? React.createElement(component, children_props)
           : <Redirect to={"/login"} />}

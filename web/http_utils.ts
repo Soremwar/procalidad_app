@@ -6,13 +6,13 @@ export enum Message {
   Forbidden = "No tiene permiso para acceder a este contenido",
   NotFound = "El contenido solicitado no existe",
   OK = "La operación fue completada con éxito",
-  Unauthorized = "La solicitud no tiene una sesión válida"
+  Unauthorized = "La solicitud no tiene una sesión válida",
 }
 
 export const formatResponse = (
   response: Response,
   status_code: Status,
-  message: string | Message
+  message: string | Message,
 ): Response => {
   response.status = status_code;
   response.body = { message };

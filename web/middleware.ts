@@ -4,7 +4,7 @@ import { NotFoundError, RequestSyntaxError } from "./exceptions.ts";
 
 export default async (
   { response }: RouterContext,
-  next: () => Promise<void>
+  next: () => Promise<void>,
 ) => {
   try {
     await next();
@@ -14,21 +14,21 @@ export default async (
         response = formatResponse(
           response,
           Status.BadRequest,
-          error.message || Message.BadRequest
+          error.message || Message.BadRequest,
         );
         break;
       case NotFoundError:
         response = formatResponse(
           response,
           Status.NotFound,
-          error.message || Message.NotFound
+          error.message || Message.NotFound,
         );
         break;
       default:
         response = formatResponse(
           response,
           Status.InternalServerError,
-          error.message || Message.InternalServerError
+          error.message || Message.InternalServerError,
         );
     }
   }

@@ -25,15 +25,15 @@ const Login = ({ history }) => {
   const [login_error, setLoginError] = useState(null);
   const [form_fields, setFormFields] = useState({
     username: "",
-    password: ""
+    password: "",
   });
 
-  const updateFormField = event => {
+  const updateFormField = (event) => {
     const field_name = event.target.name;
     const field_value = event.target.value;
-    setFormFields(last_state => ({
+    setFormFields((last_state) => ({
       ...last_state,
-      [field_name]: field_value
+      [field_name]: field_value,
     })
     );
   };
@@ -83,8 +83,8 @@ const Login = ({ history }) => {
               InputProps={{
                 classes: {
                   underline: classes.textFieldUnderline,
-                  input: classes.textField
-                }
+                  input: classes.textField,
+                },
               }}
               value={form_fields.username}
               onChange={updateFormField}
@@ -98,8 +98,8 @@ const Login = ({ history }) => {
               InputProps={{
                 classes: {
                   underline: classes.textFieldUnderline,
-                  input: classes.textField
-                }
+                  input: classes.textField,
+                },
               }}
               value={form_fields.password}
               onChange={updateFormField}
@@ -126,7 +126,7 @@ const Login = ({ history }) => {
                         form_fields.password,
                         history,
                         setLoginError,
-                        setIsLoading
+                        setIsLoading,
                       )}
                     variant="contained"
                     color="primary"

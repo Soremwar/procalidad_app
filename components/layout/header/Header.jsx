@@ -37,7 +37,7 @@ export default function Header(props) {
           onClick={() => toggleSidebar(layoutDispatch)}
           className={[
             classes.headerMenuButton,
-            classes.headerMenuButtonCollapse
+            classes.headerMenuButtonCollapse,
           ].join(" ")}
         >
           {layoutState.isSidebarOpened
@@ -45,8 +45,8 @@ export default function Header(props) {
               <ArrowBackIcon
                 classes={{
                   root: [classes.headerIcon, classes.headerIconCollapse].join(
-                    " "
-                  )
+                    " ",
+                  ),
                 }}
               />
             )
@@ -54,8 +54,8 @@ export default function Header(props) {
               <MenuIcon
                 classes={{
                   root: [classes.headerIcon, classes.headerIconCollapse].join(
-                    " "
-                  )
+                    " ",
+                  ),
                 }}
               />
             )}
@@ -70,7 +70,7 @@ export default function Header(props) {
           color="inherit"
           className={classes.headerMenuButton}
           aria-controls="profile-menu"
-          onClick={e => setProfileMenu(e.currentTarget)}
+          onClick={(e) => setProfileMenu(e.currentTarget)}
         >
           <AccountIcon classes={{ root: classes.headerIcon }} />
         </IconButton>
@@ -98,21 +98,21 @@ export default function Header(props) {
           </div>
           <MenuItem
             className={[classes.profileMenuItem, classes.headerMenuItem].join(
-              " "
+              " ",
             )}
           >
             <AccountIcon className={classes.profileMenuIcon} /> Profile
           </MenuItem>
           <MenuItem
             className={[classes.profileMenuItem, classes.headerMenuItem].join(
-              " "
+              " ",
             )}
           >
             <AccountIcon className={classes.profileMenuIcon} /> Tasks
           </MenuItem>
           <MenuItem
             className={[classes.profileMenuItem, classes.headerMenuItem].join(
-              " "
+              " ",
             )}
           >
             <AccountIcon className={classes.profileMenuIcon} /> Messages

@@ -27,8 +27,8 @@ const structure = [
   {
     label: "Clientes",
     icon: <AccountBoxIcon />,
-    children: []
-  }
+    children: [],
+  },
 ];
 
 function Sidebar({ location }) {
@@ -47,7 +47,7 @@ function Sidebar({ location }) {
     setShowAlways(should_always_show);
   }
 
-  useEffect(function() {
+  useEffect(function () {
     window.addEventListener("resize", handleWindowWidthChange);
     handleWindowWidthChange();
     return function cleanup() {
@@ -60,10 +60,10 @@ function Sidebar({ location }) {
       variant={showAlways ? "permanent" : "temporary"}
       className={[
         classes.drawer,
-        isSidebarOpened ? classes.drawerOpen : classes.drawerClose
+        isSidebarOpened ? classes.drawerOpen : classes.drawerClose,
       ].join(" ")}
       classes={{
-        paper: isSidebarOpened ? classes.drawerOpen : classes.drawerClose
+        paper: isSidebarOpened ? classes.drawerOpen : classes.drawerClose,
       }}
       open={isSidebarOpened}
     >
@@ -72,21 +72,20 @@ function Sidebar({ location }) {
         <IconButton onClick={() => toggleSidebar(layoutDispatch)}>
           <ArrowBackIcon
             classes={{
-              root: [classes.headerIcon, classes.headerIconCollapse].join(" ")
+              root: [classes.headerIcon, classes.headerIconCollapse].join(" "),
             }}
           />
         </IconButton>
       </div>
       <List className={classes.sidebarList}>
-        {structure.map((link, index) =>
-          (
-            <SidebarLink
-              key={index}
-              location={location}
-              isSidebarOpened={isSidebarOpened}
-              {...link}
-            />
-          )
+        {structure.map((link, index) => (
+          <SidebarLink
+            key={index}
+            location={location}
+            isSidebarOpened={isSidebarOpened}
+            {...link}
+          />
+        )
         )}
       </List>
     </Drawer>

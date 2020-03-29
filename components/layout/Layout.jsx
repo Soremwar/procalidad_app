@@ -22,7 +22,7 @@ const Layout = (props) => {
         <Sidebar />
         <div className={[
           classes.content,
-          ...(layout_context.isSidebarOpened ? [classes.contentShift] : [])
+          ...(layout_context.isSidebarOpened ? [classes.contentShift] : []),
         ].join(" ")}>
           <div className={classes.fakeToolbar} />
         </div>

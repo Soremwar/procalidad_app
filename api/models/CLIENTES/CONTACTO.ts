@@ -5,13 +5,13 @@ class Contacto {
     public readonly pk_contacto: number,
     public nombre: string,
     public correo: string,
-    public telefono: string
+    public telefono: string,
   ) {}
 
   async update(
     nombre: string = this.nombre,
     correo: string = this.correo,
-    telefono: string = this.telefono
+    telefono: string = this.telefono,
   ): Promise<
     Contacto
   > {
@@ -21,7 +21,7 @@ class Contacto {
       this.pk_contacto,
       this.nombre,
       this.correo,
-      this.telefono
+      this.telefono,
     );
 
     return this;
@@ -30,14 +30,14 @@ class Contacto {
   async delete(): Promise<void> {
     await postgres.query(
       "DELETE FROM CLIENTES.CONTACTO WHERE PK_CONTACTO = $1",
-      this.pk_contacto
+      this.pk_contacto,
     );
   }
 }
 
 export const findAll = async (): Promise<Contacto[]> => {
   const { rows } = await postgres.query(
-    "SELECT PK_CONTACTO, NOMBRE, CORREO, TELEFONO FROM CLIENTES.CONTACTO"
+    "SELECT PK_CONTACTO, NOMBRE, CORREO, TELEFONO FROM CLIENTES.CONTACTO",
   );
   return rows.map((row: [number, string, string, string]) =>
     new Contacto(...row)
@@ -47,7 +47,7 @@ export const findAll = async (): Promise<Contacto[]> => {
 export const findById = async (id: number): Promise<Contacto | null> => {
   const { rows } = await postgres.query(
     "SELECT PK_CONTACTO, NOMBRE, CORREO, TELEFONO FROM CLIENTES.CONTACTO WHERE PK_CONTACTO = $1",
-    id
+    id,
   );
   if (!rows[0]) return null;
   const result: [number, string, string, string] = rows[0];
@@ -57,12 +57,12 @@ export const findById = async (id: number): Promise<Contacto | null> => {
 export const createNew = async (
   nombre: string,
   correo: string,
-  telefono: string
+  telefono: string,
 ): Promise<void> => {
   await postgres.query(
     "INSERT INTO CLIENTES.CONTACTO (NOMBRE, CORREO, TELEFONO) VALUES ($1, $2, $3)",
     nombre,
     correo,
-    telefono
+    telefono,
   );
 };

@@ -4,7 +4,7 @@ export const UserContext = React.createContext();
 
 export const ACTIONS = {
   LOGIN: "LOGIN_SUCCESS",
-  SIGN_OUT: "SIGN_OUT_SUCCESS"
+  SIGN_OUT: "SIGN_OUT_SUCCESS",
 };
 
 const loginReducer = (state, action) => {
@@ -16,7 +16,7 @@ const loginReducer = (state, action) => {
         ...state,
         isAuthenticated: true,
         name: "Usuario",
-        email: "mail@example.com"
+        email: "mail@example.com",
       };
     case ACTIONS.SIGN_OUT:
       return { ...state, isAuthenticated: false };
@@ -42,7 +42,7 @@ export const loginUser = (
   password,
   history,
   setLoginError,
-  setIsLoading
+  setIsLoading,
 ) => {
   setIsLoading(true);
   attemptLogin(username, password)
@@ -69,7 +69,7 @@ export const UserProvider = ({ children }) => {
     //Add login server key
     name: null,
     email: null,
-    isAuthenticated: false
+    isAuthenticated: false,
   });
 
   return (

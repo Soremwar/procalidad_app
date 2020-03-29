@@ -12,12 +12,12 @@ import { useTheme, makeStyles } from "@material-ui/styles";
 import classnames from "classnames";
 
 // styles
-var useStyles = makeStyles(theme => ({
+var useStyles = makeStyles((theme) => ({
   badge: {
     fontWeight: 600,
     height: 16,
-    minWidth: 16
-  }
+    minWidth: 16,
+  },
 })
 );
 
@@ -26,23 +26,22 @@ function Badge({ children, colorBrightness, color, ...props }) {
   var theme = useTheme();
   var Styled = createStyled({
     badge: {
-      backgroundColor: getColor(color, theme, colorBrightness)
-    }
+      backgroundColor: getColor(color, theme, colorBrightness),
+    },
   });
 
   return (
     <Styled>
-      {styledProps =>
-        (
-          <BadgeBase
-            classes={{
-              badge: classnames(classes.badge, styledProps.classes.badge)
-            }}
-            {...props}
-          >
-            {children}
-          </BadgeBase>
-        )}
+      {(styledProps) => (
+        <BadgeBase
+          classes={{
+            badge: classnames(classes.badge, styledProps.classes.badge),
+          }}
+          {...props}
+        >
+          {children}
+        </BadgeBase>
+      )}
     </Styled>
   );
 }
@@ -62,7 +61,7 @@ function Typography({
       style={{
         color: getColor(color, theme, colorBrightness),
         fontWeight: getFontWeight(weight),
-        fontSize: getFontSize(size, props.variant, theme)
+        fontSize: getFontSize(size, props.variant, theme),
       }}
       {...props}
     >
@@ -76,7 +75,7 @@ function Button({ children, color, className, ...props }) {
 
   var Styled = createStyled({
     root: {
-      color: getColor(color, theme)
+      color: getColor(color, theme),
     },
     contained: {
       backgroundColor: getColor(color, theme),
@@ -84,43 +83,42 @@ function Button({ children, color, className, ...props }) {
       color: `${color ? "white" : theme.palette.text.primary} !important`,
       "&:hover": {
         backgroundColor: getColor(color, theme, "light"),
-        boxShadow: theme.customShadows.widgetWide
+        boxShadow: theme.customShadows.widgetWide,
       },
       "&:active": {
-        boxShadow: theme.customShadows.widgetWide
-      }
+        boxShadow: theme.customShadows.widgetWide,
+      },
     },
     outlined: {
       color: getColor(color, theme),
-      borderColor: getColor(color, theme)
+      borderColor: getColor(color, theme),
     },
     select: {
       backgroundColor: theme.palette.primary.main,
-      color: "#fff"
-    }
+      color: "#fff",
+    },
   });
 
   return (
     <Styled>
-      {({ classes }) =>
-        (
-          <ButtonBase
-            classes={{
-              contained: classes.contained,
-              root: classes.root,
-              outlined: classes.outlined
-            }}
-            {...props}
-            className={classnames(
-              {
-                [classes.select]: props.select
-              },
-              className
-            )}
-          >
-            {children}
-          </ButtonBase>
-        )}
+      {({ classes }) => (
+        <ButtonBase
+          classes={{
+            contained: classes.contained,
+            root: classes.root,
+            outlined: classes.outlined,
+          }}
+          {...props}
+          className={classnames(
+            {
+              [classes.select]: props.select,
+            },
+            className,
+          )}
+        >
+          {children}
+        </ButtonBase>
+      )}
     </Styled>
   );
 }
@@ -177,7 +175,7 @@ function getFontSize(size, variant = "", theme) {
 }
 
 function createStyled(styles, options) {
-  var Styled = function(props) {
+  var Styled = function (props) {
     const { children, ...other } = props;
     return children(other);
   };
