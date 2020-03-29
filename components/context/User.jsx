@@ -69,7 +69,7 @@ export const UserProvider = ({ children }) => {
     //Add login server key
     name: null,
     email: null,
-    isAuthenticated: false,
+    isAuthenticated: true,
   });
 
   return (

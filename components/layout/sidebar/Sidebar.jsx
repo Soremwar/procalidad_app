@@ -27,7 +27,9 @@ const structure = [
   {
     label: "Clientes",
     icon: <AccountBoxIcon />,
-    children: [],
+    children: [
+      { label: "Contacto", link: "/clientes/contacto" },
+    ],
   },
 ];
 

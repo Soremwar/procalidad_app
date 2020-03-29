@@ -11,6 +11,8 @@ import Sidebar from "./sidebar/Sidebar.jsx";
 
 import { useLayoutState } from "../context/Layout.jsx";
 
+import Contacto from "../pages/clientes/Contacto.jsx";
+
 const Layout = (props) => {
   const classes = useStyles();
   const layout_context = useLayoutState();
@@ -25,6 +27,9 @@ const Layout = (props) => {
           ...(layout_context.isSidebarOpened ? [classes.contentShift] : []),
         ].join(" ")}>
           <div className={classes.fakeToolbar} />
+          <Switch>
+            <Route path="/clientes/contacto" component={Contacto} />
+          </Switch>
         </div>
       </Fragment>
     </div>

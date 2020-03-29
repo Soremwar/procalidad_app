@@ -14,12 +14,29 @@ export const getContacts = async ({ response }: RouterContext) => {
 export const createContact = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const { name, email, phone }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value.params));
+  const {
+    name,
+    area,
+    position,
+    client,
+    phone,
+    phone_2,
+    email,
+  }: { [x: string]: string } = await request.body()
+    .then((x: Body) => Object.fromEntries(x.value));
 
-  if (!(name && email && phone)) throw new RequestSyntaxError();
+  if (!(name && Number(client) && phone && email)) throw new RequestSyntaxError();
 
-  await createNew(name, email, phone);
+  await createNew(
+    name,
+    area || null,
+    position || null,
+    Number(client),
+    phone,
+    phone_2 || null,
+    email,
+  );
+
   response = formatResponse(
     response,
     Status.OK,
@@ -47,15 +64,36 @@ export const updateContact = async (
   if (!contact) throw new NotFoundError();
 
   const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value.params));
+    .then((x: Body) => Array.from(x.value));
 
-  const { name, email, phone }: {
+  const {
+    name,
+    area,
+    position,
+    client,
+    phone,
+    phone_2,
+    email,
+  }: {
     name?: string;
-    email?: string;
+    area?: string;
+    position?: string;
+    client?: string;
     phone?: string;
+    phone_2?: string;
+    email?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
-  contact = await contact.update(name, email, phone);
+  contact = await contact.update(
+    name,
+    area,
+    position,
+    Number(client) || undefined,
+    phone,
+    phone_2,
+    email,
+  );
+
   response.body = contact;
 };
 
