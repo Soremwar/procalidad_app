@@ -1,7 +1,7 @@
 import React, {
   Fragment,
   useEffect,
-  useState,
+  useState
 } from "react";
 import {
   DialogContentText,
@@ -28,7 +28,7 @@ const getContact = (id) => {
   //Remove hardcoded url
   const url = `http://localhost/api/clientes/contacto/${id}`;
   return fetch(`${url}`)
-    .then(x => x.json());
+    .then((x) => x.json());
 };
 
 const createContact = async (form_data) => {
@@ -51,14 +51,14 @@ const updateContact = async (id, form_data) => {
   });
 };
 
-const deleteContact = async id => {
+const deleteContact = async (id) => {
   //TODO
   //Remove hardcoded url
   const url = `http://localhost/api/clientes/contacto/${id}`;
   return await fetch(`${url}`, {
     method: "DELETE",
   });
-}
+};
 
 const headers = [
   { id: "nombre", numeric: false, disablePadding: true, label: "Nombre" },
@@ -174,27 +174,27 @@ const EditModal = ({
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if(is_open){
+    if (is_open) {
       setFields({
         name: data.nombre,
-        area: data.area || '',
-        position: data.cargo || '',
+        area: data.area || "",
+        position: data.cargo || "",
         client: data.fk_cliente,
         phone: data.telefono,
-        phone_2: data.telefono_2 || '',
+        phone_2: data.telefono_2 || "",
         email: data.correo,
       });
     }
   }, [is_open]);
-  
-  const handleChange = event => {
+
+  const handleChange = (event) => {
     const name = event.target.name;
     const value = event.target.value;
-    setFields(prev_state => {
-      const data = ({...prev_state, [name]: value});
+    setFields((prev_state) => {
+      const data = ({ ...prev_state, [name]: value });
       return data;
     });
-  }
+  };
 
   const handleSubmit = async (event) => {
     setLoading(true);
@@ -228,7 +228,7 @@ const EditModal = ({
         label="Nombre Completo"
         margin="dense"
         name="name"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.name}
       />
@@ -238,7 +238,7 @@ const EditModal = ({
         label="Area"
         margin="dense"
         name="area"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         value={fields.area}
       />
       <TextField
@@ -247,7 +247,7 @@ const EditModal = ({
         label="Cargo"
         margin="dense"
         name="position"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         value={fields.position}
       />
       <TextField
@@ -256,7 +256,7 @@ const EditModal = ({
         label="Cliente"
         margin="dense"
         name="client"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.client}
       />
@@ -266,7 +266,7 @@ const EditModal = ({
         label="Telefono"
         margin="dense"
         name="phone"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.phone}
       />
@@ -276,7 +276,7 @@ const EditModal = ({
         label="Telefono 2"
         margin="dense"
         name="phone_2"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         value={fields.phone_2}
       />
       <TextField
@@ -285,7 +285,7 @@ const EditModal = ({
         label="Email"
         margin="dense"
         name="email"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.email}
       />
@@ -305,7 +305,7 @@ const DeleteModal = ({
     setLoading(true);
     setError(null);
 
-    const delete_progress = selected.map(id => deleteContact(id));
+    const delete_progress = selected.map((id) => deleteContact(id));
 
     //TODO
     //Add error catching
@@ -326,7 +326,8 @@ const DeleteModal = ({
     >
       <DialogContentText>
         Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b> elementos?
+        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        elementos?
       </DialogContentText>
     </DialogForm>
   );
@@ -339,16 +340,16 @@ export default () => {
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
 
-  const handleEditModalOpen = async id => {
+  const handleEditModalOpen = async (id) => {
     const data = await getContact(id);
     setSelectedContact(data);
     setEditModalOpen(true);
-  }
+  };
 
-  const handleDeleteModalOpen = async selected => {
+  const handleDeleteModalOpen = async (selected) => {
     setSelected(selected);
     setDeleteModalOpen(true);
-  }
+  };
 
   return (
     <Fragment>

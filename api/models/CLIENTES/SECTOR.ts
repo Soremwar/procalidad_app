@@ -51,9 +51,7 @@ export const findById = async (id: number): Promise<Sector | null> => {
   return new Sector(...result);
 };
 
-export const createNew = async (
-  nombre: string,
-): Promise<void> => {
+export const createNew = async (nombre: string) => {
   await postgres.query(
     "INSERT INTO CLIENTES.SECTOR (NOMBRE) VALUES ($1)",
     nombre,

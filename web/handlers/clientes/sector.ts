@@ -42,9 +42,8 @@ export const getSector = async ({ params, response }: RouterContext) => {
   response.body = sector;
 };
 
-export const updateSector = async (
-  { params, request, response }: RouterContext,
-) => {
+export const updateSector = async ({ params, request, response }:
+  RouterContext) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 

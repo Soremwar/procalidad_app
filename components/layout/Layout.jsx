@@ -30,7 +30,7 @@ const Layout = (props) => {
         ].join(" ")}>
           <div className={classes.fakeToolbar} />
           <Switch>
-          <Route path="/clientes/sector" component={Sector} />
+            <Route path="/clientes/sector" component={Sector} />
             <Route path="/clientes/cliente" component={Cliente} />
             <Route path="/clientes/contacto" component={Contacto} />
           </Switch>

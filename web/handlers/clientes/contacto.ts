@@ -25,7 +25,12 @@ export const createContact = async ({ request, response }: RouterContext) => {
   }: { [x: string]: string } = await request.body()
     .then((x: Body) => Object.fromEntries(x.value));
 
-  if (!(name && Number(client) && phone && email)) throw new RequestSyntaxError();
+  if (
+
+    !(name && Number(client) && phone && email)
+  ) {
+    throw new RequestSyntaxError();
+  }
 
   await createNew(
     name,
@@ -54,9 +59,8 @@ export const getContact = async ({ params, response }: RouterContext) => {
   response.body = contact;
 };
 
-export const updateContact = async (
-  { params, request, response }: RouterContext,
-) => {
+export const updateContact = async ({ params, request, response }:
+  RouterContext) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 

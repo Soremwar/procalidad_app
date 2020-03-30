@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
 })
 );
 
-const CONFIRM_BUTTON_TEXT = 'Guardar';
+const CONFIRM_BUTTON_TEXT = "Guardar";
 
 export default ({
   children,

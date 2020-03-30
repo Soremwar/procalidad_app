@@ -85,7 +85,9 @@ const TableTitle = ({
       {numSelected == 1 &&
         (
           <Tooltip title="Editar">
-            <IconButton aria-label="edit" onClick={() => onEditClick(Array.from(selected)[0])}>
+            <IconButton aria-label="edit" onClick={() =>
+              onEditClick(Array.from(selected)[0])}
+            >
               <EditICon />
             </IconButton>
           </Tooltip>
@@ -94,7 +96,9 @@ const TableTitle = ({
       {numSelected > 0 &&
         (
           <Tooltip title="Eliminar">
-            <IconButton aria-label="delete" onClick={() => onDeleteClick(Array.from(selected))}>
+            <IconButton aria-label="delete" onClick={() =>
+              onDeleteClick(Array.from(selected))}
+            >
               <DeleteIcon />
             </IconButton>
           </Tooltip>

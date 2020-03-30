@@ -59,8 +59,9 @@ export const getClient = async ({ params, response }: RouterContext) => {
   response.body = client;
 };
 
-export const updateClient = async ({ params, request, response }:
-  RouterContext) => {
+export const updateClient = async (
+  { params, request, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
