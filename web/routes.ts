@@ -13,6 +13,13 @@ import {
   updateSector,
   deleteSector
 } from "./handlers/clientes/sector.ts";
+import {
+  getClient,
+  getClients,
+  createClient,
+  updateClient,
+  deleteClient
+} from "./handlers/clientes/cliente.ts";
 
 const main_router = new Router();
 
@@ -31,6 +38,13 @@ main_router
   .get<{ id: string }>("/api/clientes/sector/:id", getSector)
   .put<{ id: string }>("/api/clientes/sector/:id", updateSector)
   .delete<{ id: string }>("/api/clientes/sector/:id", deleteSector);
+
+main_router
+  .get("/api/clientes/cliente", getClients)
+  .post("/api/clientes/cliente", createClient)
+  .get<{ id: string }>("/api/clientes/cliente/:id", getClient)
+  .put<{ id: string }>("/api/clientes/cliente/:id", updateClient)
+  .delete<{ id: string }>("/api/clientes/cliente/:id", deleteClient);
 
 export const routes = main_router.routes();
 export const allowedMethods = main_router.allowedMethods();
