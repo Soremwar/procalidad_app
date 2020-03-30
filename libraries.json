@@ -1,7 +1,7 @@
 
 {
    "imports": {
-      "deno_postgres": "https://deno.land/x/postgres/mod.ts",
+      "deno_postgres": "https://raw.githubusercontent.com/Soremwar/deno-postgres/master/mod.ts",
       "@material-ui/core": "./lib/@material-ui/core@4.9.5/mod.js",
       "oak": "https://deno.land/x/oak/mod.ts",
       "react": "https://dev.jspm.io/react@16.13.0",
