@@ -29,11 +29,16 @@ class Sector {
   }
 }
 
-export const findAll = async (): Promise<Sector[]> => {
+export const findAll = async (): Promise<{ [x: number]: Sector }> => {
   const { rows } = await postgres.query(
     "SELECT PK_SECTOR, NOMBRE FROM CLIENTES.SECTOR",
   );
-  return rows.map((row: [number, string]) => new Sector(...row));
+  const models = rows.map((row: [number, string]) => new Sector(...row));
+
+  return models.reduce((res: { [x: number]: Sector }, x: Sector) => {
+    res[x.pk_sector] = x;
+    return res;
+  }, new Object());
 };
 
 export const findById = async (id: number): Promise<Sector | null> => {
