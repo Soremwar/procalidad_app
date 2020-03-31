@@ -9,7 +9,6 @@ import {
   Button as ButtonBase
 } from "@material-ui/core";
 import { useTheme, makeStyles } from "@material-ui/styles";
-import classnames from "classnames";
 
 // styles
 var useStyles = makeStyles((theme) => ({
@@ -35,7 +34,10 @@ function Badge({ children, colorBrightness, color, ...props }) {
       {(styledProps) => (
         <BadgeBase
           classes={{
-            badge: classnames(classes.badge, styledProps.classes.badge),
+            badge: [
+              classes.badge,
+              styledProps.classes.badge
+            ].join(' '),
           }}
           {...props}
         >
@@ -70,60 +72,7 @@ function Typography({
   );
 }
 
-function Button({ children, color, className, ...props }) {
-  var theme = useTheme();
-
-  var Styled = createStyled({
-    root: {
-      color: getColor(color, theme),
-    },
-    contained: {
-      backgroundColor: getColor(color, theme),
-      boxShadow: theme.customShadows.widget,
-      color: `${color ? "white" : theme.palette.text.primary} !important`,
-      "&:hover": {
-        backgroundColor: getColor(color, theme, "light"),
-        boxShadow: theme.customShadows.widgetWide,
-      },
-      "&:active": {
-        boxShadow: theme.customShadows.widgetWide,
-      },
-    },
-    outlined: {
-      color: getColor(color, theme),
-      borderColor: getColor(color, theme),
-    },
-    select: {
-      backgroundColor: theme.palette.primary.main,
-      color: "#fff",
-    },
-  });
-
-  return (
-    <Styled>
-      {({ classes }) => (
-        <ButtonBase
-          classes={{
-            contained: classes.contained,
-            root: classes.root,
-            outlined: classes.outlined,
-          }}
-          {...props}
-          className={classnames(
-            {
-              [classes.select]: props.select,
-            },
-            className,
-          )}
-        >
-          {children}
-        </ButtonBase>
-      )}
-    </Styled>
-  );
-}
-
-export { Badge, Typography, Button };
+export { Badge, Typography };
 
 // ########################################################################
 
