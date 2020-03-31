@@ -1,6 +1,4 @@
-.vscode
-node_modules*
+.vscode/
 config.json
 *.bat
 *.sh
-*.lock
