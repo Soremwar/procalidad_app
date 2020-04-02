@@ -9,19 +9,13 @@ import {
   TextField
 } from "@material-ui/core";
 
-import AsyncTable from "../../common/AsyncTable.jsx";
+import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
 
-const getTableData = async (error_callback = () => {}) => {
-  //TODO
-  //Remove hardcoded url
-  const url = "http://localhost/api/clientes/contacto";
-  return await fetch(`${url}`)
-    .then((x) => x.json())
-    .catch(error_callback);
-};
+//TODO
+//Add primary key as constant
 
 const getContact = (id) => {
   //TODO
@@ -64,7 +58,7 @@ const headers = [
   { id: "nombre", numeric: false, disablePadding: true, label: "Nombre" },
   { id: "area", numeric: true, disablePadding: false, label: "Area" },
   { id: "cargo", numeric: true, disablePadding: false, label: "Cargo" },
-  { id: "cliente", numeric: true, disablePadding: false, label: "Cliente" },
+  { id: "fk_cliente", numeric: true, disablePadding: false, label: "Cliente" },
   { id: "telefono", numeric: true, disablePadding: false, label: "Telefono" },
   {
     id: "telefono_2",
@@ -78,6 +72,7 @@ const headers = [
 const AddModal = ({
   is_open,
   setModalOpen,
+  updateTable,
 }) => {
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -91,6 +86,7 @@ const AddModal = ({
 
     if (request.ok) {
       setModalOpen(false);
+      updateTable();
     } else {
       const { message } = await request.json();
       setError(message);
@@ -168,6 +164,7 @@ const EditModal = ({
   data,
   is_open,
   setModalOpen,
+  updateTable,
 }) => {
   const [fields, setFields] = useState({});
   const [is_loading, setLoading] = useState(false);
@@ -206,6 +203,7 @@ const EditModal = ({
 
     if (request.ok) {
       setModalOpen(false);
+      updateTable();
     } else {
       const { message } = await request.json();
       setError(message);
@@ -297,6 +295,7 @@ const DeleteModal = ({
   is_open,
   selected,
   setModalOpen,
+  updateTable,
 }) => {
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -310,8 +309,11 @@ const DeleteModal = ({
     //TODO
     //Add error catching
     Promise.all(delete_progress)
-      .then(() => setModalOpen(false))
-      .finally(() => setLoading(false));
+      .then(() => {
+        setModalOpen(false);
+        setLoading(false);
+        updateTable();
+      });
   };
 
   return (
@@ -339,6 +341,7 @@ export default () => {
   const [selected_contact, setSelectedContact] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
+  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
 
   const handleEditModalOpen = async (id) => {
     const data = await getContact(id);
@@ -351,37 +354,46 @@ export default () => {
     setDeleteModalOpen(true);
   };
 
+  const updateTable = () => {
+    setTableShouldUpdate(true);
+  };
+
   return (
     <Fragment>
       <Title title={"Contactos"} />
       <AddModal
         is_open={is_add_modal_open}
         setModalOpen={setAddModalOpen}
+        updateTable={updateTable}
       />
       <EditModal
         data={selected_contact}
         is_open={is_edit_modal_open}
         setModalOpen={setEditModalOpen}
+        updateTable={updateTable}
       />
       <DeleteModal
         is_open={is_delete_modal_open}
         setModalOpen={setDeleteModalOpen}
         selected={selected}
+        updateTable={updateTable}
       />
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget title="Lista" upperTitle noBodyPadding>
             {/*
               TODO
-              Reload table on change
+              Remove hardcoded url
             */}
             <AsyncTable
               data_index={"pk_contacto"}
+              data_source={"http://localhost/api/clientes/contacto"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              retrieveData={getTableData}
+              tableShouldUpdate={tableShouldUpdate}
+              setTableShouldUpdate={setTableShouldUpdate}
               title={"Listado de Contactos"}
             />
           </Widget>
