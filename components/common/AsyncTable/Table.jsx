@@ -1,162 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { lighten, makeStyles } from "@material-ui/core/styles";
+import React, {
+  useEffect,
+  useState
+} from "react";
+import { makeStyles } from "@material-ui/core/styles";
 import {
   Checkbox,
-  FormControlLabel,
-  IconButton,
-  Menu,
   Paper,
-  Switch,
   Table,
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TablePagination,
-  TableRow,
-  TableSortLabel,
-  Toolbar,
-  Tooltip,
-  Typography
+  TableRow
 } from "@material-ui/core";
-import {
-  AddBox as AddIcon,
-  Create as EditICon,
-  Delete as DeleteIcon
-} from "@material-ui/icons";
 
-const useTitleStyles = makeStyles((theme) => ({
-  root: {
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(1),
-  },
-  highlight: theme.palette.type === "light"
-    ? {
-      color: theme.palette.secondary.main,
-      backgroundColor: lighten(theme.palette.secondary.light, 0.85),
-    }
-    : {
-      color: theme.palette.text.primary,
-      backgroundColor: theme.palette.secondary.dark,
-    },
-  title: {
-    flex: "1 1 100%",
-  },
-})
-);
+import TableHeaders from "./components/Header.jsx";
+import TableMenu from "./components/Menu.jsx";
 
-const TableTitle = ({
-  numSelected,
-  onAddClick,
-  onEditClick,
-  onDeleteClick,
-  selected,
-  title,
-}) => {
-  const classes = useTitleStyles();
-
-  return (
-    <Toolbar
-      className={[
-        classes.root,
-        ...(numSelected > 0 ? [classes.highlight] : []),
-      ].join(" ")}
-    >
-      {numSelected > 0
-        ? (
-          <Typography className={classes.title} color="inherit"
-            variant="subtitle1"
-          >
-            {numSelected} seleccionados
-          </Typography>
-        )
-        : (
-          <Typography className={classes.title} variant="h6" id="tableTitle">
-            {title}
-          </Typography>
-        )}
-
-      <Tooltip title="Agregar">
-        <IconButton aria-label="add" onClick={onAddClick}>
-          <AddIcon />
-        </IconButton>
-      </Tooltip>
-
-      {numSelected == 1 &&
-        (
-          <Tooltip title="Editar">
-            <IconButton aria-label="edit" onClick={() =>
-              onEditClick(Array.from(selected)[0])}
-            >
-              <EditICon />
-            </IconButton>
-          </Tooltip>
-        )}
-
-      {numSelected > 0 &&
-        (
-          <Tooltip title="Eliminar">
-            <IconButton aria-label="delete" onClick={() =>
-              onDeleteClick(Array.from(selected))}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        )}
-    </Toolbar>
-  );
-};
-
-export const Header = ({
-  classes,
-  headers,
-  numSelected,
-  onSelectAllClick,
-  orderBy,
-  rowCount,
-  updateSortingDirection,
-}) => {
-  return (
-    <TableHead>
-      <TableRow>
-        <TableCell padding="checkbox">
-          <Checkbox
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={onSelectAllClick}
-            inputProps={{ "aria-label": "Seleccionar Todo" }}
-          />
-        </TableCell>
-        {headers.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.numeric ? "right" : "left"}
-            padding={headCell.disablePadding ? "none" : "default"}
-            sortDirection={orderBy?.[headCell.id] || false}
-          >
-            <TableSortLabel
-              active={orderBy?.[headCell.id] && true}
-              direction={orderBy?.[headCell.id] || "asc"}
-              onClick={(_) => updateSortingDirection(headCell.id)}
-              hideSortIcon={true}
-            >
-              {headCell.label}
-              {orderBy?.[headCell.id] &&
-                <span className={classes.visuallyHidden}>
-                  {orderBy?.[headCell.id] === "asc"
-                    ? "Ordenado Ascendentemente"
-                    : "Ordenado Descentemente"}
-                </span>}
-            </TableSortLabel>
-          </TableCell>
-        )
-        )}
-      </TableRow>
-    </TableHead>
-  );
-};
-
-const useTableStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
   },
@@ -181,17 +42,44 @@ const useTableStyles = makeStyles((theme) => ({
 })
 );
 
-export default function EnhancedTable({
+const getTableData = async (
+  source,
+  error_callback = () => {},
+) => {
+  return await fetch(source)
+    .then((x) => x.json())
+    .catch(error_callback);
+};
+
+const sortData = (data, order) => {
+  return data.sort(([_a, a], [_b, b]) => {
+    for (const column in order) {
+      const a_data = String(a[column] ?? "").toLowerCase();
+      const b_data = String(b[column] ?? "").toLowerCase();
+      if (a_data !== b_data) {
+        switch (order[column]) {
+          case "asc":
+            return a_data > b_data ? 1 : -1;
+          case "desc":
+            return a_data < b_data ? 1 : -1;
+        }
+      }
+    }
+  });
+};
+
+export default function AsyncTable({
   data_index,
+  data_source,
   headers,
-  onAddClick = () => {},
-  onEditClick = () => {},
-  onDeleteClick = () => {},
-  retrieveData,
+  onAddClick,
+  onEditClick,
+  onDeleteClick,
+  tableShouldUpdate,
   title,
+  setTableShouldUpdate,
 }) {
-  const classes = useTableStyles();
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
+  const classes = useStyles();
   const [orderBy, setOrderBy] = React.useState({});
   const [selected, setSelected] = React.useState(new Set());
   const [page, setPage] = React.useState(0);
@@ -216,19 +104,20 @@ export default function EnhancedTable({
 
   const selectAllItems = (event) => {
     if (event.target.checked) {
-      const indexes = Object.entries(rows).map(([index]) => index);
+      const indexes = Object.entries(rows).map(([index]) => Number(index));
       setSelected(new Set(indexes));
     } else {
       setSelected(new Set());
     }
   };
 
-  const selectItem = (event, selectedIndex) => {
+  const selectItem = (event, selected_item) => {
+    const item_index = Number(selected_item);
     const should_add_item = event.target.checked;
     setSelected((prev_state) => {
       should_add_item
-        ? prev_state.add(selectedIndex)
-        : prev_state.delete(selectedIndex);
+        ? prev_state.add(item_index)
+        : prev_state.delete(item_index);
       return new Set(prev_state);
     });
   };
@@ -245,23 +134,35 @@ export default function EnhancedTable({
   const emptyRows = rowsPerPage -
     Math.min(rowsPerPage, Object.entries(rows).length - page * rowsPerPage);
 
+  //TODO
+  //Add error callback inhandling
+
   useEffect(() => {
     setTableShouldUpdate(false);
-    retrieveData(orderBy).then((data) => {
-      //Remove data index from data for show on table
-      for (const key in data) {
-        delete data[key][data_index];
-      }
-      setRows((prev_state) => ({ ...prev_state, ...data }));
-    });
+    if (tableShouldUpdate) {
+      getTableData(data_source).then((data) => {
+        //Remove data index from data for show on table
+        let new_selected = new Set();
+        for (const key in data) {
+          let current_item = data[key][data_index];
+          selected.has(current_item) && new_selected.add(current_item);
+          delete data[key][data_index];
+        }
+        setRows(data);
+        setSelected(new_selected);
+      });
+    }
   }, [tableShouldUpdate]);
 
-  const isItemSelected = (index) => selected.has(index);
+  const isItemSelected = (item) => {
+    const index = Number(item);
+    return selected.has(index);
+  };
 
   return (
     <div className={classes.root}>
       <Paper className={classes.paper}>
-        <TableTitle
+        <TableMenu
           numSelected={selected.size}
           onAddClick={onAddClick}
           onEditClick={onEditClick}
@@ -276,7 +177,7 @@ export default function EnhancedTable({
             size={"medium"}
             aria-label="enhanced table"
           >
-            <Header
+            <TableHeaders
               classes={classes}
               headers={headers}
               numSelected={selected.size}
@@ -287,11 +188,10 @@ export default function EnhancedTable({
             />
             {//TODO
             //Replace limiter for the page size for actual paginator
-            //Add order per field
-            //Handle page change
+            //Replace order in client side by order in server side
             }
             <TableBody>
-              {Object.entries(rows)
+              {sortData(Object.entries(rows), orderBy)
                 .slice(page * rowsPerPage, (page * rowsPerPage) + rowsPerPage)
                 .map(([index, row]) => {
                   const is_item_selected = isItemSelected(index);
