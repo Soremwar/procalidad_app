@@ -23,6 +23,14 @@ import {
   getClientsTable,
   updateClient
 } from "./handlers/clientes/cliente.ts";
+import {
+  createProjectType,
+  deleteProjectType,
+  getProjectType,
+  getProjectTypes,
+  getProjectTypesTable,
+  updateProjectType
+} from "./handlers/operaciones/tipo_proyecto.ts";
 
 const main_router = new Router();
 
@@ -51,6 +59,17 @@ main_router
   .get<{ id: string }>("/api/clientes/cliente/:id", getClient)
   .put<{ id: string }>("/api/clientes/cliente/:id", updateClient)
   .delete<{ id: string }>("/api/clientes/cliente/:id", deleteClient);
+
+main_router
+  .get("/api/operaciones/tipo_proyecto", getProjectTypes)
+  .post("/api/operaciones/tipo_proyecto/table", getProjectTypesTable)
+  .post("/api/operaciones/tipo_proyecto", createProjectType)
+  .get<{ id: string }>("/api/operaciones/tipo_proyecto/:id", getProjectType)
+  .put<{ id: string }>("/api/operaciones/tipo_proyecto/:id", updateProjectType)
+  .delete<{ id: string }>(
+    "/api/operaciones/tipo_proyecto/:id",
+    deleteProjectType,
+  );
 
 export const routes = main_router.routes();
 export const allowedMethods = main_router.allowedMethods();

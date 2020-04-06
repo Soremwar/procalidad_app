@@ -33,6 +33,13 @@ const structure = [
       { label: "Contacto", link: "/clientes/contacto" },
     ],
   },
+  {
+    label: "Operaciones",
+    icon: <AccountBoxIcon />,
+    children: [
+      { label: "Tipo de Proyecto", link: "/operaciones/tipo_proyecto" },
+    ],
+  },
 ];
 
 function Sidebar({ location }) {

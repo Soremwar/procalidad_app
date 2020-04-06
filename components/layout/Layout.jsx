@@ -14,6 +14,7 @@ import { useLayoutState } from "../context/Layout.jsx";
 import Sector from "../pages/clientes/Sector.jsx";
 import Cliente from "../pages/clientes/Cliente.jsx";
 import Contacto from "../pages/clientes/Contacto.jsx";
+import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
 
 const Layout = (props) => {
   const classes = useStyles();
@@ -33,6 +34,7 @@ const Layout = (props) => {
             <Route path="/clientes/sector" component={Sector} />
             <Route path="/clientes/cliente" component={Cliente} />
             <Route path="/clientes/contacto" component={Contacto} />
+            <Route path="/operaciones/tipo_proyecto" component={TipoProyecto} />
           </Switch>
         </div>
       </Fragment>
