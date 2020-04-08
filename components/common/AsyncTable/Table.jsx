@@ -39,33 +39,27 @@ const useStyles = makeStyles((theme) => ({
     top: 20,
     width: 1,
   },
-})
-);
+}));
 
+//TODO
+//Manage errors in front table
 const getTableData = async (
   source,
+  order,
+  page,
+  rows,
+  search,
   error_callback = () => {},
 ) => {
-  return await fetch(source)
+  return await fetch(source, {
+    method: "POST",
+    body: JSON.stringify({ order, page, rows, search }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
     .then((x) => x.json())
-    .catch(error_callback);
-};
-
-const sortData = (data, order) => {
-  return data.sort(([_a, a], [_b, b]) => {
-    for (const column in order) {
-      const a_data = String(a[column] ?? "").toLowerCase();
-      const b_data = String(b[column] ?? "").toLowerCase();
-      if (a_data !== b_data) {
-        switch (order[column]) {
-          case "asc":
-            return a_data > b_data ? 1 : -1;
-          case "desc":
-            return a_data < b_data ? 1 : -1;
-        }
-      }
-    }
-  });
+    .catch(() => error_callback([]));
 };
 
 export default function AsyncTable({
@@ -84,12 +78,13 @@ export default function AsyncTable({
   const [selected, setSelected] = React.useState(new Set());
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [rows, setRows] = useState({});
+  const [rows, setRows] = useState([]);
 
   const updateSortingDirection = (column) => {
     switch (orderBy?.[column]) {
       case "asc":
         setOrderBy((prev_state) => ({ ...prev_state, [column]: "desc" }));
+        setTableShouldUpdate(true);
         break;
       case "desc":
         setOrderBy((prev_state) => {
@@ -99,12 +94,13 @@ export default function AsyncTable({
         break;
       default:
         setOrderBy((prev_state) => ({ ...prev_state, [column]: "asc" }));
+        setTableShouldUpdate(true);
     }
   };
 
   const selectAllItems = (event) => {
     if (event.target.checked) {
-      const indexes = Object.entries(rows).map(([index]) => Number(index));
+      const indexes = rows.map((row) => Number(row.id));
       setSelected(new Set(indexes));
     } else {
       setSelected(new Set());
@@ -122,37 +118,43 @@ export default function AsyncTable({
     });
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_, newPage) => {
     setPage(newPage);
+    setTableShouldUpdate(true);
   };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+    setTableShouldUpdate(true);
   };
 
   const emptyRows = rowsPerPage -
-    Math.min(rowsPerPage, Object.entries(rows).length - page * rowsPerPage);
+    Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   //TODO
-  //Add error callback inhandling
-
+  //Add error callback handling
+  //Add async load (non overlapping handling)
+  //Show visual load of data
   useEffect(() => {
     setTableShouldUpdate(false);
     if (tableShouldUpdate) {
-      getTableData(data_source).then((data) => {
-        //Remove data index from data for show on table
+      getTableData(
+        data_source,
+        orderBy,
+        page,
+        rowsPerPage,
+        "",
+      ).then((data) => {
         let new_selected = new Set();
-        for (const key in data) {
-          let current_item = data[key][data_index];
-          selected.has(current_item) && new_selected.add(current_item);
-          delete data[key][data_index];
-        }
+        data.forEach(({ id }) => {
+          selected.has(id) && new_selected.add(id);
+        });
         setRows(data);
         setSelected(new_selected);
       });
     }
-  }, [tableShouldUpdate]);
+  }, [tableShouldUpdate, orderBy, page, rowsPerPage]);
 
   const isItemSelected = (item) => {
     const index = Number(item);
@@ -183,7 +185,7 @@ export default function AsyncTable({
               numSelected={selected.size}
               onSelectAllClick={selectAllItems}
               orderBy={orderBy}
-              rowCount={Object.entries(rows).length}
+              rowCount={rows.length}
               updateSortingDirection={updateSortingDirection}
             />
             {//TODO
@@ -191,9 +193,9 @@ export default function AsyncTable({
             //Replace order in client side by order in server side
             }
             <TableBody>
-              {sortData(Object.entries(rows), orderBy)
-                .slice(page * rowsPerPage, (page * rowsPerPage) + rowsPerPage)
-                .map(([index, row]) => {
+              {rows
+                .map((row) => {
+                  const index = row.id;
                   const is_item_selected = isItemSelected(index);
                   const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -213,18 +215,10 @@ export default function AsyncTable({
                           inputProps={{ "aria-labelledby": labelId }}
                         />
                       </TableCell>
-                      {Object.entries(row).map(([_, column], index) => {
-                        const column_props = index == 0
-                          ? {
-                            component: "th",
-                            id: labelId,
-                            scope: "row",
-                            padding: "none",
-                          }
-                          : { align: "right" };
-                        return <TableCell {...column_props} key={index}>
-                          {column}
-                        </TableCell>;
+                      {Object.entries(headers).map(([_, column]) => {
+                        return (<TableCell key={column.id}>
+                          {row[column.id]}
+                        </TableCell>);
                       })}
                     </TableRow>
                   );
@@ -236,10 +230,14 @@ export default function AsyncTable({
             </TableBody>
           </Table>
         </TableContainer>
+        {/*
+          TODO
+          Get page total number from server
+        */}
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={Object.entries(rows).length}
+          count={rows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onChangePage={handleChangePage}
