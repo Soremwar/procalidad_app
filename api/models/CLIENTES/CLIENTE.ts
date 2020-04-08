@@ -1,5 +1,8 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
+import {
+  TableOrder
+} from "../../common/table.ts";
 
 const ERROR_CONSTRAINT = "El sector ingresado para el cliente no existe";
 const ERROR_DEPENDENCY =
@@ -75,10 +78,11 @@ class Cliente {
   }
 }
 
-export const findAll = async (): Promise<{ [x: number]: Cliente }> => {
+export const findAll = async (): Promise<Cliente[]> => {
   const { rows } = await postgres.query(
     "SELECT PK_CLIENTE, FK_SECTOR, NOMBRE, NIT, D_VERIFICACION, RAZON_SOCIAL, CIUDAD, DIRECCION FROM CLIENTES.CLIENTE",
   );
+
   const models = rows.map((row: [
     number,
     number,
@@ -88,13 +92,9 @@ export const findAll = async (): Promise<{ [x: number]: Cliente }> => {
     string,
     string,
     string,
-  ]) => new Cliente(...row)
-  );
+  ]) => new Cliente(...row));
 
-  return models.reduce((res: { [x: number]: Cliente }, x: Cliente) => {
-    res[x.pk_cliente] = x;
-    return res;
-  }, new Object());
+  return models;
 };
 
 export const findById = async (id: number): Promise<Cliente | null> => {
@@ -141,4 +141,54 @@ export const createNew = async (
 
     throw e;
   });
+};
+
+class TableData {
+  constructor(
+    public id: number,
+    public code_sector: number,
+    public sector: string,
+    public name: string,
+    public nit: string,
+    public business: string,
+  ) {}
+}
+
+export const getTableData = async (
+  order: TableOrder,
+  page: number,
+  rows: number | null,
+  search: string,
+): Promise<any> => {
+  //TODO
+  //Replace search string with search object passed from the frontend table definition
+
+  //TODO
+  //Normalize query generator
+
+  const query =
+    "SELECT * FROM (SELECT PK_CLIENTE AS ID, FK_SECTOR AS CODE_SECTOR, (SELECT NOMBRE FROM CLIENTES.SECTOR WHERE PK_SECTOR = FK_SECTOR) AS SECTOR, NOMBRE AS NAME, NIT||'-'||D_VERIFICACION AS NIT, RAZON_SOCIAL AS BUSINESS FROM CLIENTES.CLIENTE) AS TOTAL" +
+      " " +
+      `WHERE UNACCENT(SECTOR) ILIKE '%${search}%' OR UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(NIT) ILIKE '%${search}%'` +
+      " " +
+      (Object.values(order).length
+        ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
+          `${column} ${order}`
+        ).join(", ")}`
+        : "") +
+      " " +
+      (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+
+  const { rows: result } = await postgres.query(query);
+
+  const models = result.map((x: [
+    number,
+    number,
+    string,
+    string,
+    string,
+    string,
+  ]) => new TableData(...x));
+
+  return models;
 };

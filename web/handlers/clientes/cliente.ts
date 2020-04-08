@@ -1,14 +1,47 @@
 import { RouterContext, Body } from "oak";
 import {
+  createNew,
+  getTableData,
   findAll,
   findById,
-  createNew
 } from "../../../api/models/CLIENTES/CLIENTE.ts";
+import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
 export const getClients = async ({ response }: RouterContext) => {
   response.body = await findAll();
+};
+
+export const getClientsTable = async ({ request, response }: RouterContext) => {
+  if (!request.hasBody) throw new RequestSyntaxError();
+
+  const {
+    order = {},
+    page,
+    rows,
+    search,
+  } = await request.body().then((x: Body) => x.value);
+
+  if(!(order instanceof Object)) throw new RequestSyntaxError();
+
+  const order_parameters = Object.entries(order).reduce((res: TableOrder, [index, value]: [string, any]) => {
+    if(value in Order){
+      res[index] = value as Order;
+    }
+    return res;
+  }, {} as TableOrder);
+
+  const search_query = ['string', 'number'].includes(typeof search) ? String(search) : '';
+
+  const data = await getTableData(
+    order_parameters,
+    page || 0,
+    rows || null,
+    search_query,
+  );
+
+  response.body = data;
 };
 
 export const createClient = async ({ request, response }: RouterContext) => {

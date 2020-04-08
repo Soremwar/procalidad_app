@@ -1,4 +1,4 @@
-import { Router, RouterContext } from "oak";
+import { Router } from "oak";
 import {
   getContact,
   getContacts,
@@ -14,11 +14,12 @@ import {
   deleteSector
 } from "./handlers/clientes/sector.ts";
 import {
+  createClient,
+  deleteClient,
   getClient,
   getClients,
-  createClient,
+  getClientsTable,
   updateClient,
-  deleteClient
 } from "./handlers/clientes/cliente.ts";
 
 const main_router = new Router();
@@ -41,6 +42,7 @@ main_router
 
 main_router
   .get("/api/clientes/cliente", getClients)
+  .post("/api/clientes/cliente/table", getClientsTable)
   .post("/api/clientes/cliente", createClient)
   .get<{ id: string }>("/api/clientes/cliente/:id", getClient)
   .put<{ id: string }>("/api/clientes/cliente/:id", updateClient)

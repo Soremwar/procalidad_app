@@ -12,12 +12,22 @@ import {
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
+import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
 //TODO
 //Add primary key as constant
 
-const getContact = (id) => {
+const getSectors = () => {
+  //TODO
+  //Remove hardcoded url
+  const url = `http://localhost/api/clientes/sector`;
+  return fetch(`${url}`)
+    .then((x) => x.json())
+    .then((x) => Object.values(x));
+};
+
+const getClient = (id) => {
   //TODO
   //Remove hardcoded url
   const url = `http://localhost/api/clientes/cliente/${id}`;
@@ -25,62 +35,50 @@ const getContact = (id) => {
     .then((x) => x.json());
 };
 
-const createContact = async (form_data) => {
+const createClient = async (form_data) => {
   //TODO
   //Remove hardcoded url
   const url = "http://localhost/api/clientes/cliente";
-  return await fetch(`${url}`, {
+  return fetch(`${url}`, {
     method: "POST",
     body: form_data,
   });
 };
 
-const updateContact = async (id, form_data) => {
+const updateClient = async (id, form_data) => {
   //TODO
   //Remove hardcoded url
   const url = `http://localhost/api/clientes/cliente/${id}`;
-  return await fetch(`${url}`, {
+  return fetch(`${url}`, {
     method: "PUT",
     body: form_data,
   });
 };
 
-const deleteContact = async (id) => {
+const deleteClient = async (id) => {
   //TODO
   //Remove hardcoded url
   const url = `http://localhost/api/clientes/cliente/${id}`;
-  return await fetch(`${url}`, {
+  return fetch(`${url}`, {
     method: "DELETE",
   });
 };
 
 const headers = [
-  { id: "fk_sector", numeric: true, disablePadding: true, label: "Sector" },
-  { id: "nombre", numeric: false, disablePadding: false, label: "Nombre" },
-  { id: "nit", numeric: false, disablePadding: false, label: "NIT" },
+  { id: "sector", numeric: false, disablePadding: false, label: "Sector" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
   {
-    id: "d_verificacion",
-    numeric: true,
-    disablePadding: false,
-    label: "Digito",
-  },
-  {
-    id: "razon_social",
+    id: "business",
     numeric: false,
     disablePadding: false,
     label: "Razon Social",
   },
-  { id: "ciudad", numeric: false, disablePadding: false, label: "Ciudad" },
-  {
-    id: "direccion",
-    numeric: false,
-    disablePadding: false,
-    label: "Direccion",
-  },
+  { id: "nit", numeric: false, disablePadding: false, label: "NIT" },
 ];
 
 const AddModal = ({
   is_open,
+  sectors,
   setModalOpen,
   updateTable,
 }) => {
@@ -92,7 +90,7 @@ const AddModal = ({
     setError(null);
 
     const form_data = new FormData(event.target);
-    const request = await createContact(new URLSearchParams(form_data));
+    const request = await createClient(new URLSearchParams(form_data));
 
     if (request.ok) {
       setModalOpen(false);
@@ -113,14 +111,16 @@ const AddModal = ({
       setIsOpen={setModalOpen}
       title={"Crear Nuevo"}
     >
-      <TextField
-        autoFocus
-        margin="dense"
-        name="sector"
+      <SelectField
         label="Sector"
         fullWidth
+        name="sector"
         required
-      />
+      >
+        {sectors.map(({ pk_sector, nombre }) => (
+          <option key={pk_sector} value={pk_sector}>{nombre}</option>
+        ))}
+      </SelectField>
       <TextField
         autoFocus
         margin="dense"
@@ -176,6 +176,7 @@ const AddModal = ({
 const EditModal = ({
   data,
   is_open,
+  sectors,
   setModalOpen,
   updateTable,
 }) => {
@@ -212,7 +213,7 @@ const EditModal = ({
 
     const form_data = new FormData(event.target);
     const id = data.pk_cliente;
-    const request = await updateContact(id, new URLSearchParams(form_data));
+    const request = await updateClient(id, new URLSearchParams(form_data));
 
     if (request.ok) {
       setModalOpen(false);
@@ -233,16 +234,18 @@ const EditModal = ({
       setIsOpen={setModalOpen}
       title={"Editar"}
     >
-      <TextField
-        autoFocus
-        margin="dense"
-        name="sector"
-        label="Sector"
+      <SelectField
         fullWidth
+        label="Sector"
+        name="sector"
         onChange={(event) => handleChange(event)}
         required
         value={fields.sector}
-      />
+      >
+        {sectors.map(({ pk_sector, nombre }) => (
+          <option key={pk_sector} value={pk_sector}>{nombre}</option>
+        ))}
+      </SelectField>
       <TextField
         autoFocus
         margin="dense"
@@ -320,7 +323,7 @@ const DeleteModal = ({
     setLoading(true);
     setError(null);
 
-    const delete_progress = selected.map((id) => deleteContact(id));
+    const delete_progress = selected.map((id) => deleteClient(id));
 
     //TODO
     //Add error catching
@@ -357,10 +360,11 @@ export default () => {
   const [selected_contact, setSelectedContact] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
+  const [sectors, setSectors] = useState([]);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getContact(id);
+    const data = await getClient(id);
     setSelectedContact(data);
     setEditModalOpen(true);
   };
@@ -374,17 +378,23 @@ export default () => {
     setTableShouldUpdate(true);
   };
 
+  useEffect(() => {
+    getSectors().then((res) => setSectors(res));
+  }, [false]);
+
   return (
     <Fragment>
       <Title title={"Contactos"} />
       <AddModal
         is_open={is_add_modal_open}
+        sectors={sectors}
         setModalOpen={setAddModalOpen}
         updateTable={updateTable}
       />
       <EditModal
         data={selected_contact}
         is_open={is_edit_modal_open}
+        sectors={sectors}
         setModalOpen={setEditModalOpen}
         updateTable={updateTable}
       />
@@ -399,7 +409,7 @@ export default () => {
           <Widget title="Lista" upperTitle noBodyPadding>
             <AsyncTable
               data_index={"pk_cliente"}
-              data_source={"http://localhost/api/clientes/cliente"}
+              data_source={"http://localhost/api/clientes/cliente/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
