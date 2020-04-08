@@ -16,6 +16,11 @@ import {
   updateSector,
 } from "./handlers/clientes/sector.ts";
 import {
+  getCountries,
+  getCountry,
+  searchCountry
+} from "./handlers/maestro/pais.ts";
+import {
   createClient,
   deleteClient,
   getClient,
@@ -70,6 +75,11 @@ main_router
   .get<{ id: string }>("/api/clientes/sector/:id", getSector)
   .put<{ id: string }>("/api/clientes/sector/:id", updateSector)
   .delete<{ id: string }>("/api/clientes/sector/:id", deleteSector);
+
+main_router
+  .get("/api/maestro/pais", getCountries)
+  .get("/api/maestro/pais/search", searchCountry)
+  .get<{ id: string }>("/api/maestro/pais/:id", getCountry);
 
 main_router
   .get("/api/clientes/cliente", getClients)
