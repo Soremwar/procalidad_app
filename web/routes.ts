@@ -1,10 +1,11 @@
 import { Router } from "oak";
 import {
+  createContact,
+  deleteContact,
   getContact,
   getContacts,
-  createContact,
-  updateContact,
-  deleteContact
+  getContactsTable,
+  updateContact
 } from "./handlers/clientes/contacto.ts";
 import {
   getSector,
@@ -19,7 +20,7 @@ import {
   getClient,
   getClients,
   getClientsTable,
-  updateClient,
+  updateClient
 } from "./handlers/clientes/cliente.ts";
 
 const main_router = new Router();
@@ -28,6 +29,7 @@ const main_router = new Router();
 // It should be called inside main router
 main_router
   .get("/api/clientes/contacto", getContacts)
+  .post("/api/clientes/contacto/table", getContactsTable)
   .post("/api/clientes/contacto", createContact)
   .get<{ id: string }>("/api/clientes/contacto/:id", getContact)
   .put<{ id: string }>("/api/clientes/contacto/:id", updateContact)

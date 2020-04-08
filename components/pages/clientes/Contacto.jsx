@@ -11,11 +11,20 @@ import {
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
+import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
 
 //TODO
 //Add primary key as constant
+
+const getClients = () => {
+  //TODO
+  //Remove hardcoded url
+  const url = `http://localhost/api/clientes/cliente`;
+  return fetch(`${url}`)
+    .then((x) => x.json());
+};
 
 const getContact = (id) => {
   //TODO
@@ -55,21 +64,14 @@ const deleteContact = async (id) => {
 };
 
 const headers = [
-  { id: "nombre", numeric: false, disablePadding: true, label: "Nombre" },
-  { id: "area", numeric: true, disablePadding: false, label: "Area" },
-  { id: "cargo", numeric: true, disablePadding: false, label: "Cargo" },
-  { id: "fk_cliente", numeric: true, disablePadding: false, label: "Cliente" },
-  { id: "telefono", numeric: true, disablePadding: false, label: "Telefono" },
-  {
-    id: "telefono_2",
-    numeric: true,
-    disablePadding: false,
-    label: "Telefono 2",
-  },
-  { id: "correo", numeric: true, disablePadding: false, label: "Correo" },
+  { id: "client", numeric: false, disablePadding: false, label: "Cliente" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
+  { id: "phone", numeric: false, disablePadding: false, label: "Telefono" },
+  { id: "email", numeric: false, disablePadding: false, label: "Correo" },
 ];
 
 const AddModal = ({
+  clients,
   is_open,
   setModalOpen,
   updateTable,
@@ -125,14 +127,16 @@ const AddModal = ({
         label="Cargo"
         fullWidth
       />
-      <TextField
-        autoFocus
-        margin="dense"
-        name="client"
-        label="Cliente"
+      <SelectField
         fullWidth
+        label="Cliente"
+        name="client"
         required
-      />
+      >
+        {clients.map(({ pk_cliente, nombre }) => (
+          <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
+        ))}
+      </SelectField>
       <TextField
         autoFocus
         margin="dense"
@@ -161,6 +165,7 @@ const AddModal = ({
 };
 
 const EditModal = ({
+  clients,
   data,
   is_open,
   setModalOpen,
@@ -248,16 +253,17 @@ const EditModal = ({
         onChange={(event) => handleChange(event)}
         value={fields.position}
       />
-      <TextField
-        autoFocus
+      <SelectField
         fullWidth
         label="Cliente"
-        margin="dense"
         name="client"
-        onChange={(event) => handleChange(event)}
         required
         value={fields.client}
-      />
+      >
+        {clients.map(({ pk_cliente, nombre }) => (
+          <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
+        ))}
+      </SelectField>
       <TextField
         autoFocus
         fullWidth
@@ -341,7 +347,8 @@ export default () => {
   const [selected_contact, setSelectedContact] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
+  const [clients, setClients] = useState([]);
 
   const handleEditModalOpen = async (id) => {
     const data = await getContact(id);
@@ -358,15 +365,21 @@ export default () => {
     setTableShouldUpdate(true);
   };
 
+  useEffect(() => {
+    getClients().then((x) => setClients(x));
+  }, [false]);
+
   return (
     <Fragment>
       <Title title={"Contactos"} />
       <AddModal
+        clients={clients}
         is_open={is_add_modal_open}
         setModalOpen={setAddModalOpen}
         updateTable={updateTable}
       />
       <EditModal
+        clients={clients}
         data={selected_contact}
         is_open={is_edit_modal_open}
         setModalOpen={setEditModalOpen}
@@ -387,7 +400,7 @@ export default () => {
             */}
             <AsyncTable
               data_index={"pk_contacto"}
-              data_source={"http://localhost/api/clientes/contacto"}
+              data_source={"http://localhost/api/clientes/contacto/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}

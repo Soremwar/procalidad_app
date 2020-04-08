@@ -1,5 +1,8 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
+import {
+  TableOrder
+} from "../../common/table.ts";
 
 const ERROR_CONSTRAINT = "El cliente especificado para el contacto no existe";
 
@@ -64,7 +67,7 @@ class Contacto {
   }
 }
 
-export const findAll = async (): Promise<{ [x: number]: Contacto }> => {
+export const findAll = async (): Promise<Contacto[]> => {
   const { rows } = await postgres.query(
     "SELECT PK_CONTACTO, NOMBRE, AREA, CARGO, FK_CLIENTE, TELEFONO, TELEFONO_2, CORREO FROM CLIENTES.CONTACTO",
   );
@@ -77,13 +80,9 @@ export const findAll = async (): Promise<{ [x: number]: Contacto }> => {
     string,
     string | null,
     string,
-  ]) => new Contacto(...row)
-  );
+  ]) => new Contacto(...row));
 
-  return models.reduce((res: { [x: number]: Contacto }, x: Contacto) => {
-    res[x.pk_contacto] = x;
-    return res;
-  }, new Object());
+  return models;
 };
 
 export const findById = async (id: number): Promise<Contacto | null> => {
@@ -130,4 +129,52 @@ export const createNew = async (
 
     throw e;
   });
+};
+
+class TableData {
+  constructor(
+    public id: number,
+    public client: string,
+    public name: string,
+    public phone: string,
+    public email: string,
+  ) {}
+}
+
+export const getTableData = async (
+  order: TableOrder,
+  page: number,
+  rows: number | null,
+  search: string,
+): Promise<any> => {
+  //TODO
+  //Replace search string with search object passed from the frontend table definition
+
+  //TODO
+  //Normalize query generator
+
+  const query =
+    "SELECT * FROM (SELECT PK_CONTACTO AS ID, (SELECT NOMBRE FROM CLIENTES.CLIENTE WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT, NOMBRE AS NAME, TELEFONO AS PHONE, CORREO AS EMAIL FROM CLIENTES.CONTACTO) AS TOTAL" +
+      " " +
+      `WHERE UNACCENT(CLIENT) ILIKE '%${search}%' OR UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(EMAIL) ILIKE '%${search}%'` +
+      " " +
+      (Object.values(order).length
+        ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
+          `${column} ${order}`
+        ).join(", ")}`
+        : "") +
+      " " +
+      (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+
+  const { rows: result } = await postgres.query(query);
+
+  const models = result.map((x: [
+    number,
+    string,
+    string,
+    string,
+    string,
+  ]) => new TableData(...x));
+
+  return models;
 };
