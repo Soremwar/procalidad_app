@@ -8,11 +8,12 @@ import {
   updateContact
 } from "./handlers/clientes/contacto.ts";
 import {
+  createSector,
+  deleteSector,
   getSector,
   getSectors,
-  createSector,
-  updateSector,
-  deleteSector
+  getSectorsTable,
+  updateSector
 } from "./handlers/clientes/sector.ts";
 import {
   createClient,
@@ -37,6 +38,7 @@ main_router
 
 main_router
   .get("/api/clientes/sector", getSectors)
+  .post("/api/clientes/sector/table", getSectorsTable)
   .post("/api/clientes/sector", createSector)
   .get<{ id: string }>("/api/clientes/sector/:id", getSector)
   .put<{ id: string }>("/api/clientes/sector/:id", updateSector)

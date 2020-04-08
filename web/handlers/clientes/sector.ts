@@ -2,13 +2,51 @@ import { RouterContext, Body } from "oak";
 import {
   findAll,
   findById,
-  createNew
+  createNew,
+  getTableData
 } from "../../../api/models/CLIENTES/SECTOR.ts";
+import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
 export const getSectors = async ({ response }: RouterContext) => {
   response.body = await findAll();
+};
+
+export const getSectorsTable = async ({ request, response }: RouterContext) => {
+  if (!request.hasBody) throw new RequestSyntaxError();
+
+  const {
+    order = {},
+    page,
+    rows,
+    search,
+  } = await request.body().then((x: Body) => x.value);
+
+  if (!(order instanceof Object)) throw new RequestSyntaxError();
+
+  const order_parameters = Object.entries(order).reduce(
+    (res: TableOrder, [index, value]: [string, any]) => {
+      if (value in Order) {
+        res[index] = value as Order;
+      }
+      return res;
+    },
+    {} as TableOrder,
+  );
+
+  const search_query = ["string", "number"].includes(typeof search)
+    ? String(search)
+    : "";
+
+  const data = await getTableData(
+    order_parameters,
+    page || 0,
+    rows || null,
+    search_query,
+  );
+
+  response.body = data;
 };
 
 export const createSector = async ({ request, response }: RouterContext) => {
@@ -42,8 +80,9 @@ export const getSector = async ({ params, response }: RouterContext) => {
   response.body = sector;
 };
 
-export const updateSector = async ({ params, request, response }:
-  RouterContext) => {
+export const updateSector = async (
+  { params, request, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 

@@ -55,7 +55,7 @@ const deleteContact = async (id) => {
 };
 
 const headers = [
-  { id: "nombre", numeric: false, disablePadding: true, label: "Nombre" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
 ];
 
 const AddModal = ({
@@ -268,7 +268,7 @@ export default () => {
             */}
             <AsyncTable
               data_index={"pk_sector"}
-              data_source={"http://localhost/api/clientes/sector"}
+              data_source={"http://localhost/api/clientes/sector/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
