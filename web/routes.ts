@@ -34,6 +34,14 @@ import {
 import {
   getPeople,
 } from "./handlers/organizacion/persona.ts";
+import {
+  createAreaType,
+  deleteAreaType,
+  getAreaType,
+  getAreaTypes,
+  getAreaTypesTable,
+  updateAreaType,
+} from "./handlers/organizacion/tipo_area.ts";
 
 const main_router = new Router();
 
@@ -76,6 +84,17 @@ main_router
 
 main_router
   .get("/api/organizacion/persona", getPeople);
+
+main_router
+  .get("/api/organizacion/tipo_area", getAreaTypes)
+  .post("/api/organizacion/tipo_area/table", getAreaTypesTable)
+  .post("/api/organizacion/tipo_area", createAreaType)
+  .get<{ id: string }>("/api/organizacion/tipo_area/:id", getAreaType)
+  .put<{ id: string }>("/api/organizacion/tipo_area/:id", updateAreaType)
+  .delete<{ id: string }>(
+    "/api/organizacion/tipo_area/:id",
+    deleteAreaType,
+  );
 
 export const routes = main_router.routes();
 export const allowedMethods = main_router.allowedMethods();

@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 import {
   Route,
   Switch,
-  withRouter
+  withRouter,
 } from "react-router-dom";
 
 import useStyles from "./styles";
@@ -15,6 +15,7 @@ import Sector from "../pages/clientes/Sector.jsx";
 import Cliente from "../pages/clientes/Cliente.jsx";
 import Contacto from "../pages/clientes/Contacto.jsx";
 import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
+import TipoArea from "../pages/organizacion/TipoArea.jsx";
 
 const Layout = (props) => {
   const classes = useStyles();
@@ -30,11 +31,16 @@ const Layout = (props) => {
           ...(layout_context.isSidebarOpened ? [classes.contentShift] : []),
         ].join(" ")}>
           <div className={classes.fakeToolbar} />
+          {/*
+            TODO
+            Find a way to encapsulate routes over section
+          */}
           <Switch>
             <Route path="/clientes/sector" component={Sector} />
             <Route path="/clientes/cliente" component={Cliente} />
             <Route path="/clientes/contacto" component={Contacto} />
             <Route path="/operaciones/tipo_proyecto" component={TipoProyecto} />
+            <Route path="/organizacion/tipo_area" component={TipoArea} />
           </Switch>
         </div>
       </Fragment>

@@ -3,7 +3,7 @@ import { Drawer, IconButton, List } from "@material-ui/core";
 import {
   Home as HomeIcon,
   ArrowBack as ArrowBackIcon,
-  AccountBox as AccountBoxIcon
+  AccountBox as AccountBoxIcon,
 } from "@material-ui/icons";
 import { useTheme } from "@material-ui/styles";
 import { withRouter } from "react-router-dom";
@@ -19,7 +19,7 @@ import Dot from "./components/Dot.jsx";
 import {
   useLayoutState,
   useLayoutDispatch,
-  toggleSidebar
+  toggleSidebar,
 } from "../../context/Layout.jsx";
 
 const structure = [
@@ -38,6 +38,13 @@ const structure = [
     icon: <AccountBoxIcon />,
     children: [
       { label: "Tipo de Proyecto", link: "/operaciones/tipo_proyecto" },
+    ],
+  },
+  {
+    label: "Organizacion",
+    icon: <AccountBoxIcon />,
+    children: [
+      { label: "Tipo de Area", link: "/organizacion/tipo_area" },
     ],
   },
 ];
@@ -96,8 +103,7 @@ function Sidebar({ location }) {
             isSidebarOpened={isSidebarOpened}
             {...link}
           />
-        )
-        )}
+        ))}
       </List>
     </Drawer>
   );
