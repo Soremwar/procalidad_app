@@ -5,7 +5,7 @@ import {
   getContact,
   getContacts,
   getContactsTable,
-  updateContact
+  updateContact,
 } from "./handlers/clientes/contacto.ts";
 import {
   createSector,
@@ -13,7 +13,7 @@ import {
   getSector,
   getSectors,
   getSectorsTable,
-  updateSector
+  updateSector,
 } from "./handlers/clientes/sector.ts";
 import {
   createClient,
@@ -21,7 +21,7 @@ import {
   getClient,
   getClients,
   getClientsTable,
-  updateClient
+  updateClient,
 } from "./handlers/clientes/cliente.ts";
 import {
   createProjectType,
@@ -29,8 +29,11 @@ import {
   getProjectType,
   getProjectTypes,
   getProjectTypesTable,
-  updateProjectType
+  updateProjectType,
 } from "./handlers/operaciones/tipo_proyecto.ts";
+import {
+  getPeople,
+} from "./handlers/organizacion/persona.ts";
 
 const main_router = new Router();
 
@@ -70,6 +73,9 @@ main_router
     "/api/operaciones/tipo_proyecto/:id",
     deleteProjectType,
   );
+
+main_router
+  .get("/api/organizacion/persona", getPeople);
 
 export const routes = main_router.routes();
 export const allowedMethods = main_router.allowedMethods();
