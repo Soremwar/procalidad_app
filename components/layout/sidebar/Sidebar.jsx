@@ -45,6 +45,7 @@ const structure = [
     icon: <AccountBoxIcon />,
     children: [
       { label: "Tipo de Area", link: "/organizacion/tipo_area" },
+      { label: "Area", link: "/organizacion/area" },
     ],
   },
 ];

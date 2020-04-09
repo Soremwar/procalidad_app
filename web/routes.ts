@@ -42,6 +42,14 @@ import {
   getAreaTypesTable,
   updateAreaType,
 } from "./handlers/organizacion/tipo_area.ts";
+import {
+  createArea,
+  deleteArea,
+  getArea,
+  getAreas,
+  getAreasTable,
+  updateArea
+} from "./handlers/organizacion/area.ts";
 
 const main_router = new Router();
 
@@ -94,6 +102,17 @@ main_router
   .delete<{ id: string }>(
     "/api/organizacion/tipo_area/:id",
     deleteAreaType,
+  );
+
+main_router
+  .get("/api/organizacion/area", getAreas)
+  .post("/api/organizacion/area/table", getAreasTable)
+  .post("/api/organizacion/area", createArea)
+  .get<{ id: string }>("/api/organizacion/area/:id", getArea)
+  .put<{ id: string }>("/api/organizacion/area/:id", updateArea)
+  .delete<{ id: string }>(
+    "/api/organizacion/area/:id",
+    deleteArea,
   );
 
 export const routes = main_router.routes();

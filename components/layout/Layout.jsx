@@ -16,6 +16,7 @@ import Cliente from "../pages/clientes/Cliente.jsx";
 import Contacto from "../pages/clientes/Contacto.jsx";
 import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
 import TipoArea from "../pages/organizacion/TipoArea.jsx";
+import Area from "../pages/organizacion/Area.jsx";
 
 const Layout = (props) => {
   const classes = useStyles();
@@ -41,6 +42,7 @@ const Layout = (props) => {
             <Route path="/clientes/contacto" component={Contacto} />
             <Route path="/operaciones/tipo_proyecto" component={TipoProyecto} />
             <Route path="/organizacion/tipo_area" component={TipoArea} />
+            <Route path="/organizacion/area" component={Area} />
           </Switch>
         </div>
       </Fragment>
