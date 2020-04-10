@@ -18,8 +18,13 @@ import {
 import {
   getCountries,
   getCountry,
-  searchCountry
+  searchCountry,
 } from "./handlers/maestro/pais.ts";
+import {
+  getStates,
+  getState,
+  searchState,
+} from "./handlers/maestro/estado.ts";
 import {
   createClient,
   deleteClient,
@@ -53,7 +58,7 @@ import {
   getArea,
   getAreas,
   getAreasTable,
-  updateArea
+  updateArea,
 } from "./handlers/organizacion/area.ts";
 
 const main_router = new Router();
@@ -80,6 +85,11 @@ main_router
   .get("/api/maestro/pais", getCountries)
   .get("/api/maestro/pais/search", searchCountry)
   .get<{ id: string }>("/api/maestro/pais/:id", getCountry);
+
+main_router
+  .get("/api/maestro/estado", getStates)
+  .get("/api/maestro/estado/search", searchState)
+  .get<{ id: string }>("/api/maestro/estado/:id", getState);
 
 main_router
   .get("/api/clientes/cliente", getClients)
