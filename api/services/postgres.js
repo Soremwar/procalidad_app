@@ -3,6 +3,10 @@ import config_file from "../../config.json";
 
 const postgres_config = config_file?.services?.postgresql;
 
+if(!postgres_config){
+  throw new Error("La configuracion de PostgreSQL no fue encontrada en 'config.json'");
+}
+
 async function create_new_client() {
   const client = new Client(postgres_config);
   await client.connect().catch((e) => {

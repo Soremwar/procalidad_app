@@ -24,11 +24,6 @@ app.use(async (context) => {
     root: "public",
   });
 });
-// TODO replace with calculations on return view or JSON
-app.use(async () => {
-  response.status = 404;
-  response.body = { message: "Not found" };
-});
 
 console.log(`Server running on port ${config.client.port}`);
 

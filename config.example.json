@@ -1,12 +1,12 @@
 {
   "client": {
-    "port": "8080"
+    "port": 8080
   },
   "api": {
     
   },
   "services": {
-    "database": {
+    "postgresql": {
       "user": "postgres",
       "password": "password",
       "database": "postgres",
