@@ -26,6 +26,11 @@ import {
   searchState,
 } from "./handlers/maestro/estado.ts";
 import {
+  getCities,
+  getCity,
+  searchCity,
+} from "./handlers/maestro/ciudad.ts";
+import {
   createClient,
   deleteClient,
   getClient,
@@ -90,6 +95,11 @@ main_router
   .get("/api/maestro/estado", getStates)
   .get("/api/maestro/estado/search", searchState)
   .get<{ id: string }>("/api/maestro/estado/:id", getState);
+
+main_router
+  .get("/api/maestro/ciudad", getCities)
+  .get("/api/maestro/ciudad/search", searchCity)
+  .get<{ id: string }>("/api/maestro/ciudad/:id", getCity);
 
 main_router
   .get("/api/clientes/cliente", getClients)
