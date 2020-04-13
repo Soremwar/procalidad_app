@@ -1,10 +1,4 @@
 .vscode/
-.cache/
-dist/
-node_modules/
 config.json
 *.bat
 *.sh
-*.lock
-*.log
-.eslintrc*
