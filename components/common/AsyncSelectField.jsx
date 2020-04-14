@@ -37,7 +37,7 @@ export default ({
   handleSource = defaultSourceHandler,
   name,
   onChange = false,
-  onType = () => {},
+  onType = () => { },
   preload = false,
   required = false,
   source,

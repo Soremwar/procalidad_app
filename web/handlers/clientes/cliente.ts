@@ -23,16 +23,21 @@ export const getClientsTable = async ({ request, response }: RouterContext) => {
     search,
   } = await request.body().then((x: Body) => x.value);
 
-  if(!(order instanceof Object)) throw new RequestSyntaxError();
+  if (!(order instanceof Object)) throw new RequestSyntaxError();
 
-  const order_parameters = Object.entries(order).reduce((res: TableOrder, [index, value]: [string, any]) => {
-    if(value in Order){
-      res[index] = value as Order;
-    }
-    return res;
-  }, {} as TableOrder);
+  const order_parameters = Object.entries(order).reduce(
+    (res: TableOrder, [index, value]: [string, any]) => {
+      if (value in Order) {
+        res[index] = value as Order;
+      }
+      return res;
+    },
+    {} as TableOrder,
+  );
 
-  const search_query = ['string', 'number'].includes(typeof search) ? String(search) : '';
+  const search_query = ["string", "number"].includes(typeof search)
+    ? String(search)
+    : "";
 
   const data = await getTableData(
     order_parameters,
@@ -60,7 +65,7 @@ export const createClient = async ({ request, response }: RouterContext) => {
 
   if (
     !(Number(sector) && name && nit && Number(verification_digit) && business &&
-      city && address)
+      Number(city) && address)
   ) {
     throw new RequestSyntaxError();
   }
@@ -71,7 +76,7 @@ export const createClient = async ({ request, response }: RouterContext) => {
     nit,
     Number(verification_digit),
     business,
-    city,
+    Number(city),
     address,
   );
 
@@ -128,7 +133,7 @@ export const updateClient = async (
     nit,
     Number(verification_digit) || undefined,
     business,
-    city,
+    Number(city) || undefined,
     address,
   );
 

@@ -1,14 +1,15 @@
 import React, {
   Fragment,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
   DialogContentText,
   Grid,
-  TextField
+  TextField,
 } from "@material-ui/core";
 
+import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
@@ -82,15 +83,37 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
-  const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [fields, setFields] = useState({
+    sector: "",
+    name: "",
+    nit: "",
+    verification_digit: "",
+    business: "",
+    country: "",
+    state: "",
+    city: "",
+    address: "",
+  });
+  const [city_query, setCityQuery] = useState("");
+  const [country_query, setCountryQuery] = useState("");
+  const [is_loading, setLoading] = useState(false);
+  const [state_query, setStateQuery] = useState("");
 
-  const handleSubmit = async (event) => {
+  const handleChange = (event) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setFields((prev_state) => {
+      const data = ({ ...prev_state, [name]: value });
+      return data;
+    });
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createClient(new URLSearchParams(form_data));
+    const request = await createClient(new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -102,6 +125,24 @@ const AddModal = ({
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (is_open) {
+      setError(null);
+      setFields({
+        sector: "",
+        name: "",
+        nit: "",
+        verification_digit: "",
+        business: "",
+        country: "",
+        state: "",
+        city: "",
+        address: "",
+      });
+      setLoading(false);
+    }
+  }, [is_open]);
+
   return (
     <DialogForm
       error={error}
@@ -112,10 +153,12 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <SelectField
-        label="Sector"
         fullWidth
+        label="Sector"
         name="sector"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.sector}
       >
         {sectors.map(({ pk_sector, nombre }) => (
           <option key={pk_sector} value={pk_sector}>{nombre}</option>
@@ -123,51 +166,145 @@ const AddModal = ({
       </SelectField>
       <TextField
         autoFocus
+        fullWidth
+        label="Nombre Cliente"
         margin="dense"
         name="name"
-        label="Nombre Cliente"
-        fullWidth
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.name}
       />
       <TextField
         autoFocus
+        fullWidth
+        label="NIT"
         margin="dense"
         name="nit"
-        label="NIT"
-        fullWidth
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.nit}
       />
       <TextField
         autoFocus
+        fullWidth
+        label="Digito de Verificacion"
         margin="dense"
         name="verification_digit"
-        label="Digito de Verificacion"
-        fullWidth
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.verification_digit}
       />
       <TextField
         autoFocus
+        fullWidth
+        label="Razon Social"
         margin="dense"
         name="business"
-        label="Razon Social"
-        fullWidth
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.business}
       />
-      <TextField
+      <AsyncSelectField
         autoFocus
+        fullWidth
+        handleSource={(source) => (
+          Object.values(source).map(({
+            pk_pais,
+            nombre,
+          }) => {
+            return { value: String(pk_pais), text: nombre };
+          })
+        )}
+        label="Pais"
+        margin="dense"
+        name="country"
+        onChange={(event) => handleChange(event)}
+        onType={(event) => {
+          if (fields.country) {
+            setFields((old_state) => ({ ...old_state, country: "" }));
+          }
+          const value = event.target.value;
+          setCountryQuery(value);
+        }}
+        required
+        source={`http://localhost/api/maestro/pais/search?query=${encodeURI(
+          fields.country
+            ? ""
+            : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+        )}&limit=10`}
+        value={fields.country}
+      />
+      <AsyncSelectField
+        autoFocus
+        disabled={!fields.country}
+        fullWidth
+        handleSource={(source) => (
+          Object.values(source).map(({
+            pk_estado,
+            nombre,
+          }) => {
+            return { value: String(pk_estado), text: nombre };
+          })
+        )}
+        label="Departamento"
+        margin="dense"
+        name="state"
+        onChange={(event) => handleChange(event)}
+        onType={(event) => {
+          if (fields.state) {
+            setFields((old_state) => ({ ...old_state, state: "" }));
+          }
+          const value = event.target.value;
+          setStateQuery(value);
+        }}
+        required
+        source={`http://localhost/api/maestro/estado/search?country=${fields.country}&query=${encodeURI(
+          fields.state
+            ? ""
+            : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+        )}`}
+        value={fields.country && fields.state}
+      />
+      <AsyncSelectField
+        autoFocus
+        disabled={!(fields.country && fields.state)}
+        fullWidth
+        handleSource={(source) => (
+          Object.values(source).map(({
+            pk_ciudad,
+            nombre,
+          }) => {
+            return { value: String(pk_ciudad), text: nombre };
+          })
+        )}
+        label="Ciudad"
         margin="dense"
         name="city"
-        label="Ciudad"
-        fullWidth
+        onChange={(event) => handleChange(event)}
+        onType={(event) => {
+          if (!fields.city) {
+            setFields((old_state) => ({ ...old_state, city: "" }));
+          }
+          const value = event.target.value;
+          setCityQuery(value);
+        }}
         required
+        source={`http://localhost/api/maestro/ciudad/search?state=${fields.state}&query=${encodeURI(
+          fields.city
+            ? ""
+            : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+        )}`}
+        value={fields.country && fields.state && fields.city}
       />
       <TextField
         autoFocus
+        fullWidth
+        label="Direccion"
         margin="dense"
         name="address"
-        label="Direccion"
-        fullWidth
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.address}
       />
     </DialogForm>
   );
@@ -180,9 +317,12 @@ const EditModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [city_query, setCityQuery] = useState("");
+  const [country_query, setCountryQuery] = useState("");
+  const [error, setError] = useState(null);
   const [fields, setFields] = useState({});
   const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [state_query, setStateQuery] = useState("");
 
   useEffect(() => {
     if (is_open) {
@@ -192,7 +332,9 @@ const EditModal = ({
         nit: data.nit,
         verification_digit: data.d_verificacion,
         business: data.razon_social,
-        city: data.ciudad,
+        country: String(data.fk_pais),
+        state: String(data.fk_estado),
+        city: String(data.fk_ciudad),
         address: data.direccion,
       });
     }
@@ -207,13 +349,12 @@ const EditModal = ({
     });
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
     const id = data.pk_cliente;
-    const request = await updateClient(id, new URLSearchParams(form_data));
+    const request = await updateClient(id, new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -286,15 +427,100 @@ const EditModal = ({
         required
         value={fields.business}
       />
-      <TextField
+      <AsyncSelectField
         autoFocus
+        fullWidth
+        handleSource={(source) => (
+          Object.values(source).map(({
+            pk_pais,
+            nombre,
+          }) => {
+            return { value: String(pk_pais), text: nombre };
+          })
+        )}
+        label="Pais"
+        margin="dense"
+        name="country"
+        onChange={(event) => handleChange(event)}
+        onType={(event) => {
+          if (fields.country) {
+            setFields((old_state) => ({ ...old_state, country: "" }));
+          }
+          const value = event.target.value;
+          setCountryQuery(value);
+        }}
+        preload
+        required
+        source={`http://localhost/api/maestro/pais/search?query=${encodeURI(
+          fields.country
+            ? ""
+            : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+        )}`}
+        value={fields.country}
+      />
+      <AsyncSelectField
+        autoFocus
+        disabled={!fields.country}
+        fullWidth
+        handleSource={(source) => (
+          Object.values(source).map(({
+            pk_estado,
+            nombre,
+          }) => {
+            return { value: String(pk_estado), text: nombre };
+          })
+        )}
+        label="Departamento"
+        margin="dense"
+        name="state"
+        onChange={(event) => handleChange(event)}
+        onType={(event) => {
+          if (fields.state) {
+            setFields((old_state) => ({ ...old_state, state: "" }));
+          }
+          const value = event.target.value;
+          setStateQuery(value);
+        }}
+        preload
+        required
+        source={`http://localhost/api/maestro/estado/search?country=${fields.country}&query=${encodeURI(
+          fields.state
+            ? ""
+            : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+        )}`}
+        value={fields.country && fields.state}
+      />
+      <AsyncSelectField
+        autoFocus
+        disabled={!(fields.country && fields.state)}
+        fullWidth
+        handleSource={(source) => (
+          Object.values(source).map(({
+            pk_ciudad,
+            nombre,
+          }) => {
+            return { value: String(pk_ciudad), text: nombre };
+          })
+        )}
+        label="Ciudad"
         margin="dense"
         name="city"
-        label="Ciudad"
-        fullWidth
         onChange={(event) => handleChange(event)}
+        onType={(event) => {
+          if (fields.city) {
+            setFields((old_state) => ({ ...old_state, city: "" }));
+          }
+          const value = event.target.value;
+          setCityQuery(value);
+        }}
+        preload
         required
-        value={fields.city}
+        source={`http://localhost/api/maestro/ciudad/search?state=${fields.state}&query=${encodeURI(
+          fields.city
+            ? ""
+            : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+        )}`}
+        value={fields.country && fields.state && fields.city}
       />
       <TextField
         autoFocus
@@ -348,7 +574,7 @@ const DeleteModal = ({
       <DialogContentText>
         Esta operacion no se puede deshacer.
         ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
-        elementos?
+        &nbsp;elementos?
       </DialogContentText>
     </DialogForm>
   );
