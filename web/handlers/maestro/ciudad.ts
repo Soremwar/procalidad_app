@@ -31,9 +31,8 @@ export const searchCity = async ({ response, request }: RouterContext) => {
   );
 
   const state: number = Number(param_state);
-  const query: string = String(param_query ?? "");
-  const limit: number = Number(param_limit) || 10;
-  if (!query) throw new RequestSyntaxError();
+  const query: string = param_query;
+  const limit: number = Number(param_limit) || 0;
 
   if (state) {
     response.body = await searchByNameAndState(state, query, limit);

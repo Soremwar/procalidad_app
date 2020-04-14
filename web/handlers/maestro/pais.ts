@@ -2,7 +2,7 @@ import { RouterContext, Body } from "oak";
 import {
   findAll,
   findById,
-  searchByName
+  searchByName,
 } from "../../../api/models/MAESTRO/PAIS.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
@@ -28,9 +28,8 @@ export const searchCountry = async ({ response, request }: RouterContext) => {
     request.searchParams.entries(),
   );
 
-  const query: string = String(param_query ?? "");
-  const limit: number = Number(param_limit) || 10;
-  if (!query) throw new RequestSyntaxError();
+  const query: string = param_query;
+  const limit: number = Number(param_limit) || 0;
 
   const countries = await searchByName(query, limit);
 

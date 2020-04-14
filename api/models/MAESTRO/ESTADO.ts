@@ -50,9 +50,10 @@ export const searchByName = async (
   limit: number,
 ): Promise<Estado[]> => {
   const { rows } = await postgres.query(
-    "SELECT PK_ESTADO, NOMBRE, FK_PAIS, FIPS, ALIAS FROM MAESTRO.ESTADO WHERE UNACCENT(NOMBRE) ILIKE $1 ORDER BY NOMBRE LIMIT $2",
-    `%${query}%`,
-    limit,
+    `SELECT PK_ESTADO, NOMBRE, FK_PAIS, FIPS, ALIAS FROM MAESTRO.ESTADO WHERE UNACCENT(NOMBRE) ILIKE $1 ORDER BY NOMBRE ${limit
+      ? `LIMIT ${limit}`
+      : ""}`,
+    `%${query || "%"}%`,
   );
 
   const models = rows.map((row: [
@@ -72,10 +73,11 @@ export const searchByNameAndCountry = async (
   limit: number,
 ): Promise<Estado[]> => {
   const { rows } = await postgres.query(
-    "SELECT PK_ESTADO, NOMBRE, FK_PAIS, FIPS, ALIAS FROM MAESTRO.ESTADO WHERE FK_PAIS = $1 AND UNACCENT(NOMBRE) ILIKE $2 ORDER BY NOMBRE LIMIT $3",
+    `SELECT PK_ESTADO, NOMBRE, FK_PAIS, FIPS, ALIAS FROM MAESTRO.ESTADO WHERE FK_PAIS = $1 AND UNACCENT(NOMBRE) ILIKE $2 ORDER BY NOMBRE ${limit
+      ? `LIMIT ${limit}`
+      : ""}`,
     country,
-    `%${query}%`,
-    limit,
+    `%${query || "%"}%`,
   );
 
   const models = rows.map((row: [

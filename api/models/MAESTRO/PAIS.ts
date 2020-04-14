@@ -50,9 +50,10 @@ export const searchByName = async (
   limit: number,
 ): Promise<Pais[]> => {
   const { rows } = await postgres.query(
-    "SELECT PK_PAIS, NOMBRE, ALIAS, COD_TELEFONO, MONEDA FROM MAESTRO.PAIS WHERE UNACCENT(NOMBRE) ILIKE $1 ORDER BY NOMBRE LIMIT $2",
-    `%${query}%`,
-    limit,
+    `SELECT PK_PAIS, NOMBRE, ALIAS, COD_TELEFONO, MONEDA FROM MAESTRO.PAIS WHERE UNACCENT(NOMBRE) ILIKE $1 ORDER BY NOMBRE ${limit
+      ? `LIMIT ${limit}`
+      : ""}`,
+    `%${query || "%"}%`,
   );
 
   const models = rows.map((row: [
