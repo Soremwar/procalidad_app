@@ -15,6 +15,9 @@ export default makeStyles((theme) => ({
     flexShrink: 0,
     whiteSpace: "nowrap",
   },
+  drawerContent: {
+    backgroundColor: '#f6f7ff',
+  },
   drawerOpen: {
     width: drawerWidth,
     transition: theme.transitions.create("width", {
@@ -32,6 +35,13 @@ export default makeStyles((theme) => ({
     [theme.breakpoints.down("sm")]: {
       width: drawerWidth,
     },
+  },
+  headerIcon: {
+    fontSize: 28,
+    color: theme.palette.text.secondary,
+  },
+  headerIconCollapse: {
+    color: theme.palette.text.hint,
   },
   toolbar: {
     ...theme.mixins.toolbar,

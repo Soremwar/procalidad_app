@@ -88,7 +88,10 @@ function Sidebar({ location }) {
         isSidebarOpened ? classes.drawerOpen : classes.drawerClose,
       ].join(" ")}
       classes={{
-        paper: isSidebarOpened ? classes.drawerOpen : classes.drawerClose,
+        paper: [
+          isSidebarOpened ? classes.drawerOpen : classes.drawerClose,
+          classes.drawerContent,
+        ].join(' '),
       }}
       open={isSidebarOpened}
     >

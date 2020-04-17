@@ -1,10 +1,11 @@
 import tinycolor from "tinycolor2";
 
-const primary = "#536DFE";
-const secondary = "#FF5C93";
+const primary = "#A6001A";
+const secondary = "#F4F3ED";
 const warning = "#FFC260";
 const success = "#3CD4A0";
-const info = "#9013FE";
+const info = "#B2D9FF";
+const error = "#FF4C4C";
 
 const lightenRate = 7.5;
 const darkenRate = 15;
@@ -57,13 +58,22 @@ export default {
         .darken(darkenRate)
         .toHexString(),
     },
+    error: {
+      main: error,
+      light: tinycolor(error)
+        .lighten(lightenRate)
+        .toHexString(),
+      dark: tinycolor(error)
+        .darken(darkenRate)
+        .toHexString(),
+    },
     text: {
       primary: "#4A4A4A",
       secondary: "#6E6E6E",
       hint: "#B9B9B9",
     },
     background: {
-      default: "#F6F7FF",
+      default: "#FFF",
       light: "#F3F5FF",
     },
   },
@@ -80,6 +90,14 @@ export default {
       root: {
         backgroundColor: "#4A4A4A1A",
       },
+    },
+    MuiCheckbox: {
+      colorSecondary: {
+        color: '#6e6e6e',
+        '&$checked': {
+          color: '#6e6e6e',
+        },
+      }
     },
     MuiMenu: {
       paper: {

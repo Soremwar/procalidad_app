@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
   },
   highlight: theme.palette.type === "light"
     ? {
-      color: theme.palette.secondary.main,
+      color: theme.palette.text.secondary,
       backgroundColor: lighten(theme.palette.secondary.light, 0.85),
     }
     : {
@@ -46,14 +46,12 @@ export default function Menu({
     <Toolbar
       className={[
         classes.root,
-        ...(numSelected > 0 ? [classes.highlight] : []),
+        classes.highlight,
       ].join(" ")}
     >
       {numSelected > 0
         ? (
-          <Typography className={classes.title} color="inherit"
-            variant="subtitle1"
-          >
+          <Typography className={classes.title} variant="subtitle1">
             {numSelected} seleccionados
           </Typography>
         )

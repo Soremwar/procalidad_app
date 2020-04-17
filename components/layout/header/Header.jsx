@@ -30,7 +30,7 @@ export default function Header(props) {
   const [profileMenu, setProfileMenu] = useState(null);
 
   return (
-    <AppBar position="fixed" className={classes.appBar}>
+    <AppBar position="fixed" color="secondary" className={classes.appBar}>
       <Toolbar className={classes.toolbar}>
         <IconButton
           color="inherit"
@@ -60,10 +60,10 @@ export default function Header(props) {
               />
             )}
         </IconButton>
-        <Typography variant="h6" weight="medium" className={classes.logotype}>
-          {/*TODO Replace with real app name */}
-          Procalidad App
-        </Typography>
+        <img src="/resources/img/logo.png" style={{
+          width: 'auto',
+          'maxHeight': '60px',
+        }} />
         <div className={classes.grow} />
         <IconButton
           aria-haspopup="true"
