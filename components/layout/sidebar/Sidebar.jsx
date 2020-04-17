@@ -22,6 +22,9 @@ import {
   toggleSidebar,
 } from "../../context/Layout.jsx";
 
+//TODO
+//Centralize links to component with virtual routing
+
 const structure = [
   { label: "Inicio", link: "/home", icon: <HomeIcon /> },
   {
@@ -38,6 +41,7 @@ const structure = [
     icon: <AccountBoxIcon />,
     children: [
       { label: "Tipo de Proyecto", link: "/operaciones/tipo_proyecto" },
+      { label: "Proyecto", link: "/operaciones/proyecto" },
     ],
   },
   {

@@ -47,6 +47,14 @@ import {
   updateProjectType,
 } from "./handlers/operaciones/tipo_proyecto.ts";
 import {
+  createProject,
+  deleteProject,
+  getProject,
+  getProjects,
+  getProjectsTable,
+  updateProject,
+} from "./handlers/operaciones/proyecto.ts";
+import {
   getPeople,
 } from "./handlers/organizacion/persona.ts";
 import {
@@ -118,6 +126,17 @@ main_router
   .delete<{ id: string }>(
     "/api/operaciones/tipo_proyecto/:id",
     deleteProjectType,
+  );
+
+main_router
+  .get("/api/operaciones/proyecto", getProjects)
+  .post("/api/operaciones/proyecto/table", getProjectsTable)
+  .post("/api/operaciones/proyecto", createProject)
+  .get<{ id: string }>("/api/operaciones/proyecto/:id", getProject)
+  .put<{ id: string }>("/api/operaciones/proyecto/:id", updateProject)
+  .delete<{ id: string }>(
+    "/api/operaciones/proyecto/:id",
+    deleteProject,
   );
 
 main_router
