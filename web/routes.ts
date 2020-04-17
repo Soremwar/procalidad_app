@@ -73,6 +73,14 @@ import {
   getAreasTable,
   updateArea,
 } from "./handlers/organizacion/area.ts";
+import {
+  createBudgetType,
+  deleteBudgetType,
+  getBudgetType,
+  getBudgetTypes,
+  getBudgetTypesTable,
+  updateBudgetType,
+} from "./handlers/operaciones/tipo_presupuesto.ts";
 
 const main_router = new Router();
 
@@ -162,6 +170,20 @@ main_router
   .delete<{ id: string }>(
     "/api/organizacion/area/:id",
     deleteArea,
+  );
+
+main_router
+  .get("/api/operaciones/tipo_presupuesto", getBudgetTypes)
+  .post("/api/operaciones/tipo_presupuesto/table", getBudgetTypesTable)
+  .post("/api/operaciones/tipo_presupuesto", createBudgetType)
+  .get<{ id: string }>("/api/operaciones/tipo_presupuesto/:id", getBudgetType)
+  .put<{ id: string }>(
+    "/api/operaciones/tipo_presupuesto/:id",
+    updateBudgetType,
+  )
+  .delete<{ id: string }>(
+    "/api/operaciones/tipo_presupuesto/:id",
+    deleteBudgetType,
   );
 
 export const routes = main_router.routes();

@@ -42,6 +42,7 @@ const structure = [
     children: [
       { label: "Tipo de Proyecto", link: "/operaciones/tipo_proyecto" },
       { label: "Proyecto", link: "/operaciones/proyecto" },
+      { label: "Tipo de Presupuesto", link: "/operaciones/tipo_presupuesto" },
     ],
   },
   {
