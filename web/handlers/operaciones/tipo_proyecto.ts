@@ -3,7 +3,7 @@ import {
   createNew,
   findAll,
   findById,
-  getTableData
+  getTableData,
 } from "../../../api/models/OPERACIONES/TIPO_PROYECTO.ts";
 import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
@@ -13,9 +13,8 @@ export const getProjectTypes = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getProjectTypesTable = async (
-  { request, response }: RouterContext,
-) => {
+export const getProjectTypesTable = async ({ request, response }:
+  RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -51,20 +50,21 @@ export const getProjectTypesTable = async (
   response.body = data;
 };
 
-export const createProjectType = async (
-  { request, response }: RouterContext,
-) => {
+export const createProjectType = async ({ request, response }:
+  RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
     name,
+    billable,
   }: { [x: string]: string } = await request.body()
     .then((x: Body) => Object.fromEntries(x.value));
 
-  if (!name) throw new RequestSyntaxError();
+  if (!(name && !isNaN(Number(billable)))) throw new RequestSyntaxError();
 
   await createNew(
     name,
+    Boolean(Number(billable)),
   );
 
   response = formatResponse(
@@ -84,9 +84,8 @@ export const getProjectType = async ({ params, response }: RouterContext) => {
   response.body = project_type;
 };
 
-export const updateProjectType = async (
-  { params, request, response }: RouterContext,
-) => {
+export const updateProjectType = async ({ params, request, response }:
+  RouterContext) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
@@ -98,20 +97,22 @@ export const updateProjectType = async (
 
   const {
     name,
+    billable,
   }: {
     name?: string;
+    billable?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
   project_type = await project_type.update(
     name,
+    !isNaN(Number(billable)) ? Boolean(Number(billable)) : undefined,
   );
 
   response.body = project_type;
 };
 
-export const deleteProjectType = async (
-  { params, response }: RouterContext,
-) => {
+export const deleteProjectType = async ({ params, response }:
+  RouterContext) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

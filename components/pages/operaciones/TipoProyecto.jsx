@@ -12,6 +12,7 @@ import {
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
+import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
 //TODO
@@ -56,6 +57,7 @@ const deleteProjectType = async (id) => {
 
 const headers = [
   { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
+  { id: "billable", numeric: false, disablePadding: false, label: "Facturable" },
 ];
 
 const AddModal = ({
@@ -93,13 +95,22 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <TextField
-        autoFocus
         margin="dense"
         name="name"
         label="Tipo de Proyecto"
         fullWidth
         required
       />
+      <SelectField
+        margin="dense"
+        name="billable"
+        label="Facturable"
+        fullWidth
+        required
+      >
+        <option value="0">No Facturable</option>
+        <option value="1">Facturable</option>
+      </SelectField>
     </DialogForm>
   );
 };
@@ -110,7 +121,10 @@ const EditModal = ({
   setModalOpen,
   updateTable,
 }) => {
-  const [fields, setFields] = useState({});
+  const [fields, setFields] = useState({
+    name: '',
+    billable: '',
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -118,6 +132,7 @@ const EditModal = ({
     if (is_open) {
       setFields({
         name: data.nombre,
+        billable: Number(data.ban_facturable),
       });
     }
   }, [is_open]);
@@ -159,7 +174,6 @@ const EditModal = ({
       title={"Editar"}
     >
       <TextField
-        autoFocus
         fullWidth
         label="Nombre Completo"
         margin="dense"
@@ -168,6 +182,18 @@ const EditModal = ({
         required
         value={fields.name}
       />
+      <SelectField
+        margin="dense"
+        name="billable"
+        label="Facturable"
+        fullWidth
+        onChange={(event) => handleChange(event)}
+        required
+        value={fields.billable}
+      >
+        <option value="0">No Facturable</option>
+        <option value="1">Facturable</option>
+      </SelectField>
     </DialogForm>
   );
 };
