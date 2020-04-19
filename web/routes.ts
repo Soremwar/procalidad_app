@@ -89,6 +89,14 @@ import {
   getRolesTable,
   updateRole,
 } from "./handlers/operaciones/rol.ts";
+import {
+  createBudget,
+  deleteBudget,
+  getBudget,
+  getBudgets,
+  getBudgetTable,
+  updateBudget,
+} from "./handlers/operaciones/presupuesto.ts";
 
 const main_router = new Router();
 
@@ -185,8 +193,14 @@ main_router
   .post("/api/operaciones/tipo_presupuesto/table", getBudgetTypesTable)
   .post("/api/operaciones/tipo_presupuesto", createBudgetType)
   .get<{ id: string }>("/api/operaciones/tipo_presupuesto/:id", getBudgetType)
-  .put<{ id: string }>("/api/operaciones/tipo_presupuesto/:id", updateBudgetType)
-  .delete<{ id: string }>("/api/operaciones/tipo_presupuesto/:id", deleteBudgetType);
+  .put<{ id: string }>(
+    "/api/operaciones/tipo_presupuesto/:id",
+    updateBudgetType,
+  )
+  .delete<{ id: string }>(
+    "/api/operaciones/tipo_presupuesto/:id",
+    deleteBudgetType,
+  );
 
 main_router
   .get("/api/operaciones/rol", getRoles)
@@ -195,6 +209,14 @@ main_router
   .get<{ id: string }>("/api/operaciones/rol/:id", getRole)
   .put<{ id: string }>("/api/operaciones/rol/:id", updateRole)
   .delete<{ id: string }>("/api/operaciones/rol/:id", deleteRole);
+
+main_router
+  .get("/api/operaciones/presupuesto", getBudgets)
+  .post("/api/operaciones/presupuesto/table", getBudgetTable)
+  .post("/api/operaciones/presupuesto", createBudget)
+  .get<{ id: string }>("/api/operaciones/presupuesto/:id", getBudget)
+  .put<{ id: string }>("/api/operaciones/presupuesto/:id", updateBudget)
+  .delete<{ id: string }>("/api/operaciones/presupuesto/:id", deleteBudget);
 
 export const routes = main_router.routes();
 export const allowedMethods = main_router.allowedMethods();

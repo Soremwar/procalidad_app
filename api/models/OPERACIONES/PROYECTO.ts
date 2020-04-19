@@ -128,7 +128,6 @@ class TableData {
     public client: string,
     public area: string,
     public name: string,
-    public status: string,
   ) { }
 }
 
@@ -145,7 +144,13 @@ export const getTableData = async (
   //Normalize query generator
 
   const query =
-    `SELECT * FROM (SELECT PK_PROYECTO AS ID, (SELECT NOMBRE FROM OPERACIONES.TIPO_PROYECTO WHERE PK_PROYECTO = FK_TIPO_PROYECTO) AS TYPE, (SELECT NOMBRE FROM CLIENTES.CLIENTE WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT, (SELECT NOMBRE FROM ORGANIZACION.AREA WHERE PK_AREA = FK_AREA) AS AREA, NOMBRE AS NAME, ESTADO AS STATUS FROM OPERACIONES.PROYECTO) AS TOTAL` +
+    `SELECT * FROM (
+      SELECT PK_PROYECTO AS ID,
+      (SELECT NOMBRE FROM OPERACIONES.TIPO_PROYECTO WHERE PK_PROYECTO = FK_TIPO_PROYECTO) AS TYPE,
+      (SELECT NOMBRE FROM CLIENTES.CLIENTE WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT,
+      (SELECT NOMBRE FROM ORGANIZACION.AREA WHERE PK_AREA = FK_AREA) AS AREA,
+      NOMBRE AS NAME
+    FROM OPERACIONES.PROYECTO) AS TOTAL` +
     " " +
     `WHERE UNACCENT(NAME) ILIKE '%${search}%'` +
     " " +
@@ -161,7 +166,6 @@ export const getTableData = async (
 
   const models = result.map((x: [
     number,
-    string,
     string,
     string,
     string,

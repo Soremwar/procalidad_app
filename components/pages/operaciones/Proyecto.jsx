@@ -84,7 +84,6 @@ const headers = [
   { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
   { id: "area", numeric: false, disablePadding: false, label: "Area" },
   { id: "client", numeric: false, disablePadding: false, label: "Cliente" },
-  { id: "status", numeric: false, disablePadding: false, label: "Estado" },
 ];
 
 const AddModal = ({
@@ -177,9 +176,10 @@ const AddModal = ({
         name="status"
         required
       >
-        <option value={0}>{"No iniciado"}</option>
-        <option value={1}>{"Completado"}</option>
-        <option value={2}>{"En proceso"}</option>
+        <option value={"0"}>Cancelado</option>
+        <option value={"1"}>Finalizado</option>
+        <option value={"2"}>En proceso</option>
+        <option value={"3"}>En etapa comercial</option>
       </SelectField>
     </DialogForm>
   );
@@ -319,9 +319,10 @@ const EditModal = ({
         required
         value={fields.status}
       >
-        <option value={0}>{"No iniciado"}</option>
-        <option value={1}>{"Completado"}</option>
-        <option value={2}>{"En proceso"}</option>
+        <option value={"0"}>Cancelado</option>
+        <option value={"1"}>Finalizado</option>
+        <option value={"2"}>En proceso</option>
+        <option value={"3"}>En etapa comercial</option>
       </SelectField>
     </DialogForm>
   );
