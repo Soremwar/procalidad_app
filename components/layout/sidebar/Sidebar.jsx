@@ -44,6 +44,7 @@ const structure = [
       { label: "Proyecto", link: "/operaciones/proyecto" },
       { label: "Tipo de Presupuesto", link: "/operaciones/tipo_presupuesto" },
       { label: "Rol", link: "/operaciones/rol" },
+      { label: "Presupuesto", link: "/operaciones/presupuesto" },
     ],
   },
   {

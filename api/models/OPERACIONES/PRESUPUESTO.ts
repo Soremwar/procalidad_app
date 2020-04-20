@@ -16,7 +16,7 @@ class Presupuesto {
     public nombre: string,
     public descripcion: string,
     public estado: boolean,
-  ) {}
+  ) { }
 
   async update(
     fk_proyecto: number = this.fk_proyecto,
@@ -41,7 +41,7 @@ class Presupuesto {
         FK_TIPO_PRESUPUESTO = $3,
         NOMBRE = $4,
         DESCRIPCION = $5,
-        ESTADO = $6,
+        ESTADO = $6
       WHERE PK_PRESUPUESTO = $1`,
       this.pk_presupuesto,
       this.fk_proyecto,
@@ -102,7 +102,7 @@ export const findById = async (id: number): Promise<Presupuesto | null> => {
       DESCRIPCION,
       ESTADO
     FROM ${TABLE}
-    WHERE PK_TIPO = $1`,
+    WHERE PK_PRESUPUESTO = $1`,
     id,
   );
   if (!rows[0]) return null;
@@ -147,7 +147,7 @@ class TableData {
     public project: string,
     public budget_type: string,
     public status: string,
-  ) {}
+  ) { }
 }
 
 export const getTableData = async (

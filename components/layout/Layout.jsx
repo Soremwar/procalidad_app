@@ -20,6 +20,7 @@ import TipoArea from "../pages/organizacion/TipoArea.jsx";
 import Area from "../pages/organizacion/Area.jsx";
 import TipoPresupuesto from "../pages/operaciones/TipoPresupuesto.jsx";
 import Rol from "../pages/operaciones/Rol.jsx";
+import Presupuesto from "../pages/operaciones/Presupuesto.jsx";
 
 const Layout = (props) => {
   const classes = useStyles();
@@ -49,6 +50,7 @@ const Layout = (props) => {
             <Route path="/organizacion/area" component={Area} />
             <Route path="/operaciones/tipo_presupuesto" component={TipoPresupuesto} />
             <Route path="/operaciones/rol" component={Rol} />
+            <Route path="/operaciones/presupuesto" component={Presupuesto} />
           </Switch>
         </div>
       </Fragment>
