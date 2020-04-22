@@ -1,4 +1,7 @@
-import React from "react";
+import React, {
+  useEffect,
+  useRef,
+} from "react";
 import {
   Button,
   CircularProgress,
@@ -6,16 +9,21 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Typography
+  Typography,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 
 const useStyles = makeStyles((theme) => ({
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    margin: "auto",
+    width: "100%",
+  },
   loginLoader: {
     marginLeft: theme.spacing(4),
   },
-})
-);
+}));
 
 const CONFIRM_BUTTON_TEXT = "Guardar";
 
@@ -27,6 +35,7 @@ export default ({
   is_loading,
   is_open,
   setIsOpen,
+  size = "sm",
   title,
 }) => {
   const classes = useStyles();
@@ -36,8 +45,8 @@ export default ({
     handleSubmit(event);
   };
 
-  const descriptionElementRef = React.useRef(null);
-  React.useEffect(() => {
+  const descriptionElementRef = useRef(null);
+  useEffect(() => {
     if (is_open) {
       const { current: descriptionElement } = descriptionElementRef;
       if (descriptionElement !== null) {
@@ -49,14 +58,19 @@ export default ({
   return (
     <div>
       <Dialog
-        open={is_open}
-        onClose={() => setIsOpen(false)}
-        scroll={"paper"}
-        aria-labelledby="scroll-dialog-title"
         aria-describedby="scroll-dialog-description"
+        aria-labelledby="scroll-dialog-title"
+        fullWidth
+        maxWidth={size}
+        onClose={() => setIsOpen(false)}
+        open={is_open}
+        scroll={"paper"}
       >
         <DialogTitle id="form-dialog-title">{title}</DialogTitle>
-        <form onSubmit={submitForm}>
+        <form
+          className={classes.form}
+          onSubmit={submitForm}
+        >
           <DialogContent>
             {children}
             {error && (
