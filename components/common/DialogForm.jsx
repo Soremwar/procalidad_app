@@ -94,7 +94,9 @@ export default ({
                 />
               )
               : (
-                <Button type="submit" color="primary">
+                <Button type="submit" color="primary" onClick={((event) =>
+                  event.stopPropagation())}
+                >
                   {confirmButtonText}
                 </Button>
               )}

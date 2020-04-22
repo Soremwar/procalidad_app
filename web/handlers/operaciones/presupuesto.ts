@@ -1,16 +1,21 @@
 import { RouterContext, Body } from "oak";
 import {
-  createNew,
-  findAll,
-  findById,
-  getTableData,
+  createNew as createBudgetItem,
+  findAll as findBudgetItems,
+  findById as findBudgetItem,
+  getTableData as getBudgetItemTable,
 } from "../../../api/models/OPERACIONES/PRESUPUESTO.ts";
+import {
+  createNew as createBudgetDetail,
+  deleteByBudget as deleteBudgetDetail,
+  findByBudget as findBudgetDetail,
+} from "../../../api/models/OPERACIONES/PRESUPUESTO_DETALLE.ts";
 import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
 export const getBudgets = async ({ response }: RouterContext) => {
-  response.body = await findAll();
+  response.body = await findBudgetItems();
 };
 
 export const getBudgetTable = async ({ request, response }: RouterContext) => {
@@ -39,7 +44,7 @@ export const getBudgetTable = async ({ request, response }: RouterContext) => {
     ? String(search)
     : "";
 
-  const data = await getTableData(
+  const data = await getBudgetItemTable(
     order_parameters,
     page || 0,
     rows || null,
@@ -58,8 +63,8 @@ export const createBudget = async ({ request, response }: RouterContext) => {
     name,
     description,
     status,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+    roles,
+  } = await request.body().then((x: Body) => x.value);
 
   if (
     !(
@@ -67,19 +72,30 @@ export const createBudget = async ({ request, response }: RouterContext) => {
       Number(budget_type) &&
       name &&
       description &&
-      !isNaN(Number(status))
+      !isNaN(Number(status)) &&
+      Array.isArray(roles)
     )
   ) {
     throw new RequestSyntaxError();
   }
 
-  await createNew(
+  const budget_id = await createBudgetItem(
     Number(project),
     Number(budget_type),
     name,
     description,
     Boolean(Number(status)),
   );
+
+  for (const role of roles) {
+    if (!Number(role.id)) continue;
+    await createBudgetDetail(
+      budget_id,
+      Number(role.id),
+      Number(role.time) || 0,
+      Number(role.price) || 0,
+    );
+  }
 
   response = formatResponse(
     response,
@@ -92,10 +108,12 @@ export const getBudget = async ({ params, response }: RouterContext) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  const budget = await findById(id);
+  const budget = await findBudgetItem(id);
   if (!budget) throw new NotFoundError();
 
-  response.body = budget;
+  const detail = await findBudgetDetail(id);
+
+  response.body = { ...budget, roles: detail };
 };
 
 export const updateBudget = async (
@@ -104,11 +122,8 @@ export const updateBudget = async (
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  let budget = await findById(id);
+  let budget = await findBudgetItem(id);
   if (!budget) throw new NotFoundError();
-
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
 
   const {
     project,
@@ -116,13 +131,8 @@ export const updateBudget = async (
     name,
     description,
     status,
-  }: {
-    project?: string;
-    budget_type?: string;
-    name?: string;
-    description?: string;
-    status?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+    roles,
+  } = await request.body().then((x: Body) => x.value);
 
   budget = await budget.update(
     Number(project) || undefined,
@@ -132,6 +142,17 @@ export const updateBudget = async (
     !isNaN(Number(status)) ? Boolean(Number(status)) : undefined,
   );
 
+  await deleteBudgetDetail(id);
+  for (const role of roles) {
+    if (!Number(role.id)) continue;
+    await createBudgetDetail(
+      id,
+      Number(role.id),
+      Number(role.time) || 0,
+      Number(role.price) || 0,
+    );
+  }
+
   response.body = budget;
 };
 
@@ -139,8 +160,10 @@ export const deleteBudget = async ({ params, response }: RouterContext) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  let budget = await findById(id);
+  let budget = await findBudgetItem(id);
   if (!budget) throw new NotFoundError();
+
+  await deleteBudgetDetail(id);
 
   await budget.delete();
   response = formatResponse(

@@ -127,21 +127,25 @@ export const createNew = async (
   nombre: string,
   descripcion: string,
   estado: boolean,
-) => {
-  await postgres.query(
+): Promise<number> => {
+  const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_PROYECTO,
       FK_TIPO_PRESUPUESTO,
       NOMBRE,
       DESCRIPCION,
       ESTADO
-    ) VALUES ($1, $2, $3, $4, $5)`,
+    ) VALUES ($1, $2, $3, $4, $5)
+    RETURNING PK_PRESUPUESTO`,
     fk_proyecto,
     fk_tipo_presupuesto,
     nombre,
     descripcion,
     estado,
   );
+
+  //Returns created id
+  return rows[0][0];
 };
 
 class TableData {

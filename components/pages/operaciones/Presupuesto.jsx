@@ -4,9 +4,19 @@ import React, {
   useState,
 } from "react";
 import {
+  Checkbox,
   DialogContentText,
   Grid,
+  IconButton,
+  Paper,
+  Table,
+  TableContainer,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   TextField,
+  Typography,
 } from "@material-ui/core";
 
 import AsyncSelectField from "../../common/AsyncSelectField.jsx";
@@ -18,6 +28,14 @@ import Widget from "../../common/Widget.jsx";
 
 //TODO
 //Add primary key as constant
+
+const getRoles = () => {
+  //TODO
+  //Remove hardcoded url
+  const url = `http://localhost/api/operaciones/rol`;
+  return fetch(`${url}`)
+    .then((x) => x.json());
+};
 
 const getClients = () => {
   //TODO
@@ -49,7 +67,10 @@ const createBudget = async (form_data) => {
   const url = "http://localhost/api/operaciones/presupuesto";
   return await fetch(`${url}`, {
     method: "POST",
-    body: form_data,
+    body: JSON.stringify(form_data),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 };
 
@@ -59,7 +80,10 @@ const updateBudget = async (id, form_data) => {
   const url = `http://localhost/api/operaciones/presupuesto/${id}`;
   return await fetch(`${url}`, {
     method: "PUT",
-    body: form_data,
+    body: JSON.stringify(form_data),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 };
 
@@ -84,6 +108,222 @@ const headers = [
   { id: "status", numeric: false, disablePadding: false, label: "Estado" },
 ];
 
+const BudgetRole = ({
+  id,
+  index,
+  time,
+  price,
+  roles,
+  updateRole,
+  deleteRole,
+}) => {
+  const [fields, setFields] = useState({
+    id,
+    time,
+    price,
+  });
+
+  const handleChange = (event) => {
+    if (!event.target.checkValidity()) return;
+    const name = event.target.name;
+    const value = Number(event.target.value);
+    setFields((prev_state) => {
+      const data = ({ ...prev_state, [name]: value });
+      return data;
+    });
+  };
+
+  useEffect(() => {
+    setFields((prev_state) => ({ ...prev_state, price }));
+  }, [price]);
+
+  useEffect(() => {
+    updateRole(index, fields.id, fields.time, fields.price);
+  }, [fields]);
+
+  return (
+    <TableRow>
+      <TableCell width="10%">
+        <IconButton
+          color="primary"
+          onClick={(() => deleteRole(index))}
+          variant="contained"
+        >
+          -
+        </IconButton>
+      </TableCell>
+      <TableCell width="30%">
+        <SelectField
+          margin="dense"
+          name="role"
+          fullWidth
+          onChange={(event) => handleChange(event)}
+          required
+          value={fields.id}
+        >
+          {roles.map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
+        </SelectField>
+      </TableCell>
+      <TableCell width="15%">
+        <TextField
+          InputLabelProps={{
+            shrink: true,
+          }}
+          name="time"
+          onChange={(event) => handleChange(event)}
+          required
+          type="number"
+          value={fields.time}
+          variant="outlined"
+        />
+      </TableCell>
+      <TableCell width="25%">
+        <TextField
+          InputLabelProps={{
+            shrink: true,
+          }}
+          name="price"
+          onChange={(event) => handleChange(event)}
+          required
+          type="number"
+          value={fields.price}
+          variant="outlined"
+        />
+      </TableCell>
+      <TableCell width="20%">{`$ ${fields.time * fields.price}`}</TableCell>
+    </TableRow>
+  );
+};
+
+const BudgetDetail = ({
+  roles,
+  setRoles,
+}) => {
+  const [available_roles, setAvailableRoles] = useState([]);
+  const [distribute, setDistribute] = useState(false);
+
+  useEffect(() => {
+    getRoles()
+      .then((roles) =>
+        roles.map((role) => {
+          return {
+            id: role.pk_rol,
+            name: role.nombre,
+          };
+        })
+      )
+      .then((roles) => setAvailableRoles(roles));
+  }, []);
+
+  const addRole = () => {
+    if (!available_roles.length) return;
+    const role = available_roles[0];
+    const new_role = { id: role.id, name: role.name, time: 0, price: 0 };
+    setRoles((prev_roles) => ([...prev_roles, new_role]));
+  };
+
+  const updateRole = (key, id, time, price) => {
+    setRoles((prev_roles) => (
+      prev_roles.map((role, index) => {
+        if (index !== key) return role;
+        role.id = id;
+        role.time = time;
+        role.price = price;
+        return role;
+      })
+    ));
+  };
+
+  const deleteRole = (key) => {
+    setRoles((prev_roles) => prev_roles.filter((_, index) => index !== key));
+  };
+
+  const distributeValue = (event) => {
+    if (!event.target.checkValidity()) return;
+    const time = roles.reduce((sum, role) => (sum + role.time), 0);
+    const value = Number(event.target.value);
+    const price = value / time;
+
+    setRoles((prev_roles) =>
+      prev_roles.map((role) => {
+        role.price = price;
+        return role;
+      })
+    );
+  };
+
+  return (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell width="10%">
+              <IconButton
+                variant="contained"
+                color="primary"
+                onClick={addRole}
+              >
+                +
+              </IconButton>
+            </TableCell>
+            <TableCell width="30%">Rol</TableCell>
+            <TableCell width="15%">Horas</TableCell>
+            <TableCell width="25%">Tarifa</TableCell>
+            <TableCell width="20%">Total Costo</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {roles.map((role, index) => (
+            <BudgetRole
+              index={index}
+              key={index}
+              roles={available_roles}
+              updateRole={updateRole}
+              deleteRole={deleteRole}
+              {...role}
+            />
+          ))}
+        </TableBody>
+      </Table>
+      <Grid container style={{ padding: "10px" }}>
+        <Grid item xs={6}>
+          <Typography variant="h6" gutterBottom>
+            Total de Horas: {roles.reduce((sum, role) => (sum + role.time), 0)}
+          </Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="h6" gutterBottom>
+            Valor Total: $ {roles.reduce(
+              (sum, role) => (sum + (role.time * role.price)),
+              0,
+            )}
+          </Typography>
+        </Grid>
+        <Grid container>
+          <Typography variant="h6" gutterBottom>
+            <Checkbox
+              checked={distribute}
+              onChange={(event) => setDistribute(event.target.checked)}
+            />
+            Distribuir tarifas por valor
+            <TextField
+              disabled={!distribute}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              onChange={(event) => distributeValue(event)}
+              type="number"
+              variant="outlined"
+            />
+          </Typography>
+        </Grid>
+      </Grid>
+    </TableContainer>
+  );
+};
+
 const AddModal = ({
   budget_types,
   clients,
@@ -102,6 +342,7 @@ const AddModal = ({
     status: "",
   });
   const [project_query, setProjectQuery] = useState("");
+  const [roles, setRoles] = useState([]);
 
   const handleChange = (event) => {
     const name = event.target.name;
@@ -112,11 +353,22 @@ const AddModal = ({
     });
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const request = await createBudget(new URLSearchParams(fields));
+    const unique_roles = roles.reduce((count, x) => {
+      if (!count.includes(x.id)) count.push(x.id);
+      return count;
+    }, []);
+
+    if (unique_roles.length !== roles.length) {
+      setError("Los roles seleccionados no pueden repetirse");
+      setLoading(false);
+      return;
+    }
+
+    const request = await createBudget({ ...fields, roles });
 
     if (request.ok) {
       setModalOpen(false);
@@ -139,6 +391,7 @@ const AddModal = ({
         description: "",
         status: "",
       });
+      setRoles([]);
       setLoading(false);
     }
   }, [is_open]);
@@ -150,6 +403,7 @@ const AddModal = ({
       is_loading={is_loading}
       is_open={is_open}
       setIsOpen={setModalOpen}
+      size="md"
       title={"Crear Nuevo"}
     >
       <SelectField
@@ -238,6 +492,13 @@ const AddModal = ({
         <option value="0">Cerrado</option>
         <option value="1">Abierto</option>
       </SelectField>
+      <br />
+      <br />
+      <br />
+      <BudgetDetail
+        roles={roles}
+        setRoles={setRoles}
+      />
     </DialogForm>
   );
 };
@@ -260,6 +521,7 @@ const EditModal = ({
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [project_query, setProjectQuery] = useState("");
+  const [roles, setRoles] = useState([]);
 
   useEffect(() => {
     if (is_open) {
@@ -271,6 +533,11 @@ const EditModal = ({
         description: data.descripcion,
         status: Number(data.estado),
       });
+      setRoles(
+        data.roles.map((
+          { fk_rol, horas, tarifa_hora },
+        ) => ({ id: fk_rol, time: horas, price: tarifa_hora })),
+      );
     }
   }, [is_open]);
 
@@ -283,12 +550,23 @@ const EditModal = ({
     });
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
+    const unique_roles = roles.reduce((count, x) => {
+      if (!count.includes(x.id)) count.push(x.id);
+      return count;
+    }, []);
+
+    if (unique_roles.length !== roles.length) {
+      setError("Los roles seleccionados no pueden repetirse");
+      setLoading(false);
+      return;
+    }
+
     const id = data.pk_presupuesto;
-    const request = await updateBudget(id, new URLSearchParams(fields));
+    const request = await updateBudget(id, { ...fields, roles });
 
     if (request.ok) {
       setModalOpen(false);
@@ -307,6 +585,7 @@ const EditModal = ({
       is_loading={is_loading}
       is_open={is_open}
       setIsOpen={setModalOpen}
+      size="md"
       title={"Editar"}
     >
       <SelectField
@@ -396,6 +675,13 @@ const EditModal = ({
         <option value="0">Cerrado</option>
         <option value="1">Abierto</option>
       </SelectField>
+      <br />
+      <br />
+      <br />
+      <BudgetDetail
+        roles={roles}
+        setRoles={setRoles}
+      />
     </DialogForm>
   );
 };
