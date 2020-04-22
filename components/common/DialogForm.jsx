@@ -30,9 +30,9 @@ const CONFIRM_BUTTON_TEXT = "Guardar";
 export default ({
   children,
   confirmButtonText = CONFIRM_BUTTON_TEXT,
-  error,
+  error = null,
   handleSubmit,
-  is_loading,
+  is_loading = false,
   is_open,
   setIsOpen,
   size = "sm",
