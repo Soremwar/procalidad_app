@@ -4,6 +4,7 @@ import {
   findAll,
   findById,
   getTableData,
+  searchByNameAndClient,
 } from "../../../api/models/OPERACIONES/PROYECTO.ts";
 import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
@@ -13,9 +14,8 @@ export const getProjects = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getProjectsTable = async (
-  { request, response }: RouterContext,
-) => {
+export const getProjectsTable = async ({ request, response }:
+  RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -64,7 +64,18 @@ export const createProject = async ({ request, response }: RouterContext) => {
   }: { [x: string]: string } = await request.body()
     .then((x: Body) => Object.fromEntries(x.value));
 
-  if (!(Number(type) && Number(client) && Number(area) && name && description && Number.isInteger(Number(status)))) throw new RequestSyntaxError();
+  if (
+    !(
+      Number(type) &&
+      Number(client) &&
+      Number(area) &&
+      name &&
+      description &&
+      Number.isInteger(Number(status))
+    )
+  ) {
+    throw new RequestSyntaxError();
+  }
 
   await createNew(
     Number(type),
@@ -92,8 +103,26 @@ export const getProject = async ({ params, response }: RouterContext) => {
   response.body = project;
 };
 
-export const updateProject = async ({ params, request, response }:
-  RouterContext) => {
+export const searchProject = async ({ response, request }: RouterContext) => {
+  const {
+    client: param_client,
+    query: param_query,
+    limit: param_limit,
+  }: { [x: string]: string } = Object.fromEntries(
+    request.searchParams.entries(),
+  );
+
+  const client: number = Number(param_client);
+  const query: string = param_query;
+  const limit: number = Number(param_limit) || 0;
+
+  if (!client) throw new RequestSyntaxError();
+  response.body = await searchByNameAndClient(client, query, limit);
+};
+
+export const updateProject = async (
+  { params, request, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 

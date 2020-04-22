@@ -18,7 +18,7 @@ class Proyecto {
     public nombre: string,
     public descripcion: string,
     public estado: number,
-  ) { }
+  ) {}
 
   async update(
     fk_tipo_proyecto: number = this.fk_tipo_proyecto,
@@ -102,6 +102,41 @@ export const findById = async (id: number): Promise<Proyecto | null> => {
   return new Proyecto(...result);
 };
 
+export const searchByNameAndClient = async (
+  client: number,
+  query: string,
+  limit: number,
+): Promise<Proyecto[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_PROYECTO,
+      FK_TIPO_PROYECTO,
+      FK_CLIENTE,
+      FK_AREA,
+      NOMBRE,
+      DESCRIPCION,
+      ESTADO
+    FROM ${TABLE}
+    WHERE FK_CLIENTE = $1
+    AND UNACCENT(NOMBRE) ILIKE $2
+    ${limit ? `LIMIT ${limit}` : ""}`,
+    client,
+    `%${query || "%"}%`,
+  );
+
+  const models = rows.map((result: [
+    number,
+    number,
+    number,
+    number,
+    string,
+    string,
+    number,
+  ]) => new Proyecto(...result));
+
+  return models;
+};
+
 export const createNew = async (
   fk_tipo_proyecto: number,
   fk_cliente: number,
@@ -128,7 +163,7 @@ class TableData {
     public client: string,
     public area: string,
     public name: string,
-  ) { }
+  ) {}
 }
 
 export const getTableData = async (
@@ -143,8 +178,7 @@ export const getTableData = async (
   //TODO
   //Normalize query generator
 
-  const query =
-    `SELECT * FROM (
+  const query = `SELECT * FROM (
       SELECT PK_PROYECTO AS ID,
       (SELECT NOMBRE FROM OPERACIONES.TIPO_PROYECTO WHERE PK_PROYECTO = FK_TIPO_PROYECTO) AS TYPE,
       (SELECT NOMBRE FROM CLIENTES.CLIENTE WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT,

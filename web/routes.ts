@@ -52,6 +52,7 @@ import {
   getProject,
   getProjects,
   getProjectsTable,
+  searchProject,
   updateProject,
 } from "./handlers/operaciones/proyecto.ts";
 import {
@@ -156,6 +157,7 @@ main_router
   .get("/api/operaciones/proyecto", getProjects)
   .post("/api/operaciones/proyecto/table", getProjectsTable)
   .post("/api/operaciones/proyecto", createProject)
+  .get<{ id: string }>("/api/operaciones/proyecto/search", searchProject)
   .get<{ id: string }>("/api/operaciones/proyecto/:id", getProject)
   .put<{ id: string }>("/api/operaciones/proyecto/:id", updateProject)
   .delete<{ id: string }>(
