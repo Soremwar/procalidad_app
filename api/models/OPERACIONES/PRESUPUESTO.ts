@@ -11,12 +11,13 @@ const TABLE = "OPERACIONES.PRESUPUESTO";
 class Presupuesto {
   constructor(
     public readonly pk_presupuesto: number,
+    public fk_cliente: number | undefined,
     public fk_proyecto: number,
     public fk_tipo_presupuesto: number,
     public nombre: string,
     public descripcion: string,
     public estado: boolean,
-  ) { }
+  ) {}
 
   async update(
     fk_proyecto: number = this.fk_proyecto,
@@ -82,6 +83,7 @@ export const findAll = async (): Promise<Presupuesto[]> => {
 
   const models = rows.map((row: [
     number,
+    undefined,
     number,
     number,
     string,
@@ -96,6 +98,7 @@ export const findById = async (id: number): Promise<Presupuesto | null> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_PRESUPUESTO,
+      (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = FK_PROYECTO) AS FK_CLIENTE,
       FK_PROYECTO,
       FK_TIPO_PRESUPUESTO,
       NOMBRE,
@@ -107,6 +110,7 @@ export const findById = async (id: number): Promise<Presupuesto | null> => {
   );
   if (!rows[0]) return null;
   const result: [
+    number,
     number,
     number,
     number,
@@ -147,7 +151,7 @@ class TableData {
     public project: string,
     public budget_type: string,
     public status: string,
-  ) { }
+  ) {}
 }
 
 export const getTableData = async (
