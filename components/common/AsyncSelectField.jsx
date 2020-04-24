@@ -11,10 +11,14 @@ import {
   Autocomplete,
 } from "@material-ui/lab";
 import { createFilterOptions } from "@material-ui/lab/Autocomplete";
+
+import { requestGenerator } from "../../lib/api/request.js";
 import hashGenerator from "../../lib/hash_generator/mod.js";
 import { NetworkError } from "../../lib/errors/mod.js";
 
 const DEFAULT_ERROR_TEXT = "No fue posible cargar la informacion";
+
+const fetchApi = requestGenerator();
 
 /**
  * Returns the values needed to render the options
@@ -66,7 +70,7 @@ export default ({
     if ((open || preload) && !disabled) {
       setError(null);
       setLoading(true);
-      fetch(source)
+      fetchApi(source)
         .then(async (request) => {
           const result = await request.json();
           if (request.ok) {

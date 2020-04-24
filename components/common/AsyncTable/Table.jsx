@@ -14,8 +14,12 @@ import {
   TableRow
 } from "@material-ui/core";
 
+import { requestGenerator } from "../../../lib/api/request.js";
+
 import TableHeaders from "./components/Header.jsx";
 import TableMenu from "./components/Menu.jsx";
+
+const fetchApi = requestGenerator();
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -49,9 +53,9 @@ const getTableData = async (
   page,
   rows,
   search,
-  error_callback = () => {},
+  error_callback = () => { },
 ) => {
-  return await fetch(source, {
+  return await fetchApi(source, {
     method: "POST",
     body: JSON.stringify({ order, page, rows, search }),
     headers: {
@@ -62,6 +66,9 @@ const getTableData = async (
     .catch(() => error_callback([]));
 };
 
+//TODO
+//Remove data index
+//Change data source for promise, not string
 export default function AsyncTable({
   data_index,
   data_source,
@@ -189,8 +196,8 @@ export default function AsyncTable({
               updateSortingDirection={updateSortingDirection}
             />
             {//TODO
-            //Replace limiter for the page size for actual paginator
-            //Replace order in client side by order in server side
+              //Replace limiter for the page size for actual paginator
+              //Replace order in client side by order in server side
             }
             <TableBody>
               {rows
