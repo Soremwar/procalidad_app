@@ -1,6 +1,6 @@
 import { Application, send } from "oak";
 import { routes, allowedMethods } from "./web/routes.ts";
-import config from "./config.json";
+import { address, port } from "./config/api.js";
 import middleware from "./web/middleware.ts";
 
 const app = new Application();
@@ -25,6 +25,6 @@ app.use(async (context) => {
   });
 });
 
-console.log(`Server running on port ${config.client.port}`);
+console.log(`Server running on ${address}:${port}`);
 
-await app.listen({ port: config.client.port });
+await app.listen({ hostname: address, port });

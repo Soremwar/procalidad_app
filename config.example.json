@@ -1,8 +1,15 @@
 {
-  "client": {
-    "port": 8080
+  "api": {
+    "address": "localhost",
+    "port": 8000,
+    "prefix": "api"
   },
-  "api": {},
+  "app": {
+    "address": null,
+    "port": null,
+    "protocol": "http",
+    "version": "v0.3.0"
+  },
   "services": {
     "postgresql": {
       "user": "postgres",
@@ -11,6 +18,5 @@
       "host": "127.0.0.1",
       "port": "5432"
     }
-  },
-  "version": "v0.3.0"
+  }
 }
