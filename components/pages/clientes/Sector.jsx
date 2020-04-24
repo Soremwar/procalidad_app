@@ -9,6 +9,8 @@ import {
   TextField
 } from "@material-ui/core";
 
+import { requestGenerator } from "../../../lib/api/request.js";
+
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
@@ -17,39 +19,26 @@ import Widget from "../../common/Widget.jsx";
 //TODO
 //Add primary key as constant
 
-const getContact = (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/clientes/sector/${id}`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const fetchSectorApi = requestGenerator('clientes/sector');
+
+const getContact = (id) => fetchSectorApi(id).then((x) => x.json());
 
 const createContact = async (form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = "http://localhost/api/clientes/sector";
-  return await fetch(`${url}`, {
+  return await fetchSectorApi("", {
     method: "POST",
     body: form_data,
   });
 };
 
 const updateContact = async (id, form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/clientes/sector/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchSectorApi(id, {
     method: "PUT",
     body: form_data,
   });
 };
 
 const deleteContact = async (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/clientes/sector/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchSectorApi(id, {
     method: "DELETE",
   });
 };
@@ -262,13 +251,9 @@ export default () => {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
-            {/*
-              TODO
-              Remove hardcoded url
-            */}
             <AsyncTable
               data_index={"pk_sector"}
-              data_source={"http://localhost/api/clientes/sector/table"}
+              data_source={"clientes/sector/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}

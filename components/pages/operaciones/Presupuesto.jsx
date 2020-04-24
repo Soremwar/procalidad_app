@@ -19,6 +19,8 @@ import {
   Typography,
 } from "@material-ui/core";
 
+import { requestGenerator } from "../../../lib/api/request.js";
+
 import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
@@ -29,43 +31,21 @@ import Widget from "../../common/Widget.jsx";
 //TODO
 //Add primary key as constant
 
-const getRoles = () => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/rol`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const fetchRoleApi = requestGenerator('operaciones/rol');
+const fetchClientApi = requestGenerator('clientes/cliente');
+const fetchBudgetTypeApi = requestGenerator('operaciones/tipo_presupuesto');
+const fetchBudgetApi = requestGenerator('operaciones/presupuesto');
 
-const getClients = () => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/clientes/cliente`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const getRoles = () => fetchRoleApi().then((x) => x.json());
 
-const getBudgetTypes = () => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/tipo_presupuesto`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const getClients = () => fetchClientApi().then((x) => x.json());
 
-const getBudget = (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/presupuesto/${id}`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const getBudgetTypes = () => fetchBudgetTypeApi().then((x) => x.json());
+
+const getBudget = (id) => fetchBudgetApi(id).then((x) => x.json());
 
 const createBudget = async (form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = "http://localhost/api/operaciones/presupuesto";
-  return await fetch(`${url}`, {
+  return await fetchBudgetApi("", {
     method: "POST",
     body: JSON.stringify(form_data),
     headers: {
@@ -75,10 +55,7 @@ const createBudget = async (form_data) => {
 };
 
 const updateBudget = async (id, form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/presupuesto/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchBudgetApi(id, {
     method: "PUT",
     body: JSON.stringify(form_data),
     headers: {
@@ -88,10 +65,7 @@ const updateBudget = async (id, form_data) => {
 };
 
 const deleteBudget = async (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/presupuesto/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchBudgetApi(id, {
     method: "DELETE",
   });
 };
@@ -296,9 +270,9 @@ const BudgetDetail = ({
         <Grid item xs={6}>
           <Typography variant="h6" gutterBottom>
             Valor Total: $ {roles.reduce(
-              (sum, role) => (sum + (role.time * role.price)),
-              0,
-            )}
+            (sum, role) => (sum + (role.time * role.price)),
+            0,
+          )}
           </Typography>
         </Grid>
         <Grid container>
@@ -442,7 +416,7 @@ const AddModal = ({
           setProjectQuery(value);
         }}
         required
-        source={`http://localhost/api/operaciones/proyecto/search?client=${fields.client}&query=${encodeURI(
+        source={`operaciones/proyecto/search?client=${fields.client}&query=${encodeURI(
           fields.project
             ? ""
             : project_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
@@ -625,7 +599,7 @@ const EditModal = ({
         }}
         preload
         required
-        source={`http://localhost/api/operaciones/proyecto/search?client=${fields.client}&query=${encodeURI(
+        source={`operaciones/proyecto/search?client=${fields.client}&query=${encodeURI(
           fields.project
             ? ""
             : project_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
@@ -793,7 +767,7 @@ export default () => {
             */}
             <AsyncTable
               data_index={"pk_presupuesto"}
-              data_source={"http://localhost/api/operaciones/presupuesto/table"}
+              data_source={"operaciones/presupuesto/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}

@@ -9,6 +9,8 @@ import {
   TextField
 } from "@material-ui/core";
 
+import { requestGenerator } from "../../../lib/api/request.js";
+
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
@@ -17,39 +19,26 @@ import Widget from "../../common/Widget.jsx";
 //TODO
 //Add primary key as constant
 
-const getBudgetType = (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/tipo_presupuesto/${id}`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const fetchBudgetTypeApi = requestGenerator('operaciones/tipo_presupuesto');
+
+const getBudgetType = (id) => fetchBudgetTypeApi(id).then((x) => x.json());
 
 const createBudgetType = async (form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = "http://localhost/api/operaciones/tipo_presupuesto";
-  return await fetch(`${url}`, {
+  return await fetchBudgetTypeApi("", {
     method: "POST",
     body: form_data,
   });
 };
 
 const updateBudgetType = async (id, form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/tipo_presupuesto/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchBudgetTypeApi(id, {
     method: "PUT",
     body: form_data,
   });
 };
 
 const deleteBudgetType = async (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/tipo_presupuesto/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchBudgetTypeApi(id, {
     method: "DELETE",
   });
 };
@@ -285,13 +274,9 @@ export default () => {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
-            {/*
-              TODO
-              Remove hardcoded url
-            */}
             <AsyncTable
               data_index={"pk_tipo"}
-              data_source={"http://localhost/api/operaciones/tipo_presupuesto/table"}
+              data_source={"operaciones/tipo_presupuesto/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}

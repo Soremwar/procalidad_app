@@ -9,6 +9,8 @@ import {
   TextField
 } from "@material-ui/core";
 
+import { requestGenerator } from "../../../lib/api/request.js";
+
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
@@ -17,39 +19,26 @@ import Widget from "../../common/Widget.jsx";
 //TODO
 //Add primary key as constant
 
-const getRole = (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/rol/${id}`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const fetchRoleApi = requestGenerator('operaciones/rol');
+
+const getRole = (id) => fetchRoleApi(id).then((x) => x.json());
 
 const createRole = async (form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = "http://localhost/api/operaciones/rol";
-  return await fetch(`${url}`, {
+  return await fetchRoleApi("", {
     method: "POST",
     body: form_data,
   });
 };
 
 const updateRole = async (id, form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/rol/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchRoleApi(id, {
     method: "PUT",
     body: form_data,
   });
 };
 
 const deleteRole = async (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/rol/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchRoleApi(id, {
     method: "DELETE",
   });
 };
@@ -285,13 +274,9 @@ export default () => {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
-            {/*
-              TODO
-              Remove hardcoded url
-            */}
             <AsyncTable
               data_index={"pk_rol"}
-              data_source={"http://localhost/api/operaciones/rol/table"}
+              data_source={"operaciones/rol/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}

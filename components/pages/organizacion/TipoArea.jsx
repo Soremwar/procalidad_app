@@ -9,6 +9,8 @@ import {
   TextField,
 } from "@material-ui/core";
 
+import { requestGenerator } from "../../../lib/api/request.js";
+
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
@@ -18,47 +20,29 @@ import Widget from "../../common/Widget.jsx";
 //TODO
 //Add primary key as constant
 
-const getSupervisors = () => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/organizacion/persona`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const fetchPeopleApi = requestGenerator('organizacion/persona');
+const fetchAreaTypesApi = requestGenerator('organizacion/tipo_area');
 
-const getProjectType = (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/organizacion/tipo_area/${id}`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const getSupervisors = () => fetchPeopleApi().then((x) => x.json());
+
+const getProjectType = (id) => fetchAreaTypesApi(id).then((x) => x.json());
 
 const createProjectType = async (form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = "http://localhost/api/organizacion/tipo_area";
-  return await fetch(`${url}`, {
+  return await fetchAreaTypesApi("", {
     method: "POST",
     body: form_data,
   });
 };
 
 const updateProjectType = async (id, form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/organizacion/tipo_area/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchAreaTypesApi(id, {
     method: "PUT",
     body: form_data,
   });
 };
 
 const deleteProjectType = async (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/organizacion/tipo_area/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchAreaTypesApi(id, {
     method: "DELETE",
   });
 };
@@ -314,13 +298,9 @@ export default () => {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
-            {/*
-              TODO
-              Remove hardcoded url
-            */}
             <AsyncTable
               data_index={"pk_tipo"}
-              data_source={"http://localhost/api/organizacion/tipo_area/table"}
+              data_source={"organizacion/tipo_area/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}

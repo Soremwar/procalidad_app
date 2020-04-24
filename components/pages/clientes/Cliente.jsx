@@ -9,6 +9,8 @@ import {
   TextField,
 } from "@material-ui/core";
 
+import { requestGenerator } from "../../../lib/api/request.js";
+
 import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
@@ -16,51 +18,36 @@ import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
+const fetchClientApi = requestGenerator('clientes/cliente');
+const fetchSectorApi = requestGenerator('clientes/sector');
+
 //TODO
 //Add primary key as constant
 
 const getSectors = () => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/clientes/sector`;
-  return fetch(`${url}`)
+  return fetchSectorApi()
     .then((x) => x.json())
     .then((x) => Object.values(x));
 };
 
-const getClient = (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/clientes/cliente/${id}`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const getClient = (id) => fetchClientApi(id).then((x) => x.json());
 
 const createClient = async (form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = "http://localhost/api/clientes/cliente";
-  return fetch(`${url}`, {
+  return fetchClientApi('', {
     method: "POST",
     body: form_data,
   });
 };
 
 const updateClient = async (id, form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/clientes/cliente/${id}`;
-  return fetch(`${url}`, {
+  return fetchClientApi(id, {
     method: "PUT",
     body: form_data,
   });
 };
 
 const deleteClient = async (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/clientes/cliente/${id}`;
-  return fetch(`${url}`, {
+  return fetchClientApi(id, {
     method: "DELETE",
   });
 };
@@ -227,7 +214,7 @@ const AddModal = ({
           setCountryQuery(value);
         }}
         required
-        source={`http://localhost/api/maestro/pais/search?query=${encodeURI(
+        source={`maestro/pais/search?query=${encodeURI(
           fields.country
             ? ""
             : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
@@ -258,7 +245,7 @@ const AddModal = ({
           setStateQuery(value);
         }}
         required
-        source={`http://localhost/api/maestro/estado/search?country=${fields.country}&query=${encodeURI(
+        source={`maestro/estado/search?country=${fields.country}&query=${encodeURI(
           fields.state
             ? ""
             : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
@@ -289,7 +276,7 @@ const AddModal = ({
           setCityQuery(value);
         }}
         required
-        source={`http://localhost/api/maestro/ciudad/search?state=${fields.state}&query=${encodeURI(
+        source={`maestro/ciudad/search?state=${fields.state}&query=${encodeURI(
           fields.city
             ? ""
             : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
@@ -451,7 +438,7 @@ const EditModal = ({
         }}
         preload
         required
-        source={`http://localhost/api/maestro/pais/search?query=${encodeURI(
+        source={`maestro/pais/search?query=${encodeURI(
           fields.country
             ? ""
             : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
@@ -483,7 +470,7 @@ const EditModal = ({
         }}
         preload
         required
-        source={`http://localhost/api/maestro/estado/search?country=${fields.country}&query=${encodeURI(
+        source={`maestro/estado/search?country=${fields.country}&query=${encodeURI(
           fields.state
             ? ""
             : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
@@ -515,7 +502,7 @@ const EditModal = ({
         }}
         preload
         required
-        source={`http://localhost/api/maestro/ciudad/search?state=${fields.state}&query=${encodeURI(
+        source={`maestro/ciudad/search?state=${fields.state}&query=${encodeURI(
           fields.city
             ? ""
             : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
@@ -610,7 +597,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Contactos"} />
+      <Title title={"Clientes"} />
       <AddModal
         is_open={is_add_modal_open}
         sectors={sectors}
@@ -635,14 +622,14 @@ export default () => {
           <Widget title="Lista" upperTitle noBodyPadding>
             <AsyncTable
               data_index={"pk_cliente"}
-              data_source={"http://localhost/api/clientes/cliente/table"}
+              data_source={"/clientes/cliente/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
               tableShouldUpdate={tableShouldUpdate}
               setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Contactos"}
+              title={"Listado de Clientes"}
             />
           </Widget>
         </Grid>

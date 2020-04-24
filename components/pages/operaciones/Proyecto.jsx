@@ -9,6 +9,8 @@ import {
   TextField
 } from "@material-ui/core";
 
+import { requestGenerator } from "../../../lib/api/request.js";
+
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import SelectField from "../../common/SelectField.jsx";
@@ -18,64 +20,35 @@ import Widget from "../../common/Widget.jsx";
 //TODO
 //Add primary key as constant
 
+const fetchProjectTypeApi = requestGenerator('operaciones/tipo_proyecto');
+const fetchClientApi = requestGenerator('clientes/cliente');
+const fetchAreaApi = requestGenerator('organizacion/area');
+const fetchProjectApi = requestGenerator('operaciones/proyecto');
 
-const getProjectTypes = () => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/tipo_proyecto`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const getProjectTypes = () => fetchProjectTypeApi().then((x) => x.json());
 
-const getClients = () => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/clientes/cliente`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const getClients = () => fetchClientApi().then((x) => x.json());
 
-const getAreas = () => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/organizacion/area`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const getAreas = () => fetchAreaApi().then((x) => x.json());
 
-const getProject = (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/proyecto/${id}`;
-  return fetch(`${url}`)
-    .then((x) => x.json());
-};
+const getProject = (id) => fetchProjectApi(id).then((x) => x.json());
 
 const createProject = async (form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = "http://localhost/api/operaciones/proyecto";
-  return await fetch(`${url}`, {
+  return await fetchProjectApi("", {
     method: "POST",
     body: form_data,
   });
 };
 
 const updateProject = async (id, form_data) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/proyecto/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchProjectApi(id, {
     method: "PUT",
     body: form_data,
   });
 };
 
 const deleteProject = async (id) => {
-  //TODO
-  //Remove hardcoded url
-  const url = `http://localhost/api/operaciones/proyecto/${id}`;
-  return await fetch(`${url}`, {
+  return await fetchProjectApi(id, {
     method: "DELETE",
   });
 };
@@ -433,13 +406,9 @@ export default () => {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
-            {/*
-              TODO
-              Remove hardcoded url
-            */}
             <AsyncTable
               data_index={"pk_tipo"}
-              data_source={"http://localhost/api/operaciones/proyecto/table"}
+              data_source={"operaciones/proyecto/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
