@@ -95,7 +95,7 @@ const BudgetRole = ({
   deleteRole,
 }) => {
   const [fields, setFields] = useState({
-    id,
+    role: id,
     time,
     price,
   });
@@ -115,7 +115,8 @@ const BudgetRole = ({
   }, [price]);
 
   useEffect(() => {
-    updateRole(index, fields.id, fields.time, fields.price);
+    console.log('changed')
+    updateRole(index, fields.role, fields.time, fields.price);
   }, [fields]);
 
   return (
@@ -136,7 +137,7 @@ const BudgetRole = ({
           fullWidth
           onChange={(event) => handleChange(event)}
           required
-          value={fields.id}
+          value={fields.role}
         >
           {roles.map(({ id, name }) => (
             <option key={id} value={id}>{name}</option>
@@ -202,15 +203,17 @@ const BudgetDetail = ({
   };
 
   const updateRole = (key, id, time, price) => {
-    setRoles((prev_roles) => (
-      prev_roles.map((role, index) => {
+    setRoles((prev_roles) => {
+      console.log(prev_roles)
+      console.log({ key, id, time, price })
+      return prev_roles.map((role, index) => {
         if (index !== key) return role;
         role.id = id;
         role.time = time;
         role.price = price;
         return role;
       })
-    ));
+    });
   };
 
   const deleteRole = (key) => {
