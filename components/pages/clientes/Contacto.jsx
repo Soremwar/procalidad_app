@@ -9,7 +9,10 @@ import {
   TextField
 } from "@material-ui/core";
 
-import { requestGenerator } from "../../../lib/api/request.js";
+import {
+  formatResponseJson,
+  requestGenerator,
+} from "../../../lib/api/request.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
@@ -290,17 +293,27 @@ const DeleteModal = ({
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
     const delete_progress = selected.map((id) => deleteContact(id));
 
-    //TODO
-    //Add error catching
-    Promise.all(delete_progress)
-      .then(() => {
-        setModalOpen(false);
+    Promise.allSettled(delete_progress)
+      .then((results) => results.reduce(async (total, result) => {
+        if (result.status == 'rejected') {
+          total.push(result.reason.message);
+        } else if (!result.value.ok) {
+          total.push(await formatResponseJson(result.value));
+        }
+        return total;
+      }, []))
+      .then(errors => {
+        if (errors.length) {
+          setError(errors[0]);
+        } else {
+          setModalOpen(false);
+        }
         setLoading(false);
         updateTable();
       });
@@ -319,7 +332,7 @@ const DeleteModal = ({
       <DialogContentText>
         Esta operacion no se puede deshacer.
         ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
-        elementos?
+        &nbsp;elementos?
       </DialogContentText>
     </DialogForm>
   );

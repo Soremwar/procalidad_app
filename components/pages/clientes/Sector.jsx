@@ -9,7 +9,10 @@ import {
   TextField
 } from "@material-ui/core";
 
-import { requestGenerator } from "../../../lib/api/request.js";
+import {
+  formatResponseJson,
+  requestGenerator,
+} from "../../../lib/api/request.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
@@ -21,23 +24,23 @@ import Widget from "../../common/Widget.jsx";
 
 const fetchSectorApi = requestGenerator('clientes/sector');
 
-const getContact = (id) => fetchSectorApi(id).then((x) => x.json());
+const getSector = (id) => fetchSectorApi(id).then((x) => x.json());
 
-const createContact = async (form_data) => {
+const createSector = async (form_data) => {
   return await fetchSectorApi("", {
     method: "POST",
     body: form_data,
   });
 };
 
-const updateContact = async (id, form_data) => {
+const updateSector = async (id, form_data) => {
   return await fetchSectorApi(id, {
     method: "PUT",
     body: form_data,
   });
 };
 
-const deleteContact = async (id) => {
+const deleteSector = async (id) => {
   return await fetchSectorApi(id, {
     method: "DELETE",
   });
@@ -60,7 +63,7 @@ const AddModal = ({
     setError(null);
 
     const form_data = new FormData(event.target);
-    const request = await createContact(new URLSearchParams(form_data));
+    const request = await createSector(new URLSearchParams(form_data));
 
     if (request.ok) {
       setModalOpen(false);
@@ -126,7 +129,7 @@ const EditModal = ({
 
     const form_data = new FormData(event.target);
     const id = data.pk_sector;
-    const request = await updateContact(id, new URLSearchParams(form_data));
+    const request = await updateSector(id, new URLSearchParams(form_data));
 
     if (request.ok) {
       setModalOpen(false);
@@ -170,17 +173,27 @@ const DeleteModal = ({
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const delete_progress = selected.map((id) => deleteContact(id));
+    const delete_progress = selected.map((id) => deleteSector(id));
 
-    //TODO
-    //Add error catching
-    Promise.all(delete_progress)
-      .then(() => {
-        setModalOpen(false);
+    Promise.allSettled(delete_progress)
+      .then((results) => results.reduce(async (total, result) => {
+        if (result.status == 'rejected') {
+          total.push(result.reason.message);
+        } else if (!result.value.ok) {
+          total.push(await formatResponseJson(result.value));
+        }
+        return total;
+      }, []))
+      .then(errors => {
+        if (errors.length) {
+          setError(errors[0]);
+        } else {
+          setModalOpen(false);
+        }
         setLoading(false);
         updateTable();
       });
@@ -199,7 +212,7 @@ const DeleteModal = ({
       <DialogContentText>
         Esta operacion no se puede deshacer.
         ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
-        elementos?
+        &nbsp;elementos?
       </DialogContentText>
     </DialogForm>
   );
@@ -214,7 +227,7 @@ export default () => {
   const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getContact(id);
+    const data = await getSector(id);
     setSelectedContact(data);
     setEditModalOpen(true);
   };
