@@ -5,9 +5,8 @@ import {
 } from "../../common/table.ts";
 
 const TABLE = "OPERACIONES.PROYECTO";
-
 const ERROR_DEPENDENCY =
-  "No se puede eliminar el cliente por que hay componentes que dependen de el";
+  "No se puede eliminar el proyecto por que hay componentes que dependen de el";
 
 class Proyecto {
   constructor(

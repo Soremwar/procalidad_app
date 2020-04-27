@@ -7,7 +7,7 @@ import {
 const ERROR_CONSTRAINT =
   "El supervisor ingresado para el tipo de area no existe";
 const ERROR_DEPENDENCY =
-  "No se puede eliminar el cliente por que hay componentes que dependen de el";
+  "No se puede eliminar el tipo de area por que hay componentes que dependen de el";
 
 class TipoArea {
   constructor(

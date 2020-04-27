@@ -4,9 +4,9 @@ import {
   TableOrder,
 } from "../../common/table.ts";
 
-const ERROR_DEPENDENCY =
-  "No se puede eliminar el cliente por que hay componentes que dependen de el";
 const TABLE = "OPERACIONES.ROL";
+const ERROR_DEPENDENCY =
+  "No se puede eliminar el rol por que hay componentes que dependen de el";
 
 class Rol {
   constructor(

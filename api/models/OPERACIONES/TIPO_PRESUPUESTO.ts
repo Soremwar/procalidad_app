@@ -4,9 +4,9 @@ import {
   TableOrder,
 } from "../../common/table.ts";
 
-const ERROR_DEPENDENCY =
-  "No se puede eliminar el cliente por que hay componentes que dependen de el";
 const TABLE = "OPERACIONES.TIPO_PRESUPUESTO";
+const ERROR_DEPENDENCY =
+  "No se puede eliminar el tipo de presupuesto por que hay componentes que dependen de el";
 
 class TipoPresupuesto {
   constructor(

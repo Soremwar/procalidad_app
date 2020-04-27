@@ -1,11 +1,11 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder
+  TableOrder,
 } from "../../common/table.ts";
 
 const ERROR_DEPENDENCY =
-  "No se puede eliminar el cliente por que hay componentes que dependen de el";
+  "No se puede eliminar el sector por que hay componentes que dependen de el";
 
 class Sector {
   constructor(
@@ -89,16 +89,16 @@ export const getTableData = async (
 
   const query =
     "SELECT * FROM (SELECT PK_SECTOR AS ID, NOMBRE AS NAME FROM CLIENTES.SECTOR) AS TOTAL" +
-      " " +
-      `WHERE UNACCENT(NAME) ILIKE '%${search}%'` +
-      " " +
-      (Object.values(order).length
-        ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-          `${column} ${order}`
-        ).join(", ")}`
-        : "") +
-      " " +
-      (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+    " " +
+    `WHERE UNACCENT(NAME) ILIKE '%${search}%'` +
+    " " +
+    (Object.values(order).length
+      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
+        `${column} ${order}`
+      ).join(", ")}`
+      : "") +
+    " " +
+    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
 
   const { rows: result } = await postgres.query(query);
 

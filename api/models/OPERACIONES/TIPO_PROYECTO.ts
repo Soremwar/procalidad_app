@@ -6,14 +6,14 @@ import {
 
 const TABLE = "OPERACIONES.TIPO_PROYECTO";
 const ERROR_DEPENDENCY =
-  "No se puede eliminar el cliente por que hay componentes que dependen de el";
+  "No se puede eliminar el tipo de proyecto por que hay componentes que dependen de el";
 
 class TipoProyecto {
   constructor(
     public readonly pk_tipo: number,
     public nombre: string,
     public ban_facturable: boolean,
-  ) { }
+  ) {}
 
   async update(
     nombre: string = this.nombre,
@@ -90,7 +90,7 @@ class TableData {
     public id: number,
     public name: string,
     public billable: string,
-  ) { }
+  ) {}
 }
 
 export const getTableData = async (

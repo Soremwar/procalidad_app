@@ -1,13 +1,15 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder
+  TableOrder,
 } from "../../common/table.ts";
 
-const ERROR_CONSTRAINT_DEFAULT = "Uno de los datos seleccionables ingresados para el area no existe";
-const getConstraintError = (key: string) => `El dato "${key}" ingresado para el area no existe`;
+const ERROR_CONSTRAINT_DEFAULT =
+  "Uno de los datos seleccionables ingresados para el area no existe";
+const getConstraintError = (key: string) =>
+  `El dato "${key}" ingresado para el area no existe`;
 const ERROR_DEPENDENCY =
-  "No se puede eliminar el cliente por que hay componentes que dependen de el";
+  "No se puede eliminar el area por que hay componentes que dependen de el";
 
 class Area {
   constructor(
@@ -33,15 +35,15 @@ class Area {
       this.fk_supervisor,
     ).catch((e: PostgresError) => {
       if (e.fields.constraint) {
-        if(e.fields.detail){
-          if(/persona/.test(e.fields.constraint)){
-            e.message = getConstraintError('supervisor');
-          }else if(/tipo_area/.test(e.fields.detail)){
-            e.message = getConstraintError('tipo de area');
-          }else{
+        if (e.fields.detail) {
+          if (/persona/.test(e.fields.constraint)) {
+            e.message = getConstraintError("supervisor");
+          } else if (/tipo_area/.test(e.fields.detail)) {
+            e.message = getConstraintError("tipo de area");
+          } else {
             e.message = ERROR_CONSTRAINT_DEFAULT;
           }
-        }else{
+        } else {
           e.message = ERROR_CONSTRAINT_DEFAULT;
         }
       }
@@ -132,16 +134,16 @@ export const getTableData = async (
 
   const query =
     "SELECT * FROM (SELECT PK_AREA AS ID, (SELECT NOMBRE FROM ORGANIZACION.TIPO_AREA WHERE PK_TIPO = FK_TIPO_AREA) AS AREA_TYPE, NOMBRE AS NAME, (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_SUPERVISOR) AS SUPERVISOR FROM ORGANIZACION.AREA) AS TOTAL" +
-      " " +
-      `WHERE UNACCENT(AREA_TYPE) ILIKE '%${search}%' OR UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(SUPERVISOR) ILIKE '%${search}%'` +
-      " " +
-      (Object.values(order).length
-        ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-          `${column} ${order}`
-        ).join(", ")}`
-        : "") +
-      " " +
-      (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+    " " +
+    `WHERE UNACCENT(AREA_TYPE) ILIKE '%${search}%' OR UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(SUPERVISOR) ILIKE '%${search}%'` +
+    " " +
+    (Object.values(order).length
+      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
+        `${column} ${order}`
+      ).join(", ")}`
+      : "") +
+    " " +
+    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
 
   const { rows: result } = await postgres.query(query);
 
