@@ -98,6 +98,14 @@ import {
   getBudgetTable,
   updateBudget,
 } from "./handlers/operaciones/presupuesto.ts";
+import {
+  createParameter,
+  deleteParameter,
+  getParameter,
+  getParameters,
+  getParametersTable,
+  updateParameter,
+} from "./handlers/maestro/parametro.ts";
 
 const main_router = new Router();
 
@@ -219,6 +227,14 @@ main_router
   .get<{ id: string }>("/api/operaciones/presupuesto/:id", getBudget)
   .put<{ id: string }>("/api/operaciones/presupuesto/:id", updateBudget)
   .delete<{ id: string }>("/api/operaciones/presupuesto/:id", deleteBudget);
+
+main_router
+  .get("/api/maestro/parametro", getParameters)
+  .post("/api/maestro/parametro/table", getParametersTable)
+  .post("/api/maestro/parametro", createParameter)
+  .get<{ id: string }>("/api/maestro/parametro/:id", getParameter)
+  .put<{ id: string }>("/api/maestro/parametro/:id", updateParameter)
+  .delete<{ id: string }>("/api/maestro/parametro/:id", deleteParameter);
 
 export const routes = main_router.routes();
 export const allowedMethods = main_router.allowedMethods();
