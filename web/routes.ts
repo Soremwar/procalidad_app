@@ -56,7 +56,12 @@ import {
   updateProject,
 } from "./handlers/operaciones/proyecto.ts";
 import {
+  createPerson,
+  deletePerson,
   getPeople,
+  getPerson,
+  getPeopleTable,
+  updatePerson,
 } from "./handlers/organizacion/persona.ts";
 import {
   createAreaType,
@@ -182,7 +187,12 @@ main_router
   );
 
 main_router
-  .get("/api/organizacion/persona", getPeople);
+  .get("/api/organizacion/persona", getPeople)
+  .post("/api/organizacion/persona/table", getPeopleTable)
+  .post("/api/organizacion/persona", createPerson)
+  .get<{ id: string }>("/api/organizacion/persona/:id", getPerson)
+  .put<{ id: string }>("/api/organizacion/persona/:id", updatePerson)
+  .delete<{ id: string }>("/api/organizacion/persona/:id", deletePerson);
 
 main_router
   .get("/api/organizacion/tipo_area", getAreaTypes)

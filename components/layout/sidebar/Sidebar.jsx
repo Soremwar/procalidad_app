@@ -61,6 +61,7 @@ const structure = [
       { label: "Tipo de Area", link: "/organizacion/tipo_area" },
       { label: "Area", link: "/organizacion/area" },
       { label: "SubArea", link: "/organizacion/sub_area" },
+      { label: "Persona", link: "/organizacion/persona" },
     ],
   },
 ];
