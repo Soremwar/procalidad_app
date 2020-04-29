@@ -75,6 +75,14 @@ import {
   updateArea,
 } from "./handlers/organizacion/area.ts";
 import {
+  createSubArea,
+  deleteSubArea,
+  getSubArea,
+  getSubAreas,
+  getSubAreasTable,
+  updateSubArea,
+} from "./handlers/organizacion/sub_area.ts";
+import {
   createBudgetType,
   deleteBudgetType,
   getBudgetType,
@@ -196,6 +204,17 @@ main_router
   .delete<{ id: string }>(
     "/api/organizacion/area/:id",
     deleteArea,
+  );
+
+main_router
+  .get("/api/organizacion/sub_area", getSubAreas)
+  .post("/api/organizacion/sub_area/table", getSubAreasTable)
+  .post("/api/organizacion/sub_area", createSubArea)
+  .get<{ id: string }>("/api/organizacion/sub_area/:id", getSubArea)
+  .put<{ id: string }>("/api/organizacion/sub_area/:id", updateSubArea)
+  .delete<{ id: string }>(
+    "/api/organizacion/sub_area/:id",
+    deleteSubArea,
   );
 
 main_router
