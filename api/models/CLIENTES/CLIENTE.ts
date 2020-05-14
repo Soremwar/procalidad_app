@@ -178,9 +178,10 @@ export const getTableData = async (
     `WHERE UNACCENT(SECTOR) ILIKE '%${search}%' OR UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(NIT) ILIKE '%${search}%'` +
     " " +
     (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
+      ? `ORDER BY ${
+        Object.entries(order).map(([column, order]) => `${column} ${order}`)
+          .join(", ")
+      }`
       : "") +
     " " +
     (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");

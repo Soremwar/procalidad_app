@@ -14,8 +14,9 @@ export const getParameters = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getParametersTable = async ({ request, response }:
-  RouterContext) => {
+export const getParametersTable = async (
+  { request, response }: RouterContext,
+) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -117,7 +118,6 @@ export const updateParameter = async (
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
   parameter = await parameter.update(
-    id,
     name,
     description,
     type in TipoParametro ? type as TipoParametro : TipoParametro.string,

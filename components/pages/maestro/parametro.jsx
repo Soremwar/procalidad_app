@@ -1,13 +1,27 @@
 import React, {
   Fragment,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
+  Button,
+  Card,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   DialogContentText,
+  Divider,
   Grid,
-  TextField
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  ListItemText,
+  TextField,
+  Typography,
 } from "@material-ui/core";
+import { makeStyles } from "@material-ui/styles";
 
 import {
   formatResponseJson,
@@ -23,9 +37,26 @@ import Widget from "../../common/Widget.jsx";
 //TODO
 //Add primary key as constant
 
-const fetchParameterApi = requestGenerator('maestro/parametro');
+const formatDateToInternational = (date) => {
+  const year = date.getFullYear();
+  let month = date.getMonth() + 1;
+  let day = date.getDate();
+
+  if (month < 10) month = '0' + month;
+  if (day < 10) day = '0' + day;
+
+  return `${year}-${month}-${day}`;
+};
+
+const fetchParameterApi = requestGenerator("maestro/parametro");
+const fetchParameterDefinitionApi = requestGenerator(
+  "maestro/parametro_definicion",
+);
 
 const getParameter = (id) => fetchParameterApi(id).then((x) => x.json());
+const getDefinition = (id) => fetchParameterDefinitionApi(id).then((x) => x.json());
+
+const getDefinitions = (parameter) => fetchParameterDefinitionApi(`search?parameter=${parameter}`).then((x) => x.json());
 
 const createParameter = async (form_data) => {
   return await fetchParameterApi("", {
@@ -41,6 +72,13 @@ const updateParameter = async (id, form_data) => {
   });
 };
 
+const updateDefinition = async (id, form_data) => {
+  return await fetchParameterDefinitionApi(id, {
+    method: "PUT",
+    body: form_data,
+  });
+};
+
 const deleteParameter = async (id) => {
   return await fetchParameterApi(id, {
     method: "DELETE",
@@ -49,8 +87,18 @@ const deleteParameter = async (id) => {
 
 const headers = [
   { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
-  { id: "description", numeric: false, disablePadding: false, label: "Descripcion" },
-  { id: "type", numeric: false, disablePadding: false, label: "Tipo de Variable" },
+  {
+    id: "description",
+    numeric: false,
+    disablePadding: false,
+    label: "Descripcion",
+  },
+  {
+    id: "type",
+    numeric: false,
+    disablePadding: false,
+    label: "Tipo de Variable",
+  },
 ];
 
 const AddModal = ({
@@ -115,46 +163,120 @@ const AddModal = ({
   );
 };
 
+const useEditModalStyles = makeStyles(theme => ({
+  list: {
+    width: '100%',
+    maxWidth: 250,
+    backgroundColor: theme.palette.background.paper,
+  }
+}))
+
 const EditModal = ({
-  data,
+  id,
   is_open,
   setModalOpen,
   updateTable,
 }) => {
-  const [fields, setFields] = useState({
-    name: '',
-    description: '',
-    type: '',
+  const styles = useEditModalStyles();
+
+  const [should_fetch_definitions, setFetchDefinitions] = useState(false);
+  const [should_fetch_data, setFetchData] = useState(true);
+  const [formulary_changed, setFormularyChanged] = useState(false);
+  const [is_parameter_selected, setParameterSelected] = useState(true);
+  const [selected_definition, setSelectedDefinition] = useState(0);
+  const [definitions, setDefinitions] = useState([]);
+  const [parameter_fields, setParameterFields] = useState({
+    name: "",
+    description: "",
+    type: "",
+  });
+  const [definition_fields, setDefinitionFields] = useState({
+    start_date: "",
+    end_date: "",
+    value: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    setError(null);
+    setFormularyChanged(false);
     if (is_open) {
-      setFields({
-        name: data.nombre,
-        description: data.descripcion,
-        type: data.tipo_parametro,
-      });
+      setFetchDefinitions(true);
+      if (should_fetch_data) {
+        if (is_parameter_selected) {
+          getParameter(id).then(({ nombre, descripcion, tipo_parametro }) => {
+            setParameterFields({
+              name: nombre,
+              description: descripcion,
+              type: tipo_parametro,
+            });
+          });
+        } else {
+          getDefinition(id).then(({ fec_inicio, fec_fin, valor }) => {
+            setDefinitionFields({
+              start_date: formatDateToInternational(new Date(fec_inicio)),
+              end_date: formatDateToInternational(new Date(fec_fin)),
+              value: valor,
+            });
+          });
+        }
+        setFetchData(false);
+      }
     }
-  }, [is_open]);
+  }, [id, is_open, should_fetch_data]);
 
-  const handleChange = (event) => {
+  useEffect(() => {
+    if (should_fetch_definitions) {
+      getDefinitions(id).then((definitions) => setDefinitions(definitions));
+      setFetchDefinitions(false);
+    }
+  }, [should_fetch_definitions]);
+
+  const handleParameterChange = (event) => {
+    setFormularyChanged(true);
     const name = event.target.name;
     const value = event.target.value;
-    setFields((prev_state) => {
+    setParameterFields((prev_state) => {
       const data = ({ ...prev_state, [name]: value });
       return data;
     });
   };
 
-  const handleSubmit = async (event) => {
+  const handleDefinitionChange = (event) => {
+    setFormularyChanged(true);
+    const name = event.target.name;
+    const value = event.target.value;
+    setDefinitionFields((prev_state) => {
+      const data = ({ ...prev_state, [name]: value });
+      return data;
+    });
+  };
+
+  const setFocusToParameter = () => {
+    if (formulary_changed) {
+      setError('Guarde los cambios registrados primero');
+    } else {
+      setParameterSelected(true);
+      setFetchData(true);
+    }
+  };
+
+  const setFocusToDefinition = (definition) => {
+    if (formulary_changed) {
+      setError('Guarde los cambios registrados primero');
+    } else {
+      setParameterSelected(false);
+      setSelectedDefinition(definition);
+      setFetchData(true);
+    }
+  };
+
+  const submitParameter = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_parametro;
-    const request = await updateParameter(id, new URLSearchParams(form_data));
+    const request = await updateParameter(id, new URLSearchParams(parameter_fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -164,48 +286,199 @@ const EditModal = ({
       setError(message);
     }
     setLoading(false);
+    setFormularyChanged(false);
+  };
+
+  const submitDefinition = async () => {
+    setLoading(true);
+    setError(null);
+
+    const request = await updateDefinition(selected_definition, new URLSearchParams(definition_fields));
+
+    if (request.ok) {
+      setModalOpen(false);
+      updateTable();
+    } else {
+      const { message } = await request.json();
+      setError(message);
+    }
+    setLoading(false);
+    setFormularyChanged(false);
+  };
+
+  const submitData = () => {
+    if (is_parameter_selected) {
+      submitParameter();
+    } else {
+      submitDefinition();
+    }
   };
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Editar"}
+    <Dialog
+      fullWidth
+      maxWidth={'md'}
+      onClose={() => setModalOpen(false)}
+      open={is_open}
+      scroll={"paper"}
     >
-      <TextField
-        fullWidth
-        label="Nombre"
-        margin="dense"
-        name="name"
-        onChange={(event) => handleChange(event)}
-        required
-        value={fields.name}
-      />
-      <TextField
-        fullWidth
-        label="Descripcion"
-        margin="dense"
-        name="description"
-        onChange={(event) => handleChange(event)}
-        required
-        value={fields.description}
-      />
-      <SelectField
-        margin="dense"
-        name="type"
-        label="Tipo de Parametro"
-        fullWidth
-        onChange={(event) => handleChange(event)}
-        required
-        value={fields.type}
-      >
-        <option value="string">Texto</option>
-        <option value="number">Numero</option>
-      </SelectField>
-    </DialogForm>
+      <DialogTitle>Crear Nuevo</DialogTitle>
+      <DialogContent>
+        <Grid container spacing={3}>
+          <Grid item xs={4}>
+            <div className={styles.list}>
+              <Card>
+                <List component="nav" aria-label="main mailbox folders">
+                  <ListItem
+                    button
+                    onClick={() => setFocusToParameter()}
+                    selected={is_parameter_selected}
+                  >
+                    <ListItemText>Parametro</ListItemText>
+                  </ListItem>
+                  <Divider />
+                  {definitions.map(({
+                    pk_definicion,
+                    fec_inicio,
+                    fec_fin,
+                  }) => {
+                    const start_date = new Date(fec_inicio).toLocaleDateString('es-CO');
+                    const end_date = new Date(fec_fin).toLocaleDateString('es-CO');
+                    return (
+                      <ListItem
+                        button
+                        key={pk_definicion}
+                        onClick={() => setFocusToDefinition(pk_definicion)}
+                        selected={(pk_definicion === selected_definition) && !is_parameter_selected}
+                      >
+                        <ListItemText>{`${start_date} - ${end_date}`}</ListItemText>
+                        <ListItemSecondaryAction>
+                          {/*
+                            TODO
+                            Agregar funcion para eliminar definiciones
+                          */}
+                          <Button>-</Button>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    );
+                  })}
+                  {/*
+                    TODO
+                    Agregar funcion para agregar nuevas definiciones
+                  */}
+                  <ListItem>
+                    <ListItemText>Agregar</ListItemText>
+                    <ListItemSecondaryAction>
+                      <Button>+</Button>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                </List>
+              </Card>
+            </div>
+          </Grid>
+          <Grid item xs={8}>
+            {
+              is_parameter_selected ? (
+                <Fragment>
+                  <TextField
+                    margin="dense"
+                    name="name"
+                    label="Nombre"
+                    fullWidth
+                    onChange={handleParameterChange}
+                    required
+                    value={parameter_fields.name}
+                  />
+                  <TextField
+                    margin="dense"
+                    name="description"
+                    label="Descripcion"
+                    fullWidth
+                    onChange={handleParameterChange}
+                    required
+                    value={parameter_fields.description}
+                  />
+                  <SelectField
+                    margin="dense"
+                    name="type"
+                    label="Tipo de Parametro"
+                    fullWidth
+                    onChange={handleParameterChange}
+                    required
+                    value={parameter_fields.type}
+                  >
+                    <option value="string">Texto</option>
+                    <option value="number">Numero</option>
+                  </SelectField>
+                </Fragment>
+              ) :
+                (
+                  <Fragment>
+                    <TextField
+                      fullWidth
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      label="Fecha Inicial"
+                      margin="dense"
+                      name="start_date"
+                      onChange={handleDefinitionChange}
+                      required
+                      type="date"
+                      value={definition_fields.start_date}
+                    />
+                    <TextField
+                      fullWidth
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      label="Fecha Final"
+                      margin="dense"
+                      name="end_date"
+                      onChange={handleDefinitionChange}
+                      required
+                      type="date"
+                      value={definition_fields.end_date}
+                    />
+                    <TextField
+                      fullWidth
+                      label="Valor"
+                      margin="dense"
+                      name="value"
+                      onChange={handleDefinitionChange}
+                      required
+                      value={definition_fields.value}
+                    />
+                  </Fragment>
+                )
+            }
+          </Grid>
+        </Grid>
+        {error && (
+          <Typography
+            align="right"
+            color="error"
+          >
+            {error}
+          </Typography>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button color="primary">Cerrar</Button>
+        {is_loading
+          ? (
+            <CircularProgress
+              size={26}
+            />
+          ) : (
+            <Button
+              color="primary"
+              onClick={submitData}
+            >Guardar</Button>
+          )
+        }
+      </DialogActions>
+    </Dialog>
   );
 };
 
@@ -225,15 +498,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteParameter(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -266,14 +541,13 @@ const DeleteModal = ({
 export default () => {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_parameter, setSelectedParameter] = useState({});
+  const [selected_parameter, setSelectedParameter] = useState(0);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getParameter(id);
-    setSelectedParameter(data);
+    setSelectedParameter(id);
     setEditModalOpen(true);
   };
 
@@ -295,7 +569,7 @@ export default () => {
         updateTable={updateTable}
       />
       <EditModal
-        data={selected_parameter}
+        id={selected_parameter}
         is_open={is_edit_modal_open}
         setModalOpen={setEditModalOpen}
         updateTable={updateTable}

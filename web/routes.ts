@@ -135,6 +135,14 @@ import {
   getParametersTable,
   updateParameter,
 } from "./handlers/maestro/parametro.ts";
+import {
+  createParameterDefinition,
+  deleteParameterDefinition,
+  getParameterDefinition,
+  getParameterDefinitions,
+  updateParameterDefinition,
+  searchParameterDefinition,
+} from "./handlers/maestro/parametro_definicion.ts";
 
 const main_router = new Router();
 
@@ -296,6 +304,23 @@ main_router
   .get<{ id: string }>("/api/maestro/parametro/:id", getParameter)
   .put<{ id: string }>("/api/maestro/parametro/:id", updateParameter)
   .delete<{ id: string }>("/api/maestro/parametro/:id", deleteParameter);
+
+main_router
+  .get("/api/maestro/parametro_definicion", getParameterDefinitions)
+  .post("/api/maestro/parametro_definicion", createParameterDefinition)
+  .get("/api/maestro/parametro_definicion/search", searchParameterDefinition)
+  .get<{ id: string }>(
+    "/api/maestro/parametro_definicion/:id",
+    getParameterDefinition,
+  )
+  .put<{ id: string }>(
+    "/api/maestro/parametro_definicion/:id",
+    updateParameterDefinition,
+  )
+  .delete<{ id: string }>(
+    "/api/maestro/parametro_definicion/:id",
+    deleteParameterDefinition,
+  );
 
 export const routes = main_router.routes();
 export const allowedMethods = main_router.allowedMethods();

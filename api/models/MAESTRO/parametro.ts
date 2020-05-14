@@ -16,19 +16,17 @@ export enum TipoParametro {
 class Parametro {
   constructor(
     public readonly pk_parametro: number,
-    public readonly nombre: string,
-    public readonly descripcion: string,
-    public readonly tipo_parametro: TipoParametro,
+    public nombre: string,
+    public descripcion: string,
+    public tipo_parametro: TipoParametro,
   ) {}
 
   async update(
-    pk_parametro: number = this.pk_parametro,
     nombre: string = this.nombre,
     descripcion: string = this.descripcion,
     tipo_parametro: TipoParametro = this.tipo_parametro,
   ): Promise<Parametro> {
     Object.assign(this, {
-      pk_parametro,
       nombre,
       descripcion,
       tipo_parametro,
@@ -78,9 +76,7 @@ export const findAll = async (): Promise<Parametro[]> => {
     string,
     TipoParametro,
   ]) => {
-    row[3] = row[3] in TipoParametro
-      ? row[3]
-      : TipoParametro.string;
+    row[3] = row[3] in TipoParametro ? row[3] : TipoParametro.string;
     return new Parametro(...row);
   });
 
@@ -107,9 +103,7 @@ export const findById = async (id: number): Promise<Parametro | null> => {
     string,
     TipoParametro,
   ] = rows[0];
-  result[3] = result[3] in TipoParametro
-    ? result[3]
-    : TipoParametro.string;
+  result[3] = result[3] in TipoParametro ? result[3] : TipoParametro.string;
 
   return new Parametro(...result);
 };
@@ -169,9 +163,10 @@ export const getTableData = async (
     `WHERE UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(DESCRIPTION) ILIKE '%${search}%'` +
     " " +
     (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
+      ? `ORDER BY ${
+        Object.entries(order).map(([column, order]) => `${column} ${order}`)
+          .join(", ")
+      }`
       : "") +
     " " +
     (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
