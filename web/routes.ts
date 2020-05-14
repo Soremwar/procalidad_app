@@ -88,6 +88,14 @@ import {
   updateSubArea,
 } from "./handlers/organizacion/sub_area.ts";
 import {
+  createPosition,
+  deletePosition,
+  getPosition,
+  getPositions,
+  getPositionsTable,
+  updatePosition,
+} from "./handlers/organizacion/cargo.ts";
+import {
   createBudgetType,
   deleteBudgetType,
   getBudgetType,
@@ -226,6 +234,14 @@ main_router
     "/api/organizacion/sub_area/:id",
     deleteSubArea,
   );
+
+main_router
+  .get("/api/organizacion/cargo", getPositions)
+  .post("/api/organizacion/cargo/table", getPositionsTable)
+  .post("/api/organizacion/cargo", createPosition)
+  .get<{ id: string }>("/api/organizacion/cargo/:id", getPosition)
+  .put<{ id: string }>("/api/organizacion/cargo/:id", updatePosition)
+  .delete<{ id: string }>("/api/organizacion/cargo/:id", deletePosition);
 
 main_router
   .get("/api/operaciones/tipo_presupuesto", getBudgetTypes)
