@@ -96,6 +96,14 @@ import {
   updatePosition,
 } from "./handlers/organizacion/cargo.ts";
 import {
+  createComputer,
+  deleteComputer,
+  getComputer,
+  getComputers,
+  getComputersTable,
+  updateComputer,
+} from "./handlers/organizacion/computador.ts";
+import {
   createBudgetType,
   deleteBudgetType,
   getBudgetType,
@@ -242,6 +250,14 @@ main_router
   .get<{ id: string }>("/api/organizacion/cargo/:id", getPosition)
   .put<{ id: string }>("/api/organizacion/cargo/:id", updatePosition)
   .delete<{ id: string }>("/api/organizacion/cargo/:id", deletePosition);
+
+main_router
+  .get("/api/organizacion/computador", getComputers)
+  .post("/api/organizacion/computador/table", getComputersTable)
+  .post("/api/organizacion/computador", createComputer)
+  .get<{ id: string }>("/api/organizacion/computador/:id", getComputer)
+  .put<{ id: string }>("/api/organizacion/computador/:id", updateComputer)
+  .delete<{ id: string }>("/api/organizacion/computador/:id", deleteComputer);
 
 main_router
   .get("/api/operaciones/tipo_presupuesto", getBudgetTypes)

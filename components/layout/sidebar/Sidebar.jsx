@@ -63,6 +63,7 @@ const structure = [
       { label: "SubArea", link: "/organizacion/sub_area" },
       { label: "Persona", link: "/organizacion/persona" },
       { label: "Cargo", link: "/organizacion/cargo" },
+      { label: "Computador", link: "/organizacion/computador" },
     ],
   },
 ];
