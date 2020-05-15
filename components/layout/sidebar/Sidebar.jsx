@@ -64,6 +64,7 @@ const structure = [
       { label: "Persona", link: "/organizacion/persona" },
       { label: "Cargo", link: "/organizacion/cargo" },
       { label: "Computador", link: "/organizacion/computador" },
+      { label: "Salario", link: "/organizacion/salario" },
     ],
   },
 ];

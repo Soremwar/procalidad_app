@@ -104,6 +104,15 @@ import {
   updateComputer,
 } from "./handlers/organizacion/computador.ts";
 import {
+  createSalary,
+  deleteSalary,
+  getCalculatedSalary,
+  getSalary,
+  getSalaries,
+  getSalariesTable,
+  updateSalary,
+} from "./handlers/organizacion/salario.ts";
+import {
   createBudgetType,
   deleteBudgetType,
   getBudgetType,
@@ -266,6 +275,15 @@ main_router
   .get<{ id: string }>("/api/organizacion/computador/:id", getComputer)
   .put<{ id: string }>("/api/organizacion/computador/:id", updateComputer)
   .delete<{ id: string }>("/api/organizacion/computador/:id", deleteComputer);
+
+main_router
+  .get("/api/organizacion/salario", getSalaries)
+  .post("/api/organizacion/salario/table", getSalariesTable)
+  .post("/api/organizacion/salario", createSalary)
+  .get<{ id: string }>("/api/organizacion/salario/:id", getSalary)
+  .get<{ id: string }>("/api/organizacion/salario/calculo/:id", getCalculatedSalary)
+  .put<{ id: string }>("/api/organizacion/salario/:id", updateSalary)
+  .delete<{ id: string }>("/api/organizacion/salario/:id", deleteSalary);
 
 main_router
   .get("/api/operaciones/tipo_presupuesto", getBudgetTypes)
