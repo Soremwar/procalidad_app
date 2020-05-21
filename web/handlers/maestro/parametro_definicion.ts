@@ -6,6 +6,9 @@ import {
   searchByParameter,
   ValorParametro,
 } from "../../../api/models/MAESTRO/parametro_definicion.ts";
+import {
+  findById as findParameterById,
+} from "../../../api/models/MAESTRO/parametro.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
@@ -13,47 +16,46 @@ export const getParameterDefinitions = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const createParameterDefinition = async (
-  { request, response }: RouterContext,
-) => {
-  if (!request.hasBody) throw new RequestSyntaxError();
+//TODO
+//Add validations for date overlapping
+export const createParameterDefinition = async ({ params, request, response }:
+  RouterContext) => {
+  const id: number = Number(params.id);
+  if (!request.hasBody || !id) throw new RequestSyntaxError();
+
+  let parameter = await findParameterById(id);
+  if (!parameter) throw new NotFoundError();
 
   const {
-    parameter,
     start_date,
     end_date,
-    valor,
+    value,
   }: { [x: string]: string } = await request.body()
     .then((x: Body) => Object.fromEntries(x.value));
 
   if (
     !(
-      Number(parameter) &&
+      Number(id) &&
       start_date &&
       end_date &&
-      valor
+      value
     )
   ) {
     throw new RequestSyntaxError();
   }
 
-  await createNew(
-    Number(parameter),
+  const definition = await createNew(
+    Number(id),
     new Date(start_date),
     new Date(end_date),
-    valor,
+    value,
   );
 
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
+  response.body = definition;
 };
 
-export const getParameterDefinition = async (
-  { params, response }: RouterContext,
-) => {
+export const getParameterDefinition = async ({ params, response }:
+  RouterContext) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -63,9 +65,8 @@ export const getParameterDefinition = async (
   response.body = definition;
 };
 
-export const searchParameterDefinition = async (
-  { response, request }: RouterContext,
-) => {
+export const searchParameterDefinition = async ({ response, request }:
+  RouterContext) => {
   const {
     parameter: param_parameter,
     limit: param_limit,
@@ -81,9 +82,10 @@ export const searchParameterDefinition = async (
   response.body = await searchByParameter(parameter, limit);
 };
 
-export const updateParameterDefinition = async (
-  { params, request, response }: RouterContext,
-) => {
+//TODO
+//Add validations for date overlapping
+export const updateParameterDefinition = async ({ params, request, response }:
+  RouterContext) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
@@ -112,9 +114,8 @@ export const updateParameterDefinition = async (
   response.body = definition;
 };
 
-export const deleteParameterDefinition = async (
-  { params, response }: RouterContext,
-) => {
+export const deleteParameterDefinition = async ({ params, response }:
+  RouterContext) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

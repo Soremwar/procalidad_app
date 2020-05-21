@@ -56,10 +56,17 @@ const fetchParameterDefinitionApi = requestGenerator(
 const getParameter = (id) => fetchParameterApi(id).then((x) => x.json());
 const getDefinition = (id) => fetchParameterDefinitionApi(id).then((x) => x.json());
 
-const getDefinitions = (parameter) => fetchParameterDefinitionApi(`search?parameter=${parameter}`).then((x) => x.json());
+const getDefinitions = (parameter) => fetchParameterDefinitionApi(`search?parameter=${parameter}`);
 
 const createParameter = async (form_data) => {
   return await fetchParameterApi("", {
+    method: "POST",
+    body: form_data,
+  });
+};
+
+const createDefinition = async (id, form_data) => {
+  return await fetchParameterDefinitionApi(id, {
     method: "POST",
     body: form_data,
   });
@@ -81,6 +88,12 @@ const updateDefinition = async (id, form_data) => {
 
 const deleteParameter = async (id) => {
   return await fetchParameterApi(id, {
+    method: "DELETE",
+  });
+};
+
+const deleteDefinition = async (id) => {
+  return await fetchParameterDefinitionApi(id, {
     method: "DELETE",
   });
 };
@@ -212,8 +225,8 @@ const EditModal = ({
               type: tipo_parametro,
             });
           });
-        } else {
-          getDefinition(id).then(({ fec_inicio, fec_fin, valor }) => {
+        } else if (selected_definition) {
+          getDefinition(selected_definition).then(({ fec_inicio, fec_fin, valor }) => {
             setDefinitionFields({
               start_date: formatDateToInternational(new Date(fec_inicio)),
               end_date: formatDateToInternational(new Date(fec_fin)),
@@ -228,7 +241,16 @@ const EditModal = ({
 
   useEffect(() => {
     if (should_fetch_definitions) {
-      getDefinitions(id).then((definitions) => setDefinitions(definitions));
+      getDefinitions(id)
+        .then((request) => {
+          if (request.ok) {
+            return request.json();
+          } else {
+            throw new Error();
+          }
+        })
+        .then((definitions) => setDefinitions(definitions))
+        .catch(() => setError('No fue posible cargar las definiciones disponibles'));
       setFetchDefinitions(false);
     }
   }, [should_fetch_definitions]);
@@ -293,17 +315,32 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await updateDefinition(selected_definition, new URLSearchParams(definition_fields));
+    let request;
 
-    if (request.ok) {
-      setModalOpen(false);
-      updateTable();
+    if (selected_definition === 0) {
+      request = createDefinition(id, new URLSearchParams(definition_fields));
     } else {
-      const { message } = await request.json();
-      setError(message);
+      request = updateDefinition(selected_definition, new URLSearchParams(definition_fields));
     }
-    setLoading(false);
-    setFormularyChanged(false);
+
+    request
+      .then((response) => {
+        if (!response.ok) throw new Error();
+        return response.json();
+      })
+      .then((definition) => {
+        setFormularyChanged(false);
+        setModalOpen(false);
+      })
+      .catch(async () => {
+        const {
+          message = 'No fue posible guardar la definicion',
+        } = await request
+          .then(x => x.json())
+          .catch(() => ({}));
+        setError(message);
+      })
+      .finally(() => setLoading(false));
   };
 
   const submitData = () => {
@@ -312,6 +349,21 @@ const EditModal = ({
     } else {
       submitDefinition();
     }
+  };
+
+  const addDefinition = () => {
+    setFocusToDefinition(0);
+    setDefinitionFields({
+      start_date: '',
+      end_date: '',
+      value: '',
+    });
+  };
+
+  const removeDefinition = (id) => {
+    deleteDefinition(id)
+      .then(() => setFetchDefinitions(true))
+      .catch(() => setError('No fue posible eliminar la definicion'));
   };
 
   return (
@@ -353,23 +405,19 @@ const EditModal = ({
                       >
                         <ListItemText>{`${start_date} - ${end_date}`}</ListItemText>
                         <ListItemSecondaryAction>
-                          {/*
-                            TODO
-                            Agregar funcion para eliminar definiciones
-                          */}
-                          <Button>-</Button>
+                          <Button
+                            onClick={() => removeDefinition(pk_definicion)}
+                          >-</Button>
                         </ListItemSecondaryAction>
                       </ListItem>
                     );
                   })}
-                  {/*
-                    TODO
-                    Agregar funcion para agregar nuevas definiciones
-                  */}
                   <ListItem>
                     <ListItemText>Agregar</ListItemText>
                     <ListItemSecondaryAction>
-                      <Button>+</Button>
+                      <Button
+                        onClick={addDefinition}
+                      >+</Button>
                     </ListItemSecondaryAction>
                   </ListItem>
                 </List>

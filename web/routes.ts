@@ -325,7 +325,7 @@ main_router
 
 main_router
   .get("/api/maestro/parametro_definicion", getParameterDefinitions)
-  .post("/api/maestro/parametro_definicion", createParameterDefinition)
+  .post<{ id: string }>("/api/maestro/parametro_definicion/:id", createParameterDefinition)
   .get("/api/maestro/parametro_definicion/search", searchParameterDefinition)
   .get<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
