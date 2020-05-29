@@ -280,8 +280,8 @@ main_router
   .get("/api/organizacion/salario", getSalaries)
   .post("/api/organizacion/salario/table", getSalariesTable)
   .post("/api/organizacion/salario", createSalary)
+  .get("/api/organizacion/salario/calculo", getCalculatedSalary)
   .get<{ id: string }>("/api/organizacion/salario/:id", getSalary)
-  .get<{ id: string }>("/api/organizacion/salario/calculo/:id", getCalculatedSalary)
   .put<{ id: string }>("/api/organizacion/salario/:id", updateSalary)
   .delete<{ id: string }>("/api/organizacion/salario/:id", deleteSalary);
 

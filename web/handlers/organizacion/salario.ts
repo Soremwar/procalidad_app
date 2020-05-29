@@ -94,13 +94,25 @@ export const createSalary = async ({ request, response }: RouterContext) => {
 };
 
 export const getCalculatedSalary = async (
-  { params, response }: RouterContext,
+  { request, response }: RouterContext,
 ) => {
-  const id: number = Number(params.id);
-  if (!id) throw new RequestSyntaxError();
+  const {
+    labour_cost,
+    bonus_cost,
+    license_cost,
+    other,
+    salary_type,
+  }: { [x: string]: string } = Object.fromEntries(
+      request.searchParams.entries(),
+  );
 
-  const result = await getCalculatedResult(id);
-  if (!result) throw new NotFoundError();
+  const result = await getCalculatedResult(
+    Number(labour_cost) || 0,
+    Number(bonus_cost) || 0,
+    Number(license_cost) || 0,
+    Number(other) || 0,
+    salary_type in TipoSalario ? salary_type as TipoSalario : TipoSalario.O,
+  );
 
   response.body = result;
 };

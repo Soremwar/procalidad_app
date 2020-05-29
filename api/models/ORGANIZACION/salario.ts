@@ -26,7 +26,7 @@ class Salario {
     public otros: number,
     public salario: number | undefined,
     public tipo_salario: TipoSalario,
-  ) {}
+  ) { }
 
   async update(
     fk_persona: number = this.fk_persona,
@@ -89,30 +89,48 @@ class Salario {
   }
 }
 
-export const getCalculatedResult = async (id: number) => {
+export const getCalculatedResult = async (
+  valor_prestacional: number,
+  valor_bonos: number,
+  licencias: number,
+  otros: number,
+  tipo_salario: TipoSalario,
+) => {
   const { rows } = await postgres.query(
-    `WITH PARAMETROS AS (
+    `WITH
+    PARAMETROS AS (
       SELECT
-        SUM(CASE WHEN PAR.nombre = 'V_SMMLV' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_SMMLV,
-        SUM(CASE WHEN PAR.nombre = 'V_Porc_Parafiscales' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_Porc_Parafiscales,
-        SUM(CASE WHEN PAR.nombre = 'V_Factor_Integral' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_Factor_Integral,
-        SUM(CASE WHEN PAR.nombre = 'V_Aux_Transporte' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_Aux_Transporte,
-        SUM(CASE WHEN PAR.nombre = 'V_Bono_Dotacion_Cuatrimestral' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_Bono_Dotacion_Cuatrimestral
-      FROM maestro.parametro AS PAR
-      JOIN maestro.parametro_definicion AS DEF
-      ON PAR.pk_parametro = DEF.fk_parametro
-      WHERE NOW() BETWEEN DEF.fec_inicio AND DEF.fec_fin
+        SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_SMMLV' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_SMMLV,
+        SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_Porc_Parafiscales' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_PORC_PARAFISCALES,
+        SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_Factor_Integral' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_FACTOR_INTEGRAL,
+        SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_Aux_Transporte' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_AUX_TRANSPORTE,
+        SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_Bono_Dotacion_Cuatrimestral' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_BONO_DOTACION_CUATRIMESTRAL
+      FROM MAESTRO.PARAMETRO AS PAR
+      JOIN MAESTRO.PARAMETRO_DEFINICION AS DEF
+      ON PAR.PK_PARAMETRO = DEF.FK_PARAMETRO
+      WHERE NOW() BETWEEN DEF.FEC_INICIO AND DEF.FEC_FIN
+    ),
+    COSTOS AS (
+      SELECT
+        CAST($1 AS NUMERIC) AS VALOR_PRESTACIONAL,
+        CAST($2 AS NUMERIC) AS VALOR_BONOS,
+        CAST($3 AS NUMERIC) AS LICENCIAS,
+        CAST($4 AS NUMERIC) AS OTROS,
+        $5 AS TIPO_SALARIO
     )
     SELECT
       CASE
-        WHEN PAR.V_SMMLV * 2 > SAL.VALOR_PRESTACIONAL THEN (SAL.valor_prestacional * (100/(1 + PAR.V_Porc_Parafiscales))) + PAR.V_Aux_Transporte + (PAR.V_Bono_Dotacion_Cuatrimestral / 4) + SAL.valor_bonos + SAL.OTROS
-        WHEN SAL.tipo_salario = 'O' THEN (SAL.valor_prestacional * (100 / (1 + PAR.V_Porc_Parafiscales))) + SAL.valor_bonos + SAL.OTROS
-        ELSE ((SAL.valor_prestacional * (100 / PAR.V_Factor_Integral))) + (100 / (1 + PAR.V_Porc_Parafiscales)) + SAL.valor_bonos + SAL.OTROS + (SAL.valor_prestacional * (100 / (1 - PAR.V_Factor_Integral)))
+        WHEN PAR.V_SMMLV * 2 > COSTOS.VALOR_PRESTACIONAL THEN (COSTOS.VALOR_PRESTACIONAL * (100/(1 + PAR.V_PORC_PARAFISCALES))) + PAR.V_AUX_TRANSPORTE + (PAR.V_BONO_DOTACION_CUATRIMESTRAL / 4) + COSTOS.VALOR_BONOS + COSTOS.OTROS
+        WHEN COSTOS.tipo_salario = 'O' THEN (COSTOS.valor_prestacional * (100 / (1 + PAR.V_PORC_PARAFISCALES))) + COSTOS.VALOR_BONOS + COSTOS.OTROS
+        ELSE ((COSTOS.valor_prestacional * (100 / PAR.V_FACTOR_INTEGRAL))) + (100 / (1 + PAR.V_PORC_PARAFISCALES)) + COSTOS.VALOR_BONOS + COSTOS.OTROS + (COSTOS.VALOR_PRESTACIONAL * (100 / (1 - PAR.V_FACTOR_INTEGRAL)))
       END AS SALARIO
-    FROM organizacion.salario SAL
-    JOIN PARAMETROS AS PAR ON 1 = 1
-    WHERE SAL.PK_SALARIO = $1`,
-    id,
+    FROM COSTOS
+    JOIN PARAMETROS AS PAR ON 1 = 1`,
+    valor_prestacional,
+    valor_bonos,
+    licencias,
+    otros,
+    tipo_salario,
   );
 
   if (!rows[0]) return null;
@@ -230,7 +248,7 @@ class TableData {
     public person: string,
     public salary_type: string,
     public computer: string,
-  ) {}
+  ) { }
 }
 
 export const getTableData = async (

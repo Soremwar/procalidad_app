@@ -31,7 +31,16 @@ const fetchComputerApi = requestGenerator('organizacion/computador');
 const getPosition = (id) => fetchSalaryApi(id).then((x) => x.json());
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
 const getComputers = () => fetchComputerApi().then((x) => x.json());
-const getResult = (id) => fetchSalaryApi(`calculo/${id}`).then((x) => x.json());
+const getResult = async (
+  labour_cost,
+  bonus_cost,
+  license_cost,
+  other,
+  salary_type,
+) => fetchSalaryApi(`calculo?${
+  new URLSearchParams({ labour_cost, bonus_cost, license_cost, other, salary_type }).toString()
+  }`)
+  .then((x) => x.json());
 
 const createSalary = async (form_data) => {
   return await fetchSalaryApi("", {
@@ -66,8 +75,53 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [fields, setFields] = useState({
+    person: "",
+    computer: "",
+    labour_cost: 0,
+    bonus_cost: 0,
+    license_cost: 0,
+    other: 0,
+    salary_type: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [result, setResult] = useState(0);
+
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        person: "",
+        computer: "",
+        labour_cost: 0,
+        bonus_cost: 0,
+        license_cost: 0,
+        other: 0,
+        salary_type: "",
+      });
+    }
+  }, [is_open]);
+
+  useEffect(() => {
+    if (is_open) {
+      getResult(
+        fields.labour_cost,
+        fields.bonus_cost,
+        fields.license_cost,
+        fields.other,
+        fields.salary_type,
+      ).then((x) => setResult(x));
+    }
+  }, [fields]);
+
+  const handleChange = (event) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setFields((prev_state) => {
+      const data = ({ ...prev_state, [name]: value });
+      return data;
+    });
+  };
 
   const handleSubmit = async (event) => {
     setLoading(true);
@@ -100,7 +154,9 @@ const AddModal = ({
         label="Persona"
         margin="dense"
         name="person"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.person}
       >
         {people.map(({ pk_persona, nombre }) => (
           <option key={pk_persona} value={pk_persona}>{nombre}</option>
@@ -111,7 +167,9 @@ const AddModal = ({
         label="Computador"
         margin="dense"
         name="computer"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.computer}
       >
         {computers.map(({ pk_computador, nombre }) => (
           <option key={pk_computador} value={pk_computador}>{nombre}</option>
@@ -123,7 +181,9 @@ const AddModal = ({
         margin="dense"
         name="labour_cost"
         type="number"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.labour_cost}
       />
       <TextField
         fullWidth
@@ -131,7 +191,9 @@ const AddModal = ({
         margin="dense"
         name="bonus_cost"
         type="number"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.bonus_cost}
       />
       <TextField
         fullWidth
@@ -139,7 +201,9 @@ const AddModal = ({
         margin="dense"
         name="license_cost"
         type="number"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.license_cost}
       />
       <TextField
         fullWidth
@@ -147,18 +211,26 @@ const AddModal = ({
         margin="dense"
         name="other"
         type="number"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.other}
       />
       <SelectField
         fullWidth
         label="Tipo de Salario"
         margin="dense"
         name="salary_type"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.salary_type}
       >
         <option value="I">Integral</option>
         <option value="O">Ordinario</option>
       </SelectField>
+      <br /><br />
+      <Typography>
+        Resultado: {result}
+      </Typography>
     </DialogForm>
   );
 };
@@ -195,9 +267,20 @@ const EditModal = ({
         other: Number(data.otros),
         salary_type: data.tipo_salario,
       });
-      getResult(data.pk_salario).then((x) => setResult(x));
     }
   }, [is_open]);
+
+  useEffect(() => {
+    if (is_open) {
+      getResult(
+        fields.labour_cost,
+        fields.bonus_cost,
+        fields.license_cost,
+        fields.other,
+        fields.salary_type,
+      ).then((x) => setResult(x));
+    }
+  }, [fields]);
 
   const handleChange = (event) => {
     const name = event.target.name;
