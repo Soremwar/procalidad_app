@@ -89,12 +89,20 @@ class Salario {
   }
 }
 
+class CalculoCostoEmpleado {
+  constructor(
+    public readonly costo: number,
+    public readonly costo_total: number,
+  ){}
+}
+
 export const getCalculatedResult = async (
   valor_prestacional: number,
   valor_bonos: number,
   licencias: number,
   otros: number,
   tipo_salario: TipoSalario,
+  computador: number,
 ) => {
   const { rows } = await postgres.query(
     `WITH
@@ -117,25 +125,36 @@ export const getCalculatedResult = async (
         CAST($3 AS NUMERIC) AS LICENCIAS,
         CAST($4 AS NUMERIC) AS OTROS,
         $5 AS TIPO_SALARIO
+    ),
+    COSTO_EMPLEADO AS (
+      SELECT
+        CASE
+          WHEN PAR.V_SMMLV * 2 > COSTOS.VALOR_PRESTACIONAL THEN (COSTOS.VALOR_PRESTACIONAL * (100/(1 + PAR.V_PORC_PARAFISCALES))) + PAR.V_AUX_TRANSPORTE + (PAR.V_BONO_DOTACION_CUATRIMESTRAL / 4) + COSTOS.VALOR_BONOS + COSTOS.OTROS
+          WHEN COSTOS.TIPO_SALARIO = 'O' THEN (COSTOS.VALOR_PRESTACIONAL * (100 / (1 + PAR.V_PORC_PARAFISCALES))) + COSTOS.VALOR_BONOS + COSTOS.OTROS
+          ELSE ((COSTOS.VALOR_PRESTACIONAL * (100 / PAR.V_FACTOR_INTEGRAL))) + (100 / (1 + PAR.V_PORC_PARAFISCALES)) + COSTOS.VALOR_BONOS + COSTOS.OTROS + (COSTOS.VALOR_PRESTACIONAL * (100 / (1 - PAR.V_FACTOR_INTEGRAL)))
+        END AS COSTO
+      FROM COSTOS
+      JOIN PARAMETROS AS PAR ON 1 = 1
     )
     SELECT
-      CASE
-        WHEN PAR.V_SMMLV * 2 > COSTOS.VALOR_PRESTACIONAL THEN (COSTOS.VALOR_PRESTACIONAL * (100/(1 + PAR.V_PORC_PARAFISCALES))) + PAR.V_AUX_TRANSPORTE + (PAR.V_BONO_DOTACION_CUATRIMESTRAL / 4) + COSTOS.VALOR_BONOS + COSTOS.OTROS
-        WHEN COSTOS.tipo_salario = 'O' THEN (COSTOS.valor_prestacional * (100 / (1 + PAR.V_PORC_PARAFISCALES))) + COSTOS.VALOR_BONOS + COSTOS.OTROS
-        ELSE ((COSTOS.valor_prestacional * (100 / PAR.V_FACTOR_INTEGRAL))) + (100 / (1 + PAR.V_PORC_PARAFISCALES)) + COSTOS.VALOR_BONOS + COSTOS.OTROS + (COSTOS.VALOR_PRESTACIONAL * (100 / (1 - PAR.V_FACTOR_INTEGRAL)))
-      END AS SALARIO
-    FROM COSTOS
-    JOIN PARAMETROS AS PAR ON 1 = 1`,
+      COSTO,
+      COSTO + COSTOS.LICENCIAS + (SELECT COSTO FROM ORGANIZACION.COMPUTADOR WHERE PK_COMPUTADOR = $6) AS COSTO_TOTAL
+    FROM COSTO_EMPLEADO
+    JOIN COSTOS ON 1 = 1`,
     valor_prestacional,
     valor_bonos,
     licencias,
     otros,
     tipo_salario,
+    computador,
   );
 
-  if (!rows[0]) return null;
+  const calculated_result: [
+    number,
+    number,
+  ] = rows[0];
 
-  return rows[0][0];
+  return new CalculoCostoEmpleado(...calculated_result);
 };
 
 export const findAll = async (): Promise<Salario[]> => {

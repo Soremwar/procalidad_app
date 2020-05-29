@@ -102,9 +102,12 @@ export const getCalculatedSalary = async (
     license_cost,
     other,
     salary_type,
+    computer,
   }: { [x: string]: string } = Object.fromEntries(
       request.searchParams.entries(),
   );
+
+  if(!(salary_type && Number(computer))) throw new RequestSyntaxError();
 
   const result = await getCalculatedResult(
     Number(labour_cost) || 0,
@@ -112,6 +115,7 @@ export const getCalculatedSalary = async (
     Number(license_cost) || 0,
     Number(other) || 0,
     salary_type in TipoSalario ? salary_type as TipoSalario : TipoSalario.O,
+    Number(computer),
   );
 
   response.body = result;

@@ -37,8 +37,11 @@ const getResult = async (
   license_cost,
   other,
   salary_type,
+  computer,
 ) => fetchSalaryApi(`calculo?${
-  new URLSearchParams({ labour_cost, bonus_cost, license_cost, other, salary_type }).toString()
+  new URLSearchParams({
+    labour_cost, bonus_cost, license_cost, other, salary_type, computer,
+  }).toString()
   }`)
   .then((x) => x.json());
 
@@ -86,7 +89,7 @@ const AddModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [result, setResult] = useState(0);
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     if (is_open) {
@@ -103,14 +106,20 @@ const AddModal = ({
   }, [is_open]);
 
   useEffect(() => {
-    if (is_open) {
+    if (is_open && fields.computer, fields.salary_type) {
       getResult(
         fields.labour_cost,
         fields.bonus_cost,
         fields.license_cost,
         fields.other,
         fields.salary_type,
-      ).then((x) => setResult(x));
+        fields.computer,
+      ).then(({ costo, costo_total }) => setResult({
+        cost: costo,
+        total_cost: costo_total,
+      }));
+    } else {
+      setResult(null);
     }
   }, [fields]);
 
@@ -148,6 +157,7 @@ const AddModal = ({
       is_open={is_open}
       setIsOpen={setModalOpen}
       title={"Crear Nuevo"}
+      size="md"
     >
       <SelectField
         fullWidth
@@ -228,10 +238,18 @@ const AddModal = ({
         <option value="O">Ordinario</option>
       </SelectField>
       <br /><br />
-      <Typography>
-        Resultado: {result}
-      </Typography>
-    </DialogForm>
+      {
+        result
+          ? (
+            <Fragment>
+              <Typography><b>Costo</b>: {result.cost}</Typography>
+              <Typography><b>Costo Total</b>: {result.total_cost}</Typography>
+            </Fragment>)
+          : (
+            <Typography>Ingrese el modelo de computador y el tipo de salario para realizar el calculo</Typography>
+          )
+      }
+    </DialogForm >
   );
 };
 
@@ -254,7 +272,7 @@ const EditModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [result, setResult] = useState(0);
+  const [result, setResult] = useState("");
 
   useEffect(() => {
     if (is_open) {
@@ -271,14 +289,20 @@ const EditModal = ({
   }, [is_open]);
 
   useEffect(() => {
-    if (is_open) {
+    if (is_open && fields.computer && fields.salary_type) {
       getResult(
         fields.labour_cost,
         fields.bonus_cost,
         fields.license_cost,
         fields.other,
         fields.salary_type,
-      ).then((x) => setResult(x));
+        fields.computer,
+      ).then(({ costo, costo_total }) => setResult({
+        cost: costo,
+        total_cost: costo_total,
+      }));
+    } else {
+      setResult(null);
     }
   }, [fields]);
 
@@ -317,6 +341,7 @@ const EditModal = ({
       is_open={is_open}
       setIsOpen={setModalOpen}
       title={"Editar"}
+      size="md"
     >
       <SelectField
         fullWidth
@@ -397,9 +422,17 @@ const EditModal = ({
         <option value="O">Ordinario</option>
       </SelectField>
       <br /><br />
-      <Typography>
-        Resultado: {result}
-      </Typography>
+      {
+        result
+          ? (
+            <Fragment>
+              <Typography><b>Costo</b>: {result.cost}</Typography>
+              <Typography><b>Costo Total</b>: {result.total_cost}</Typography>
+            </Fragment>)
+          : (
+            <Typography>Ingrese el modelo de computador y el tipo de salario para realizar el calculo</Typography>
+          )
+      }
     </DialogForm>
   );
 };
