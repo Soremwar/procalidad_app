@@ -8,8 +8,8 @@
     "test": "tests"
   },
   "scripts": {
-    "compile": "parcel components/App.jsx --out-dir public/resources --out-file app.js",
-    "compile-dev": "parcel watch components/App.jsx --out-dir public/resources --out-file app.js",
+    "compile": "parcel build components/App.jsx --out-dir public/resources --out-file app.js --no-source-maps",
+    "compile-dev": "parcel watch components/App.jsx --out-dir public/resources --out-file app.js --no-source-maps",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
