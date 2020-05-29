@@ -407,7 +407,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Salario"} />
+      <Title title={"Costo de Empleado"} />
       <AddModal
         computers={computers}
         is_open={is_add_modal_open}
@@ -441,7 +441,7 @@ export default () => {
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
               tableShouldUpdate={tableShouldUpdate}
               setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Salarios"}
+              title={"Listado de Costes personales"}
             />
           </Widget>
         </Grid>
