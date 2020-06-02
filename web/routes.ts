@@ -137,6 +137,9 @@ import {
   updateBudget,
 } from "./handlers/operaciones/presupuesto.ts";
 import {
+  searchBudgetDetails,
+} from "./handlers/operaciones/presupuesto_detalle.ts";
+import {
   createParameter,
   deleteParameter,
   getParameter,
@@ -152,6 +155,14 @@ import {
   updateParameterDefinition,
   searchParameterDefinition,
 } from "./handlers/maestro/parametro_definicion.ts";
+import {
+  createResource,
+  deleteResource,
+  getResource,
+  getResources,
+  getResourcesTable,
+  updateResource,
+} from "./handlers/planeacion/recurso.ts";
 
 const main_router = new Router();
 
@@ -316,6 +327,9 @@ main_router
   .delete<{ id: string }>("/api/operaciones/presupuesto/:id", deleteBudget);
 
 main_router
+  .get<{ id: string }>("/api/operaciones/presupuesto_detalle/:id", searchBudgetDetails);
+
+main_router
   .get("/api/maestro/parametro", getParameters)
   .post("/api/maestro/parametro/table", getParametersTable)
   .post("/api/maestro/parametro", createParameter)
@@ -339,6 +353,14 @@ main_router
     "/api/maestro/parametro_definicion/:id",
     deleteParameterDefinition,
   );
+
+main_router
+  .get("/api/planeacion/recurso", getResources)
+  .post("/api/planeacion/recurso/table", getResourcesTable)
+  .post<{ id: string }>("/api/planeacion/recurso", createResource)
+  .get<{ id: string }>("/api/planeacion/recurso/:id", getResource)
+  .put<{ id: string }>("/api/planeacion/recurso/:id", updateResource)
+  .delete<{ id: string }>( "/api/planeacion/recurso/:id", deleteResource);
 
 export const routes = main_router.routes();
 export const allowedMethods = main_router.allowedMethods();

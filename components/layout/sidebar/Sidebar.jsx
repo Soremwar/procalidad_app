@@ -67,6 +67,13 @@ const structure = [
       { label: "Costo Empleado", link: "/organizacion/costo_empleado" },
     ],
   },
+  {
+    label: "Planeacion",
+    icon: <AccountBoxIcon />,
+    children: [
+      { label: "Por proyecto", link: "/planeacion/proyecto" },
+    ],
+  },
 ];
 
 function Sidebar({ location }) {
