@@ -73,6 +73,7 @@ export const findAll = async (): Promise<Presupuesto[]> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_PRESUPUESTO,
+      NULL,
       FK_PROYECTO,
       FK_TIPO_PRESUPUESTO,
       NOMBRE,
