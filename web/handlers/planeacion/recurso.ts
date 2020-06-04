@@ -6,7 +6,10 @@ import {
   createNew,
   findAll,
   findById,
+  getDetailGanttData,
   getTableData,
+  getResourceTableData,
+  getDetailTableData, getResourceGanttData,
 } from "../../../api/models/planeacion/recurso.ts";
 import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
@@ -17,6 +20,12 @@ import {
 
 // @deno-types="https://deno.land/x/types/moment/v2.26.0/moment.d.ts"
 import moment from 'https://cdn.pika.dev/moment@2.26.0';
+
+enum ResourceViewType {
+  project = "project",
+  resource = "resource",
+  detail = "detail",
+}
 
 export const getResources = async ({ response }: RouterContext) => {
   response.body = await findAll();
@@ -31,9 +40,14 @@ export const getResourcesTable = async (
     order = {},
     page,
     rows,
+    search = {},
+    type,
   } = await request.body().then((x: Body) => x.value);
 
-  if (!(order instanceof Object)) throw new RequestSyntaxError();
+  if (!(
+    order instanceof Object &&
+    search instanceof Object
+  )) throw new RequestSyntaxError();
 
   const order_parameters = Object.entries(order).reduce(
     (res: TableOrder, [index, value]: [string, any]) => {
@@ -45,13 +59,28 @@ export const getResourcesTable = async (
     {} as TableOrder,
   );
 
-  const data = await getTableData(
-    order_parameters,
-    page || 0,
-    rows || null,
-  );
+  const table_type = type in ResourceViewType ? type as ResourceViewType : ResourceViewType.project;
 
-  response.body = data;
+  if(table_type === ResourceViewType.project){
+    response.body = await getTableData(
+      order_parameters,
+      page || 0,
+      rows || null,
+    );
+  }else if (table_type === ResourceViewType.resource){
+    response.body = await getResourceTableData(
+      order_parameters,
+      page || 0,
+      rows || null,
+    );
+  }else if (table_type === ResourceViewType.detail){
+    response.body = await getDetailTableData(
+      order_parameters,
+      page || 0,
+      rows || null,
+      search,
+    );
+  }
 };
 
 const addWeekdays = (date_str: Date, days: number) => {
@@ -178,4 +207,26 @@ export const deleteResource = async ({ params, response }: RouterContext) => {
     Status.OK,
     Message.OK,
   );
+};
+
+export const getResourcesGantt = async ({ request, response }: RouterContext) => {
+  const {
+    person,
+    project,
+    type,
+  }: { [x: string]: string } = Object.fromEntries(
+    request.searchParams.entries(),
+  );
+
+  const gantt_type = type in ResourceViewType ? type as ResourceViewType : ResourceViewType.project;
+
+  if(gantt_type === ResourceViewType.project){
+    response.body = 'project';
+  }else if (gantt_type === ResourceViewType.resource){
+    response.body = await getResourceGanttData();
+  }else if (gantt_type === ResourceViewType.detail){
+    response.body = await getDetailGanttData(
+      Number(person) || undefined,
+    );
+  }
 };

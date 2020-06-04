@@ -18,6 +18,8 @@ class Recurso {
   constructor(
     public readonly pk_recurso: number,
     public fk_persona: number,
+    public fk_cliente: number | undefined,
+    public fk_proyecto: number | undefined,
     public fk_presupuesto: number,
     public fk_rol: number,
     public fecha_inicio: number,
@@ -53,6 +55,7 @@ class Recurso {
     const horas_diarias = (this.porcentaje / 100) * 9;
 
     const is_available = await validateAssignationAvailability(
+      this.fk_persona,
       horas_diarias,
       this.fecha_inicio,
       this.fecha_fin
@@ -119,6 +122,8 @@ export const findAll = async (): Promise<Recurso[]> => {
     `SELECT
       PK_RECURSO,
       FK_PERSONA,
+      (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
+      (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
       FK_PRESUPUESTO,
       FK_ROL,
       FECHA_INICIO,
@@ -137,6 +142,8 @@ export const findAll = async (): Promise<Recurso[]> => {
     number,
     number,
     number,
+    number,
+    number,
   ]) => new Recurso(...row));
 
   return models;
@@ -147,6 +154,8 @@ export const findById = async (id: number): Promise<Recurso | null> => {
     `SELECT
       PK_RECURSO,
       FK_PERSONA,
+      (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
+      (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
       FK_PRESUPUESTO,
       FK_ROL,
       FECHA_INICIO,
@@ -161,6 +170,8 @@ export const findById = async (id: number): Promise<Recurso | null> => {
   if (!rows[0]) return null;
 
   const result: [
+    number,
+    number,
     number,
     number,
     number,
@@ -186,7 +197,7 @@ export const createNew = async (
   //Reemplazar 9 por calculo de horas laborales diarias
   const horas_diarias = (porcentaje / 100) * 9;
 
-  const is_available = await validateAssignationAvailability(horas_diarias, fecha_inicio, fecha_fin)
+  const is_available = await validateAssignationAvailability(fk_persona, horas_diarias, fecha_inicio, fecha_fin)
     .then((x) => !x.length);
 
   if(!is_available) throw new Error("La asignacion no se encuentra disponible en el periodo especificado");
@@ -216,6 +227,8 @@ export const createNew = async (
   const recurso = new Recurso(
     id,
     fk_persona,
+    undefined,
+    undefined,
     fk_presupuesto,
     fk_rol,
     fecha_inicio,
@@ -249,6 +262,7 @@ export const createNew = async (
 };
 
 const validateAssignationAvailability = async (
+  person: number,
   daily_hours: number,
   start_date: number,
   end_date: number,
@@ -256,14 +270,16 @@ const validateAssignationAvailability = async (
   const { rows } = await postgres.query(
     `SELECT
       RD.FECHA,
-      SUM(RD.HORAS) + $1::NUMERIC
+      SUM(RD.HORAS) + $2::NUMERIC
     FROM
       PLANEACION.RECURSO_DETALLE RD
     JOIN PLANEACION.RECURSO R
       ON R.PK_RECURSO = RD.FK_RECURSO
-    WHERE RD.FECHA BETWEEN $2::INTEGER AND $3::INTEGER
+    WHERE RD.FECHA BETWEEN $3::INTEGER AND $4::INTEGER
+    AND R.FK_PERSONA = $1
     GROUP BY RD.FECHA
-    HAVING SUM(RD.HORAS) + $1::NUMERIC > 9`,
+    HAVING SUM(RD.HORAS) + $2::NUMERIC > 9`,
+    person,
     daily_hours,
     start_date,
     end_date,
@@ -297,11 +313,11 @@ export const getTableData = async (
     SELECT
       PK_RECURSO,
       (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
-      (SELECT NOMBRE FROM operaciones.rol WHERE pk_rol = FK_ROL),
-      TO_CHAR(TO_DATE(CAST(FECHA_INICIO AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD'),
-      TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD'),
-      PORCENTAJE||'%',
-      HORAS
+      (SELECT NOMBRE FROM OPERACIONES.ROL WHERE PK_ROL = FK_ROL) AS ROLE,
+      TO_CHAR(TO_DATE(CAST(FECHA_INICIO AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
+      TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
+      PORCENTAJE||'%' AS ASSIGNATION,
+      HORAS AS HOURS
     FROM ${TABLE}) AS TOTAL` +
     " " +
     (Object.values(order).length
@@ -326,3 +342,196 @@ export const getTableData = async (
 
   return models;
 };
+
+class ResourceTableData {
+  constructor(
+    public id: number,
+    public person: string,
+    public start_date: string,
+    public end_date: string,
+    public hours: number,
+  ) { }
+}
+
+export const getResourceTableData = async (
+  order: TableOrder,
+  page: number,
+  rows: number | null,
+): Promise<ResourceTableData[]> => {
+
+  //TODO
+  //Normalize query generator
+
+  const query = `SELECT * FROM (
+    SELECT
+      FK_PERSONA,
+      (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      TO_CHAR(TO_DATE(CAST(MIN(FECHA_INICIO) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
+      TO_CHAR(TO_DATE(CAST(MAX(FECHA_FIN) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
+      SUM(HORAS) AS HOURS
+    FROM ${TABLE}
+    GROUP BY FK_PERSONA
+    ) AS TOTAL` +
+    " " +
+    (Object.values(order).length
+      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
+        `${column} ${order}`
+      ).join(", ")}`
+      : "") +
+    " " +
+    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+
+  const { rows: result } = await postgres.query(query);
+
+  const models = result.map((x: [
+    number,
+    string,
+    string,
+    string,
+    number,
+  ]) => new ResourceTableData(...x));
+
+  return models;
+};
+
+class DetailTableData {
+  constructor(
+    public id: number,
+    public id_person: number,
+    public id_project: number,
+    public project: string,
+    public start_date: string,
+    public end_date: string,
+    public assignation: string,
+    public hours: number,
+  ) { }
+}
+
+export const getDetailTableData = async (
+  order: TableOrder,
+  page: number,
+  rows: number | null,
+  search: {[key: string]: string},
+): Promise<DetailTableData[]> => {
+
+  //TODO
+  //Normalize query generator
+
+  const query = `SELECT * FROM (
+    SELECT
+      PK_RECURSO,
+      FK_PERSONA AS ID_PERSON,
+      (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
+      (SELECT NOMBRE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)) AS PROJECT,
+      TO_CHAR(TO_DATE(CAST(FECHA_INICIO AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
+      TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
+      PORCENTAJE||'%' AS ASSIGNATION,
+      HORAS AS HOURS
+    FROM ${TABLE}) AS TOTAL` +
+    " " +
+    (Object.values(order).length
+      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
+        `${column} ${order}`
+      ).join(", ")}`
+      : "") +
+    " " +
+    (Object.keys(search).length
+      ? `WHERE ${Object.entries(search).map(([column, value]) => (
+        `CAST(${column} AS VARCHAR) ILIKE '${value}'`  
+      )).join(' AND ')}`
+      : '') +
+    " " +
+    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+
+  const { rows: result } = await postgres.query(query);
+
+  const models = result.map((x: [
+    number,
+    number,
+    number,
+    string,
+    string,
+    string,
+    string,
+    number,
+  ]) => new DetailTableData(...x));
+
+  return models;
+};
+
+class ResourceGanttData {
+  constructor(
+    public person: string,
+    public start_date: string,
+    public end_date: string,
+    public hours: number,
+  ) {}
+}
+
+export const getResourceGanttData = async (): Promise<ResourceGanttData[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      MIN(FECHA_INICIO) AS START_DATE,
+      MAX(FECHA_FIN) AS END_DATE,
+      SUM(HORAS) AS HOURS
+    FROM ${TABLE}
+    GROUP BY FK_PERSONA`
+  );
+
+  const data = rows.map((row: [
+    string,
+    string,
+    string,
+    number,
+  ]) => new ResourceGanttData(...row));
+
+  return data;
+}
+
+class DetailGanttData {
+  constructor(
+    public person: string,
+    public project: string,
+    public role: string,
+    public start_date: string,
+    public end_date: string,
+    public assignation: string,
+    public hours: string,
+  ) {}
+}
+
+export const getDetailGanttData = async (
+  person?: number,
+  project?: number,
+): Promise<DetailGanttData[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)) AS PROJECT,
+      (SELECT NOMBRE FROM OPERACIONES.ROL WHERE PK_ROL = FK_ROL) AS ROLE,
+      FECHA_INICIO,
+      FECHA_FIN,
+      PORCENTAJE,
+      HORAS
+    FROM ${TABLE}
+    ${person
+      ? `WHERE FK_PERSONA = ${person}`
+      : project
+        ? `WHERE (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
+        : ''
+    }`
+  );
+
+  const data = rows.map((row: [
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+    string,
+  ]) => new DetailGanttData(...row));
+
+  return data;
+}

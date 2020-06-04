@@ -72,6 +72,7 @@ const structure = [
     icon: <AccountBoxIcon />,
     children: [
       { label: "Por proyecto", link: "/planeacion/proyecto" },
+      { label: "Por recurso", link: "/planeacion/recurso" },
     ],
   },
 ];
