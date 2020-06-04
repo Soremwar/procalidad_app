@@ -751,12 +751,13 @@ export default () => {
       getResourceGantt('detail', selectedPerson).then(resources => {
         const tasks = resources
           .map(({
+            assignation,
             project,
             start_date,
             end_date,
           }, index) => new Task({
             id: index,
-            name: project,
+            name: `${project} - ${assignation}%`,
             start: formatDateToInputDate(parseStandardNumber(start_date)),
             end: formatDateToInputDate(parseStandardNumber(end_date)),
             progress: 100,

@@ -641,12 +641,13 @@ export default () => {
     setDataShouldUpdate(true);
     getResourceGantt(selectedProyect).then(resources => {
       const tasks = resources.map(({
+        assignation,
         person,
         start_date,
         end_date,
       }, index) => new Task({
         id: index,
-        name: person,
+        name: `${person} - ${assignation}%`,
         start: formatDateToInputDate(parseStandardNumber(start_date)),
         end: formatDateToInputDate(parseStandardNumber(end_date)),
         progress: 100,
