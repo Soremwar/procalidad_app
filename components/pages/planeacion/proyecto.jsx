@@ -53,16 +53,6 @@ const formatDateToInputDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-const global_tasks = [
-  {
-    id: "Task 1",
-    name: "William Morales",
-    start: "2016-12-28",
-    end: "2017-1-15",
-    progress: 20,
-  },
-].map(x => new Task(x));
-
 //TODO
 //Fetch api functions should be global
 const fetchClientApi = requestGenerator('clientes/cliente');
@@ -76,7 +66,13 @@ const getPeople = () => fetchPeopleApi().then((x) => x.json());
 const getBudget = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
 const getResource = (id) => fetchResourceApi(id).then((x) => x.json());
-const getResources = () => fetchResourceApi().then((x) => x.json());
+const getResourceGantt = (project) => {
+  const params = new URLSearchParams(Object.fromEntries([
+    ['project', project],
+    ['type', 'project'],
+  ].filter(([_index, value]) => value)));
+  return fetchResourceApi(`gantt?${params.toString()}`).then((x) => x.json())
+};
 
 const createResource = async (form_data) => {
   return await fetchResourceApi("", {
@@ -546,13 +542,13 @@ export default () => {
   const [selected, setSelected] = useState([]);
   const [selected_resource, setSelectedResource] = useState({});
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [dataShouldUpdate, setDataShouldUpdate] = useState(true);
+  const [dataShouldUpdate, setDataShouldUpdate] = useState(false);
   const [tasks, setTasks] = useState([]);
 
   const [people, setPeople] = useState([]);
   const [budget, setBudget] = useState([]);
 
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = useState(0);
   const classes = useStyles();
 
   const handleChange = (event, newValue) => {
@@ -572,19 +568,17 @@ export default () => {
 
   const updateData = () => {
     setDataShouldUpdate(true);
-    getResources().then(resources => {
+    getResourceGantt(selectedProyect).then(resources => {
       const tasks = resources.map(({
-        pk_recurso,
-        horas,
-        fecha_inicio,
-        fecha_fin,
-        porcentaje,
-      }) => new Task({
-        id: pk_recurso,
-        name: horas,
-        start: formatDateToInputDate(parseStandardNumber(fecha_inicio)),
-        end: formatDateToInputDate(parseStandardNumber(fecha_fin)),
-        progress: porcentaje,
+        person,
+        start_date,
+        end_date,
+      }, index) => new Task({
+        id: index,
+        name: person,
+        start: formatDateToInputDate(parseStandardNumber(start_date)),
+        end: formatDateToInputDate(parseStandardNumber(end_date)),
+        progress: 100,
       }));
 
       setTasks(tasks);
@@ -595,7 +589,19 @@ export default () => {
     getClients().then(clients => setClients(clients));
     getPeople().then(people => setPeople(people));
     getBudget().then(budget => setBudget(budget));
+    updateData();
   }, []);
+
+  useEffect(() => {
+    setSelectedProyect('');
+  }, [selectedClient]);
+
+  useEffect(() => {
+    if (!selectedProyect) {
+      setValue(0);
+    }
+    updateData();
+  }, [selectedProyect]);
 
   return (
     <Fragment>
@@ -659,20 +665,22 @@ export default () => {
         <AppBar position="static">
           <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
             <Tab label="Planeacion" {...a11yProps(0)} />
-            <Tab label="Gantt" {...a11yProps(1)} />
+            <Tab label="Gantt" {...a11yProps(1)} disabled={!selectedProyect} />
           </Tabs>
         </AppBar>
         <TabPanel value={value} index={0}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"NA"}
               data_source={"planeacion/recurso/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={dataShouldUpdate}
+              search={{
+                id_project: selectedProyect,
+              }}
               setTableShouldUpdate={setDataShouldUpdate}
+              tableShouldUpdate={dataShouldUpdate}
               title={"Recursos del Proyecto"}
             />
           </Widget>
@@ -681,18 +689,20 @@ export default () => {
           index={1}
           value={value}
         >
-          <FrappeGantt
-            tasks={tasks.length ? tasks : global_tasks}
-            viewMode={ViewMode.Week}
-            onClick={task => console.log(task)}
-            onDateChange={(task, start, end) => {
-              console.log(task)
-              const changed_task = tasks.filter(x => x.id === task.id)[0];
-              changed_task.start = `2017-01-01`;
-              changed_task.end = `2017-01-31`;
-            }}
-            onTasksChange={() => console.log('they changed')}
-          />
+          {
+            tasks.length
+              ? (
+                <FrappeGantt
+                  tasks={tasks}
+                  viewMode={ViewMode.Week}
+                />
+              )
+              : (
+                <Typography>
+                  No existen datos para mostrar
+                </Typography>
+              )
+          }
         </TabPanel>
       </div>
     </Fragment>

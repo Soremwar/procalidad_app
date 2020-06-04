@@ -9,7 +9,9 @@ import {
   getDetailGanttData,
   getTableData,
   getResourceTableData,
-  getDetailTableData, getResourceGanttData,
+  getDetailTableData,
+  getProjectGanttData,
+  getResourceGanttData,
 } from "../../../api/models/planeacion/recurso.ts";
 import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
@@ -66,6 +68,7 @@ export const getResourcesTable = async (
       order_parameters,
       page || 0,
       rows || null,
+      search,
     );
   }else if (table_type === ResourceViewType.resource){
     response.body = await getResourceTableData(
@@ -221,7 +224,9 @@ export const getResourcesGantt = async ({ request, response }: RouterContext) =>
   const gantt_type = type in ResourceViewType ? type as ResourceViewType : ResourceViewType.project;
 
   if(gantt_type === ResourceViewType.project){
-    response.body = 'project';
+    response.body = await getProjectGanttData(
+      Number(project) || undefined,
+    );
   }else if (gantt_type === ResourceViewType.resource){
     response.body = await getResourceGanttData();
   }else if (gantt_type === ResourceViewType.detail){
