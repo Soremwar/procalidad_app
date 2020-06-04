@@ -53,11 +53,16 @@ const getTableData = async (
   page,
   rows,
   search,
+  params,
   error_callback = () => { },
 ) => {
+
+  //Avoid overlapping of parameters
+  const url_params = Object.fromEntries(Object.entries(params).filter(([index]) => !([order, page, rows, search].includes(index))));
+
   return await fetchApi(source, {
     method: "POST",
-    body: JSON.stringify({ order, page, rows, search }),
+    body: JSON.stringify({ order, page, rows, search, ...url_params }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -67,24 +72,24 @@ const getTableData = async (
 };
 
 //TODO
-//Remove data index
 //Change data source for promise, not string
 export default function AsyncTable({
-  data_index,
   data_source,
   headers,
   onAddClick,
   onEditClick,
   onDeleteClick,
   tableShouldUpdate,
-  title,
+  search = {},
   setTableShouldUpdate,
+  sourceParams = {},
+  title,
 }) {
   const classes = useStyles();
-  const [orderBy, setOrderBy] = React.useState({});
-  const [selected, setSelected] = React.useState(new Set());
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [orderBy, setOrderBy] = useState({});
+  const [selected, setSelected] = useState(new Set());
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [rows, setRows] = useState([]);
 
   const updateSortingDirection = (column) => {
@@ -151,7 +156,8 @@ export default function AsyncTable({
         orderBy,
         page,
         rowsPerPage,
-        "",
+        search,
+        sourceParams,
       ).then((data) => {
         let new_selected = new Set();
         data.forEach(({ id }) => {
@@ -161,7 +167,14 @@ export default function AsyncTable({
         setSelected(new_selected);
       });
     }
-  }, [tableShouldUpdate, orderBy, page, rowsPerPage]);
+  }, [
+    tableShouldUpdate,
+    orderBy,
+    page,
+    rowsPerPage,
+    search,
+    sourceParams,
+  ]);
 
   const isItemSelected = (item) => {
     const index = Number(item);
