@@ -1,16 +1,8 @@
-import { RouterContext, Body } from "oak";
-import {
-  createNew,
-  findAll,
-  findById,
-  searchByParameter,
-  ValorParametro,
-} from "../../../api/models/MAESTRO/parametro_definicion.ts";
-import {
-  findById as findParameterById,
-} from "../../../api/models/MAESTRO/parametro.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
-import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import {Body, RouterContext} from "oak";
+import {createNew, findAll, findById, searchByParameter,} from "../../../api/models/MAESTRO/parametro_definicion.ts";
+import {findById as findParameterById, TipoParametro,} from "../../../api/models/MAESTRO/parametro.ts";
+import {formatResponse, Message, Status} from "../../http_utils.ts";
+import {NotFoundError, RequestSyntaxError} from "../../exceptions.ts";
 
 export const getParameterDefinitions = async ({ response }: RouterContext) => {
   response.body = await findAll();
@@ -32,6 +24,10 @@ export const createParameterDefinition = async ({ params, request, response }:
     value,
   }: { [x: string]: string } = await request.body()
     .then((x: Body) => Object.fromEntries(x.value));
+
+  if(parameter.tipo_parametro === TipoParametro.percentage){
+    if(Number(value) < 0 || Number(value) > 100) throw new RequestSyntaxError();
+  }
 
   if (
     !(
@@ -92,23 +88,34 @@ export const updateParameterDefinition = async ({ params, request, response }:
   let definition = await findById(id);
   if (!definition) throw new NotFoundError();
 
+  const parameter = await findParameterById(definition.fk_parametro);
+  if (!parameter) throw new NotFoundError();
+
   const raw_attributes: Array<[string, string]> = await request.body()
     .then((x: Body) => Array.from(x.value));
 
   const {
     start_date,
     end_date,
-    valor,
+    value,
   }: {
     start_date?: string;
     end_date?: string;
-    valor?: string;
+    value?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+
+  let cleaned_value: string | undefined = value;
+
+  if(parameter.tipo_parametro === TipoParametro.percentage){
+    if(Number(value) < 0 || Number(value) > 100){
+      cleaned_value = undefined;
+    }
+  }
 
   definition = await definition.update(
     new Date(start_date),
     new Date(end_date),
-    valor,
+    cleaned_value,
   );
 
   response.body = definition;

@@ -6,7 +6,12 @@ import React, {
 import {
   AppBar,
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
   DialogContentText,
+  DialogTitle,
   Grid,
   Tab,
   Tabs,
@@ -103,6 +108,26 @@ const headers = [
   { id: "assignation", numeric: false, disablePadding: false, label: "Porcentaje" },
 ];
 
+const NotSelectedProjectDialog = ({
+  open,
+  setOpen,
+}) => (
+    <Dialog
+      onClose={() => setOpen(false)}
+      open={open}
+    >
+      <DialogTitle>Datos incompletos</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Seleccione el proyecto a agregar antes de acceder a este menu
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setOpen(false)} color="primary">Cerrar</Button>
+      </DialogActions>
+    </Dialog>
+  );
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -135,6 +160,7 @@ const AddModal = ({
   callback,
   is_open,
   people,
+  project,
   setModalOpen,
 }) => {
   const [fields, setFields] = useState({
@@ -189,112 +215,128 @@ const AddModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Crear Nuevo"}
-    >
-      <SelectField
-        fullWidth
-        label="Recurso"
-        margin="dense"
-        name="person"
-        onChange={handleChange}
-        required
-        value={fields.person}
-      >
-        {people.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
-      <SelectField
-        fullWidth
-        label="Presupuesto"
-        margin="dense"
-        name="budget"
-        onChange={handleChange}
-        required
-        value={fields.budget}
-      >
-        {budget.map(({ pk_presupuesto, nombre }) => (
-          <option key={pk_presupuesto} value={pk_presupuesto}>{nombre}</option>
-        ))}
-      </SelectField>
-      <AsyncSelectField
-        disabled={!fields.budget}
-        fullWidth
-        handleSource={async (source) => {
-          const available_roles = await getBudgetDetails(fields.budget)
-            .then(details => details.reduce((res, { fk_rol }) => {
-              res.push(fk_rol);
-              return res;
-            }, []));
+    <Fragment>
+      {
+        project
+          ? (
+            <DialogForm
+              error={error}
+              handleSubmit={handleSubmit}
+              is_loading={is_loading}
+              is_open={is_open}
+              setIsOpen={setModalOpen}
+              title={"Crear Nuevo"}
+            >
+              <SelectField
+                fullWidth
+                label="Recurso"
+                margin="dense"
+                name="person"
+                onChange={handleChange}
+                required
+                value={fields.person}
+              >
+                {people.map(({ pk_persona, nombre }) => (
+                  <option key={pk_persona} value={pk_persona}>{nombre}</option>
+                ))}
+              </SelectField>
+              <SelectField
+                fullWidth
+                label="Presupuesto"
+                margin="dense"
+                name="budget"
+                onChange={handleChange}
+                required
+                value={fields.budget}
+              >
+                {budget
+                  .filter(({ fk_proyecto }) => fk_proyecto == project)
+                  .map(({ pk_presupuesto, nombre }) => (
+                    <option key={pk_presupuesto} value={pk_presupuesto}>{nombre}</option>
+                  ))
+                }
+              </SelectField>
+              <AsyncSelectField
+                disabled={!fields.budget}
+                fullWidth
+                handleSource={async (source) => {
+                  const available_roles = await getBudgetDetails(fields.budget)
+                    .then(details => details.reduce((res, { fk_rol }) => {
+                      res.push(fk_rol);
+                      return res;
+                    }, []));
 
-          return Object.values(source)
-            .filter(({ pk_rol }) => available_roles.includes(pk_rol))
-            .map(({
-              pk_rol,
-              nombre,
-            }) => {
-              return { value: String(pk_rol), text: nombre };
-            });
-        }}
-        label="Rol"
-        margin="dense"
-        name="role"
-        onChange={handleChange}
-        required
-        source={`operaciones/rol`}
-        value={fields.budget && fields.role}
-      />
-      <TextField
-        fullWidth
-        label="Fecha Inicio"
-        margin="dense"
-        name="start_date"
-        onChange={event => {
-          const date = parseDateToStandardNumber(new Date(event.target.value));
-          setFields((fields) => ({ ...fields, start_date: date }));
-        }}
-        required
-        type="date"
-        value={formatDateToInputDate(parseStandardNumber(fields.start_date) || new Date())}
-      />
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            min: 0,
-            max: 100,
-          },
-        }}
-        label="% Asignacion"
-        margin="dense"
-        name="assignation"
-        onChange={handleChange}
-        required
-        type="number"
-        value={fields.assignation}
-      />
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            min: 0,
-          },
-        }}
-        label="Horas"
-        margin="dense"
-        name="hours"
-        onChange={handleChange}
-        required
-        type="number"
-        value={fields.hours}
-      />
-    </DialogForm>
+                  return Object.values(source)
+                    .filter(({ pk_rol }) => available_roles.includes(pk_rol))
+                    .map(({
+                      pk_rol,
+                      nombre,
+                    }) => {
+                      return { value: String(pk_rol), text: nombre };
+                    });
+                }}
+                label="Rol"
+                margin="dense"
+                name="role"
+                onChange={handleChange}
+                required
+                source={`operaciones/rol`}
+                value={fields.budget && fields.role}
+              />
+              <TextField
+                fullWidth
+                label="Fecha Inicio"
+                margin="dense"
+                name="start_date"
+                onChange={event => {
+                  const date = parseDateToStandardNumber(new Date(event.target.value));
+                  setFields((fields) => ({ ...fields, start_date: date }));
+                }}
+                required
+                type="date"
+                value={formatDateToInputDate(parseStandardNumber(fields.start_date) || new Date())}
+              />
+              <TextField
+                fullWidth
+                InputProps={{
+                  inputProps: {
+                    min: 0,
+                    max: 100,
+                  },
+                }}
+                label="% Asignacion"
+                margin="dense"
+                name="assignation"
+                onChange={handleChange}
+                required
+                type="number"
+                value={fields.assignation}
+              />
+              <TextField
+                fullWidth
+                InputProps={{
+                  inputProps: {
+                    min: 0,
+                  },
+                }}
+                label="Horas"
+                margin="dense"
+                name="hours"
+                onChange={handleChange}
+                required
+                type="number"
+                value={fields.hours}
+              />
+            </DialogForm>
+          )
+          : (
+            <NotSelectedProjectDialog
+              open={is_open}
+              setOpen={setModalOpen}
+            />
+          )
+      }
+    </Fragment>
   );
 };
 
@@ -304,6 +346,7 @@ const EditModal = ({
   data,
   is_open,
   people,
+  project,
   setModalOpen,
 }) => {
   const [fields, setFields] = useState({
@@ -360,121 +403,136 @@ const EditModal = ({
   };
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Editar"}
-    >
-      <SelectField
-        fullWidth
-        label="Recurso"
-        margin="dense"
-        name="person"
-        onChange={handleChange}
-        required
-        value={fields.person}
-      >
-        {people.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
-      <SelectField
-        fullWidth
-        label="Presupuesto"
-        margin="dense"
-        name="budget"
-        onChange={handleChange}
-        required
-        value={fields.budget}
-      >
-        {budget.map(({ pk_presupuesto, nombre }) => (
-          <option key={pk_presupuesto} value={pk_presupuesto}>{nombre}</option>
-        ))}
-      </SelectField>
-      <AsyncSelectField
-        disabled={!fields.budget}
-        fullWidth
-        handleSource={async (source) => {
-          const available_roles = await getBudgetDetails(fields.budget)
-            .then(details => details.reduce((res, { fk_rol }) => {
-              res.push(fk_rol);
-              return res;
-            }, []));
+    <Fragment>
+      {
+        project
+          ? (
+            <DialogForm
+              error={error}
+              handleSubmit={handleSubmit}
+              is_loading={is_loading}
+              is_open={is_open}
+              setIsOpen={setModalOpen}
+              title={"Editar"}
+            >
+              <SelectField
+                fullWidth
+                label="Recurso"
+                margin="dense"
+                name="person"
+                onChange={handleChange}
+                required
+                value={fields.person}
+              >
+                {people.map(({ pk_persona, nombre }) => (
+                  <option key={pk_persona} value={pk_persona}>{nombre}</option>
+                ))}
+              </SelectField>
+              <SelectField
+                fullWidth
+                label="Presupuesto"
+                margin="dense"
+                name="budget"
+                onChange={handleChange}
+                required
+                value={fields.budget}
+              >
+                {budget.map(({ pk_presupuesto, nombre }) => (
+                  <option key={pk_presupuesto} value={pk_presupuesto}>{nombre}</option>
+                ))}
+              </SelectField>
+              <AsyncSelectField
+                disabled={!fields.budget}
+                fullWidth
+                handleSource={async (source) => {
+                  const available_roles = await getBudgetDetails(fields.budget)
+                    .then(details => details.reduce((res, { fk_rol }) => {
+                      res.push(fk_rol);
+                      return res;
+                    }, []));
 
-          return Object.values(source)
-            .filter(({ pk_rol }) => {
-              if (!fields.budget) return true;
-              return available_roles.includes(pk_rol);
-            })
-            .map(({
-              pk_rol,
-              nombre,
-            }) => {
-              return { value: String(pk_rol), text: nombre };
-            });
-        }}
-        label="Rol"
-        margin="dense"
-        name="role"
-        onChange={handleChange}
-        required
-        source={`operaciones/rol`}
-        value={fields.budget && fields.role}
-      />
-      <TextField
-        fullWidth
-        label="Fecha Inicio"
-        margin="dense"
-        name="start_date"
-        onChange={event => {
-          const date = parseDateToStandardNumber(new Date(event.target.value));
-          setFields((fields) => ({ ...fields, start_date: date }));
-        }}
-        required
-        type="date"
-        value={formatDateToInputDate(parseStandardNumber(fields.start_date) || new Date())}
-      />
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            min: 0,
-            max: 100,
-          },
-        }}
-        label="% Asignacion"
-        margin="dense"
-        name="assignation"
-        onChange={handleChange}
-        required
-        type="number"
-        value={fields.assignation}
-      />
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            min: 0,
-          },
-        }}
-        label="Horas"
-        margin="dense"
-        name="hours"
-        onChange={handleChange}
-        required
-        type="number"
-        value={fields.hours}
-      />
-    </DialogForm>
+                  return Object.values(source)
+                    .filter(({ pk_rol }) => {
+                      if (!fields.budget) return true;
+                      return available_roles.includes(pk_rol);
+                    })
+                    .map(({
+                      pk_rol,
+                      nombre,
+                    }) => {
+                      return { value: String(pk_rol), text: nombre };
+                    });
+                }}
+                label="Rol"
+                margin="dense"
+                name="role"
+                onChange={handleChange}
+                required
+                source={`operaciones/rol`}
+                value={fields.budget && fields.role}
+              />
+              <TextField
+                fullWidth
+                label="Fecha Inicio"
+                margin="dense"
+                name="start_date"
+                onChange={event => {
+                  const date = parseDateToStandardNumber(new Date(event.target.value));
+                  setFields((fields) => ({ ...fields, start_date: date }));
+                }}
+                required
+                type="date"
+                value={formatDateToInputDate(parseStandardNumber(fields.start_date) || new Date())}
+              />
+              <TextField
+                fullWidth
+                InputProps={{
+                  inputProps: {
+                    min: 0,
+                    max: 100,
+                  },
+                }}
+                label="% Asignacion"
+                margin="dense"
+                name="assignation"
+                onChange={handleChange}
+                required
+                type="number"
+                value={fields.assignation}
+              />
+              <TextField
+                fullWidth
+                InputProps={{
+                  inputProps: {
+                    min: 0,
+                  },
+                }}
+                label="Horas"
+                margin="dense"
+                name="hours"
+                onChange={handleChange}
+                required
+                type="number"
+                value={fields.hours}
+              />
+            </DialogForm>
+
+          )
+          : (
+            <NotSelectedProjectDialog
+              open={is_open}
+              setOpen={setModalOpen}
+            />
+          )
+      }
+    </Fragment>
   );
 };
 
 const DeleteModal = ({
   callback,
   is_open,
+  project,
   selected,
   setModalOpen,
 }) => {
@@ -508,21 +566,34 @@ const DeleteModal = ({
   };
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Eliminar Elementos"}
-      confirmButtonText={"Confirmar"}
-    >
-      <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
-        &nbsp;elementos?
-      </DialogContentText>
-    </DialogForm>
+    <Fragment>
+      {
+        project
+          ? (
+            <DialogForm
+              error={error}
+              handleSubmit={handleSubmit}
+              is_loading={is_loading}
+              is_open={is_open}
+              setIsOpen={setModalOpen}
+              title={"Eliminar Elementos"}
+              confirmButtonText={"Confirmar"}
+            >
+              <DialogContentText>
+                Esta operacion no se puede deshacer.
+                ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+                &nbsp;elementos?
+              </DialogContentText>
+            </DialogForm>
+          )
+          : (
+            <NotSelectedProjectDialog
+              open={is_open}
+              setOpen={setModalOpen}
+            />
+          )
+      }
+    </Fragment>
   );
 };
 
@@ -611,6 +682,7 @@ export default () => {
         callback={updateData}
         is_open={is_add_modal_open}
         people={people}
+        project={selectedProyect}
         setModalOpen={setAddModalOpen}
       />
       <EditModal
@@ -619,10 +691,12 @@ export default () => {
         data={selected_resource}
         is_open={is_edit_modal_open}
         people={people}
+        project={selectedProyect}
         setModalOpen={setEditModalOpen}
       />
       <DeleteModal
         is_open={is_delete_modal_open}
+        project={selectedProyect}
         setModalOpen={setDeleteModalOpen}
         selected={selected}
         callback={updateData}

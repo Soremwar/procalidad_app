@@ -171,6 +171,7 @@ const AddModal = ({
       >
         <option value="string">Texto</option>
         <option value="number">Numero</option>
+        <option value="percentage">Porcentaje</option>
       </SelectField>
     </DialogForm>
   );
@@ -457,6 +458,7 @@ const EditModal = ({
                   >
                     <option value="string">Texto</option>
                     <option value="number">Numero</option>
+                    <option value="percentage">Porcentaje</option>
                   </SelectField>
                 </Fragment>
               ) :
@@ -488,15 +490,44 @@ const EditModal = ({
                       type="date"
                       value={definition_fields.end_date}
                     />
-                    <TextField
-                      fullWidth
-                      label="Valor"
-                      margin="dense"
-                      name="value"
-                      onChange={handleDefinitionChange}
-                      required
-                      value={definition_fields.value}
-                    />
+                    {
+                      parameter_fields.type == 'string'
+                        ? (
+                          <TextField
+                            fullWidth
+                            label="Valor"
+                            margin="dense"
+                            name="value"
+                            onChange={handleDefinitionChange}
+                            required
+                            value={definition_fields.value}
+                          />
+                        )
+                        : (
+                          <TextField
+                            fullWidth
+                            InputProps={{
+                              ...(
+                                parameter_fields.type == 'percentage'
+                                  ? {
+                                    inputProps: {
+                                      min: 0,
+                                      max: 100,
+                                    }
+                                  }
+                                  : {}
+                              )
+                            }}
+                            label="Valor"
+                            margin="dense"
+                            name="value"
+                            onChange={handleDefinitionChange}
+                            type="number"
+                            required
+                            value={definition_fields.value}
+                          />
+                        )
+                    }
                   </Fragment>
                 )
             }

@@ -11,6 +11,7 @@ const ERROR_DEPENDENCY =
 export enum TipoParametro {
   string = "string",
   number = "number",
+  percentage = "percentage",
 }
 
 class Parametro {
