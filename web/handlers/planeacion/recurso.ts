@@ -113,10 +113,9 @@ export const createResource = async ({ request, response }: RouterContext) => {
 
   //TODO
   //Reemplazar 9 por calculo de horas laborales diarias
-  //Se resta un dia al calculo para incluir el dia en el que esta parado
   const end_date = await addLaboralDays(
     Number(start_date),
-    Math.ceil(Number(hours) / 9 * 100 / Number(assignation) - 1),
+    Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
   );
 
   const position = await createNew(
@@ -172,10 +171,9 @@ export const updateResource = async (
 
   //TODO
   //Reemplazar 9 por calculo de horas laborales diarias
-  //Se resta un dia al calculo para incluir el dia en el que esta parado
   const end_date = await addLaboralDays(
     Number(start_date),
-    Math.ceil(Number(hours) / 9 * 100 / Number(assignation) - 1),
+    Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
   );
 
   resource = await resource.update(

@@ -7,17 +7,17 @@ const TABLE = 'MAESTRO.DIM_TIEMPO';
 * */
 export const addLaboralDays = async (start_date: number, days: number): Promise<number> => {
   const { rows } = await postgres.query(
-    `SELECT
-      COALESCE(MAX(COD_FECHA), $1) AS END_DATE
-    FROM (
+    `SELECT MAX(COD_FECHA) AS DAY
+    FROM(
       SELECT 
         COD_FECHA
       FROM ${TABLE}
-      WHERE COD_FECHA > $1
+      WHERE COD_FECHA >= $1
       AND EXTRACT(ISODOW FROM FECHA) NOT IN (6,7)
+      AND BAN_FESTIVO = FALSE
       ORDER BY COD_FECHA
       LIMIT $2
-    ) AS DAYS`,
+    ) AS DATES`,
     start_date,
     days,
   );
@@ -33,7 +33,8 @@ export const getLaboralDaysBetween = async (start_date: number, end_date: number
       COD_FECHA
     FROM ${TABLE}
     WHERE COD_FECHA BETWEEN $1 AND $2
-    AND EXTRACT(ISODOW FROM FECHA) NOT IN (6,7)`,
+    AND EXTRACT(ISODOW FROM FECHA) NOT IN (6,7)
+    AND BAN_FESTIVO = FALSE`,
     start_date,
     end_date,
   );
