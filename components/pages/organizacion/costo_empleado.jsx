@@ -20,6 +20,7 @@ import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
+import CurrencyField from '@unicef/material-ui-currency-textfield';
 
 //TODO
 //Add primary key as constant
@@ -185,43 +186,47 @@ const AddModal = ({
           <option key={pk_computador} value={pk_computador}>{nombre}</option>
         ))}
       </SelectField>
-      <TextField
+      <CurrencyField
+        currencySymbol="$"
         fullWidth
         label="Valor Prestacional"
-        margin="dense"
+        minimumValue="0"
         name="labour_cost"
-        type="number"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(fields => ({ ...fields, labour_cost: value }))}
+        outputFormat="number"
         required
         value={fields.labour_cost}
       />
-      <TextField
+      <CurrencyField
+        currencySymbol="$"
         fullWidth
         label="Valor de Bonos"
-        margin="dense"
+        minimumValue="0"
         name="bonus_cost"
-        type="number"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(fields => ({ ...fields, bonus_cost: value }))}
+        outputFormat="number"
         required
         value={fields.bonus_cost}
       />
-      <TextField
+      <CurrencyField
+        currencySymbol="$"
         fullWidth
         label="Licencias"
-        margin="dense"
+        minimumValue="0"
         name="license_cost"
-        type="number"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(fields => ({ ...fields, license_cost: value }))}
+        outputFormat="number"
         required
         value={fields.license_cost}
       />
-      <TextField
+      <CurrencyField
+        currencySymbol="$"
         fullWidth
         label="Otros"
-        margin="dense"
+        minimumValue="0"
         name="other"
-        type="number"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(fields => ({ ...fields, other: value }))}
+        outputFormat="number"
         required
         value={fields.other}
       />
@@ -242,8 +247,20 @@ const AddModal = ({
         result
           ? (
             <Fragment>
-              <Typography><b>Costo</b>: {result.cost}</Typography>
-              <Typography><b>Costo Total</b>: {result.total_cost}</Typography>
+              <CurrencyField
+                currencySymbol="$"
+                disabled
+                fullWidth
+                label="Costo"
+                value={result.cost}
+              />
+              <CurrencyField
+                currencySymbol="$"
+                disabled
+                fullWidth
+                label="Costo Total"
+                value={result.total_cost}
+              />
             </Fragment>)
           : (
             <Typography>Ingrese el modelo de computador y el tipo de salario para realizar el calculo</Typography>
@@ -369,43 +386,47 @@ const EditModal = ({
           <option key={pk_computador} value={pk_computador}>{nombre}</option>
         ))}
       </SelectField>
-      <TextField
+      <CurrencyField
+        currencySymbol="$"
         fullWidth
         label="Valor Prestacional"
-        margin="dense"
+        minimumValue="0"
         name="labour_cost"
-        type="number"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(fields => ({ ...fields, labour_cost: value }))}
+        outputFormat="number"
         required
         value={fields.labour_cost}
       />
-      <TextField
+      <CurrencyField
+        currencySymbol="$"
         fullWidth
         label="Valor de Bonos"
-        margin="dense"
+        minimumValue="0"
         name="bonus_cost"
-        type="number"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(fields => ({ ...fields, bonus_cost: value }))}
+        outputFormat="number"
         required
         value={fields.bonus_cost}
       />
-      <TextField
+      <CurrencyField
+        currencySymbol="$"
         fullWidth
         label="Licencias"
-        margin="dense"
+        minimumValue="0"
         name="license_cost"
-        type="number"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(fields => ({ ...fields, license_cost: value }))}
+        outputFormat="number"
         required
         value={fields.license_cost}
       />
-      <TextField
+      <CurrencyField
+        currencySymbol="$"
         fullWidth
         label="Otros"
-        margin="dense"
+        minimumValue="0"
         name="other"
-        type="number"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(fields => ({ ...fields, other: value }))}
+        outputFormat="number"
         required
         value={fields.other}
       />
@@ -426,8 +447,20 @@ const EditModal = ({
         result
           ? (
             <Fragment>
-              <Typography><b>Costo</b>: {result.cost}</Typography>
-              <Typography><b>Costo Total</b>: {result.total_cost}</Typography>
+              <CurrencyField
+                currencySymbol="$"
+                disabled
+                fullWidth
+                label="Costo"
+                value={result.cost}
+              />
+              <CurrencyField
+                currencySymbol="$"
+                disabled
+                fullWidth
+                label="Costo Total"
+                value={result.total_cost}
+              />
             </Fragment>)
           : (
             <Typography>Ingrese el modelo de computador y el tipo de salario para realizar el calculo</Typography>

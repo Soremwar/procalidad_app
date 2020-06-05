@@ -28,6 +28,7 @@
     "@material-ui/icons": "4.9.1",
     "@material-ui/lab": "4.0.0-alpha.49",
     "@material-ui/styles": "4.9.10",
+    "@unicef/material-ui-currency-textfield": "0.8.6",
     "frappe-gantt-react": "^0.2.2",
     "parcel-bundler": "1.12.4",
     "react": "16.13.1",

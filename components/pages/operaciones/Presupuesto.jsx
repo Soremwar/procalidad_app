@@ -30,6 +30,7 @@ import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
+import CurrencyField from '@unicef/material-ui-currency-textfield';
 
 //TODO
 //Add primary key as constant
@@ -101,9 +102,8 @@ const BudgetRole = ({
   });
 
   const handleChange = (event) => {
-    if (!event.target.checkValidity()) return;
     const name = event.target.name;
-    const value = Number(event.target.value);
+    const value = event.target.value;
     setFields((prev_state) => {
       const data = ({ ...prev_state, [name]: value });
       return data;
@@ -115,7 +115,6 @@ const BudgetRole = ({
   }, [price]);
 
   useEffect(() => {
-    console.log('changed')
     updateRole(index, fields.role, fields.time, fields.price);
   }, [fields]);
 
@@ -149,6 +148,11 @@ const BudgetRole = ({
           InputLabelProps={{
             shrink: true,
           }}
+          InputProps={{
+            inputProps: {
+              min: 0,
+            }
+          }}
           name="time"
           onChange={(event) => handleChange(event)}
           required
@@ -158,19 +162,24 @@ const BudgetRole = ({
         />
       </TableCell>
       <TableCell width="25%">
-        <TextField
-          InputLabelProps={{
-            shrink: true,
-          }}
+        <CurrencyField
+          currencySymbol="$"
           name="price"
-          onChange={(event) => handleChange(event)}
+          minimumValue="0"
+          onChange={(_event, value) => setFields(fields => ({ ...fields, price: value }))}
+          outputFormat="number"
           required
-          type="number"
           value={fields.price}
           variant="outlined"
         />
       </TableCell>
-      <TableCell width="20%">{`$ ${fields.time * fields.price}`}</TableCell>
+      <TableCell width="20%">
+        <CurrencyField
+          currencySymbol="$"
+          disabled
+          value={fields.time * fields.price}
+        />
+      </TableCell>
     </TableRow>
   );
 };
@@ -204,8 +213,6 @@ const BudgetDetail = ({
 
   const updateRole = (key, id, time, price) => {
     setRoles((prev_roles) => {
-      console.log(prev_roles)
-      console.log({ key, id, time, price })
       return prev_roles.map((role, index) => {
         if (index !== key) return role;
         role.id = id;
@@ -220,11 +227,9 @@ const BudgetDetail = ({
     setRoles((prev_roles) => prev_roles.filter((_, index) => index !== key));
   };
 
-  const distributeValue = (event) => {
-    if (!event.target.checkValidity()) return;
-    const time = roles.reduce((sum, role) => (sum + role.time), 0);
-    const value = Number(event.target.value);
-    const price = value / time;
+  const distributeValue = (value) => {
+    const time = roles.reduce((sum, role) => (sum + Number(role.time)), 0);
+    const price = time === 0 ? 0 : value / time;
 
     setRoles((prev_roles) =>
       prev_roles.map((role) => {
@@ -270,15 +275,18 @@ const BudgetDetail = ({
       <Grid container style={{ padding: "10px" }}>
         <Grid item xs={6}>
           <Typography variant="h6" gutterBottom>
-            Total de Horas: {roles.reduce((sum, role) => (sum + role.time), 0)}
+            Total de Horas: {roles.reduce((sum, role) => (sum + Number(role.time)), 0)}
           </Typography>
         </Grid>
         <Grid item xs={6}>
           <Typography variant="h6" gutterBottom>
-            Valor Total: $ {roles.reduce(
-            (sum, role) => (sum + (role.time * role.price)),
-            0,
-          )}
+            Valor Total:
+            &nbsp; &nbsp;
+            <CurrencyField
+              currencySymbol="$"
+              disabled
+              value={roles.reduce((sum, role) => (sum + (role.time * role.price)), 0)}
+            />
           </Typography>
         </Grid>
         <Grid container>
@@ -288,14 +296,15 @@ const BudgetDetail = ({
               onChange={(event) => setDistribute(event.target.checked)}
             />
             Distribuir tarifas por valor
-            <TextField
+            &nbsp;
+            &nbsp;
+            <CurrencyField
+              currencySymbol="$"
               disabled={!distribute}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              onChange={(event) => distributeValue(event)}
-              type="number"
-              variant="outlined"
+              minimumValue="0"
+              onChange={(_event, value) => distributeValue(value)}
+              outputFormat="number"
+              required
             />
           </Typography>
         </Grid>
