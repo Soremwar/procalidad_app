@@ -137,8 +137,7 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createSalary(new URLSearchParams(form_data));
+    const request = await createSalary(new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -336,9 +335,8 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
     const id = data.pk_salario;
-    const request = await updateSalary(id, new URLSearchParams(form_data));
+    const request = await updateSalary(id, new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
