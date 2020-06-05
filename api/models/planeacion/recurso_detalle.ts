@@ -3,7 +3,7 @@ import { PostgresError } from "deno_postgres";
 
 const TABLE = "PLANEACION.RECURSO_DETALLE";
 
-class RecursoDetalle {
+export class RecursoDetalle {
   constructor(
     public fk_recurso: number,
     public fecha: number,

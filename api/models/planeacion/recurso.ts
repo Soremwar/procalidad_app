@@ -1,5 +1,4 @@
 import postgres from "../../services/postgres.js";
-import { PostgresError } from "deno_postgres";
 import {
   TableOrder,
 } from "../../common/table.ts";
@@ -8,9 +7,9 @@ import {
   createNew as createDetail,
   deleteByResource as deleteDetails,
 } from "./recurso_detalle.ts";
-
-// @deno-types="https://deno.land/x/types/moment/v2.26.0/moment.d.ts"
-import moment from 'https://cdn.pika.dev/moment@2.26.0';
+import {
+  getLaboralDaysBetween,
+} from "../../../api/models/MAESTRO/dim_tiempo.ts";
 
 const TABLE = "PLANEACION.RECURSO";
 
@@ -64,7 +63,7 @@ class Recurso {
 
     if(!is_available) throw new Error("La asignacion no se encuentra disponible en el periodo especificado");
 
-    const { rows } = await postgres.query(
+    await postgres.query(
       `UPDATE ${TABLE} SET
           FK_PERSONA = $2,
           FK_PRESUPUESTO = $3,
@@ -84,24 +83,19 @@ class Recurso {
       this.horas,
     );
 
-    const start = moment(this.fecha_inicio, 'YYYYMMDD');
-    const end = moment(this.fecha_fin, 'YYYYMMDD');
+    const days: number[] = await getLaboralDaysBetween(this.fecha_inicio, this.fecha_fin);
 
-    for(
-      let x = start;
-      x.isSameOrBefore(end);
-      x.add(1, 'day')
-    ){
-      try{
+    try{
+      for (const day of days){
         await createDetail(
           this.pk_recurso,
-          Number(x.format('YYYYMMDD')),
+          day,
           horas_diarias,
         );
-      }catch(e){
-        throw(e);
-        break;
       }
+    }catch(e){
+      await this.delete();
+      throw(e);
     }
 
     return this;
@@ -237,25 +231,19 @@ export const createNew = async (
     horas,
   );
 
-  const start = moment(fecha_inicio, 'YYYYMMDD');
-  const end = moment(fecha_fin, 'YYYYMMDD');
+  const days: number[] = await getLaboralDaysBetween(fecha_inicio, fecha_fin);
 
-  for(
-    let x = start;
-    x.isSameOrBefore(end);
-    x.add(1, 'day')
-  ){
-    try{
+  try{
+    for (const day of days){
       await createDetail(
         id,
-        Number(x.format('YYYYMMDD')),
+        day,
         horas_diarias,
       );
-    }catch(e){
-      await recurso.delete();
-      throw(e);
-      break;
     }
+  }catch(e){
+    await recurso.delete();
+    throw(e);
   }
 
   return recurso;

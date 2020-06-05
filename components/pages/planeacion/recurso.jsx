@@ -299,8 +299,6 @@ const AddModal = ({
               disabled={!fields.client && !fields.project}
               fullWidth
               handleSource={async (source) => {
-                console.log(fields.project)
-                console.log(source);
                 return Object.values(source)
                   .filter(({ fk_proyecto }) => fk_proyecto == fields.project)
                   .map(({

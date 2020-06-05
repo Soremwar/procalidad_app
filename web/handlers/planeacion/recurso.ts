@@ -13,15 +13,16 @@ import {
   getProjectGanttData,
   getResourceGanttData,
 } from "../../../api/models/planeacion/recurso.ts";
+import {
+  addLaboralDays,
+} from "../../../api/models/MAESTRO/dim_tiempo.ts";
+
 import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import {
   parseStandardNumber,
 } from "../../../lib/date/mod.js";
-
-// @deno-types="https://deno.land/x/types/moment/v2.26.0/moment.d.ts"
-import moment from 'https://cdn.pika.dev/moment@2.26.0';
 
 enum ResourceViewType {
   project = "project",
@@ -86,17 +87,6 @@ export const getResourcesTable = async (
   }
 };
 
-const addWeekdays = (date_str: Date, days: number) => {
-  let date: any = moment(date_str)
-  while(days > 0) {
-    date = date.add(1, 'days');
-    if (date.isoWeekday() !== 6 && date.isoWeekday() !== 7) {
-      days -= 1;
-    }
-  }
-  return date;
-}
-
 export const createResource = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
@@ -121,10 +111,12 @@ export const createResource = async ({ request, response }: RouterContext) => {
     throw new RequestSyntaxError();
   }
 
+  //TODO
   //Reemplazar 9 por calculo de horas laborales diarias
-  const end_date = addWeekdays(
-    moment(start_date, 'YYYYMMDD').toDate(),
-    Number(hours) / 9 * 100 / Number(assignation) - 1,
+  //Se resta un dia al calculo para incluir el dia en el que esta parado
+  const end_date = await addLaboralDays(
+    Number(start_date),
+    Math.ceil(Number(hours) / 9 * 100 / Number(assignation) - 1),
   );
 
   const position = await createNew(
@@ -132,7 +124,7 @@ export const createResource = async ({ request, response }: RouterContext) => {
     Number(budget),
     Number(role),
     Number(start_date),
-    end_date.format('YYYYMMDD'),
+    end_date,
     Number(assignation),
     Number(hours),
   );
@@ -178,10 +170,12 @@ export const updateResource = async (
     hours?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
+  //TODO
   //Reemplazar 9 por calculo de horas laborales diarias
-  const end_date = addWeekdays(
-    moment(start_date, 'YYYYMMDD').toDate(),
-    Number(hours) / 9 * 100 / Number(assignation) - 1,
+  //Se resta un dia al calculo para incluir el dia en el que esta parado
+  const end_date = await addLaboralDays(
+    Number(start_date),
+    Math.ceil(Number(hours) / 9 * 100 / Number(assignation) - 1),
   );
 
   resource = await resource.update(
@@ -189,7 +183,7 @@ export const updateResource = async (
     Number(budget) || undefined,
     Number(role) || undefined,
     parseStandardNumber(start_date) ? Number(start_date) : undefined,
-    Number(end_date.format('YYYYMMDD')),
+    end_date,
     Number(assignation) >= 0 && Number(assignation) <= 100 ? Number(assignation) : undefined,
     Number(hours) || undefined,
   );
