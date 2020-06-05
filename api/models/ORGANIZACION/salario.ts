@@ -48,6 +48,11 @@ class Salario {
       otros,
       tipo_salario,
     });
+
+    const person_has_cost: boolean = await personHasCost(this.fk_persona, this.pk_salario);
+
+    if(person_has_cost) throw new Error("El coste para la persona ya ha sido calculado");
+
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
         FK_PERSONA = $2,
@@ -104,7 +109,7 @@ export const getCalculatedResult = async (
   tipo_salario: TipoSalario,
   computador: number,
 ) => {
-  const { rows, ...rest } = await postgres.query(
+  const { rows } = await postgres.query(
     `WITH
     PARAMETROS AS (
       SELECT
@@ -220,6 +225,31 @@ export const findById = async (id: number): Promise<Salario | null> => {
   return new Salario(...result);
 };
 
+export const personHasCost = async (
+  person: number,
+  salary: number = 0,
+): Promise<boolean> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_SALARIO,
+      FK_PERSONA,
+      FK_COMPUTADOR,
+      VALOR_PRESTACIONAL,
+      VALOR_BONOS,
+      LICENCIAS,
+      OTROS,
+      SALARIO,
+      TIPO_SALARIO
+    FROM ${TABLE}
+    WHERE FK_PERSONA = $1
+    AND PK_SALARIO <> $2`,
+    person,
+    salary,
+  );
+
+  return Boolean(rows.length);
+};
+
 export const createNew = async (
   fk_persona: number,
   fk_computador: number,
@@ -229,6 +259,11 @@ export const createNew = async (
   otros: number,
   tipo_salario: TipoSalario,
 ): Promise<Salario> => {
+
+  const person_has_cost: boolean = await personHasCost(fk_persona);
+
+  if(person_has_cost) throw new Error("El coste para la persona ya ha sido calculado");
+
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_PERSONA,
