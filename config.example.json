@@ -6,8 +6,10 @@
   },
   "app": {
     "address": null,
+    "password": "admin",
     "port": null,
     "protocol": "http",
+    "username": "admin",
     "version": "v0.4.0"
   },
   "services": {

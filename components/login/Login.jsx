@@ -73,8 +73,8 @@ const Login = ({ history }) => {
               <Typography className={classes.formDividerWord}>o</Typography>
               <div className={classes.formDivider} />
             </div>
-            <Fade in={login_error && true}>
-              <Typography color="secondary" className={classes.errorMessage}>
+            <Fade in={!!login_error}>
+              <Typography color="primary" className={classes.errorMessage}>
                 {login_error}
               </Typography>
             </Fade>

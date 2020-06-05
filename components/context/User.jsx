@@ -1,4 +1,8 @@
-import React, { useReducer } from "react";
+import React from "react";
+import {
+  username as dev_username,
+  password as dev_password,
+} from "../../config/app.js";
 
 export const UserContext = React.createContext();
 
@@ -31,7 +35,11 @@ const attemptLogin = (username, password) => {
   //Verify session with google server
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      resolve("Autenticado con éxito");
+      if (username === dev_username && password === dev_password) {
+        resolve("Autenticado con éxito");
+      } else {
+        reject("Credenciales incorrectas");
+      }
     }, 1000);
   });
 };
@@ -50,10 +58,10 @@ export const loginUser = (
       dispatch({ type: ACTIONS.LOGIN });
       history.push("/home");
     })
-    .catch(() => {
+    .catch((message) => {
       //TODO
       //Replace with error detection
-      setLoginError("No fue posible autenticarse");
+      setLoginError(message);
       setIsLoading(false);
     });
 };
@@ -69,7 +77,7 @@ export const UserProvider = ({ children }) => {
     //Add login server key
     name: null,
     email: null,
-    isAuthenticated: true,
+    isAuthenticated: false,
   });
 
   return (
