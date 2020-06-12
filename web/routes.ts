@@ -160,6 +160,7 @@ import {
   deleteResource,
   getResource,
   getResourcesGantt,
+  getResourcesHeatmap,
   getResources,
   getResourcesTable,
   updateResource,
@@ -358,6 +359,7 @@ main_router
 main_router
   .get("/api/planeacion/recurso", getResources)
   .get("/api/planeacion/recurso/gantt", getResourcesGantt)
+  .get("/api/planeacion/recurso/heatmap", getResourcesHeatmap)
   .post("/api/planeacion/recurso/table", getResourcesTable)
   .post<{ id: string }>("/api/planeacion/recurso", createResource)
   .get<{ id: string }>("/api/planeacion/recurso/:id", getResource)

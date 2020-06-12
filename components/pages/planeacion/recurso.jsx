@@ -16,7 +16,6 @@ import {
   Tab,
   Tabs,
   TextField,
-  Typography,
 } from "@material-ui/core";
 import {
   makeStyles,
@@ -43,6 +42,9 @@ import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
+
+import ResourceHeatmap from "./recurso/ResourceHeatmap.jsx";
+import DetailHeatmap from "./recurso/DetailHeatmap.jsx";
 
 //TODO
 //Add primary key as constant
@@ -92,6 +94,18 @@ const getResourceGantt = (type, person, project) => {
     ['type', type],
   ].filter(([_index, value]) => value)));
   return fetchResourceApi(`gantt?${params.toString()}`).then((x) => x.json())
+};
+const getResourceHeatmap = (
+  type,
+  person,
+  formula,
+) => {
+  const params = new URLSearchParams(Object.fromEntries([
+    ['person', person],
+    ['formula', formula],
+    ['type', type],
+  ].filter(([_index, value]) => value)));
+  return fetchResourceApi(`heatmap?${params.toString()}`).then((x) => x.json())
 };
 
 const createResource = async (form_data) => {
@@ -692,6 +706,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const TODAY = parseDateToStandardNumber(new Date());
+const MAX_DATE_HEATMAP = (() => {
+  const date = new Date();
+  date.setMonth(new Date().getMonth() + 2);
+  return parseDateToStandardNumber(date);
+})();
+
 export default () => {
   const classes = useStyles();
 
@@ -708,7 +729,8 @@ export default () => {
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [dataShouldUpdate, setDataShouldUpdate] = useState(false);
   const [tasks, setTasks] = useState([]);
-
+  const [heatmap_formula, setHeatmapFormula] = useState("occupation");
+  const [heatmap_data, setHeatmapData] = useState([]);
   const [value, setValue] = useState(0);
 
   const handleChange = (event, newValue) => {
@@ -726,6 +748,8 @@ export default () => {
     setDeleteModalOpen(true);
   };
 
+  //TODO
+  //Fix duplicate data fetch
   const updateData = () => {
     setDataShouldUpdate(true);
     if (!selectedPerson) {
@@ -745,6 +769,7 @@ export default () => {
 
         setTasks(tasks);
       });
+      getResourceHeatmap('resource', undefined, heatmap_formula).then(data => setHeatmapData(data));
     } else {
       getResourceGantt('detail', selectedPerson).then(resources => {
         const tasks = resources
@@ -763,6 +788,7 @@ export default () => {
 
         setTasks(tasks);
       });
+      getResourceHeatmap('detail', selectedPerson).then(data => setHeatmapData(data));
     }
   };
 
@@ -777,7 +803,7 @@ export default () => {
 
   useEffect(() => {
     updateData();
-  }, [selectedPerson]);
+  }, [selectedPerson, heatmap_formula]);
 
   return (
     <Fragment>
@@ -828,6 +854,7 @@ export default () => {
           <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
             <Tab label="Planeacion" {...a11yProps(0)} />
             <Tab label="Gantt" {...a11yProps(1)} />
+            <Tab label="Disponibilidad" {...a11yProps(2)} />
           </Tabs>
         </AppBar>
         <TabPanel value={value} index={0}>
@@ -879,6 +906,44 @@ export default () => {
             tasks={tasks.length ? tasks : global_tasks}
             viewMode={ViewMode.Week}
           />
+        </TabPanel>
+        <TabPanel
+          index={2}
+          value={value}
+        >
+          {/*
+            TODO
+            Add blacklisted days
+          */}
+          {
+            !selectedPerson
+              ? (
+                <Fragment>
+                  <SelectField
+                    onChange={(event) => setHeatmapFormula(event.target.value)}
+                    value={heatmap_formula}
+                  >
+                    <option value="availability">Disponible</option>
+                    <option value="occupation">Ocupacion</option>
+                  </SelectField>
+                  <ResourceHeatmap
+                    blacklisted_dates={[]}
+                    data={heatmap_data}
+                    end_date={MAX_DATE_HEATMAP}
+                    start_date={TODAY}
+                    type={heatmap_formula}
+                  />
+                </Fragment>
+              )
+              : (
+                <DetailHeatmap
+                  blacklisted_dates={[]}
+                  data={heatmap_data}
+                  end_date={MAX_DATE_HEATMAP}
+                  start_date={TODAY}
+                />
+              )
+          }
         </TabPanel>
       </div>
     </Fragment>

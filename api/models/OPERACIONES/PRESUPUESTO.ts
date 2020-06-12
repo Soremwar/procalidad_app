@@ -4,7 +4,7 @@ import {
   TableOrder,
 } from "../../common/table.ts";
 
-const TABLE = "OPERACIONES.PRESUPUESTO";
+export const TABLE = "OPERACIONES.PRESUPUESTO";
 const ERROR_DEPENDENCY =
   "No se puede eliminar el presupuesto por que hay componentes que dependen de el";
 

@@ -6,11 +6,23 @@ import {
 import {
   createNew as createDetail,
   deleteByResource as deleteDetails,
+  TABLE as DETAIL_TABLE,
 } from "./recurso_detalle.ts";
 import {
   getLaboralDaysBetween,
-} from "../../../api/models/MAESTRO/dim_tiempo.ts";
-
+} from "../MAESTRO/dim_tiempo.ts";
+import {
+  TABLE as BUDGET_TABLE,
+} from "../OPERACIONES/PRESUPUESTO.ts";
+import {
+  TABLE as PROJECT_TABLE,
+} from "../OPERACIONES/PROYECTO.ts";
+import {
+  TABLE as ROLE_TABLE,
+} from "../OPERACIONES/ROL.ts";
+import {
+  TABLE as PERSON_TABLE,
+} from "../ORGANIZACION/PERSONA.ts";
 const TABLE = "PLANEACION.RECURSO";
 
 class Recurso {
@@ -116,8 +128,8 @@ export const findAll = async (): Promise<Recurso[]> => {
     `SELECT
       PK_RECURSO,
       FK_PERSONA,
-      (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
-      (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
+      (SELECT FK_CLIENTE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
+      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
       FK_PRESUPUESTO,
       FK_ROL,
       FECHA_INICIO,
@@ -148,8 +160,8 @@ export const findById = async (id: number): Promise<Recurso | null> => {
     `SELECT
       PK_RECURSO,
       FK_PERSONA,
-      (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
-      (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
+      (SELECT FK_CLIENTE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
+      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
       FK_PRESUPUESTO,
       FK_ROL,
       FECHA_INICIO,
@@ -260,8 +272,8 @@ const validateAssignationAvailability = async (
       RD.FECHA,
       SUM(RD.HORAS) + $2::NUMERIC
     FROM
-      PLANEACION.RECURSO_DETALLE RD
-    JOIN PLANEACION.RECURSO R
+      ${DETAIL_TABLE} RD
+    JOIN ${TABLE} R
       ON R.PK_RECURSO = RD.FK_RECURSO
     WHERE RD.FECHA BETWEEN $3::INTEGER AND $4::INTEGER
     AND R.FK_PERSONA = $1
@@ -302,9 +314,9 @@ export const getTableData = async (
   const query = `SELECT * FROM (
     SELECT
       PK_RECURSO,
-      (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
-      (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
-      (SELECT NOMBRE FROM OPERACIONES.ROL WHERE PK_ROL = FK_ROL) AS ROLE,
+      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = FK_ROL) AS ROLE,
       TO_CHAR(TO_DATE(CAST(FECHA_INICIO AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
       TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
       PORCENTAJE||'%' AS ASSIGNATION,
@@ -364,7 +376,7 @@ export const getResourceTableData = async (
   const query = `SELECT * FROM (
     SELECT
       FK_PERSONA,
-      (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
       TO_CHAR(TO_DATE(CAST(MIN(FECHA_INICIO) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
       TO_CHAR(TO_DATE(CAST(MAX(FECHA_FIN) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
       SUM(HORAS) AS HOURS
@@ -420,8 +432,8 @@ export const getDetailTableData = async (
     SELECT
       PK_RECURSO,
       FK_PERSONA AS ID_PERSON,
-      (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
-      (SELECT NOMBRE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)) AS PROJECT,
+      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
+      (SELECT NOMBRE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)) AS PROJECT,
       TO_CHAR(TO_DATE(CAST(FECHA_INICIO AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
       TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
       PORCENTAJE||'%' AS ASSIGNATION,
@@ -474,15 +486,15 @@ export const getProjectGanttData = async (
 ): Promise<ProjectGanttData[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
-      (SELECT NOMBRE FROM OPERACIONES.ROL WHERE PK_ROL = FK_ROL) AS ROLE,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = FK_ROL) AS ROLE,
       FECHA_INICIO,
       FECHA_FIN,
       PORCENTAJE,
       HORAS
     FROM ${TABLE}
     ${project
-      ? `WHERE (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
+      ? `WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
       : ''
     }`
   );
@@ -511,7 +523,7 @@ class ResourceGanttData {
 export const getResourceGanttData = async (): Promise<ResourceGanttData[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
       MIN(FECHA_INICIO) AS START_DATE,
       MAX(FECHA_FIN) AS END_DATE,
       SUM(HORAS) AS HOURS
@@ -547,9 +559,9 @@ export const getDetailGanttData = async (
 ): Promise<DetailGanttData[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
-      (SELECT NOMBRE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)) AS PROJECT,
-      (SELECT NOMBRE FROM OPERACIONES.ROL WHERE PK_ROL = FK_ROL) AS ROLE,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)) AS PROJECT,
+      (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = FK_ROL) AS ROLE,
       FECHA_INICIO,
       FECHA_FIN,
       PORCENTAJE,
@@ -558,7 +570,7 @@ export const getDetailGanttData = async (
     ${person
       ? `WHERE FK_PERSONA = ${person}`
       : project
-        ? `WHERE (SELECT FK_PROYECTO FROM OPERACIONES.PRESUPUESTO WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
+        ? `WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
         : ''
     }`
   );
@@ -574,4 +586,204 @@ export const getDetailGanttData = async (
   ]) => new DetailGanttData(...row));
 
   return data;
+}
+
+//TODO
+//Remove laboral hours constant and make personal calculation
+const LABORAL_HOURS = 9;
+
+class DetailHeatmapDate {
+  constructor(
+    public project_id: number,
+    public date: number,
+    public hours: number,
+    public assignation: number,
+  ) {}
+}
+
+class DetailHeatmapData {
+  constructor(
+    public project_id: number,
+    public project: string,
+    public dates: DetailHeatmapDate[],
+  ) {}
+
+  addDate(date: DetailHeatmapDate){
+    this.dates.push(date);
+  }
+}
+
+export const getDetailHeatmapData = async (
+  person: number,
+): Promise<DetailHeatmapData[]> => {
+  const { rows: dates } = await postgres.query(
+    `SELECT
+      PRE.FK_PROYECTO,
+      RD.FECHA,
+      SUM(RD.HORAS),
+      TO_CHAR(SUM(RD.HORAS) / ${LABORAL_HOURS} * 100, '000.99')
+    FROM
+      ${TABLE} AS R 
+    JOIN
+      ${DETAIL_TABLE} AS RD
+      ON R.PK_RECURSO = RD.FK_RECURSO
+    JOIN
+      ${BUDGET_TABLE} PRE
+      ON PRE.PK_PRESUPUESTO = R.FK_PRESUPUESTO
+    WHERE
+      R.FK_PERSONA = $1
+    AND
+      TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 MONTHS'
+    GROUP BY 
+      PRE.FK_PROYECTO,
+      RD.FECHA
+    ORDER BY
+      RD.FECHA`,
+    person,
+  );
+
+  const { rows: raw_projects } = await postgres.query(
+    `SELECT
+      PRO.PK_PROYECTO,
+      PRO.NOMBRE
+    FROM
+      ${TABLE} AS R
+    JOIN
+      ${BUDGET_TABLE} AS PRE
+      ON R.FK_PRESUPUESTO = PRE.PK_PRESUPUESTO
+    JOIN
+      ${PROJECT_TABLE} AS PRO
+      ON PRE.FK_PROYECTO = PRO.PK_PROYECTO
+    WHERE
+      PK_RECURSO IN (
+        SELECT DISTINCT FK_RECURSO
+        FROM ${DETAIL_TABLE}
+        WHERE
+          TO_DATE(CAST(FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 MONTHS'
+      )
+    AND
+      R.FK_PERSONA = $1
+    GROUP BY
+      PRO.PK_PROYECTO,
+      PRO.NOMBRE`,
+    person,
+  );
+
+  const projects: DetailHeatmapData[] = raw_projects.map((project: [
+    number,
+    string,
+  ]) => new DetailHeatmapData(
+    project[0],
+    project[1],
+    [],
+  ));
+
+  dates
+    .map((row: [
+      number,
+      number,
+      number,
+      number,
+    ]) => new DetailHeatmapDate(...row))
+    .forEach((x: DetailHeatmapDate) => {
+      const project = projects.find(project => project.project_id === x.project_id);
+      if(project){
+        project.addDate(x);
+      }
+    });
+
+  return projects;
+}
+
+class ResourceHeatmapDate {
+  constructor(
+    public person_id: number,
+    public date: number,
+    public hours: number,
+    public assignation: number,
+  ) {}
+}
+
+class ResourceHeatmapData {
+  constructor(
+    public person_id: number,
+    public person: string,
+    public dates: ResourceHeatmapDate[],
+  ) {}
+
+  addDate(date: ResourceHeatmapDate){
+    this.dates.push(date);
+  }
+}
+
+export enum HeatmapFormula {
+  occupation = 'occupation',
+  availability = 'availability',
+};
+
+export const getResourceHeatmapData = async (
+  formula: HeatmapFormula,
+): Promise<ResourceHeatmapData[]> => {
+  const { rows: dates } = await postgres.query(
+    `SELECT
+      R.FK_PERSONA,
+      RD.FECHA,
+      ${formula === 'occupation'
+          ? `SUM(RD.HORAS)`
+          : `ABS(SUM(RD.HORAS) - ${LABORAL_HOURS})`}::NUMERIC,
+       ${formula === 'occupation'
+          ? `TO_CHAR(SUM(RD.HORAS) / ${LABORAL_HOURS} * 100, '000.99')`
+          : `TO_CHAR(ABS(SUM(RD.HORAS) - ${LABORAL_HOURS}) / ${LABORAL_HOURS} * 100, '000.99')`}::NUMERIC
+    FROM ${DETAIL_TABLE} AS RD
+    JOIN ${TABLE} AS R
+      ON RD.FK_RECURSO = R.PK_RECURSO
+    WHERE
+      TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 months'
+    GROUP BY
+      R.FK_PERSONA,
+      RD.FECHA
+    ORDER BY RD.FECHA`,
+  );
+
+  const { rows: raw_people } = await postgres.query(
+    `SELECT
+      FK_PERSONA,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA)
+    FROM ${TABLE}
+    WHERE
+      PK_RECURSO IN (
+        SELECT DISTINCT FK_RECURSO
+        FROM ${DETAIL_TABLE}
+        WHERE
+          TO_DATE(CAST(FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 months'
+      )
+    GROUP BY
+      FK_PERSONA,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA)`
+  );
+
+  const people: ResourceHeatmapData[] = raw_people.map((person: [
+    number,
+    string,
+  ]) => new ResourceHeatmapData(
+    person[0],
+    person[1],
+    [],
+  ));
+
+  dates
+    .map((row: [
+      number,
+      number,
+      number,
+      number,
+    ]) => new ResourceHeatmapDate(...row))
+    .forEach((x: ResourceHeatmapDate) => {
+      const person = people.find(person => person.person_id === x.person_id);
+      if(person){
+        person.addDate(x);
+      }
+    });
+
+  return people;
 }

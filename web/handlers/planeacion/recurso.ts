@@ -1,28 +1,24 @@
-import {
-  Body,
-  RouterContext,
-} from "oak";
+import {Body, RouterContext,} from "oak";
 import {
   createNew,
   findAll,
   findById,
   getDetailGanttData,
-  getTableData,
-  getResourceTableData,
   getDetailTableData,
   getProjectGanttData,
+  getDetailHeatmapData,
   getResourceGanttData,
+  getResourceHeatmapData,
+  getResourceTableData,
+  getTableData,
+  HeatmapFormula,
 } from "../../../api/models/planeacion/recurso.ts";
-import {
-  addLaboralDays,
-} from "../../../api/models/MAESTRO/dim_tiempo.ts";
+import {addLaboralDays,} from "../../../api/models/MAESTRO/dim_tiempo.ts";
 
-import { TableOrder, Order } from "../../../api/common/table.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
-import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {
-  parseStandardNumber,
-} from "../../../lib/date/mod.js";
+import {Order, TableOrder} from "../../../api/common/table.ts";
+import {formatResponse, Message, Status} from "../../http_utils.ts";
+import {NotFoundError, RequestSyntaxError} from "../../exceptions.ts";
+import {parseStandardNumber,} from "../../../lib/date/mod.js";
 
 enum ResourceViewType {
   project = "project",
@@ -224,6 +220,33 @@ export const getResourcesGantt = async ({ request, response }: RouterContext) =>
   }else if (gantt_type === ResourceViewType.detail){
     response.body = await getDetailGanttData(
       Number(person) || undefined,
+    );
+  }
+};
+
+export const getResourcesHeatmap = async ({ request, response }: RouterContext) => {
+  const {
+    formula,
+    person,
+    type,
+  }: { [x: string]: string } = Object.fromEntries(
+    request.searchParams.entries(),
+  );
+
+  const heatmap_type = type == ResourceViewType.resource || type == ResourceViewType.detail
+    ? type as ResourceViewType
+    : ResourceViewType.resource;
+
+  const heatmap_formula = formula in HeatmapFormula ? formula as HeatmapFormula : HeatmapFormula.occupation;
+  if (heatmap_type === ResourceViewType.resource){
+    response.body = await getResourceHeatmapData(
+      heatmap_formula,
+    );
+  }else if (heatmap_type === ResourceViewType.detail){
+    if(!Number(person)) throw new RequestSyntaxError();
+
+    response.body = await getDetailHeatmapData(
+      Number(person),
     );
   }
 };

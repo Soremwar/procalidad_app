@@ -4,7 +4,7 @@ import {
   TableOrder,
 } from "../../common/table.ts";
 
-const TABLE = "OPERACIONES.ROL";
+export const TABLE = "OPERACIONES.ROL";
 const ERROR_DEPENDENCY =
   "No se puede eliminar el rol por que hay componentes que dependen de el";
 

@@ -1,7 +1,7 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 
-const TABLE = "PLANEACION.RECURSO_DETALLE";
+export const TABLE = "PLANEACION.RECURSO_DETALLE";
 
 export class RecursoDetalle {
   constructor(

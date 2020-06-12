@@ -4,7 +4,7 @@ import {
   TableOrder,
 } from "../../common/table.ts";
 
-const TABLE = "ORGANIZACION.PERSONA";
+export const TABLE = "ORGANIZACION.PERSONA";
 const ERROR_DEPENDENCY =
   "No se puede eliminar la persona por que hay componentes que dependen de el";
 
