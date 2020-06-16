@@ -46,3 +46,26 @@ export const getLaboralDaysBetween = async (start_date: number, end_date: number
 
   return days;
 };
+
+export const getNonLaboralDaysBetween = async (
+  start_date: number,
+  end_date: number,
+): Promise<number[]> => {
+  const { rows } = await postgres.query(
+    `SELECT 
+      COD_FECHA
+    FROM ${TABLE}
+    WHERE COD_FECHA BETWEEN $1 AND $2
+    AND EXTRACT(ISODOW FROM FECHA) IN (6,7)
+    OR BAN_FESTIVO = TRUE`,
+    start_date,
+    end_date,
+  );
+
+  const days: number[] = rows.reduce((total: number[], [day]: [number]) => {
+    total.push(day);
+    return total;
+  }, []);
+
+  return days;
+};

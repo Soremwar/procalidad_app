@@ -156,6 +156,9 @@ import {
   searchParameterDefinition,
 } from "./handlers/maestro/parametro_definicion.ts";
 import {
+  getBlacklistedDays,
+} from "./handlers/maestro/tiempo.ts";
+import {
   createResource,
   deleteResource,
   getResource,
@@ -355,6 +358,9 @@ main_router
     "/api/maestro/parametro_definicion/:id",
     deleteParameterDefinition,
   );
+
+main_router
+  .get("/api/maestro/tiempo/blacklist", getBlacklistedDays);
 
 main_router
   .get("/api/planeacion/recurso", getResources)
