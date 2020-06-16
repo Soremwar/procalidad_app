@@ -17,6 +17,9 @@ import {
   parseStandardNumber,
 } from "../../../../lib/date/mod.js";
 import {
+  getRandomColor,
+} from "../../../../lib/colors/mod.js";
+import {
   CleanTableCell,
   DetailDot,
   VerticalCell,
@@ -24,30 +27,20 @@ import {
 
 const DetailCell = ({
   assignation,
+  color = null,
   value = null,
-}) => {
-  let status;
-
-  if (value === 0) {
-    status = "error";
-  } else if (value === 9) {
-    status = "ok";
-  } else if (value > 0 && value < 9) {
-    status = "warning";
-  } else {
-    status = "invalid";
-  }
-
-  return (
+}) => (
     <CleanTableCell>
       <Tooltip title={`Horas: ${value || 0}\n Asignacion: ${assignation}%`}>
         <div>
-          <DetailDot status={status} />
+          <DetailDot
+            color={color}
+            status={value && color ? null : "invalid"}
+          />
         </div>
       </Tooltip>
     </CleanTableCell>
   );
-};
 
 const rowStyles = makeStyles({
   row: {
@@ -142,26 +135,28 @@ export default function ({
         </TableHead>
         <TableBody>
           {
-            data.map(({ project_id, project, dates, }) => (
-              <DetailTableRow key={project_id}>
-                <CleanTableCell className={classes.detail_column}>{project}</CleanTableCell>
-                {
-                  calendar_dates.map((calendar_date) => {
-                    const activity = dates.find(({ date }) => calendar_date == date);
-                    //TODO
-                    //Replace null for 0
-                    //Depends on blacklisted
-                    return (
-                      <DetailCell
-                        assignation={activity ? Number(activity.assignation) : 0}
-                        key={calendar_date}
-                        value={activity ? Number(activity.hours) : null}
-                      />
-                    );
-                  })
-                }
-              </DetailTableRow>
-            ))
+            data.map(({ project_id, project, dates, }) => {
+              const color = getRandomColor();
+
+              return (
+                <DetailTableRow key={project_id}>
+                  <CleanTableCell className={classes.detail_column}>{project}</CleanTableCell>
+                  {
+                    calendar_dates.map((calendar_date) => {
+                      const activity = dates.find(({ date }) => calendar_date == date);
+                      return (
+                        <DetailCell
+                          assignation={activity ? Number(activity.assignation) : 0}
+                          color={activity ? color : null}
+                          key={calendar_date}
+                          value={activity ? Number(activity.hours) : 0}
+                        />
+                      );
+                    })
+                  }
+                </DetailTableRow>
+              );
+            })
           }
         </TableBody>
       </Table>

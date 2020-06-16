@@ -177,25 +177,19 @@ export default function ({
                   calendar_dates.map((calendar_date) => {
                     const activity = dates.find(({ date }) => calendar_date == date);
                     if (type === 'availability') {
-                      //TODO
-                      //Replace null for 0
-                      //Depends on blacklisted
                       return (
                         <AvailabilityCell
                           available={activity ? Number(activity.assignation) : 100}
                           key={calendar_date}
-                          value={activity ? Number(activity.hours) : null}
+                          value={activity ? Number(activity.hours) : 9}
                         />
                       );
                     } else {
-                      //TODO
-                      //Replace null for 0
-                      //Depends on blacklisted
                       return (
                         <OcupationCell
                           assignation={activity ? Number(activity.assignation) : 0}
                           key={calendar_date}
-                          value={activity ? Number(activity.hours) : null}
+                          value={activity ? Number(activity.hours) : 0}
                         />
                       );
                     }

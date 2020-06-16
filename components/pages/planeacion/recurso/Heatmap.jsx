@@ -79,6 +79,7 @@ const detailStatus = new Set([
 ]);
 
 export const DetailDot = ({
+  color = null,
   status,
 }) => {
   const classes = dotStyles();
@@ -91,6 +92,9 @@ export const DetailDot = ({
         classes.dot,
         classes[status],
       ].join(' ')}
+      style={color ? {
+        backgroundColor: color,
+      } : {}}
     ></div>
   );
 }
