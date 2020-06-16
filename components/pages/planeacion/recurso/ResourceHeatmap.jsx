@@ -142,7 +142,7 @@ export default function ({
       x <= parseStandardNumber(end_date);
       x.setDate(x.getDate() + 1)
     ) {
-      if (!(parseDateToStandardNumber(x) in blacklisted_dates)) {
+      if (!blacklisted_dates.includes(parseDateToStandardNumber(x))) {
         dates.push(parseDateToStandardNumber(x));
       }
     }

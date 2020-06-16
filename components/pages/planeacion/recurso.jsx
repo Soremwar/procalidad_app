@@ -79,6 +79,7 @@ const fetchPeopleApi = requestGenerator('organizacion/persona');
 const fetchBudgetApi = requestGenerator('operaciones/presupuesto');
 const fetchBudgetDetailApi = requestGenerator('operaciones/presupuesto_detalle');
 const fetchRoleApi = requestGenerator('operaciones/rol');
+const fetchTimeApi = requestGenerator('maestro/tiempo');
 
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getProjects = () => fetchProjectApi().then((x) => x.json());
@@ -94,6 +95,13 @@ const getResourceGantt = (type, person, project) => {
     ['type', type],
   ].filter(([_index, value]) => value)));
   return fetchResourceApi(`gantt?${params.toString()}`).then((x) => x.json())
+};
+const getBlacklistedDates = (start_date, end_date) => {
+  const params = new URLSearchParams({
+    start_date,
+    end_date,
+  });
+  return fetchTimeApi(`blacklist?${params.toString()}`).then((x) => x.json());
 };
 const getResourceHeatmap = (
   type,
@@ -731,6 +739,7 @@ export default () => {
   const [tasks, setTasks] = useState([]);
   const [heatmap_formula, setHeatmapFormula] = useState("occupation");
   const [heatmap_data, setHeatmapData] = useState([]);
+  const [heatmap_blacklist, setHeatmapBlacklist] = useState([]);
   const [value, setValue] = useState(0);
 
   const handleChange = (event, newValue) => {
@@ -798,6 +807,10 @@ export default () => {
     getBudgets().then(budgets => setBudgets(budgets));
     getRoles().then(roles => setRoles(roles));
     getPeople().then(people => setPeople(people));
+    getBlacklistedDates(
+      TODAY,
+      MAX_DATE_HEATMAP,
+    ).then(dates => setHeatmapBlacklist(dates));
     updateData();
   }, []);
 
@@ -911,10 +924,6 @@ export default () => {
           index={2}
           value={value}
         >
-          {/*
-            TODO
-            Add blacklisted days
-          */}
           {
             !selectedPerson
               ? (
@@ -927,7 +936,7 @@ export default () => {
                     <option value="occupation">Ocupacion</option>
                   </SelectField>
                   <ResourceHeatmap
-                    blacklisted_dates={[]}
+                    blacklisted_dates={heatmap_blacklist}
                     data={heatmap_data}
                     end_date={MAX_DATE_HEATMAP}
                     start_date={TODAY}
@@ -937,7 +946,7 @@ export default () => {
               )
               : (
                 <DetailHeatmap
-                  blacklisted_dates={[]}
+                  blacklisted_dates={heatmap_blacklist}
                   data={heatmap_data}
                   end_date={MAX_DATE_HEATMAP}
                   start_date={TODAY}
