@@ -113,6 +113,14 @@ import {
   updateSalary,
 } from "./handlers/organizacion/salario.ts";
 import {
+  createAssignation as createPositionAssignation,
+  deleteAssignation as deletePositionAssignation,
+  getAssignation as getPositionAssignation,
+  getAssignations as getPositionAssignations,
+  getAssignationsTable as getPositionAssignationsTable,
+  updateAssignation as updatePositionAssignation,
+} from "./handlers/organizacion/asignacion_cargo.ts";
+import {
   createBudgetType,
   deleteBudgetType,
   getBudgetType,
@@ -300,6 +308,14 @@ main_router
   .get<{ id: string }>("/api/organizacion/salario/:id", getSalary)
   .put<{ id: string }>("/api/organizacion/salario/:id", updateSalary)
   .delete<{ id: string }>("/api/organizacion/salario/:id", deleteSalary);
+
+main_router
+  .get("/api/organizacion/asignacion_cargo", getPositionAssignations)
+  .post("/api/organizacion/asignacion_cargo/table", getPositionAssignationsTable)
+  .post("/api/organizacion/asignacion_cargo", createPositionAssignation)
+  .get<{ id: string }>("/api/organizacion/asignacion_cargo/:id", getPositionAssignation)
+  .put<{ id: string }>("/api/organizacion/asignacion_cargo/:id", updatePositionAssignation)
+  .delete<{ id: string }>("/api/organizacion/asignacion_cargo/:id", deletePositionAssignation);
 
 main_router
   .get("/api/operaciones/tipo_presupuesto", getBudgetTypes)

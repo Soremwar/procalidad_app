@@ -63,6 +63,7 @@ const structure = [
       { label: "SubArea", link: "/organizacion/sub_area" },
       { label: "Persona", link: "/organizacion/persona" },
       { label: "Cargo", link: "/organizacion/cargo" },
+      { label: "Asignacion de Cargo", link: "/organizacion/asignacion_cargo" },
       { label: "Computador", link: "/organizacion/computador" },
       { label: "Costo Empleado", link: "/organizacion/costo_empleado" },
     ],

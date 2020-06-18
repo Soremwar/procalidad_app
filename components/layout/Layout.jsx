@@ -20,6 +20,7 @@ import TipoArea from "../pages/organizacion/TipoArea.jsx";
 import Area from "../pages/organizacion/Area.jsx";
 import SubArea from "../pages/organizacion/sub_area.jsx";
 import Persona from "../pages/organizacion/persona.jsx";
+import AsignacionCargo from "../pages/organizacion/asignacion_cargo.jsx";
 import Cargo from "../pages/organizacion/cargo.jsx";
 import Computador from "../pages/organizacion/computador.jsx";
 import CostoEmpleado from "../pages/organizacion/costo_empleado.jsx";
@@ -59,6 +60,7 @@ const Layout = (props) => {
             <Route path="/organizacion/sub_area" component={SubArea} />
             <Route path="/organizacion/persona" component={Persona} />
             <Route path="/organizacion/cargo" component={Cargo} />
+            <Route path="/organizacion/asignacion_cargo" component={AsignacionCargo} />
             <Route path="/organizacion/computador" component={Computador} />
             <Route path="/organizacion/costo_empleado" component={CostoEmpleado} />
             <Route path="/operaciones/tipo_presupuesto" component={TipoPresupuesto} />
