@@ -1,12 +1,13 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
   DialogContentText,
   Grid,
-  TextField,
   Typography,
 } from "@material-ui/core";
 
@@ -16,55 +17,57 @@ import {
 } from "../../../lib/api/request.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
-import DialogForm from "../../common/DialogForm.jsx";
-import Title from "../../common/Title.jsx";
-import SelectField from "../../common/SelectField.jsx";
-import Widget from "../../common/Widget.jsx";
 import CurrencyField from '@unicef/material-ui-currency-textfield';
+import DialogForm from "../../common/DialogForm.jsx";
+import MultipleSelectField from "../../common/MultipleSelectField.jsx";
+import SelectField from "../../common/SelectField.jsx";
+import Title from "../../common/Title.jsx";
+import Widget from "../../common/Widget.jsx";
 
-//TODO
-//Add primary key as constant
-
-const fetchSalaryApi = requestGenerator('organizacion/salario');
+const fetchPersonCostApi = requestGenerator('organizacion/salario');
 const fetchPeopleApi = requestGenerator('organizacion/persona');
 const fetchComputerApi = requestGenerator('organizacion/computador');
+const fetchLicenseApi = requestGenerator('organizacion/licencia');
 
-const getPosition = (id) => fetchSalaryApi(id).then((x) => x.json());
+const getPersonCost = (id) => fetchPersonCostApi(id).then((x) => x.json());
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
 const getComputers = () => fetchComputerApi().then((x) => x.json());
+const getLicenses = () => fetchLicenseApi().then((x) => x.json());
+
 const getResult = async (
   labour_cost,
   bonus_cost,
-  license_cost,
+  licenses,
   other,
   salary_type,
   computer,
-) => fetchSalaryApi(`calculo?${
-  new URLSearchParams({
-    labour_cost, bonus_cost, license_cost, other, salary_type, computer,
-  }).toString()
-  }`)
-  .then((x) => x.json());
+) => fetchPersonCostApi('calculo', {
+  body: JSON.stringify({ labour_cost, bonus_cost, licenses, other, salary_type, computer }),
+  headers: {
+    "Content-Type": "application/json",
+  },
+  method: "POST",
+}).then((x) => x.json());
 
-const createSalary = async (form_data) => {
-  return await fetchSalaryApi("", {
-    method: "POST",
-    body: form_data,
-  });
-};
+const createSalary = async (form_data) => fetchPersonCostApi("", {
+  body: form_data,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  method: "POST",
+});
 
-const updateSalary = async (id, form_data) => {
-  return await fetchSalaryApi(id, {
-    method: "PUT",
-    body: form_data,
-  });
-};
+const updateSalary = async (id, form_data) => fetchPersonCostApi(id, {
+  body: form_data,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  method: "PUT",
+});
 
-const deleteSalary = async (id) => {
-  return await fetchSalaryApi(id, {
-    method: "DELETE",
-  });
-};
+const deleteSalary = async (id) => fetchPersonCostApi(id, {
+  method: "DELETE",
+});
 
 const headers = [
   { id: "person", numeric: false, disablePadding: false, label: "Persona" },
@@ -72,19 +75,29 @@ const headers = [
   { id: "computer", numeric: false, disablePadding: false, label: "Computador" },
 ];
 
+const ParameterContext = createContext({
+  computers: [],
+  licenses: [],
+  people: [],
+});
+
 const AddModal = ({
-  computers,
   is_open,
-  people,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    computers,
+    licenses,
+    people,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     person: "",
     computer: "",
     labour_cost: 0,
     bonus_cost: 0,
-    license_cost: 0,
+    licenses: [],
     other: 0,
     salary_type: "",
   });
@@ -99,10 +112,12 @@ const AddModal = ({
         computer: "",
         labour_cost: 0,
         bonus_cost: 0,
-        license_cost: 0,
+        licenses: [],
         other: 0,
         salary_type: "",
       });
+      setLoading(false);
+      setError(null);
     }
   }, [is_open]);
 
@@ -111,7 +126,7 @@ const AddModal = ({
       getResult(
         fields.labour_cost,
         fields.bonus_cost,
-        fields.license_cost,
+        fields.licenses,
         fields.other,
         fields.salary_type,
         fields.computer,
@@ -125,19 +140,18 @@ const AddModal = ({
   }, [fields]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
+    const { name, value } = event.target;
     setFields((prev_state) => {
       const data = ({ ...prev_state, [name]: value });
       return data;
     });
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const request = await createSalary(new URLSearchParams(fields));
+    const request = await createSalary(JSON.stringify(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -164,7 +178,7 @@ const AddModal = ({
         label="Persona"
         margin="dense"
         name="person"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.person}
       >
@@ -177,7 +191,7 @@ const AddModal = ({
         label="Computador"
         margin="dense"
         name="computer"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.computer}
       >
@@ -207,16 +221,13 @@ const AddModal = ({
         required
         value={fields.bonus_cost}
       />
-      <CurrencyField
-        currencySymbol="$"
+      <MultipleSelectField
+        data={licenses}
         fullWidth
         label="Licencias"
-        minimumValue="0"
-        name="license_cost"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, license_cost: value }))}
-        outputFormat="number"
-        required
-        value={fields.license_cost}
+        name="licenses"
+        onChange={handleChange}
+        value={fields.licenses}
       />
       <CurrencyField
         currencySymbol="$"
@@ -234,7 +245,7 @@ const AddModal = ({
         label="Tipo de Salario"
         margin="dense"
         name="salary_type"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.salary_type}
       >
@@ -270,25 +281,29 @@ const AddModal = ({
 };
 
 const EditModal = ({
-  computers,
   data,
   is_open,
-  people,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    computers,
+    licenses,
+    people,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     person: "",
     computer: "",
     labour_cost: 0,
     bonus_cost: 0,
-    license_cost: 0,
+    licenses: [],
     other: 0,
     salary_type: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [result, setResult] = useState("");
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     if (is_open) {
@@ -297,10 +312,12 @@ const EditModal = ({
         computer: data.fk_computador,
         labour_cost: Number(data.valor_prestacional),
         bonus_cost: Number(data.valor_bonos),
-        license_cost: Number(data.licencias),
+        licenses: data.licencias,
         other: Number(data.otros),
         salary_type: data.tipo_salario,
       });
+      setLoading(false);
+      setError(null);
     }
   }, [is_open]);
 
@@ -309,7 +326,7 @@ const EditModal = ({
       getResult(
         fields.labour_cost,
         fields.bonus_cost,
-        fields.license_cost,
+        fields.licenses,
         fields.other,
         fields.salary_type,
         fields.computer,
@@ -331,12 +348,11 @@ const EditModal = ({
     });
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const id = data.pk_salario;
-    const request = await updateSalary(id, new URLSearchParams(fields));
+    const request = await updateSalary(data.pk_salario, JSON.stringify(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -359,12 +375,12 @@ const EditModal = ({
       size="md"
     >
       <SelectField
+        disabled
         fullWidth
         label="Persona"
         margin="dense"
         name="person"
-        onChange={(event) => handleChange(event)}
-        required
+        onChange={handleChange}
         value={fields.person}
       >
         {people.map(({ pk_persona, nombre }) => (
@@ -376,7 +392,7 @@ const EditModal = ({
         label="Computador"
         margin="dense"
         name="computer"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.computer}
       >
@@ -406,16 +422,13 @@ const EditModal = ({
         required
         value={fields.bonus_cost}
       />
-      <CurrencyField
-        currencySymbol="$"
+      <MultipleSelectField
+        data={licenses}
         fullWidth
         label="Licencias"
-        minimumValue="0"
-        name="license_cost"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, license_cost: value }))}
-        outputFormat="number"
-        required
-        value={fields.license_cost}
+        name="licenses"
+        onChange={handleChange}
+        value={fields.licenses}
       />
       <CurrencyField
         currencySymbol="$"
@@ -433,7 +446,7 @@ const EditModal = ({
         label="Tipo de Salario"
         margin="dense"
         name="salary_type"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.salary_type}
       >
@@ -525,21 +538,30 @@ const DeleteModal = ({
 export default () => {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_project_type, setSelectedArea] = useState({});
+  const [selected_person_cost, setSelectedPersonCost] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
-  const [computers, setComputers] = useState([]);
-  const [people, setPeople] = useState([]);
+  const [parameters, setParameters] = useState({
+    computers: [],
+    licenses: [],
+    people: [],
+  });
 
   useEffect(() => {
-    getComputers().then(computers => setComputers(computers));
-    getPeople().then(people => setPeople(people));
+    getComputers().then(computers => setParameters(prev_state => ({ ...prev_state, computers })));
+    getLicenses().then(licenses => {
+      setParameters(prev_state => ({
+        ...prev_state,
+        licenses: licenses.map(({ pk_licencia, nombre }) => [pk_licencia, nombre]),
+      }));
+    });
+    getPeople().then(people => setParameters(prev_state => ({ ...prev_state, people })));
   }, []);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getPosition(id);
-    setSelectedArea(data);
+    const data = await getPersonCost(id);
+    setSelectedPersonCost(data);
     setEditModalOpen(true);
   };
 
@@ -555,32 +577,29 @@ export default () => {
   return (
     <Fragment>
       <Title title={"Costo de Empleado"} />
-      <AddModal
-        computers={computers}
-        is_open={is_add_modal_open}
-        people={people}
-        setModalOpen={setAddModalOpen}
-        updateTable={updateTable}
-      />
-      <EditModal
-        computers={computers}
-        data={selected_project_type}
-        is_open={is_edit_modal_open}
-        people={people}
-        setModalOpen={setEditModalOpen}
-        updateTable={updateTable}
-      />
-      <DeleteModal
-        is_open={is_delete_modal_open}
-        setModalOpen={setDeleteModalOpen}
-        selected={selected}
-        updateTable={updateTable}
-      />
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          is_open={is_add_modal_open}
+          setModalOpen={setAddModalOpen}
+          updateTable={updateTable}
+        />
+        <EditModal
+          data={selected_person_cost}
+          is_open={is_edit_modal_open}
+          setModalOpen={setEditModalOpen}
+          updateTable={updateTable}
+        />
+        <DeleteModal
+          is_open={is_delete_modal_open}
+          setModalOpen={setDeleteModalOpen}
+          selected={selected}
+          updateTable={updateTable}
+        />
+      </ParameterContext.Provider>
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"NA"}
               data_source={"organizacion/salario/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}

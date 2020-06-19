@@ -3,6 +3,9 @@ import { PostgresError } from "deno_postgres";
 import {
   TableOrder,
 } from "../../common/table.ts";
+import {
+  TABLE as LICENSE_TABLE,
+} from "./licencia.ts";
 
 const TABLE = "ORGANIZACION.SALARIO";
 const ERROR_DEPENDENCY =
@@ -18,29 +21,27 @@ export enum TipoSalario {
 class Salario {
   constructor(
     public readonly pk_salario: number,
-    public fk_persona: number,
+    public readonly fk_persona: number,
     public fk_computador: number,
     public valor_prestacional: number,
     public valor_bonos: number,
-    public licencias: number,
+    public licencias: number[],
     public otros: number,
     public salario: number | undefined,
     public tipo_salario: TipoSalario,
   ) { }
 
   async update(
-    fk_persona: number = this.fk_persona,
     fk_computador: number = this.fk_computador,
     valor_prestacional: number = this.valor_prestacional,
     valor_bonos: number = this.valor_bonos,
-    licencias: number = this.licencias,
+    licencias: number[] = this.licencias,
     otros: number = this.otros,
     tipo_salario: TipoSalario = this.tipo_salario,
   ): Promise<
     Salario
   > {
     Object.assign(this, {
-      fk_persona,
       fk_computador,
       valor_prestacional,
       valor_bonos,
@@ -55,21 +56,18 @@ class Salario {
 
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
-        FK_PERSONA = $2,
-        FK_COMPUTADOR = $3,
-        VALOR_PRESTACIONAL = $4,
-        VALOR_BONOS = $5,
-        LICENCIAS = $6,
-        OTROS = $7,
-        TIPO_SALARIO = $8
+        FK_COMPUTADOR = $2,
+        VALOR_PRESTACIONAL = $3,
+        VALOR_BONOS = $4,
+        LICENCIAS = '{${licencias.join(',')}}',
+        OTROS = $5,
+        TIPO_SALARIO = $6
       WHERE PK_SALARIO = $1
       RETURNING SALARIO`,
       this.pk_salario,
-      this.fk_persona,
       this.fk_computador,
       this.valor_prestacional,
       this.valor_bonos,
-      this.licencias,
       this.otros,
       this.tipo_salario,
     );
@@ -104,7 +102,7 @@ class CalculoCostoEmpleado {
 export const getCalculatedResult = async (
   valor_prestacional: number,
   valor_bonos: number,
-  licencias: number,
+  licencias: number[],
   otros: number,
   tipo_salario: TipoSalario,
   computador: number,
@@ -127,9 +125,15 @@ export const getCalculatedResult = async (
       SELECT
         CAST($1 AS NUMERIC) AS VALOR_PRESTACIONAL,
         CAST($2 AS NUMERIC) AS VALOR_BONOS,
-        CAST($3 AS NUMERIC) AS LICENCIAS,
-        CAST($4 AS NUMERIC) AS OTROS,
-        $5 AS TIPO_SALARIO
+        ${licencias.length
+          ? `(SELECT
+              COALESCE(SUM(COSTO), 0)
+            FROM ${LICENSE_TABLE}
+            WHERE PK_LICENCIA IN (${licencias.join(',')}))`
+          : `0`
+        } AS LICENCIAS,
+        CAST($3 AS NUMERIC) AS OTROS,
+        $4 AS TIPO_SALARIO
     ),
     COSTO_EMPLEADO AS (
       SELECT
@@ -146,12 +150,11 @@ export const getCalculatedResult = async (
     )
     SELECT
       CAST(COSTO AS INTEGER) AS COSTO,
-      CAST(COSTO + COSTOS.LICENCIAS + (SELECT COSTO FROM ORGANIZACION.COMPUTADOR WHERE PK_COMPUTADOR = $6) AS INTEGER) AS COSTO_TOTAL
+      CAST(COSTO + COSTOS.LICENCIAS + (SELECT COSTO FROM ORGANIZACION.COMPUTADOR WHERE PK_COMPUTADOR = $5) AS INTEGER) AS COSTO_TOTAL
     FROM COSTO_EMPLEADO
     JOIN COSTOS ON 1 = 1`,
     valor_prestacional,
     valor_bonos,
-    licencias,
     otros,
     tipo_salario,
     computador,
@@ -165,35 +168,62 @@ export const getCalculatedResult = async (
   return new CalculoCostoEmpleado(...calculated_result);
 };
 
+//TODO
+//Remove array_to_string and array parse of the values
+//(Waiting on Deno update)
 export const findAll = async (): Promise<Salario[]> => {
   const { rows } = await postgres.query(
     `SELECT
+      PK_SALARIO,
       FK_PERSONA,
       FK_COMPUTADOR,
       VALOR_PRESTACIONAL,
       VALOR_BONOS,
-      LICENCIAS,
+      ARRAY_TO_STRING(LICENCIAS, ','),
       OTROS,
       SALARIO,
       TIPO_SALARIO
     FROM ${TABLE}`,
   );
 
-  const models = rows.map((row: [
+  const models = rows.map(([
+    a,
+    b,
+    c,
+    d,
+    e,
+    f,
+    g,
+    h,
+    i,
+  ]: [
     number,
     number,
     number,
     number,
     number,
-    number,
+    string,
     number,
     number,
     TipoSalario,
-  ]) => new Salario(...row));
+  ]) => new Salario(
+    a,
+    b,
+    c,
+    d,
+    e,
+    f.split(',').map(Number).filter(Boolean),
+    g,
+    h,
+    i,
+  ));
 
   return models;
 };
 
+//TODO
+//Remove array_to_string and array parse of the values
+//(Waiting on Deno update)
 export const findById = async (id: number): Promise<Salario | null> => {
   const { rows } = await postgres.query(
     `SELECT
@@ -202,7 +232,7 @@ export const findById = async (id: number): Promise<Salario | null> => {
       FK_COMPUTADOR,
       VALOR_PRESTACIONAL,
       VALOR_BONOS,
-      LICENCIAS,
+      ARRAY_TO_STRING(LICENCIAS, ','),
       OTROS,
       SALARIO,
       TIPO_SALARIO
@@ -210,19 +240,41 @@ export const findById = async (id: number): Promise<Salario | null> => {
     WHERE PK_SALARIO = $1`,
     id,
   );
+
   if (!rows[0]) return null;
-  const result: [
+
+  const [
+    a,
+    b,
+    c,
+    d,
+    e,
+    f,
+    g,
+    h,
+    i,
+  ]: [
     number,
     number,
     number,
     number,
     number,
-    number,
+    string,
     number,
     number,
     TipoSalario,
   ] = rows[0];
-  return new Salario(...result);
+  return new Salario(
+    a,
+    b,
+    c,
+    d,
+    e,
+    f.split(',').map(Number).filter(Boolean),
+    g,
+    h,
+    i,
+  );
 };
 
 export const personHasCost = async (
@@ -230,16 +282,7 @@ export const personHasCost = async (
   salary: number = 0,
 ): Promise<boolean> => {
   const { rows } = await postgres.query(
-    `SELECT
-      PK_SALARIO,
-      FK_PERSONA,
-      FK_COMPUTADOR,
-      VALOR_PRESTACIONAL,
-      VALOR_BONOS,
-      LICENCIAS,
-      OTROS,
-      SALARIO,
-      TIPO_SALARIO
+    `SELECT 1
     FROM ${TABLE}
     WHERE FK_PERSONA = $1
     AND PK_SALARIO <> $2`,
@@ -255,15 +298,10 @@ export const createNew = async (
   fk_computador: number,
   valor_prestacional: number,
   valor_bonos: number,
-  licencias: number,
+  licencias: number[],
   otros: number,
   tipo_salario: TipoSalario,
 ): Promise<Salario> => {
-
-  const person_has_cost: boolean = await personHasCost(fk_persona);
-
-  if(person_has_cost) throw new Error("El coste para la persona ya ha sido calculado");
-
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_PERSONA,
@@ -273,13 +311,19 @@ export const createNew = async (
       LICENCIAS,
       OTROS,
       TIPO_SALARIO
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING PK_SALARIO`,
+    ) VALUES (
+      $1,
+      $2,
+      $3,
+      $4,
+      '{${licencias.join(',')}}',
+      $5,
+      $6
+    ) RETURNING PK_SALARIO`,
     fk_persona,
     fk_computador,
     valor_prestacional,
     valor_bonos,
-    licencias,
     otros,
     tipo_salario,
   );

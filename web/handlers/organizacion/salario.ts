@@ -6,6 +6,7 @@ import {
   getCalculatedResult,
   getTableData,
   TipoSalario,
+  personHasCost,
 } from "../../../api/models/ORGANIZACION/salario.ts";
 import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
@@ -60,11 +61,10 @@ export const createSalary = async ({ request, response }: RouterContext) => {
     computer,
     labour_cost,
     bonus_cost,
-    license_cost,
+    licenses,
     other,
     salary_type,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body().then((x: Body) => x.value);
 
   if (
     !(
@@ -72,7 +72,7 @@ export const createSalary = async ({ request, response }: RouterContext) => {
       Number(computer) &&
       !isNaN(Number(labour_cost)) &&
       !isNaN(Number(bonus_cost)) &&
-      !isNaN(Number(license_cost)) &&
+      Array.isArray(licenses) &&
       !isNaN(Number(other)) &&
       salary_type
     )
@@ -80,12 +80,16 @@ export const createSalary = async ({ request, response }: RouterContext) => {
     throw new RequestSyntaxError();
   }
 
+  const person_has_cost: boolean = await personHasCost(person);
+
+  if(person_has_cost) throw new Error("El coste para la persona ya ha sido calculado");
+
   const salary = await createNew(
     Number(person),
     Number(computer),
     Number(labour_cost),
     Number(bonus_cost),
-    Number(license_cost),
+    licenses.map(Number).filter(Boolean),
     Number(other),
     salary_type in TipoSalario ? salary_type as TipoSalario : TipoSalario.I,
   );
@@ -99,26 +103,22 @@ export const getCalculatedSalary = async (
   const {
     labour_cost,
     bonus_cost,
-    license_cost,
+    licenses,
     other,
     salary_type,
     computer,
-  }: { [x: string]: string } = Object.fromEntries(
-      request.searchParams.entries(),
-  );
+  } = await request.body().then((x: Body) => x.value);
 
   if(!(salary_type && Number(computer))) throw new RequestSyntaxError();
 
-  const result = await getCalculatedResult(
+  response.body = await getCalculatedResult(
     Number(labour_cost) || 0,
     Number(bonus_cost) || 0,
-    Number(license_cost) || 0,
+    Array.isArray(licenses) ? licenses.map(Number).filter(Boolean) : [],
     Number(other) || 0,
     salary_type in TipoSalario ? salary_type as TipoSalario : TipoSalario.O,
     Number(computer),
   );
-
-  response.body = result;
 };
 
 export const getSalary = async ({ params, response }: RouterContext) => {
@@ -140,33 +140,20 @@ export const updateSalary = async (
   let salary = await findById(id);
   if (!salary) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
-    person,
     computer,
     labour_cost,
     bonus_cost,
-    license_cost,
+    licenses,
     other,
     salary_type,
-  }: {
-    person?: string;
-    computer?: string;
-    labour_cost?: string;
-    bonus_cost?: string;
-    license_cost?: string;
-    other?: string;
-    salary_type?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body().then((x: Body) => x.value);
 
   salary = await salary.update(
-    isNaN(Number(person)) ? undefined : Number(person),
     isNaN(Number(computer)) ? undefined : Number(computer),
     isNaN(Number(labour_cost)) ? undefined : Number(labour_cost),
     isNaN(Number(bonus_cost)) ? undefined : Number(bonus_cost),
-    isNaN(Number(license_cost)) ? undefined : Number(license_cost),
+    Array.isArray(licenses) ? undefined : licenses.map(Number).filter(Boolean),
     isNaN(Number(other)) ? undefined : Number(other),
     salary_type in TipoSalario ? salary_type as TipoSalario : TipoSalario.I,
   );
