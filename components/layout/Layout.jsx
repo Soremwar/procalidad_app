@@ -23,6 +23,7 @@ import Persona from "../pages/organizacion/persona.jsx";
 import AsignacionCargo from "../pages/organizacion/asignacion_cargo.jsx";
 import Cargo from "../pages/organizacion/cargo.jsx";
 import Computador from "../pages/organizacion/computador.jsx";
+import Licencia from "../pages/organizacion/licencia.jsx";
 import CostoEmpleado from "../pages/organizacion/costo_empleado.jsx";
 import TipoPresupuesto from "../pages/operaciones/TipoPresupuesto.jsx";
 import Rol from "../pages/operaciones/Rol.jsx";
@@ -62,6 +63,7 @@ const Layout = (props) => {
             <Route path="/organizacion/cargo" component={Cargo} />
             <Route path="/organizacion/asignacion_cargo" component={AsignacionCargo} />
             <Route path="/organizacion/computador" component={Computador} />
+            <Route path="/organizacion/licencia" component={Licencia} />
             <Route path="/organizacion/costo_empleado" component={CostoEmpleado} />
             <Route path="/operaciones/tipo_presupuesto" component={TipoPresupuesto} />
             <Route path="/operaciones/rol" component={Rol} />

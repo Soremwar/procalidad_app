@@ -104,6 +104,14 @@ import {
   updateComputer,
 } from "./handlers/organizacion/computador.ts";
 import {
+  createLicence,
+  deleteLicence,
+  getLicence,
+  getLicences,
+  getLicencesTable,
+  updateLicence,
+} from "./handlers/organizacion/licencia.ts";
+import {
   createSalary,
   deleteSalary,
   getCalculatedSalary,
@@ -299,6 +307,14 @@ main_router
   .get<{ id: string }>("/api/organizacion/computador/:id", getComputer)
   .put<{ id: string }>("/api/organizacion/computador/:id", updateComputer)
   .delete<{ id: string }>("/api/organizacion/computador/:id", deleteComputer);
+
+main_router
+  .get("/api/organizacion/licencia", getLicences)
+  .post("/api/organizacion/licencia/table", getLicencesTable)
+  .post("/api/organizacion/licencia", createLicence)
+  .get<{ id: string }>("/api/organizacion/licencia/:id", getLicence)
+  .put<{ id: string }>("/api/organizacion/licencia/:id", updateLicence)
+  .delete<{ id: string }>("/api/organizacion/licencia/:id", deleteLicence);
 
 main_router
   .get("/api/organizacion/salario", getSalaries)

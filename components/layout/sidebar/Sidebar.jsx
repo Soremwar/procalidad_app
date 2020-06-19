@@ -65,6 +65,7 @@ const structure = [
       { label: "Cargo", link: "/organizacion/cargo" },
       { label: "Asignacion de Cargo", link: "/organizacion/asignacion_cargo" },
       { label: "Computador", link: "/organizacion/computador" },
+      { label: "Licencias", link: "/organizacion/licencia" },
       { label: "Costo Empleado", link: "/organizacion/costo_empleado" },
     ],
   },
