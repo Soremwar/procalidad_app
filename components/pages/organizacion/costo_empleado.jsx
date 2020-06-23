@@ -15,7 +15,14 @@ import {
   formatResponseJson,
   requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchComputerApi,
+  fetchLicenseApi,
+  fetchPersonCostApi,
+  fetchPeopleApi,
+} from "../../../lib/api/generator.js";
 
+import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import CurrencyField from '@unicef/material-ui-currency-textfield';
 import DialogForm from "../../common/DialogForm.jsx";
@@ -23,11 +30,6 @@ import MultipleSelectField from "../../common/MultipleSelectField.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
-
-const fetchPersonCostApi = requestGenerator('organizacion/salario');
-const fetchPeopleApi = requestGenerator('organizacion/persona');
-const fetchComputerApi = requestGenerator('organizacion/computador');
-const fetchLicenseApi = requestGenerator('organizacion/licencia');
 
 const getPersonCost = (id) => fetchPersonCostApi(id).then((x) => x.json());
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
@@ -141,10 +143,7 @@ const AddModal = ({
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -173,19 +172,15 @@ const AddModal = ({
       title={"Crear Nuevo"}
       size="md"
     >
-      <SelectField
+      <AdvancedSelectField
         fullWidth
         label="Persona"
         margin="dense"
         name="person"
-        onChange={handleChange}
-        required
+        options={people}
+        onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
         value={fields.person}
-      >
-        {people.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+      />
       <SelectField
         fullWidth
         label="Computador"
@@ -374,19 +369,16 @@ const EditModal = ({
       title={"Editar"}
       size="md"
     >
-      <SelectField
+      <AdvancedSelectField
         disabled
         fullWidth
         label="Persona"
         margin="dense"
         name="person"
-        onChange={handleChange}
+        options={people}
+        onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
         value={fields.person}
-      >
-        {people.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+      />
       <SelectField
         fullWidth
         label="Computador"
@@ -556,7 +548,10 @@ export default () => {
         licenses: licenses.map(({ pk_licencia, nombre }) => [pk_licencia, nombre]),
       }));
     });
-    getPeople().then(people => setParameters(prev_state => ({ ...prev_state, people })));
+    getPeople().then(people => setParameters(prev_state => ({
+      ...prev_state,
+      people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
+    })));
   }, []);
 
   const handleEditModalOpen = async (id) => {
@@ -589,13 +584,13 @@ export default () => {
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
         />
-        <DeleteModal
-          is_open={is_delete_modal_open}
-          setModalOpen={setDeleteModalOpen}
-          selected={selected}
-          updateTable={updateTable}
-        />
       </ParameterContext.Provider>
+      <DeleteModal
+        is_open={is_delete_modal_open}
+        setModalOpen={setDeleteModalOpen}
+        selected={selected}
+        updateTable={updateTable}
+      />
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
@@ -607,7 +602,7 @@ export default () => {
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
               tableShouldUpdate={tableShouldUpdate}
               setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Costes personales"}
+              title={"Listado de costes personales"}
             />
           </Widget>
         </Grid>

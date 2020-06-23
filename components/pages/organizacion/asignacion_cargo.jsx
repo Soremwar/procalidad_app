@@ -14,19 +14,21 @@ import {
   formatResponseJson,
   requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchPeopleApi,
+  fetchPositionAssignationApi as fetchAssignationApi,
+  fetchPositionApi,
+  fetchRoleApi,
+  fetchSubAreaApi,
+} from "../../../lib/api/generator.js";
 
+import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import MultipleSelectField from "../../common/MultipleSelectField.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
-
-const fetchAssignationApi = requestGenerator('organizacion/asignacion_cargo');
-const fetchPositionApi = requestGenerator('organizacion/cargo');
-const fetchSubAreaApi = requestGenerator('organizacion/sub_area');
-const fetchPeopleApi = requestGenerator('organizacion/persona');
-const fetchRoleApi = requestGenerator('operaciones/rol');
 
 const getPositions = () => fetchPositionApi().then((x) => x.json());
 const getSubAreas = () => fetchSubAreaApi().then((x) => x.json());
@@ -131,19 +133,15 @@ const AddModal = ({
       setIsOpen={setModalOpen}
       title={"Crear Nuevo"}
     >
-      <SelectField
+      <AdvancedSelectField
         fullWidth
         label="Persona"
-        margin="dense"
         name="person"
-        onChange={handleChange}
+        onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
+        options={people}
         required
         value={fields.person}
-      >
-        {people.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+      />
       <SelectField
         fullWidth
         label="Cargo"
@@ -248,19 +246,16 @@ const EditModal = ({
       setIsOpen={setModalOpen}
       title={"Editar"}
     >
-      <SelectField
+      <AdvancedSelectField
+        disabled
         fullWidth
         label="Persona"
-        margin="dense"
         name="person"
-        onChange={handleChange}
+        onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
+        options={people}
         required
         value={fields.person}
-      >
-        {people.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+      />
       <SelectField
         fullWidth
         label="Cargo"
@@ -386,11 +381,14 @@ export default () => {
   useEffect(() => {
     getPositions().then(positions => setParameters(parameters => ({ ...parameters, positions, })));
     getSubAreas().then(sub_areas => setParameters(parameters => ({ ...parameters, sub_areas, })));
-    getPeople().then(people => setParameters(parameters => ({ ...parameters, people, })));
-    getRoles().then(roles => {
-      const data = roles.map(({ pk_rol, nombre }) => [pk_rol, nombre]);
-      setParameters(parameters => ({ ...parameters, roles: data, }));
-    });
+    getPeople().then(people => setParameters(parameters => ({
+      ...parameters,
+      people: people.map(({pk_persona, nombre}) => [pk_persona, nombre]),
+    })));
+    getRoles().then(roles => setParameters(parameters => ({
+      ...parameters,
+      roles: roles.map(({ pk_rol, nombre }) => [pk_rol, nombre]),
+    })));
   }, []);
 
   return (
@@ -408,13 +406,13 @@ export default () => {
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
         />
-        <DeleteModal
-          is_open={is_delete_modal_open}
-          setModalOpen={setDeleteModalOpen}
-          selected={selected}
-          updateTable={updateTable}
-        />
       </ParameterContext.Provider>
+      <DeleteModal
+        is_open={is_delete_modal_open}
+        setModalOpen={setDeleteModalOpen}
+        selected={selected}
+        updateTable={updateTable}
+      />
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
