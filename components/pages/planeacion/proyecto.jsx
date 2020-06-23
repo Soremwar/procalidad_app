@@ -1,5 +1,7 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
   useState
 } from "react";
@@ -30,22 +32,26 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
 import {
   parseDateToStandardNumber,
   parseStandardNumber,
 } from "../../../lib/date/mod.js";
+import {
+  fetchClientApi,
+  fetchBudgetApi,
+  fetchBudgetDetailApi,
+  fetchPeopleApi,
+  fetchResourceApi,
+} from "../../../lib/api/generator.js";
 
+import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
-
-//TODO
-//Add primary key as constant
 
 const formatDateToInputDate = (date) => {
   const year = date.getFullYear();
@@ -58,18 +64,10 @@ const formatDateToInputDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-//TODO
-//Fetch api functions should be global
-const fetchClientApi = requestGenerator('clientes/cliente');
-const fetchResourceApi = requestGenerator('planeacion/recurso');
-const fetchPeopleApi = requestGenerator('organizacion/persona');
-const fetchBudgetApi = requestGenerator('operaciones/presupuesto');
-const fetchBudgetDetailApi = requestGenerator('operaciones/presupuesto_detalle');
-
+const getBudgets = () => fetchBudgetApi().then((x) => x.json());
+const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
-const getBudget = () => fetchBudgetApi().then((x) => x.json());
-const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
 const getResource = (id) => fetchResourceApi(id).then((x) => x.json());
 const getResourceGantt = (project) => {
   const params = new URLSearchParams(Object.fromEntries([
@@ -107,6 +105,12 @@ const headers = [
   { id: "hours", numeric: false, disablePadding: false, label: "Horas" },
   { id: "assignation", numeric: false, disablePadding: false, label: "Porcentaje" },
 ];
+
+const ParameterContext = createContext({
+  budgets: [],
+  clients: [],
+  people: [],
+});
 
 const NotSelectedProjectDialog = ({
   open,
@@ -156,13 +160,16 @@ function a11yProps(index) {
 }
 
 const AddModal = ({
-  budget,
   callback,
   is_open,
-  people,
   project,
   setModalOpen,
 }) => {
+  const {
+    budgets,
+    people,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     person: '',
     budget: '',
@@ -227,19 +234,15 @@ const AddModal = ({
               setIsOpen={setModalOpen}
               title={"Crear Nuevo"}
             >
-              <SelectField
+              <AdvancedSelectField
                 fullWidth
-                label="Recurso"
-                margin="dense"
                 name="person"
-                onChange={handleChange}
+                label="Recurso"
+                onChange={(_event, value) => setFields(prev_value => ({...prev_value, person: value}))}
+                options={people}
                 required
                 value={fields.person}
-              >
-                {people.map(({ pk_persona, nombre }) => (
-                  <option key={pk_persona} value={pk_persona}>{nombre}</option>
-                ))}
-              </SelectField>
+              />
               <SelectField
                 fullWidth
                 label="Presupuesto"
@@ -249,7 +252,7 @@ const AddModal = ({
                 required
                 value={fields.budget}
               >
-                {budget
+                {budgets
                   .filter(({ fk_proyecto }) => fk_proyecto == project)
                   .map(({ pk_presupuesto, nombre }) => (
                     <option key={pk_presupuesto} value={pk_presupuesto}>{nombre}</option>
@@ -341,14 +344,17 @@ const AddModal = ({
 };
 
 const EditModal = ({
-  budget,
   callback,
   data,
   is_open,
-  people,
   project,
   setModalOpen,
 }) => {
+  const {
+    budgets,
+    people,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     person: '',
     budget: '',
@@ -415,19 +421,15 @@ const EditModal = ({
               setIsOpen={setModalOpen}
               title={"Editar"}
             >
-              <SelectField
+              <AdvancedSelectField
                 fullWidth
-                label="Recurso"
-                margin="dense"
                 name="person"
-                onChange={handleChange}
+                label="Recurso"
+                onChange={(_event, value) => setFields(prev_value => ({...prev_value, person: value}))}
+                options={people}
                 required
                 value={fields.person}
-              >
-                {people.map(({ pk_persona, nombre }) => (
-                  <option key={pk_persona} value={pk_persona}>{nombre}</option>
-                ))}
-              </SelectField>
+              />
               <SelectField
                 fullWidth
                 label="Presupuesto"
@@ -437,7 +439,7 @@ const EditModal = ({
                 required
                 value={fields.budget}
               >
-                {budget.map(({ pk_presupuesto, nombre }) => (
+                {budgets.map(({ pk_presupuesto, nombre }) => (
                   <option key={pk_presupuesto} value={pk_presupuesto}>{nombre}</option>
                 ))}
               </SelectField>
@@ -605,7 +607,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default () => {
-  const [clients, setClients] = useState([]);
+  const [parameters, setParameters] = useState({
+    budgets: [],
+    clients: [],
+    people: [],
+  });
   const [selectedClient, setSelectedClient] = useState('');
   const [selectedProyect, setSelectedProyect] = useState(null);
   const [is_add_modal_open, setAddModalOpen] = useState(false);
@@ -615,9 +621,6 @@ export default () => {
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [dataShouldUpdate, setDataShouldUpdate] = useState(false);
   const [tasks, setTasks] = useState([]);
-
-  const [people, setPeople] = useState([]);
-  const [budget, setBudget] = useState([]);
 
   const [value, setValue] = useState(0);
   const classes = useStyles();
@@ -658,10 +661,12 @@ export default () => {
   };
 
   useEffect(() => {
-    getClients().then(clients => setClients(clients));
-    getPeople().then(people => setPeople(people));
-    getBudget().then(budget => setBudget(budget));
-    updateData();
+    getBudgets().then(budgets => setParameters(prev_state => ({...prev_state, budgets})));
+    getClients().then(clients => setParameters(prev_state => ({...prev_state, clients})));
+    getPeople().then(people => {
+      const entries = people.map(({pk_persona, nombre}) => [pk_persona, nombre]);
+      setParameters(prev_state => ({...prev_state, people: entries}));
+    });
   }, []);
 
   useEffect(() => {
@@ -678,63 +683,61 @@ export default () => {
   return (
     <Fragment>
       <Title title={"Planeacion por Proyecto"} />
-      <AddModal
-        budget={budget}
-        callback={updateData}
-        is_open={is_add_modal_open}
-        people={people}
-        project={selectedProyect}
-        setModalOpen={setAddModalOpen}
-      />
-      <EditModal
-        budget={budget}
-        callback={updateData}
-        data={selected_resource}
-        is_open={is_edit_modal_open}
-        people={people}
-        project={selectedProyect}
-        setModalOpen={setEditModalOpen}
-      />
-      <DeleteModal
-        is_open={is_delete_modal_open}
-        project={selectedProyect}
-        setModalOpen={setDeleteModalOpen}
-        selected={selected}
-        callback={updateData}
-      />
-      <Grid container spacing={10}>
-        <Grid item xs={6}>
-          <SelectField
-            fullWidth
-            label="Cliente"
-            onChange={event => setSelectedClient(event.target.value)}
-            value={selectedClient}
-          >
-            {clients.map(({ pk_cliente, nombre }) => (
-              <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
-            ))}
-          </SelectField>
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          callback={updateData}
+          is_open={is_add_modal_open}
+          project={selectedProyect}
+          setModalOpen={setAddModalOpen}
+        />
+        <EditModal
+          callback={updateData}
+          data={selected_resource}
+          is_open={is_edit_modal_open}
+          project={selectedProyect}
+          setModalOpen={setEditModalOpen}
+        />
+        <DeleteModal
+          is_open={is_delete_modal_open}
+          project={selectedProyect}
+          setModalOpen={setDeleteModalOpen}
+          selected={selected}
+          callback={updateData}
+        />
+        <Grid container spacing={10}>
+          <Grid item xs={6}>
+            <SelectField
+              fullWidth
+              label="Cliente"
+              onChange={event => setSelectedClient(event.target.value)}
+              value={selectedClient}
+            >
+              {parameters.clients.map(({ pk_cliente, nombre }) => (
+                <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
+              ))}
+            </SelectField>
+          </Grid>
+          <Grid item xs={6}>
+            <AsyncSelectField
+              disabled={!selectedClient}
+              fullWidth
+              handleSource={async (source) => {
+                return Object.values(source)
+                  .map(({
+                    pk_proyecto,
+                    nombre,
+                  }) => {
+                    return { value: String(pk_proyecto), text: nombre };
+                  });
+              }}
+              label="Proyecto"
+              onChange={event => setSelectedProyect(event.target.value)}
+              source={`operaciones/proyecto/search?client=${selectedClient}`}
+              value={selectedClient && selectedProyect}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={6}>
-          <AsyncSelectField
-            disabled={!selectedClient}
-            fullWidth
-            handleSource={async (source) => {
-              return Object.values(source)
-                .map(({
-                  pk_proyecto,
-                  nombre,
-                }) => {
-                  return { value: String(pk_proyecto), text: nombre };
-                });
-            }}
-            label="Proyecto"
-            onChange={event => setSelectedProyect(event.target.value)}
-            source={`operaciones/proyecto/search?client=${selectedClient}`}
-            value={selectedClient && selectedProyect}
-          />
-        </Grid>
-      </Grid>
+      </ParameterContext.Provider>
       <br />
       <div className={classes.bar}>
         <AppBar position="static">

@@ -1,34 +1,33 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
   DialogContentText,
   Grid,
-  TextField
+  TextField,
 } from "@material-ui/core";
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchAreaApi,
+  fetchPeopleApi,
+  fetchSubAreaApi,
+} from "../../../lib/api/generator.js";
 
+import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
-//TODO
-//Add primary key as constant
-
-const fetchPeopleApi = requestGenerator('organizacion/persona');
-const fetchAreaApi = requestGenerator('organizacion/area');
-const fetchSubAreaApi = requestGenerator('organizacion/sub_area');
-
-const getSupervisors = () => fetchPeopleApi().then((x) => x.json());
-
+const getPeople = () => fetchPeopleApi().then((x) => x.json());
 const getAreas = () => fetchAreaApi().then((x) => x.json());
 
 const getSubArea = (id) => fetchSubAreaApi(id).then((x) => x.json());
@@ -69,22 +68,39 @@ const headers = [
   },
 ];
 
+const ParameterContext = createContext({
+  areas: [],
+  people: [],
+});
+
 const AddModal = ({
-  areas,
   is_open,
   setModalOpen,
-  supervisors,
   updateTable,
 }) => {
+  const {
+    areas,
+    people,
+  } = useContext(ParameterContext);
+
+  const [fields, setFields] = useState({
+    area: "",
+    name: "",
+    supervisor: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createSubArea(new URLSearchParams(form_data));
+    const request = await createSubArea(new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -96,6 +112,18 @@ const AddModal = ({
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        area: "",
+        name: "",
+        supervisor: "",
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [is_open]);
+
   return (
     <DialogForm
       error={error}
@@ -106,50 +134,54 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <SelectField
-        label="Area"
+        label="Tipo de Area"
         fullWidth
         name="area"
+        onChange={handleChange}
         required
+        value={fields.area}
       >
         {areas.map(({ pk_area, nombre }) => (
           <option key={pk_area} value={pk_area}>{nombre}</option>
         ))}
       </SelectField>
       <TextField
-        autoFocus
         fullWidth
         label="SubArea"
         margin="dense"
         name="name"
+        onChange={handleChange}
         required
+        value={fields.name}
       />
-      <SelectField
-        autoFocus
+      <AdvancedSelectField
         fullWidth
         label="Supervisor"
         name="supervisor"
+        onChange={(_event, value) => setFields(prev_state => ({...prev_state, supervisor: value}))}
+        options={people}
         required
-      >
-        {supervisors.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+        value={fields.supervisor}
+      />
     </DialogForm>
   );
 };
 
 const EditModal = ({
-  areas,
   data,
   is_open,
   setModalOpen,
-  supervisors,
   updateTable,
 }) => {
+  const {
+    areas,
+    people,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
-    area: null,
-    name: null,
-    supervisor: null,
+    area: "",
+    name: "",
+    supervisor: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -161,25 +193,21 @@ const EditModal = ({
         name: data.nombre,
         supervisor: data.fk_supervisor,
       });
+      setLoading(false);
+      setError(null);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_sub_area;
-    const request = await updateSubArea(id, new URLSearchParams(form_data));
+    const request = await updateSubArea(data.pk_sub_area, new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -204,7 +232,7 @@ const EditModal = ({
         label="Tipo de Area"
         fullWidth
         name="area"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.area}
       >
@@ -213,28 +241,23 @@ const EditModal = ({
         ))}
       </SelectField>
       <TextField
-        autoFocus
         fullWidth
         label="SubArea"
         margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
-      <SelectField
-        autoFocus
+      <AdvancedSelectField
         fullWidth
         label="Supervisor"
         name="supervisor"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(prev_state => ({...prev_state, supervisor: value}))}
+        options={people}
         required
         value={fields.supervisor}
-      >
-        {supervisors.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+      />
     </DialogForm>
   );
 };
@@ -294,14 +317,16 @@ const DeleteModal = ({
 };
 
 export default () => {
+  const [parameters, setParameters] = useState({
+    areas: [],
+    people: [],
+  });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
   const [selected_project_type, setSelectedArea] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
-  const [areas, setAreas] = useState([]);
-  const [supervisors, setSupervisors] = useState([]);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
 
   const handleEditModalOpen = async (id) => {
     const data = await getSubArea(id);
@@ -320,29 +345,31 @@ export default () => {
 
   //TODO
   //Add error catching for data fetching
+  //Cancel subscription to state update
   useEffect(() => {
-    getAreas().then((res) => setAreas(res));
-    getSupervisors().then(x => setSupervisors(x));
+    getAreas().then((areas) => setParameters(prev_state => ({...prev_state, areas})));
+    getPeople().then(people => {
+      const entries = people.map(({pk_persona, nombre}) => [pk_persona, nombre]);
+      setParameters(prev_state => ({...prev_state, people: entries}));
+    });
   }, [false]);
 
   return (
     <Fragment>
       <Title title={"SubArea"} />
-      <AddModal
-        areas={areas}
-        is_open={is_add_modal_open}
-        setModalOpen={setAddModalOpen}
-        supervisors={supervisors}
-        updateTable={updateTable}
-      />
-      <EditModal
-        areas={areas}
-        data={selected_project_type}
-        is_open={is_edit_modal_open}
-        setModalOpen={setEditModalOpen}
-        supervisors={supervisors}
-        updateTable={updateTable}
-      />
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          is_open={is_add_modal_open}
+          setModalOpen={setAddModalOpen}
+          updateTable={updateTable}
+        />
+        <EditModal
+          data={selected_project_type}
+          is_open={is_edit_modal_open}
+          setModalOpen={setEditModalOpen}
+          updateTable={updateTable}
+        />
+      </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
         setModalOpen={setDeleteModalOpen}
@@ -353,7 +380,6 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"NA"}
               data_source={"organizacion/sub_area/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}

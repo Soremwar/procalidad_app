@@ -1,5 +1,7 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
   useState,
 } from "react";
@@ -11,22 +13,20 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchAreaTypesApi,
+  fetchPeopleApi,
+} from "../../../lib/api/generator.js";
 
+import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
-//TODO
-//Add primary key as constant
-
-const fetchPeopleApi = requestGenerator('organizacion/persona');
-const fetchAreaTypesApi = requestGenerator('organizacion/tipo_area');
-
-const getSupervisors = () => fetchPeopleApi().then((x) => x.json());
+const getPeople = () => fetchPeopleApi().then((x) => x.json());
 
 const getProjectType = (id) => fetchAreaTypesApi(id).then((x) => x.json());
 
@@ -60,21 +60,36 @@ const headers = [
   },
 ];
 
+const ParameterContext = createContext({
+  people: [],
+});
+
 const AddModal = ({
   is_open,
   setModalOpen,
-  supervisors,
   updateTable,
 }) => {
+  const {
+    people,
+  } = useContext(ParameterContext);
+
+  const [fields, setFields] = useState({
+    supervisor: "",
+    name: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createProjectType(new URLSearchParams(form_data));
+    const request = await createProjectType(new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -86,6 +101,17 @@ const AddModal = ({
     setLoading(false);
   };
 
+  useEffect(() => {
+    if(is_open){
+      setFields({
+        supervisor: "",
+        name: "",
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [is_open]);
+
   return (
     <DialogForm
       error={error}
@@ -96,24 +122,23 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <TextField
-        autoFocus
         fullWidth
         label="Tipo de Area"
         margin="dense"
         name="name"
+        onChange={handleChange}
         required
+        value={fields.name}
       />
-      <SelectField
-        autoFocus
+      <AdvancedSelectField
         fullWidth
         label="Supervisor"
         name="supervisor"
+        onChange={(_event, value) => setFields(prev_state => ({...prev_state, supervisor: value}))}
+        options={people}
         required
-      >
-        {supervisors.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+        value={fields.supervisor}
+      />
     </DialogForm>
   );
 };
@@ -122,12 +147,15 @@ const EditModal = ({
   data,
   is_open,
   setModalOpen,
-  supervisors,
   updateTable,
 }) => {
+  const {
+    people,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
-    name: null,
-    supervisor: null,
+    name: "",
+    supervisor: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -138,25 +166,21 @@ const EditModal = ({
         name: data.nombre,
         supervisor: data.fk_supervisor,
       });
+      setLoading(false);
+      setError(null);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_tipo;
-    const request = await updateProjectType(id, new URLSearchParams(form_data));
+    const request = await updateProjectType(data.pk_tipo, new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -178,28 +202,23 @@ const EditModal = ({
       title={"Editar"}
     >
       <TextField
-        autoFocus
         fullWidth
         label="Tipo de Area"
         margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
-      <SelectField
-        autoFocus
+      <AdvancedSelectField
         fullWidth
         label="Supervisor"
         name="supervisor"
-        onChange={(event) => handleChange(event)}
+        onChange={(_event, value) => setFields(prev_state => ({...prev_state, supervisor: value}))}
+        options={people}
         required
         value={fields.supervisor}
-      >
-        {supervisors.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+      />
     </DialogForm>
   );
 };
@@ -259,13 +278,15 @@ const DeleteModal = ({
 };
 
 export default () => {
+  const [parameters, setParameters] = useState({
+    people: [],
+  });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
   const [selected_project_type, setSelectedProjectType] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
-  const [supervisors, setSupervisors] = useState([]);
 
   const handleEditModalOpen = async (id) => {
     const data = await getProjectType(id);
@@ -283,25 +304,28 @@ export default () => {
   };
 
   useEffect(() => {
-    getSupervisors().then((x) => setSupervisors(x));
+    getPeople().then(people => {
+      const entries = people.map(({pk_persona, nombre}) => [pk_persona, nombre]);
+      setParameters(prev_state => ({...prev_state, people: entries}));
+    });
   }, [false]);
 
   return (
     <Fragment>
       <Title title={"Tipo de Area"} />
-      <AddModal
-        is_open={is_add_modal_open}
-        setModalOpen={setAddModalOpen}
-        supervisors={supervisors}
-        updateTable={updateTable}
-      />
-      <EditModal
-        data={selected_project_type}
-        is_open={is_edit_modal_open}
-        setModalOpen={setEditModalOpen}
-        supervisors={supervisors}
-        updateTable={updateTable}
-      />
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          is_open={is_add_modal_open}
+          setModalOpen={setAddModalOpen}
+          updateTable={updateTable}
+        />
+        <EditModal
+          data={selected_project_type}
+          is_open={is_edit_modal_open}
+          setModalOpen={setEditModalOpen}
+          updateTable={updateTable}
+        />
+      </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
         setModalOpen={setDeleteModalOpen}
@@ -312,7 +336,6 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"pk_tipo"}
               data_source={"organizacion/tipo_area/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}

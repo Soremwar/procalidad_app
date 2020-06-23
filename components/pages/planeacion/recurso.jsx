@@ -1,7 +1,9 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
   AppBar,
@@ -29,13 +31,23 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
 import {
   parseDateToStandardNumber,
   parseStandardNumber,
 } from "../../../lib/date/mod.js";
+import {
+  fetchBudgetApi,
+  fetchBudgetDetailApi,
+  fetchClientApi,
+  fetchPeopleApi,
+  fetchProjectApi,
+  fetchResourceApi,
+  fetchRoleApi,
+  fetchTimeApi,
+} from "../../../lib/api/generator.js";
 
+import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
@@ -45,9 +57,6 @@ import Widget from "../../common/Widget.jsx";
 
 import ResourceHeatmap from "./recurso/ResourceHeatmap.jsx";
 import DetailHeatmap from "./recurso/DetailHeatmap.jsx";
-
-//TODO
-//Add primary key as constant
 
 const formatDateToInputDate = (date) => {
   const year = date.getFullYear();
@@ -69,17 +78,6 @@ const global_tasks = [
     progress: 20,
   },
 ].map(x => new Task(x));
-
-//TODO
-//Fetch api functions should be global
-const fetchClientApi = requestGenerator('clientes/cliente');
-const fetchProjectApi = requestGenerator('operaciones/proyecto');
-const fetchResourceApi = requestGenerator('planeacion/recurso');
-const fetchPeopleApi = requestGenerator('organizacion/persona');
-const fetchBudgetApi = requestGenerator('operaciones/presupuesto');
-const fetchBudgetDetailApi = requestGenerator('operaciones/presupuesto_detalle');
-const fetchRoleApi = requestGenerator('operaciones/rol');
-const fetchTimeApi = requestGenerator('maestro/tiempo');
 
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getProjects = () => fetchProjectApi().then((x) => x.json());
@@ -151,6 +149,15 @@ const resource_headers = [
   { id: "hours", numeric: false, disablePadding: false, label: "Horas" },
 ];
 
+const ParameterContext = createContext({
+  blacklisted_dates: [],
+  budgets: [],
+  clients: [],
+  people: [],
+  projects: [],
+  roles: [],
+});
+
 const NotSelectedPersonDialog = ({
   open,
   setOpen,
@@ -210,13 +217,18 @@ function a11yProps(index) {
   };
 }
 
+//TODO
+//Replace async select field with advanced select field
 const AddModal = ({
-  clients,
   callback,
   is_open,
   person,
   setModalOpen,
 }) => {
+  const {
+    clients,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     client: '',
     project: '',
@@ -423,16 +435,19 @@ const AddModal = ({
 };
 
 const EditModal = ({
-  budgets,
   callback,
-  clients,
   data,
   is_open,
   person,
-  projects,
-  roles,
   setModalOpen,
 }) => {
+  const {
+    budgets,
+    clients,
+    projects,
+    roles,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     client: '',
     project: '',
@@ -724,11 +739,15 @@ const MAX_DATE_HEATMAP = (() => {
 export default () => {
   const classes = useStyles();
 
-  const [clients, setClients] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [budgets, setBudgets] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const [people, setPeople] = useState([]);
+  ParameterContext
+  const [parameters, setParameters] = useState({
+    blacklisted_dates: [],
+    budgets: [],
+    clients: [],
+    people: [],
+    projects: [],
+    roles: [],
+  });
   const [selectedPerson, setSelectedPerson] = useState('');
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
@@ -802,15 +821,18 @@ export default () => {
   };
 
   useEffect(() => {
-    getClients().then(clients => setClients(clients));
-    getProjects().then(projects => setProjects(projects));
-    getBudgets().then(budgets => setBudgets(budgets));
-    getRoles().then(roles => setRoles(roles));
-    getPeople().then(people => setPeople(people));
     getBlacklistedDates(
       TODAY,
       MAX_DATE_HEATMAP,
-    ).then(dates => setHeatmapBlacklist(dates));
+    ).then(blacklisted_dates => setParameters(prev_state => ({...prev_state, blacklisted_dates})));
+    getBudgets().then(budgets => setParameters(prev_state => ({...prev_state, budgets})));
+    getClients().then(clients => setParameters(prev_state => ({...prev_state, clients})));
+    getPeople().then(people => {
+      const entries = people.map(({pk_persona, nombre}) => [pk_persona, nombre]);
+      setParameters(prev_state => ({...prev_state, people: entries}));
+    });
+    getProjects().then(projects => setParameters(prev_state => ({...prev_state, projects})));
+    getRoles().then(roles => setParameters(prev_state => ({...prev_state, roles})));
     updateData();
   }, []);
 
@@ -821,46 +843,39 @@ export default () => {
   return (
     <Fragment>
       <Title title={"Planeacion por Recurso"} />
-      <AddModal
-        clients={clients}
-        callback={updateData}
-        is_open={is_add_modal_open}
-        setModalOpen={setAddModalOpen}
-        person={selectedPerson}
-      />
-      <EditModal
-        budgets={budgets}
-        callback={updateData}
-        clients={clients}
-        data={selected_resource}
-        is_open={is_edit_modal_open}
-        people={people}
-        person={selectedPerson}
-        projects={projects}
-        roles={roles}
-        setModalOpen={setEditModalOpen}
-      />
-      <DeleteModal
-        callback={updateData}
-        is_open={is_delete_modal_open}
-        person={selectedPerson}
-        setModalOpen={setDeleteModalOpen}
-        selected={selected}
-      />
-      <Grid container spacing={10}>
-        <Grid item xs={6}>
-          <SelectField
-            fullWidth
-            label="Recurso"
-            onChange={event => setSelectedPerson(event.target.value)}
-            value={selectedPerson}
-          >
-            {people.map(({ pk_persona, nombre }) => (
-              <option key={pk_persona} value={pk_persona}>{nombre}</option>
-            ))}
-          </SelectField>
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          callback={updateData}
+          is_open={is_add_modal_open}
+          setModalOpen={setAddModalOpen}
+          person={selectedPerson}
+        />
+        <EditModal
+          callback={updateData}
+          data={selected_resource}
+          is_open={is_edit_modal_open}
+          person={selectedPerson}
+          setModalOpen={setEditModalOpen}
+        />
+        <DeleteModal
+          callback={updateData}
+          is_open={is_delete_modal_open}
+          person={selectedPerson}
+          setModalOpen={setDeleteModalOpen}
+          selected={selected}
+        />
+        <Grid container spacing={10}>
+          <Grid item xs={6}>
+            <AdvancedSelectField
+              fullWidth
+              label="Recurso"
+              onChange={(_event, value) => setSelectedPerson(value)}
+              options={parameters.people}
+              value={selectedPerson}
+            />
+          </Grid>
         </Grid>
-      </Grid>
+      </ParameterContext.Provider>
       <br />
       <div className={classes.bar}>
         <AppBar position="static">
@@ -924,6 +939,7 @@ export default () => {
           index={2}
           value={value}
         >
+          <ParameterContext.Provider value={parameters}>
           {
             !selectedPerson
               ? (
@@ -953,6 +969,7 @@ export default () => {
                 />
               )
           }
+          </ParameterContext.Provider>
         </TabPanel>
       </div>
     </Fragment>

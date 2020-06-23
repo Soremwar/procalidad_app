@@ -1,5 +1,7 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
   useState
 } from "react";
@@ -11,25 +13,22 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchAreaApi,
+  fetchAreaTypesApi,
+  fetchPeopleApi,
+} from "../../../lib/api/generator.js";
 
+import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
-//TODO
-//Add primary key as constant
-
-const fetchPeopleApi = requestGenerator('organizacion/persona');
-const fetchAreaTypesApi = requestGenerator('organizacion/tipo_area');
-const fetchAreaApi = requestGenerator('organizacion/area');
-
-const getSupervisors = () => fetchPeopleApi().then((x) => x.json());
-
 const getAreaTypes = () => fetchAreaTypesApi().then((x) => x.json());
+const getPeople = () => fetchPeopleApi().then((x) => x.json());
 
 const getArea = (id) => fetchAreaApi(id).then((x) => x.json());
 
@@ -69,22 +68,55 @@ const headers = [
   },
 ];
 
+const ParameterContext = createContext({
+  area_types: [],
+  people: [],
+});
+
 const AddModal = ({
-  area_types,
   is_open,
   setModalOpen,
-  supervisors,
   updateTable,
 }) => {
+  const {
+    area_types,
+    people,
+  } = useContext(ParameterContext);
+
+  const [fields, setFields] = useState({
+    area_type: "",
+    name: "",
+    supervisor: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        area_type: "",
+        name: "",
+        supervisor: "",
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [is_open]);
+
+  const handleChange = (event) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setFields((prev_state) => {
+      const data = ({ ...prev_state, [name]: value });
+      return data;
+    });
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createArea(new URLSearchParams(form_data));
+    const request = await createArea(new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -109,43 +141,47 @@ const AddModal = ({
         label="Tipo de Area"
         fullWidth
         name="area_type"
+        onChange={handleChange}
         required
+        value={fields.area_type}
       >
         {area_types.map(({ pk_tipo, nombre }) => (
           <option key={pk_tipo} value={pk_tipo}>{nombre}</option>
         ))}
       </SelectField>
       <TextField
-        autoFocus
         fullWidth
         label="Area"
         margin="dense"
         name="name"
+        onChange={handleChange}
         required
+        value={fields.name}
       />
-      <SelectField
-        autoFocus
+      <AdvancedSelectField
         fullWidth
-        label="Supervisor"
         name="supervisor"
+        label="Supervisor"
+        onChange={(_event, value) => setFields(prev_value => ({...prev_value, supervisor: value}))}
+        options={people}
         required
-      >
-        {supervisors.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+        value={fields.supervisor}
+      />
     </DialogForm>
   );
 };
 
 const EditModal = ({
-  area_types,
   data,
   is_open,
   setModalOpen,
-  supervisors,
   updateTable,
 }) => {
+  const {
+    area_types,
+    people,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     area_type: null,
     name: null,
@@ -161,6 +197,8 @@ const EditModal = ({
         name: data.nombre,
         supervisor: data.fk_supervisor,
       });
+      setLoading(false);
+      setError(null);
     }
   }, [is_open]);
 
@@ -173,13 +211,11 @@ const EditModal = ({
     });
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_area;
-    const request = await updateArea(id, new URLSearchParams(form_data));
+    const request = await updateArea(data.pk_area, new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -204,7 +240,7 @@ const EditModal = ({
         label="Tipo de Area"
         fullWidth
         name="area_type"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.area_type}
       >
@@ -213,28 +249,23 @@ const EditModal = ({
         ))}
       </SelectField>
       <TextField
-        autoFocus
         fullWidth
         label="Area"
         margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
-      <SelectField
-        autoFocus
+      <AdvancedSelectField
         fullWidth
-        label="Supervisor"
         name="supervisor"
-        onChange={(event) => handleChange(event)}
+        label="Supervisor"
+        onChange={(_event, value) => setFields(prev_value => ({...prev_value, supervisor: value}))}
+        options={people}
         required
         value={fields.supervisor}
-      >
-        {supervisors.map(({ pk_persona, nombre }) => (
-          <option key={pk_persona} value={pk_persona}>{nombre}</option>
-        ))}
-      </SelectField>
+      />
     </DialogForm>
   );
 };
@@ -294,14 +325,16 @@ const DeleteModal = ({
 };
 
 export default () => {
+  const [parameters, setParameters] = useState({
+    area_types: [],
+    people: [],
+  });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
   const [selected_project_type, setSelectedArea] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
-  const [area_types, setAreaTypes] = useState([]);
-  const [supervisors, setSupervisors] = useState([]);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
 
   const handleEditModalOpen = async (id) => {
     const data = await getArea(id);
@@ -321,28 +354,29 @@ export default () => {
   //TODO
   //Add error catching for data fetching
   useEffect(() => {
-    getAreaTypes().then((res) => setAreaTypes(res));
-    getSupervisors().then(x => setSupervisors(x));
+    getAreaTypes().then(area_types => setParameters(prev_state => ({...prev_state, area_types})));
+    getPeople().then(people => {
+      const entries = people.map(({pk_persona, nombre}) => [pk_persona, nombre]);
+      setParameters(prev_state => ({...prev_state, people: entries}));
+    });
   }, [false]);
 
   return (
     <Fragment>
       <Title title={"Area"} />
-      <AddModal
-        area_types={area_types}
-        is_open={is_add_modal_open}
-        setModalOpen={setAddModalOpen}
-        supervisors={supervisors}
-        updateTable={updateTable}
-      />
-      <EditModal
-        area_types={area_types}
-        data={selected_project_type}
-        is_open={is_edit_modal_open}
-        setModalOpen={setEditModalOpen}
-        supervisors={supervisors}
-        updateTable={updateTable}
-      />
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          is_open={is_add_modal_open}
+          setModalOpen={setAddModalOpen}
+          updateTable={updateTable}
+        />
+        <EditModal
+          data={selected_project_type}
+          is_open={is_edit_modal_open}
+          setModalOpen={setEditModalOpen}
+          updateTable={updateTable}
+        />
+      </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
         setModalOpen={setDeleteModalOpen}
@@ -353,7 +387,6 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"pk_area"}
               data_source={"organizacion/area/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
