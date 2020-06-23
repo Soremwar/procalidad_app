@@ -3,6 +3,15 @@ import { PostgresError } from "deno_postgres";
 import {
   TableOrder,
 } from "../../common/table.ts";
+import {
+  TABLE as CLIENT_TABLE,
+} from "../CLIENTES/CLIENTE.ts";
+import {
+  TABLE as PROJECT_TYPE_TABLE,
+} from "./TIPO_PROYECTO.ts";
+import {
+  TABLE as AREA_TABLE,
+} from "../ORGANIZACION/AREA.ts";
 
 export const TABLE = "OPERACIONES.PROYECTO";
 const ERROR_DEPENDENCY =
@@ -159,7 +168,7 @@ class TableData {
   constructor(
     public id: number,
     public type: string,
-    public client: string,
+    public id_client: number,
     public area: string,
     public name: string,
   ) {}
@@ -169,23 +178,27 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: string,
+  search: {[key: string]: string},
 ): Promise<TableData[]> => {
-  //TODO
-  //Replace search string with search object passed from the frontend table definition
-
   //TODO
   //Normalize query generator
 
   const query = `SELECT * FROM (
-      SELECT PK_PROYECTO AS ID,
-      (SELECT NOMBRE FROM OPERACIONES.TIPO_PROYECTO WHERE PK_PROYECTO = FK_TIPO_PROYECTO) AS TYPE,
-      (SELECT NOMBRE FROM CLIENTES.CLIENTE WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT,
-      (SELECT NOMBRE FROM ORGANIZACION.AREA WHERE PK_AREA = FK_AREA) AS AREA,
-      NOMBRE AS NAME
-    FROM OPERACIONES.PROYECTO) AS TOTAL` +
+      SELECT
+        PK_PROYECTO AS ID,
+        (SELECT NOMBRE FROM ${PROJECT_TYPE_TABLE} WHERE PK_PROYECTO = FK_TIPO_PROYECTO) AS TYPE,
+        FK_CLIENTE AS ID_CLIENT,
+        (SELECT NOMBRE FROM ${AREA_TABLE} WHERE PK_AREA = FK_AREA) AS AREA,
+        NOMBRE AS NAME
+      FROM ${TABLE}
+    ) AS TOTAL` +
     " " +
-    `WHERE UNACCENT(NAME) ILIKE '%${search}%'` +
+    (Object.keys(search).length
+      ? `WHERE ${Object.entries(search)
+        .map(([column, value]) => (
+          `CAST(${column} AS VARCHAR) ILIKE '${value || '%'}'`
+        )).join(' AND ')}`
+      : '') +
     " " +
     (Object.values(order).length
       ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
@@ -200,7 +213,7 @@ export const getTableData = async (
   const models = result.map((x: [
     number,
     string,
-    string,
+    number,
     string,
     string,
   ]) => new TableData(...x));

@@ -4,6 +4,8 @@ import {
   TableOrder,
 } from "../../common/table.ts";
 
+export const TABLE = "CLIENTES.SECTOR";
+
 const ERROR_DEPENDENCY =
   "No se puede eliminar el sector por que hay componentes que dependen de el";
 

@@ -1,5 +1,7 @@
 import postgres from "../../services/postgres.js";
 
+export const TABLE = "MAESTRO.ESTADO";
+
 class Estado {
   constructor(
     public readonly pk_estado: number,

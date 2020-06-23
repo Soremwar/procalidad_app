@@ -11,22 +11,19 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchAreaApi,
+  fetchClientApi,
+  fetchProjectApi,
+  fetchProjectTypeApi,
+} from "../../../lib/api/generator.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
-
-//TODO
-//Add primary key as constant
-
-const fetchProjectTypeApi = requestGenerator('operaciones/tipo_proyecto');
-const fetchClientApi = requestGenerator('clientes/cliente');
-const fetchAreaApi = requestGenerator('organizacion/area');
-const fetchProjectApi = requestGenerator('operaciones/proyecto');
 
 const getProjectTypes = () => fetchProjectTypeApi().then((x) => x.json());
 
@@ -59,7 +56,6 @@ const deleteProject = async (id) => {
 const headers = [
   { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
   { id: "area", numeric: false, disablePadding: false, label: "Area" },
-  { id: "client", numeric: false, disablePadding: false, label: "Cliente" },
 ];
 
 const AddModal = ({
@@ -358,6 +354,8 @@ const DeleteModal = ({
   );
 };
 
+//TODO
+//Switch to context
 export default () => {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
@@ -368,6 +366,7 @@ export default () => {
   const [project_types, setProjectTypes] = useState([]);
   const [clients, setClients] = useState([]);
   const [areas, setAreas] = useState([]);
+  const [selected_client, setSelectedClient] = useState("");
 
   const handleEditModalOpen = async (id) => {
     const data = await getProject(id);
@@ -389,6 +388,10 @@ export default () => {
     getClients().then(clients => setClients(clients));
     getAreas().then(areas => setAreas(areas));
   }, []);
+
+  useEffect(() => {
+    updateTable();
+  }, [selected_client]);
 
   return (
     <Fragment>
@@ -416,17 +419,33 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
+      <Grid container spacing={10}>
+        <Grid item xs={6}>
+          <SelectField
+            fullWidth
+            label="Cliente"
+            onChange={event => setSelectedClient(event.target.value)}
+            value={selected_client}
+          >
+            {clients.map(({ pk_cliente, nombre }) => (
+              <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
+            ))}
+          </SelectField>
+        </Grid>
+      </Grid>
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"pk_tipo"}
               data_source={"operaciones/proyecto/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
               tableShouldUpdate={tableShouldUpdate}
+              search={{
+                id_client: selected_client,
+              }}
               setTableShouldUpdate={setTableShouldUpdate}
               title={"Listado de Proyectos"}
             />

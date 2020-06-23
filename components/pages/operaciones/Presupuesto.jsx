@@ -21,8 +21,13 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import{
+  fetchBudgetApi,
+  fetchBudgetTypeApi,
+  fetchClientApi,
+  fetchRoleApi,
+} from "../../../lib/api/generator.js";
 
 import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
@@ -32,18 +37,8 @@ import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 import CurrencyField from '@unicef/material-ui-currency-textfield';
 
-//TODO
-//Add primary key as constant
-
-const fetchRoleApi = requestGenerator('operaciones/rol');
-const fetchClientApi = requestGenerator('clientes/cliente');
-const fetchBudgetTypeApi = requestGenerator('operaciones/tipo_presupuesto');
-const fetchBudgetApi = requestGenerator('operaciones/presupuesto');
-
 const getRoles = () => fetchRoleApi().then((x) => x.json());
-
 const getClients = () => fetchClientApi().then((x) => x.json());
-
 const getBudgetTypes = () => fetchBudgetTypeApi().then((x) => x.json());
 
 const getBudget = (id) => fetchBudgetApi(id).then((x) => x.json());

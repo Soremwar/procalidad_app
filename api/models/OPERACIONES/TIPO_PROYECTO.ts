@@ -4,7 +4,7 @@ import {
   TableOrder,
 } from "../../common/table.ts";
 
-const TABLE = "OPERACIONES.TIPO_PROYECTO";
+export const TABLE = "OPERACIONES.TIPO_PROYECTO";
 const ERROR_DEPENDENCY =
   "No se puede eliminar el tipo de proyecto por que hay componentes que dependen de el";
 

@@ -3,6 +3,14 @@ import { PostgresError } from "deno_postgres";
 import {
   TableOrder,
 } from "../../common/table.ts";
+import {
+  TABLE as STATE_TABLE,
+} from "../MAESTRO/ESTADO.ts";
+import {
+  TABLE as CITY_TABLE,
+} from "../MAESTRO/CIUDAD.ts";
+
+export const TABLE = "CLIENTES.CLIENTE";
 
 const ERROR_CONSTRAINT = "El sector ingresado para el cliente no existe";
 const ERROR_DEPENDENCY =
@@ -46,7 +54,15 @@ class Cliente {
       },
     );
     await postgres.query(
-      "UPDATE CLIENTES.CLIENTE SET FK_SECTOR = $2, NOMBRE = $3, NIT = $4, D_VERIFICACION = $5, RAZON_SOCIAL = $6, FK_CIUDAD = $7, DIRECCION = $8 WHERE PK_CLIENTE = $1",
+      `UPDATE ${TABLE} SET
+        FK_SECTOR = $2,
+        NOMBRE = $3,
+        NIT = $4,
+        D_VERIFICACION = $5,
+        RAZON_SOCIAL = $6,
+        FK_CIUDAD = $7,
+        DIRECCION = $8
+      WHERE PK_CLIENTE = $1`,
       this.pk_cliente,
       this.fk_sector,
       this.nombre,
@@ -68,7 +84,7 @@ class Cliente {
 
   async delete(): Promise<void> {
     await postgres.query(
-      "DELETE FROM CLIENTES.CLIENTE WHERE PK_CLIENTE = $1",
+      `DELETE FROM ${TABLE} WHERE PK_CLIENTE = $1`,
       this.pk_cliente,
     ).catch((e: PostgresError) => {
       if (e.fields.constraint) {
@@ -82,7 +98,23 @@ class Cliente {
 
 export const findAll = async (): Promise<Cliente[]> => {
   const { rows } = await postgres.query(
-    "SELECT CL.PK_CLIENTE, CL.FK_SECTOR, CL.NOMBRE, CL.NIT, CL.D_VERIFICACION, CL.RAZON_SOCIAL, ST.FK_PAIS, CT.FK_ESTADO, CL.FK_CIUDAD, CL.DIRECCION FROM CLIENTES.CLIENTE AS CL JOIN MAESTRO.CIUDAD AS CT ON CL.FK_CIUDAD = CT.PK_CIUDAD JOIN MAESTRO.ESTADO AS ST ON CT.FK_ESTADO = ST.PK_ESTADO",
+    `SELECT
+      CL.PK_CLIENTE,
+      CL.FK_SECTOR,
+      CL.NOMBRE,
+      CL.NIT,
+      CL.D_VERIFICACION,
+      CL.RAZON_SOCIAL,
+      ST.FK_PAIS,
+      CT.FK_ESTADO,
+      CL.FK_CIUDAD,
+      CL.DIRECCION
+    FROM
+      ${TABLE} AS CL
+    JOIN ${CITY_TABLE} AS CT
+      ON CL.FK_CIUDAD = CT.PK_CIUDAD
+    JOIN ${STATE_TABLE} AS ST
+    ON CT.FK_ESTADO = ST.PK_ESTADO`,
   );
 
   const models = rows.map((row: [
@@ -103,7 +135,24 @@ export const findAll = async (): Promise<Cliente[]> => {
 
 export const findById = async (id: number): Promise<Cliente | null> => {
   const { rows } = await postgres.query(
-    "SELECT CL.PK_CLIENTE, CL.FK_SECTOR, CL.NOMBRE, CL.NIT, CL.D_VERIFICACION, CL.RAZON_SOCIAL, ST.FK_PAIS, CT.FK_ESTADO, CL.FK_CIUDAD, CL.DIRECCION FROM CLIENTES.CLIENTE AS CL JOIN MAESTRO.CIUDAD AS CT ON CL.FK_CIUDAD = CT.PK_CIUDAD JOIN MAESTRO.ESTADO AS ST ON CT.FK_ESTADO = ST.PK_ESTADO WHERE CL.PK_CLIENTE = $1",
+    `SELECT
+      CL.PK_CLIENTE,
+      CL.FK_SECTOR,
+      CL.NOMBRE,
+      CL.NIT,
+      CL.D_VERIFICACION,
+      CL.RAZON_SOCIAL,
+      ST.FK_PAIS,
+      CT.FK_ESTADO,
+      CL.FK_CIUDAD,
+      CL.DIRECCION
+    FROM
+      ${TABLE} AS CL
+    JOIN ${CITY_TABLE} AS CT
+      ON CL.FK_CIUDAD = CT.PK_CIUDAD
+    JOIN ${STATE_TABLE} AS ST
+      ON CT.FK_ESTADO = ST.PK_ESTADO
+    WHERE CL.PK_CLIENTE = $1`,
     id,
   );
   if (!rows[0]) return null;
@@ -132,7 +181,23 @@ export const createNew = async (
   direccion: string,
 ): Promise<void> => {
   await postgres.query(
-    "INSERT INTO CLIENTES.CLIENTE (FK_SECTOR, NOMBRE, NIT, D_VERIFICACION, RAZON_SOCIAL, FK_CIUDAD, DIRECCION) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+    `INSERT INTO ${TABLE} (
+      FK_SECTOR,
+      NOMBRE,
+      NIT,
+      D_VERIFICACION,
+      RAZON_SOCIAL,
+      FK_CIUDAD,
+      DIRECCION
+    ) VALUES (
+      $1,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6,
+      $7
+    )`,
     fk_sector,
     nombre,
     nit,
@@ -153,7 +218,6 @@ class TableData {
   constructor(
     public id: number,
     public code_sector: number,
-    public sector: string,
     public name: string,
     public nit: string,
     public business: string,
@@ -164,18 +228,28 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: string,
+  search: {[key: string]: string},
 ): Promise<any> => {
-  //TODO
-  //Replace search string with search object passed from the frontend table definition
 
   //TODO
   //Normalize query generator
 
-  const query =
-    "SELECT * FROM (SELECT PK_CLIENTE AS ID, FK_SECTOR AS CODE_SECTOR, (SELECT NOMBRE FROM CLIENTES.SECTOR WHERE PK_SECTOR = FK_SECTOR) AS SECTOR, NOMBRE AS NAME, NIT||'-'||D_VERIFICACION AS NIT, RAZON_SOCIAL AS BUSINESS FROM CLIENTES.CLIENTE) AS TOTAL" +
+  const query = `SELECT * FROM (
+      SELECT
+        PK_CLIENTE AS ID,
+        FK_SECTOR AS CODE_SECTOR,
+        NOMBRE AS NAME,
+        NIT||'-'||D_VERIFICACION AS NIT,
+        RAZON_SOCIAL AS BUSINESS
+      FROM ${TABLE}
+    ) AS TOTAL` +
     " " +
-    `WHERE UNACCENT(SECTOR) ILIKE '%${search}%' OR UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(NIT) ILIKE '%${search}%'` +
+    (Object.keys(search).length
+        ? `WHERE ${Object.entries(search)
+            .map(([column, value]) => (
+                `CAST(${column} AS VARCHAR) ILIKE '${value || '%'}'`
+            )).join(' AND ')}`
+        : '') +
     " " +
     (Object.values(order).length
       ? `ORDER BY ${
@@ -191,7 +265,6 @@ export const getTableData = async (
   const models = result.map((x: [
     number,
     number,
-    string,
     string,
     string,
     string,

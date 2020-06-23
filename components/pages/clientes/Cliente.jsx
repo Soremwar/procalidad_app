@@ -1,5 +1,7 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
   useState,
 } from "react";
@@ -11,8 +13,11 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchClientApi,
+  fetchSectorApi,
+} from "../../../lib/api/generator.js";
 
 import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
@@ -20,12 +25,6 @@ import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
-
-const fetchClientApi = requestGenerator('clientes/cliente');
-const fetchSectorApi = requestGenerator('clientes/sector');
-
-//TODO
-//Add primary key as constant
 
 const getSectors = () => {
   return fetchSectorApi()
@@ -56,7 +55,6 @@ const deleteClient = async (id) => {
 };
 
 const headers = [
-  { id: "sector", numeric: false, disablePadding: false, label: "Sector" },
   { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
   {
     id: "business",
@@ -67,12 +65,19 @@ const headers = [
   { id: "nit", numeric: false, disablePadding: false, label: "NIT" },
 ];
 
+const ParameterContext = createContext({
+  sectors: [],
+});
+
 const AddModal = ({
   is_open,
-  sectors,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    sectors,
+  } = useContext(ParameterContext);
+
   const [error, setError] = useState(null);
   const [fields, setFields] = useState({
     sector: "",
@@ -91,12 +96,8 @@ const AddModal = ({
   const [state_query, setStateQuery] = useState("");
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -146,7 +147,7 @@ const AddModal = ({
         fullWidth
         label="Sector"
         name="sector"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.sector}
       >
@@ -155,47 +156,42 @@ const AddModal = ({
         ))}
       </SelectField>
       <TextField
-        autoFocus
         fullWidth
         label="Nombre Cliente"
         margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
       <TextField
-        autoFocus
         fullWidth
         label="NIT"
         margin="dense"
         name="nit"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.nit}
       />
       <TextField
-        autoFocus
         fullWidth
         label="Digito de Verificacion"
         margin="dense"
         name="verification_digit"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.verification_digit}
       />
       <TextField
-        autoFocus
         fullWidth
         label="Razon Social"
         margin="dense"
         name="business"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.business}
       />
       <AsyncSelectField
-        autoFocus
         fullWidth
         handleSource={(source) => (
           Object.values(source).map(({
@@ -208,7 +204,7 @@ const AddModal = ({
         label="Pais"
         margin="dense"
         name="country"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         onType={(event) => {
           if (fields.country) {
             setFields((old_state) => ({ ...old_state, country: "" }));
@@ -225,7 +221,6 @@ const AddModal = ({
         value={fields.country}
       />
       <AsyncSelectField
-        autoFocus
         disabled={!fields.country}
         fullWidth
         handleSource={(source) => (
@@ -239,7 +234,7 @@ const AddModal = ({
         label="Departamento"
         margin="dense"
         name="state"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         onType={(event) => {
           if (fields.state) {
             setFields((old_state) => ({ ...old_state, state: "" }));
@@ -256,7 +251,6 @@ const AddModal = ({
         value={fields.country && fields.state}
       />
       <AsyncSelectField
-        autoFocus
         disabled={!(fields.country && fields.state)}
         fullWidth
         handleSource={(source) => (
@@ -270,7 +264,7 @@ const AddModal = ({
         label="Ciudad"
         margin="dense"
         name="city"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         onType={(event) => {
           if (!fields.city) {
             setFields((old_state) => ({ ...old_state, city: "" }));
@@ -287,12 +281,11 @@ const AddModal = ({
         value={fields.country && fields.state && fields.city}
       />
       <TextField
-        autoFocus
         fullWidth
         label="Direccion"
         margin="dense"
         name="address"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.address}
       />
@@ -303,10 +296,13 @@ const AddModal = ({
 const EditModal = ({
   data,
   is_open,
-  sectors,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    sectors,
+  } = useContext(ParameterContext);
+
   const [city_query, setCityQuery] = useState("");
   const [country_query, setCountryQuery] = useState("");
   const [error, setError] = useState(null);
@@ -327,24 +323,21 @@ const EditModal = ({
         city: String(data.fk_ciudad),
         address: data.direccion,
       });
+      setLoading(false);
+      setError(null);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const id = data.pk_cliente;
-    const request = await updateClient(id, new URLSearchParams(fields));
+    const request = await updateClient(data.pk_cliente, new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -369,7 +362,7 @@ const EditModal = ({
         fullWidth
         label="Sector"
         name="sector"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.sector}
       >
@@ -378,47 +371,42 @@ const EditModal = ({
         ))}
       </SelectField>
       <TextField
-        autoFocus
         margin="dense"
         name="name"
         label="Nombre Cliente"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
       <TextField
-        autoFocus
         margin="dense"
         name="nit"
         label="NIT"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.nit}
       />
       <TextField
-        autoFocus
         margin="dense"
         name="verification_digit"
         label="Digito de Verificacion"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.verification_digit}
       />
       <TextField
-        autoFocus
         margin="dense"
         name="business"
         label="Razon Social"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.business}
       />
       <AsyncSelectField
-        autoFocus
         fullWidth
         handleSource={(source) => (
           Object.values(source).map(({
@@ -431,7 +419,7 @@ const EditModal = ({
         label="Pais"
         margin="dense"
         name="country"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         onType={(event) => {
           if (fields.country) {
             setFields((old_state) => ({ ...old_state, country: "" }));
@@ -449,7 +437,6 @@ const EditModal = ({
         value={fields.country}
       />
       <AsyncSelectField
-        autoFocus
         disabled={!fields.country}
         fullWidth
         handleSource={(source) => (
@@ -463,7 +450,7 @@ const EditModal = ({
         label="Departamento"
         margin="dense"
         name="state"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         onType={(event) => {
           if (fields.state) {
             setFields((old_state) => ({ ...old_state, state: "" }));
@@ -481,7 +468,6 @@ const EditModal = ({
         value={fields.country && fields.state}
       />
       <AsyncSelectField
-        autoFocus
         disabled={!(fields.country && fields.state)}
         fullWidth
         handleSource={(source) => (
@@ -495,7 +481,7 @@ const EditModal = ({
         label="Ciudad"
         margin="dense"
         name="city"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         onType={(event) => {
           if (fields.city) {
             setFields((old_state) => ({ ...old_state, city: "" }));
@@ -513,12 +499,11 @@ const EditModal = ({
         value={fields.country && fields.state && fields.city}
       />
       <TextField
-        autoFocus
         margin="dense"
         name="address"
         label="Direccion"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.address}
       />
@@ -581,13 +566,16 @@ const DeleteModal = ({
 };
 
 export default () => {
+  const [parameters, setParameters] = useState({
+    sectors: [],
+  });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
   const [selected_contact, setSelectedContact] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
-  const [sectors, setSectors] = useState([]);
+  const [selected_sector, setSelectedSector] = useState("");
 
   const handleEditModalOpen = async (id) => {
     const data = await getClient(id);
@@ -605,42 +593,62 @@ export default () => {
   };
 
   useEffect(() => {
-    getSectors().then((res) => setSectors(res));
-  }, [false]);
+    getSectors().then(sectors => setParameters(prev_state => ({...prev_state, sectors})));
+  }, []);
+
+  useEffect(() => {
+    updateTable();
+  }, [selected_sector]);
 
   return (
     <Fragment>
       <Title title={"Clientes"} />
-      <AddModal
-        is_open={is_add_modal_open}
-        sectors={sectors}
-        setModalOpen={setAddModalOpen}
-        updateTable={updateTable}
-      />
-      <EditModal
-        data={selected_contact}
-        is_open={is_edit_modal_open}
-        sectors={sectors}
-        setModalOpen={setEditModalOpen}
-        updateTable={updateTable}
-      />
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          is_open={is_add_modal_open}
+          setModalOpen={setAddModalOpen}
+          updateTable={updateTable}
+        />
+        <EditModal
+          data={selected_contact}
+          is_open={is_edit_modal_open}
+          setModalOpen={setEditModalOpen}
+          updateTable={updateTable}
+        />
+      </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
         setModalOpen={setDeleteModalOpen}
         selected={selected}
         updateTable={updateTable}
       />
+      <Grid container spacing={10}>
+        <Grid item xs={6}>
+          <SelectField
+            fullWidth
+            label="Sector"
+            onChange={event => setSelectedSector(event.target.value)}
+            value={selected_sector}
+          >
+            {parameters.sectors.map(({ pk_sector, nombre }) => (
+              <option key={pk_sector} value={pk_sector}>{nombre}</option>
+            ))}
+          </SelectField>
+        </Grid>
+      </Grid>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Widget title="Lista" upperTitle noBodyPadding>
+          <Widget noBodyPadding>
             <AsyncTable
-              data_index={"pk_cliente"}
               data_source={"/clientes/cliente/table"}
               headers={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
               tableShouldUpdate={tableShouldUpdate}
+              search={{
+                code_sector: selected_sector,
+              }}
               setTableShouldUpdate={setTableShouldUpdate}
               title={"Listado de Clientes"}
             />

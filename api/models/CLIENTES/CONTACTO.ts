@@ -4,6 +4,8 @@ import {
   TableOrder
 } from "../../common/table.ts";
 
+const TABLE = "CLIENTES.CONTACTO";
+
 const ERROR_CONSTRAINT = "El cliente especificado para el contacto no existe";
 
 class Contacto {
@@ -39,7 +41,15 @@ class Contacto {
       correo,
     });
     await postgres.query(
-      `UPDATE CLIENTES.CONTACTO SET NOMBRE = $2, AREA = $3, CARGO = $4, FK_CLIENTE = $5, TELEFONO = $6, TELEFONO_2 = $7, CORREO = $8 WHERE PK_CONTACTO = $1`,
+      `UPDATE ${TABLE} SET
+        NOMBRE = $2,
+        AREA = $3,
+        CARGO = $4,
+        FK_CLIENTE = $5,
+        TELEFONO = $6,
+        TELEFONO_2 = $7,
+        CORREO = $8
+      WHERE PK_CONTACTO = $1`,
       this.pk_contacto,
       this.nombre,
       this.area,
@@ -61,7 +71,7 @@ class Contacto {
 
   async delete(): Promise<void> {
     await postgres.query(
-      "DELETE FROM CLIENTES.CONTACTO WHERE PK_CONTACTO = $1",
+      `DELETE FROM ${TABLE} WHERE PK_CONTACTO = $1`,
       this.pk_contacto,
     );
   }
@@ -69,7 +79,16 @@ class Contacto {
 
 export const findAll = async (): Promise<Contacto[]> => {
   const { rows } = await postgres.query(
-    "SELECT PK_CONTACTO, NOMBRE, AREA, CARGO, FK_CLIENTE, TELEFONO, TELEFONO_2, CORREO FROM CLIENTES.CONTACTO",
+    `SELECT
+      PK_CONTACTO,
+      NOMBRE,
+      AREA,
+      CARGO,
+      FK_CLIENTE,
+      TELEFONO,
+      TELEFONO_2,
+      CORREO
+    FROM ${TABLE}`,
   );
   const models = rows.map((row: [
     number,
@@ -87,7 +106,17 @@ export const findAll = async (): Promise<Contacto[]> => {
 
 export const findById = async (id: number): Promise<Contacto | null> => {
   const { rows } = await postgres.query(
-    "SELECT PK_CONTACTO, NOMBRE, AREA, CARGO, FK_CLIENTE, TELEFONO, TELEFONO_2, CORREO FROM CLIENTES.CONTACTO WHERE PK_CONTACTO = $1",
+    `SELECT
+      PK_CONTACTO,
+      NOMBRE,
+      AREA,
+      CARGO,
+      FK_CLIENTE,
+      TELEFONO,
+      TELEFONO_2,
+      CORREO
+    FROM ${TABLE}
+    WHERE PK_CONTACTO = $1`,
     id,
   );
   if (!rows[0]) return null;
@@ -114,7 +143,23 @@ export const createNew = async (
   correo: string,
 ): Promise<void> => {
   await postgres.query(
-    "INSERT INTO CLIENTES.CONTACTO (NOMBRE, AREA, CARGO, FK_CLIENTE, TELEFONO, TELEFONO_2, CORREO) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+    `INSERT INTO ${TABLE} (
+      NOMBRE,
+      AREA,
+      CARGO,
+      FK_CLIENTE,
+      TELEFONO,
+      TELEFONO_2,
+      CORREO
+    ) VALUES (
+      $1,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6,
+      $7
+    )`,
     nombre,
     area,
     cargo,
@@ -134,7 +179,7 @@ export const createNew = async (
 class TableData {
   constructor(
     public id: number,
-    public client: string,
+    public id_client: number,
     public name: string,
     public phone: string,
     public email: string,
@@ -145,18 +190,28 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: string,
+  search: {[key: string]: string},
 ): Promise<any> => {
-  //TODO
-  //Replace search string with search object passed from the frontend table definition
 
   //TODO
   //Normalize query generator
 
-  const query =
-    "SELECT * FROM (SELECT PK_CONTACTO AS ID, (SELECT NOMBRE FROM CLIENTES.CLIENTE WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT, NOMBRE AS NAME, TELEFONO AS PHONE, CORREO AS EMAIL FROM CLIENTES.CONTACTO) AS TOTAL" +
-      " " +
-      `WHERE UNACCENT(CLIENT) ILIKE '%${search}%' OR UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(EMAIL) ILIKE '%${search}%'` +
+  const query = `SELECT * FROM (
+      SELECT
+        PK_CONTACTO AS ID,
+        FK_CLIENTE AS ID_CLIENT,
+        NOMBRE AS NAME,
+        TELEFONO AS PHONE,
+        CORREO AS EMAIL
+      FROM ${TABLE}
+    ) AS TOTAL` +
+    " " +
+    (Object.keys(search).length
+      ? `WHERE ${Object.entries(search)
+        .map(([column, value]) => (
+          `CAST(${column} AS VARCHAR) ILIKE '${value || '%'}'`
+        )).join(' AND ')}`
+      : '') +
       " " +
       (Object.values(order).length
         ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
@@ -170,7 +225,7 @@ export const getTableData = async (
 
   const models = result.map((x: [
     number,
-    string,
+    number,
     string,
     string,
     string,

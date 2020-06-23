@@ -4,6 +4,10 @@ import {
   TableOrder,
 } from "../../common/table.ts";
 
+//TODO
+//Replace table string
+export const TABLE = "ORGANIZACION.AREA";
+
 const ERROR_CONSTRAINT_DEFAULT =
   "Uno de los datos seleccionables ingresados para el area no existe";
 const getConstraintError = (key: string) =>

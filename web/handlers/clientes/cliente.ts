@@ -20,10 +20,13 @@ export const getClientsTable = async ({ request, response }: RouterContext) => {
     order = {},
     page,
     rows,
-    search,
+    search = {},
   } = await request.body().then((x: Body) => x.value);
 
-  if (!(order instanceof Object)) throw new RequestSyntaxError();
+  if (!(
+      order instanceof Object &&
+      search instanceof Object
+  )) throw new RequestSyntaxError();
 
   const order_parameters = Object.entries(order).reduce(
     (res: TableOrder, [index, value]: [string, any]) => {
@@ -35,15 +38,11 @@ export const getClientsTable = async ({ request, response }: RouterContext) => {
     {} as TableOrder,
   );
 
-  const search_query = ["string", "number"].includes(typeof search)
-    ? String(search)
-    : "";
-
   const data = await getTableData(
     order_parameters,
     page || 0,
     rows || null,
-    search_query,
+    search,
   );
 
   response.body = data;
