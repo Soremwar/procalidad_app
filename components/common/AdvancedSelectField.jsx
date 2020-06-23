@@ -69,7 +69,7 @@ export default ({
           />
         )}
         renderOption={option => option[1]}
-        value={value}
+        value={value === "" ? null : value}
       />
     </FormControl>
   );
