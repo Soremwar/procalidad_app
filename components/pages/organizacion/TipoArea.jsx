@@ -23,7 +23,6 @@ import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
-import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
@@ -51,12 +50,13 @@ const deleteProjectType = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true, },
   {
     id: "supervisor",
     numeric: false,
     disablePadding: false,
     label: "Supervisor",
+    searchable: true,
   },
 ];
 
@@ -286,7 +286,7 @@ export default () => {
   const [selected_project_type, setSelectedProjectType] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     const data = await getProjectType(id);
@@ -308,6 +308,7 @@ export default () => {
       const entries = people.map(({pk_persona, nombre}) => [pk_persona, nombre]);
       setParameters(prev_state => ({...prev_state, people: entries}));
     });
+    updateTable();
   }, [false]);
 
   return (
@@ -336,14 +337,12 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_source={"organizacion/tipo_area/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Tipos de Area"}
+              update_table={tableShouldUpdate}
+              url={"organizacion/tipo_area/table"}
             />
           </Widget>
         </Grid>

@@ -135,18 +135,18 @@ const deleteResource = async (id) => {
 };
 
 const detail_headers = [
-  { id: "project", numeric: false, disablePadding: false, label: "Proyecto" },
-  { id: "start_date", numeric: false, disablePadding: false, label: "Fecha Inicio" },
-  { id: "end_date", numeric: false, disablePadding: false, label: "Fecha Fin" },
-  { id: "assignation", numeric: false, disablePadding: false, label: "Porcentaje" },
-  { id: "hours", numeric: false, disablePadding: false, label: "Horas" },
+  { id: "project", numeric: false, disablePadding: false, label: "Proyecto", searchable: true },
+  { id: "start_date", numeric: false, disablePadding: false, label: "Fecha Inicio", searchable: true },
+  { id: "end_date", numeric: false, disablePadding: false, label: "Fecha Fin", searchable: true },
+  { id: "assignation", numeric: false, disablePadding: false, label: "Porcentaje", searchable: true },
+  { id: "hours", numeric: false, disablePadding: false, label: "Horas", searchable: true },
 ];
 
 const resource_headers = [
-  { id: "person", numeric: false, disablePadding: false, label: "Recurso" },
-  { id: "start_date", numeric: false, disablePadding: false, label: "Fecha Inicio" },
-  { id: "end_date", numeric: false, disablePadding: false, label: "Fecha Fin" },
-  { id: "hours", numeric: false, disablePadding: false, label: "Horas" },
+  { id: "person", numeric: false, disablePadding: false, label: "Recurso", searchable: true },
+  { id: "start_date", numeric: false, disablePadding: false, label: "Fecha Inicio", searchable: true },
+  { id: "end_date", numeric: false, disablePadding: false, label: "Fecha Fin", searchable: true },
+  { id: "hours", numeric: false, disablePadding: false, label: "Horas", searchable: true },
 ];
 
 const ParameterContext = createContext({
@@ -736,6 +736,10 @@ const MAX_DATE_HEATMAP = (() => {
   return parseDateToStandardNumber(date);
 })();
 
+
+//TODO
+//This thing is a RAM eater
+//We really need to fix the fetch leaks we have
 export default () => {
   const classes = useStyles();
 
@@ -891,35 +895,31 @@ export default () => {
               selectedPerson
                 ? (
                   <AsyncTable
-                    data_source={"planeacion/recurso/table"}
-                    headers={detail_headers}
+                    columns={detail_headers}
                     onAddClick={() => setAddModalOpen(true)}
                     onEditClick={(id) => handleEditModalOpen(id)}
                     onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-                    tableShouldUpdate={dataShouldUpdate}
                     search={{
                       id_person: selectedPerson,
                     }}
-                    setTableShouldUpdate={setDataShouldUpdate}
-                    sourceParams={{
+                    request_parameters={{
                       type: 'detail'
                     }}
-                    title={"Asignacion de Personas"}
+                    update_table={dataShouldUpdate}
+                    url={"planeacion/recurso/table"}
                   />
                 )
                 : (
                   <AsyncTable
-                    data_source={"planeacion/recurso/table"}
-                    headers={resource_headers}
+                    columns={resource_headers}
                     onAddClick={() => setAddModalOpen(true)}
                     onEditClick={(id) => handleEditModalOpen(id)}
                     onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-                    tableShouldUpdate={dataShouldUpdate}
-                    setTableShouldUpdate={setDataShouldUpdate}
-                    sourceParams={{
+                    request_parameters={{
                       type: 'resource'
                     }}
-                    title={"Asignacion de Personas"}
+                    update_table={dataShouldUpdate}
+                    url={"planeacion/recurso/table"}
                   />
                 )
             }

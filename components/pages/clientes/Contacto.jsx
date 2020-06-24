@@ -48,9 +48,9 @@ const deleteContact = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
-  { id: "phone", numeric: false, disablePadding: false, label: "Telefono" },
-  { id: "email", numeric: false, disablePadding: false, label: "Correo" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
+  { id: "phone", numeric: false, disablePadding: false, label: "Telefono", searchable: true },
+  { id: "email", numeric: false, disablePadding: false, label: "Correo", searchable: true},
 ];
 
 const AddModal = ({
@@ -340,9 +340,8 @@ export default () => {
   const [selected_contact, setSelectedContact] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
   const [clients, setClients] = useState([]);
-  const [selected_client, setSelectedClient] = useState("");
 
   const handleEditModalOpen = async (id) => {
     const data = await getContact(id);
@@ -361,11 +360,8 @@ export default () => {
 
   useEffect(() => {
     getClients().then((x) => setClients(x));
-  }, []);
-
-  useEffect(() => {
     updateTable();
-  }, [selected_client]);
+  }, []);
 
   return (
     <Fragment>
@@ -389,35 +385,16 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={10}>
-        <Grid item xs={6}>
-          <SelectField
-            fullWidth
-            label="Cliente"
-            onChange={event => setSelectedClient(event.target.value)}
-            value={selected_client}
-          >
-            {clients.map(({ pk_cliente, nombre }) => (
-              <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
-            ))}
-          </SelectField>
-        </Grid>
-      </Grid>
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget title="Lista" upperTitle noBodyPadding>
             <AsyncTable
-              data_source={"clientes/contacto/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              search={{
-                id_client: selected_client,
-              }}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Contactos"}
+              update_table={tableShouldUpdate}
+              url={"clientes/contacto/table"}
             />
           </Widget>
         </Grid>

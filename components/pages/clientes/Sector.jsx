@@ -11,18 +11,15 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchSectorApi,
+} from "../../../lib/api/generator.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
-
-//TODO
-//Add primary key as constant
-
-const fetchSectorApi = requestGenerator('clientes/sector');
 
 const getSector = (id) => fetchSectorApi(id).then((x) => x.json());
 
@@ -47,7 +44,7 @@ const deleteSector = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
 ];
 
 const AddModal = ({
@@ -224,7 +221,7 @@ export default () => {
   const [selected_sector, setSelectedContact] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     const data = await getSector(id);
@@ -240,6 +237,10 @@ export default () => {
   const updateTable = () => {
     setTableShouldUpdate(true);
   };
+
+  useEffect(() => {
+    updateTable();
+  }, []);
 
   return (
     <Fragment>
@@ -265,15 +266,12 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"pk_sector"}
-              data_source={"clientes/sector/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Sectores"}
+              update_table={tableShouldUpdate}
+              url={"clientes/sector/table"}
             />
           </Widget>
         </Grid>

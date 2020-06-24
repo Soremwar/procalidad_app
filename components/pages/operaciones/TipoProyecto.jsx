@@ -11,19 +11,16 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchProjectTypeApi,
+} from "../../../lib/api/generator.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
-
-//TODO
-//Add primary key as constant
-
-const fetchProjectTypeApi = requestGenerator('operaciones/tipo_proyecto');
 
 const getProjectType = (id) => fetchProjectTypeApi(id).then((x) => x.json());
 
@@ -48,8 +45,8 @@ const deleteProjectType = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
-  { id: "billable", numeric: false, disablePadding: false, label: "Facturable" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
+  { id: "billable", numeric: false, disablePadding: false, label: "Facturable", searchable: true },
 ];
 
 const AddModal = ({
@@ -250,7 +247,7 @@ export default () => {
   const [selected_project_type, setSelectedProjectType] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     const data = await getProjectType(id);
@@ -266,6 +263,10 @@ export default () => {
   const updateTable = () => {
     setTableShouldUpdate(true);
   };
+
+  useEffect(() => {
+    updateTable();
+  }, []);
 
   return (
     <Fragment>
@@ -291,15 +292,12 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"pk_tipo"}
-              data_source={"operaciones/tipo_proyecto/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Tipos de Proyecto"}
+              update_table={tableShouldUpdate}
+              url={"operaciones/tipo_proyecto/table"}
             />
           </Widget>
         </Grid>

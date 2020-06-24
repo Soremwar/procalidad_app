@@ -168,7 +168,7 @@ class TableData {
   constructor(
     public id: number,
     public type: string,
-    public id_client: number,
+    public client: string,
     public area: string,
     public name: string,
   ) {}
@@ -187,7 +187,7 @@ export const getTableData = async (
       SELECT
         PK_PROYECTO AS ID,
         (SELECT NOMBRE FROM ${PROJECT_TYPE_TABLE} WHERE PK_PROYECTO = FK_TIPO_PROYECTO) AS TYPE,
-        FK_CLIENTE AS ID_CLIENT,
+        (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT,
         (SELECT NOMBRE FROM ${AREA_TABLE} WHERE PK_AREA = FK_AREA) AS AREA,
         NOMBRE AS NAME
       FROM ${TABLE}
@@ -213,7 +213,7 @@ export const getTableData = async (
   const models = result.map((x: [
     number,
     string,
-    number,
+    string,
     string,
     string,
   ]) => new TableData(...x));

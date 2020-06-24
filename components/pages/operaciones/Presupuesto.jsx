@@ -70,15 +70,16 @@ const deleteBudget = async (id) => {
 };
 
 const headers = [
-  { id: "project", numeric: false, disablePadding: false, label: "Proyecto" },
+  { id: "project", numeric: false, disablePadding: false, label: "Proyecto", searchable: true, },
   {
     id: "budget_type",
     numeric: false,
     disablePadding: false,
     label: "Tipo de Proyecto",
+    searchable: true,
   },
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
-  { id: "status", numeric: false, disablePadding: false, label: "Estado" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true, },
+  { id: "status", numeric: false, disablePadding: false, label: "Estado", searchable: true, },
 ];
 
 const BudgetRole = ({
@@ -730,7 +731,7 @@ export default () => {
   const [selected_budget, setSelectedBudget] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
   const [clients, setClients] = useState([]);
   const [budget_types, setBudgetTypes] = useState([]);
 
@@ -752,6 +753,7 @@ export default () => {
   useEffect(() => {
     getClients().then((clients) => setClients(clients));
     getBudgetTypes().then((budget_types) => setBudgetTypes(budget_types));
+    updateTable();
   }, []);
 
   return (
@@ -781,20 +783,13 @@ export default () => {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
-            {/*
-              TODO
-              Remove hardcoded url
-            */}
             <AsyncTable
-              data_index={"pk_presupuesto"}
-              data_source={"operaciones/presupuesto/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Presupuestos"}
+              update_table={tableShouldUpdate}
+              url={"operaciones/presupuesto/table"}
             />
           </Widget>
         </Grid>

@@ -39,9 +39,9 @@ const deleteLicense = async (id) => fetchLicenseApi(id, {
 });
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
-  { id: "description", numeric: false, disablePadding: false, label: "Descripcion" },
-  { id: "cost", numeric: false, disablePadding: false, label: "Costo" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
+  { id: "description", numeric: false, disablePadding: false, label: "Descripcion", searchable: true },
+  { id: "cost", numeric: false, disablePadding: false, label: "Costo", searchable: true },
 ];
 
 const AddModal = ({
@@ -281,7 +281,7 @@ export default () => {
   const [selected_project_type, setSelectedArea] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     const data = await getLicense(id);
@@ -297,6 +297,10 @@ export default () => {
   const updateTable = () => {
     setTableShouldUpdate(true);
   };
+
+  useEffect(() => {
+    updateTable();
+  }, []);
 
   return (
     <Fragment>
@@ -322,14 +326,12 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_source={"organizacion/licencia/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Licencias"}
+              update_table={tableShouldUpdate}
+              url={"organizacion/licencia/table"}
             />
           </Widget>
         </Grid>

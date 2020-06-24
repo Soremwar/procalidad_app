@@ -55,14 +55,22 @@ const deleteClient = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
+  {
+    id: "sector",
+    numeric: false,
+    disablePadding: false,
+    label: "Sector",
+    searchable: true
+  },
   {
     id: "business",
     numeric: false,
     disablePadding: false,
     label: "Razon Social",
+    searchable: true
   },
-  { id: "nit", numeric: false, disablePadding: false, label: "NIT" },
+  { id: "nit", numeric: false, disablePadding: false, label: "NIT", searchable: true },
 ];
 
 const ParameterContext = createContext({
@@ -574,8 +582,7 @@ export default () => {
   const [selected_contact, setSelectedContact] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
-  const [selected_sector, setSelectedSector] = useState("");
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     const data = await getClient(id);
@@ -594,11 +601,8 @@ export default () => {
 
   useEffect(() => {
     getSectors().then(sectors => setParameters(prev_state => ({...prev_state, sectors})));
-  }, []);
-
-  useEffect(() => {
     updateTable();
-  }, [selected_sector]);
+  }, []);
 
   return (
     <Fragment>
@@ -622,35 +626,16 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={10}>
-        <Grid item xs={6}>
-          <SelectField
-            fullWidth
-            label="Sector"
-            onChange={event => setSelectedSector(event.target.value)}
-            value={selected_sector}
-          >
-            {parameters.sectors.map(({ pk_sector, nombre }) => (
-              <option key={pk_sector} value={pk_sector}>{nombre}</option>
-            ))}
-          </SelectField>
-        </Grid>
-      </Grid>
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_source={"/clientes/cliente/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              search={{
-                code_sector: selected_sector,
-              }}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Clientes"}
+              update_table={tableShouldUpdate}
+              url={"clientes/cliente/table"}
             />
           </Widget>
         </Grid>

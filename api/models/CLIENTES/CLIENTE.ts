@@ -9,6 +9,9 @@ import {
 import {
   TABLE as CITY_TABLE,
 } from "../MAESTRO/CIUDAD.ts";
+import {
+  TABLE as SECTOR_TABLE,
+} from "./SECTOR.ts";
 
 export const TABLE = "CLIENTES.CLIENTE";
 
@@ -217,7 +220,7 @@ export const createNew = async (
 class TableData {
   constructor(
     public id: number,
-    public code_sector: number,
+    public sector: string,
     public name: string,
     public nit: string,
     public business: string,
@@ -237,7 +240,7 @@ export const getTableData = async (
   const query = `SELECT * FROM (
       SELECT
         PK_CLIENTE AS ID,
-        FK_SECTOR AS CODE_SECTOR,
+        (SELECT NOMBRE FROM ${SECTOR_TABLE} WHERE PK_SECTOR = FK_SECTOR) AS SECTOR,
         NOMBRE AS NAME,
         NIT||'-'||D_VERIFICACION AS NIT,
         RAZON_SOCIAL AS BUSINESS
@@ -264,7 +267,7 @@ export const getTableData = async (
 
   const models = result.map((x: [
     number,
-    number,
+    string,
     string,
     string,
     string,

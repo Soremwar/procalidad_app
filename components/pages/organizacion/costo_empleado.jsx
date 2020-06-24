@@ -72,9 +72,9 @@ const deleteSalary = async (id) => fetchPersonCostApi(id, {
 });
 
 const headers = [
-  { id: "person", numeric: false, disablePadding: false, label: "Persona" },
-  { id: "salary_type", numeric: false, disablePadding: false, label: "Tipo de Salario" },
-  { id: "computer", numeric: false, disablePadding: false, label: "Computador" },
+  { id: "person", numeric: false, disablePadding: false, label: "Persona", searchable: true },
+  { id: "salary_type", numeric: false, disablePadding: false, label: "Tipo de Salario", searchable: true },
+  { id: "computer", numeric: false, disablePadding: false, label: "Computador", searchable: true },
 ];
 
 const ParameterContext = createContext({
@@ -175,7 +175,6 @@ const AddModal = ({
       <AdvancedSelectField
         fullWidth
         label="Persona"
-        margin="dense"
         name="person"
         options={people}
         onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
@@ -184,7 +183,6 @@ const AddModal = ({
       <SelectField
         fullWidth
         label="Computador"
-        margin="dense"
         name="computer"
         onChange={handleChange}
         required
@@ -238,7 +236,6 @@ const AddModal = ({
       <SelectField
         fullWidth
         label="Tipo de Salario"
-        margin="dense"
         name="salary_type"
         onChange={handleChange}
         required
@@ -373,7 +370,6 @@ const EditModal = ({
         disabled
         fullWidth
         label="Persona"
-        margin="dense"
         name="person"
         options={people}
         onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
@@ -382,7 +378,6 @@ const EditModal = ({
       <SelectField
         fullWidth
         label="Computador"
-        margin="dense"
         name="computer"
         onChange={handleChange}
         required
@@ -436,7 +431,6 @@ const EditModal = ({
       <SelectField
         fullWidth
         label="Tipo de Salario"
-        margin="dense"
         name="salary_type"
         onChange={handleChange}
         required
@@ -533,7 +527,7 @@ export default () => {
   const [selected_person_cost, setSelectedPersonCost] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
   const [parameters, setParameters] = useState({
     computers: [],
     licenses: [],
@@ -552,6 +546,7 @@ export default () => {
       ...prev_state,
       people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
     })));
+    updateTable();
   }, []);
 
   const handleEditModalOpen = async (id) => {
@@ -595,14 +590,12 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_source={"organizacion/salario/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de costes personales"}
+              update_table={tableShouldUpdate}
+              url={"organizacion/salario/table"}
             />
           </Widget>
         </Grid>

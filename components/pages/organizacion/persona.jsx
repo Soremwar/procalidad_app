@@ -11,19 +11,16 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchPeopleApi,
+} from "../../../lib/api/generator.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
-
-//TODO
-//Add primary key as constant
-
-const fetchPeopleApi = requestGenerator('organizacion/persona');
 
 const getPerson = (id) => fetchPeopleApi(id).then((x) => x.json());
 
@@ -48,10 +45,10 @@ const deletePerson = async (id) => {
 };
 
 const headers = [
-  { id: "identification", numeric: false, disablePadding: false, label: "Identificacion", },
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", },
-  { id: "phone", numeric: false, disablePadding: false, label: "Telefono", },
-  { id: "email", numeric: false, disablePadding: false, label: "Correo", },
+  { id: "identification", numeric: false, disablePadding: false, label: "Identificacion", searchable: true},
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true},
+  { id: "phone", numeric: false, disablePadding: false, label: "Telefono", searchable: true},
+  { id: "email", numeric: false, disablePadding: false, label: "Correo", searchable: true},
 ];
 
 const AddModal = ({
@@ -310,7 +307,7 @@ export default () => {
   const [selected_project_type, setSelectedArea] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     const data = await getPerson(id);
@@ -326,6 +323,10 @@ export default () => {
   const updateTable = () => {
     setTableShouldUpdate(true);
   };
+
+  useEffect(() => {
+    updateTable();
+  }, []);
 
   return (
     <Fragment>
@@ -351,15 +352,12 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"NA"}
-              data_source={"organizacion/persona/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Personas"}
+              update_table={tableShouldUpdate}
+              url={"organizacion/persona/table"}
             />
           </Widget>
         </Grid>

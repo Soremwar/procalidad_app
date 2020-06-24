@@ -98,12 +98,12 @@ const deleteResource = async (id) => {
 };
 
 const headers = [
-  { id: "person", numeric: false, disablePadding: false, label: "Recurso" },
-  { id: "role", numeric: false, disablePadding: false, label: "Rol" },
-  { id: "start_date", numeric: false, disablePadding: false, label: "Fecha Inicio" },
-  { id: "end_date", numeric: false, disablePadding: false, label: "Fecha Fin" },
-  { id: "hours", numeric: false, disablePadding: false, label: "Horas" },
-  { id: "assignation", numeric: false, disablePadding: false, label: "Porcentaje" },
+  { id: "person", numeric: false, disablePadding: false, label: "Recurso", searchable: true },
+  { id: "role", numeric: false, disablePadding: false, label: "Rol", searchable: true },
+  { id: "start_date", numeric: false, disablePadding: false, label: "Fecha Inicio", searchable: true },
+  { id: "end_date", numeric: false, disablePadding: false, label: "Fecha Fin", searchable: true },
+  { id: "hours", numeric: false, disablePadding: false, label: "Horas", searchable: true },
+  { id: "assignation", numeric: false, disablePadding: false, label: "Porcentaje", searchable: true },
 ];
 
 const ParameterContext = createContext({
@@ -749,17 +749,15 @@ export default () => {
         <TabPanel value={value} index={0}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_source={"planeacion/recurso/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
               search={{
                 id_project: selectedProyect,
               }}
-              setTableShouldUpdate={setDataShouldUpdate}
-              tableShouldUpdate={dataShouldUpdate}
-              title={"Recursos del Proyecto"}
+              update_table={dataShouldUpdate}
+              url={"planeacion/recurso/table"}
             />
           </Widget>
         </TabPanel>

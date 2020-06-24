@@ -99,12 +99,13 @@ const deleteDefinition = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
   {
     id: "description",
     numeric: false,
     disablePadding: false,
     label: "Descripcion",
+    searchable: true,
   },
   {
     id: "type",
@@ -623,7 +624,7 @@ export default () => {
   const [selected_parameter, setSelectedParameter] = useState(0);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     setSelectedParameter(id);
@@ -638,6 +639,10 @@ export default () => {
   const updateTable = () => {
     setTableShouldUpdate(true);
   };
+
+  useEffect(() => {
+    updateTable();
+  }, []);
 
   return (
     <Fragment>
@@ -663,15 +668,12 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"pk_parametro"}
-              data_source={"maestro/parametro/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Parametros"}
+              update_table={tableShouldUpdate}
+              url={"maestro/parametro/table"}
             />
           </Widget>
         </Grid>

@@ -12,7 +12,6 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
 import {
   fetchPeopleApi,
@@ -58,9 +57,9 @@ const deleteAssignation = async (id) => fetchAssignationApi(id, {
 });
 
 const headers = [
-  { id: "person", numeric: false, disablePadding: false, label: "Persona" },
-  { id: "sub_area", numeric: false, disablePadding: false, label: "Subarea" },
-  { id: "position", numeric: false, disablePadding: false, label: "Cargo" },
+  { id: "person", numeric: false, disablePadding: false, label: "Persona", searchable: true },
+  { id: "sub_area", numeric: false, disablePadding: false, label: "Subarea", searchable: true },
+  { id: "position", numeric: false, disablePadding: false, label: "Cargo", searchable: true },
 ];
 
 const ParameterContext = createContext({
@@ -361,7 +360,7 @@ export default () => {
   const [selected_project_type, setSelectedArea] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     const data = await getAssignation(id);
@@ -389,6 +388,7 @@ export default () => {
       ...parameters,
       roles: roles.map(({ pk_rol, nombre }) => [pk_rol, nombre]),
     })));
+    updateTable();
   }, []);
 
   return (
@@ -417,14 +417,12 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_source={"organizacion/asignacion_cargo/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Asignaciones"}
+              update_table={tableShouldUpdate}
+              url={"organizacion/asignacion_cargo/table"}
             />
           </Widget>
         </Grid>

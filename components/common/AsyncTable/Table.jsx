@@ -10,14 +10,15 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TablePagination,
   TableRow
 } from "@material-ui/core";
 
 import { requestGenerator } from "../../../lib/api/request.js";
+import { objectsAreEqual } from "../../../lib/utils/object.js";
 
 import TableHeaders from "./components/Header.jsx";
 import TableMenu from "./components/Menu.jsx";
+import TableFooter from "./components/Footer.jsx";
 
 const fetchApi = requestGenerator();
 
@@ -54,49 +55,55 @@ const getTableData = async (
   rows,
   search,
   params,
-  error_callback = () => { },
 ) => {
 
   //Avoid overlapping of parameters
   const url_params = Object.fromEntries(Object.entries(params).filter(([index]) => !([order, page, rows, search].includes(index))));
 
-  return await fetchApi(source, {
+  return fetchApi(source, {
     method: "POST",
     body: JSON.stringify({ order, page, rows, search, ...url_params }),
     headers: {
       "Content-Type": "application/json",
     },
   })
-    .then((x) => x.json())
-    .catch(() => error_callback([]));
+    .then(request => {
+      if(request.ok){
+        return request.json();
+      }else{
+        throw new Error("Fetching error");
+      }
+    });
 };
 
-//TODO
-//Change data source for promise, not string
 export default function AsyncTable({
-  data_source,
-  headers,
+  columns,
   onAddClick,
   onEditClick,
   onDeleteClick,
-  tableShouldUpdate,
-  search = {},
-  setTableShouldUpdate,
-  sourceParams = {},
-  title,
+  search: custom_search = {},
+  request_parameters = {},
+  update_table,
+  url: data_source,
 }) {
   const classes = useStyles();
+
+  const [search_bar, setSearchBar] = useState({});
   const [orderBy, setOrderBy] = useState({});
-  const [selected, setSelected] = useState(new Set());
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [rows, setRows] = useState([]);
+  const [search, setSearch] = useState({});
+  const [selected, setSelected] = useState(new Set());
+  const [source_url, setSourceURL] = useState("");
+  const [source_params, setSourceParams] = useState({});
+  const [should_fetch_data, setShouldFetchData] = useState(false);
 
   const updateSortingDirection = (column) => {
     switch (orderBy?.[column]) {
       case "asc":
         setOrderBy((prev_state) => ({ ...prev_state, [column]: "desc" }));
-        setTableShouldUpdate(true);
+        setShouldFetchData(true);
         break;
       case "desc":
         setOrderBy((prev_state) => {
@@ -106,7 +113,31 @@ export default function AsyncTable({
         break;
       default:
         setOrderBy((prev_state) => ({ ...prev_state, [column]: "asc" }));
-        setTableShouldUpdate(true);
+        setShouldFetchData(true);
+    }
+  };
+
+  //Validation to avoid double fetching on empty filters
+  const updateSearchFilters = () => {
+    const filters = Object.fromEntries(Object.entries({...custom_search, ...search_bar}).filter(([key, value]) => String(key) && String(value)));
+    if(!objectsAreEqual(filters, search)){
+      setSearch(filters);
+      setShouldFetchData(true);
+    }
+  };
+
+  const updateURLSource = (new_source) => {
+    if(new_source !== source_url){
+      setSourceURL(new_source);
+      setShouldFetchData(true);
+    }
+  };
+
+  //Validation to avoid double fetching on empty source
+  const updateSourceParams = (params) => {
+    if(Object.entries(params).length !== 0 && Object.entries(source_params) !== 0){
+      setSourceParams(params);
+      setShouldFetchData(true);
     }
   };
 
@@ -132,32 +163,61 @@ export default function AsyncTable({
 
   const handleChangePage = (_, newPage) => {
     setPage(newPage);
-    setTableShouldUpdate(true);
+    setShouldFetchData(true);
   };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-    setTableShouldUpdate(true);
+    setShouldFetchData(true);
   };
 
   const emptyRows = rowsPerPage -
     Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+
+  //Initialize table
+  useEffect(() => {
+    setSearch(
+      Object.fromEntries(
+        Object.entries({...custom_search}).filter(([key, value]) => String(key) && String(value))
+      )
+    );
+    setSourceURL(data_source);
+    setSourceParams(request_parameters);
+  }, []);
+
+  useEffect(() => {
+    updateSearchFilters();
+  }, [custom_search, search_bar]);
+
+  useEffect(() => {
+    updateURLSource(data_source);
+  }, [data_source]);
+
+  useEffect(() => {
+    updateSourceParams(request_parameters);
+  }, [request_parameters]);
+
+  useEffect(() => {
+    if(update_table){
+      setShouldFetchData(true);
+    }
+  }, [update_table]);
 
   //TODO
   //Add error callback handling
   //Add async load (non overlapping handling)
   //Show visual load of data
   useEffect(() => {
-    setTableShouldUpdate(false);
-    if (tableShouldUpdate) {
+    setShouldFetchData(false);
+    if (should_fetch_data && source_url) {
       getTableData(
-        data_source,
+        source_url,
         orderBy,
         page,
         rowsPerPage,
         search,
-        sourceParams,
+        source_params,
       ).then((data) => {
         let new_selected = new Set();
         data.forEach(({ id }) => {
@@ -165,16 +225,12 @@ export default function AsyncTable({
         });
         setRows(data);
         setSelected(new_selected);
+      }).catch(() => {
+        console.log('failed miseribly');
+        setRows([]);
       });
     }
-  }, [
-    tableShouldUpdate,
-    orderBy,
-    page,
-    rowsPerPage,
-    search,
-    sourceParams,
-  ]);
+  }, [should_fetch_data]);
 
   const isItemSelected = (item) => {
     const index = Number(item);
@@ -185,12 +241,13 @@ export default function AsyncTable({
     <div className={classes.root}>
       <Paper className={classes.paper}>
         <TableMenu
+          columns={columns}
           numSelected={selected.size}
           onAddClick={onAddClick}
           onEditClick={onEditClick}
           onDeleteClick={onDeleteClick}
+          onFilterChange={setSearchBar}
           selected={selected}
-          title={title}
         />
         <TableContainer>
           <Table
@@ -201,17 +258,13 @@ export default function AsyncTable({
           >
             <TableHeaders
               classes={classes}
-              headers={headers}
+              headers={columns}
               numSelected={selected.size}
               onSelectAllClick={selectAllItems}
               orderBy={orderBy}
               rowCount={rows.length}
               updateSortingDirection={updateSortingDirection}
             />
-            {//TODO
-              //Replace limiter for the page size for actual paginator
-              //Replace order in client side by order in server side
-            }
             <TableBody>
               {rows
                 .map((row) => {
@@ -235,7 +288,7 @@ export default function AsyncTable({
                           inputProps={{ "aria-labelledby": labelId }}
                         />
                       </TableCell>
-                      {Object.entries(headers).map(([_, column]) => {
+                      {Object.entries(columns).map(([_, column]) => {
                         return (<TableCell key={column.id}>
                           {row[column.id]}
                         </TableCell>);
@@ -249,20 +302,20 @@ export default function AsyncTable({
                 </TableRow>}
             </TableBody>
           </Table>
-        </TableContainer>
-        {/*
-          TODO
-          Get page total number from server
-        */}
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onChangePage={handleChangePage}
-          onChangeRowsPerPage={handleChangeRowsPerPage}
-        />
+          {/*
+            TODO
+            Get page total number from server
+          */}
+          <TableFooter
+            length_options={[5, 10, 25]}
+            onChangeSelectedPage={handleChangePage}
+            onChangePageLength={handleChangeRowsPerPage}
+            page_length={rowsPerPage}
+            selected_page={page}
+            selected_item_count={selected.size}
+            total_count={rows.length}
+          />
+          </TableContainer>
       </Paper>
     </div>
   );

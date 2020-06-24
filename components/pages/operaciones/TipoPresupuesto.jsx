@@ -47,8 +47,8 @@ const deleteBudgetType = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre" },
-  { id: "description", numeric: false, disablePadding: false, label: "Descripcion" },
+  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
+  { id: "description", numeric: false, disablePadding: false, label: "Descripcion", searchable: true },
 ];
 
 const AddModal = ({
@@ -247,7 +247,7 @@ export default () => {
   const [selected_budget_type, setSelectedBudgetType] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = React.useState(true);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     const data = await getBudgetType(id);
@@ -263,6 +263,10 @@ export default () => {
   const updateTable = () => {
     setTableShouldUpdate(true);
   };
+
+  useEffect(() => {
+    updateTable();
+  }, []);
 
   return (
     <Fragment>
@@ -288,15 +292,12 @@ export default () => {
         <Grid item xs={12}>
           <Widget noBodyPadding>
             <AsyncTable
-              data_index={"pk_tipo"}
-              data_source={"operaciones/tipo_presupuesto/table"}
-              headers={headers}
+              columns={headers}
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              tableShouldUpdate={tableShouldUpdate}
-              setTableShouldUpdate={setTableShouldUpdate}
-              title={"Listado de Tipos de Presupuesto"}
+              update_table={tableShouldUpdate}
+              url={"operaciones/tipo_presupuesto/table"}
             />
           </Widget>
         </Grid>
