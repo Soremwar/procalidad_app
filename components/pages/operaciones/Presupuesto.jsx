@@ -75,7 +75,7 @@ const headers = [
     id: "budget_type",
     numeric: false,
     disablePadding: false,
-    label: "Tipo de Proyecto",
+    label: "Tipo de Presupuesto",
     searchable: true,
   },
   { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true, },

@@ -6,51 +6,18 @@ import {
   getTableData,
   TipoParametro,
 } from "../../../api/models/MAESTRO/parametro.ts";
-import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import {tableRequestHandler} from "../../../api/common/table.ts";
 
 export const getParameters = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getParametersTable = async (
-  { request, response }: RouterContext,
-) => {
-  if (!request.hasBody) throw new RequestSyntaxError();
-
-  const {
-    order = {},
-    page,
-    rows,
-    search,
-  } = await request.body().then((x: Body) => x.value);
-
-  if (!(order instanceof Object)) throw new RequestSyntaxError();
-
-  const order_parameters = Object.entries(order).reduce(
-    (res: TableOrder, [index, value]: [string, any]) => {
-      if (value in Order) {
-        res[index] = value as Order;
-      }
-      return res;
-    },
-    {} as TableOrder,
-  );
-
-  const search_query = ["string", "number"].includes(typeof search)
-    ? String(search)
-    : "";
-
-  const data = await getTableData(
-    order_parameters,
-    page || 0,
-    rows || null,
-    search_query,
-  );
-
-  response.body = data;
-};
+export const getParametersTable = async (context: RouterContext) => tableRequestHandler(
+  context,
+  getTableData,
+);
 
 export const createParameter = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

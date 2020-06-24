@@ -1,7 +1,7 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder,
+  TableOrder, getTableModels, TableResult,
 } from "../../common/table.ts";
 import {
   TABLE as STATE_TABLE,
@@ -232,10 +232,17 @@ export const getTableData = async (
   page: number,
   rows: number | null,
   search: {[key: string]: string},
-): Promise<any> => {
+): Promise<TableResult> => {
 
-  //TODO
-  //Normalize query generator
+  const base_query = (
+    `SELECT
+        PK_CLIENTE AS ID,
+        (SELECT NOMBRE FROM ${SECTOR_TABLE} WHERE PK_SECTOR = FK_SECTOR) AS SECTOR,
+        NOMBRE AS NAME,
+        NIT||'-'||D_VERIFICACION AS NIT,
+        RAZON_SOCIAL AS BUSINESS
+      FROM ${TABLE}`
+  );
 
   const query = `SELECT * FROM (
       SELECT
@@ -263,9 +270,15 @@ export const getTableData = async (
     " " +
     (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
 
-  const { rows: result } = await postgres.query(query);
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     string,
     string,
@@ -273,5 +286,8 @@ export const getTableData = async (
     string,
   ]) => new TableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };

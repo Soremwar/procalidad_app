@@ -15,7 +15,7 @@ import {
 } from "../../../api/models/planeacion/recurso.ts";
 import {addLaboralDays,} from "../../../api/models/MAESTRO/dim_tiempo.ts";
 
-import {Order, TableOrder} from "../../../api/common/table.ts";
+import {Order, TableOrder, parseOrderFromObject} from "../../../api/common/table.ts";
 import {formatResponse, Message, Status} from "../../http_utils.ts";
 import {NotFoundError, RequestSyntaxError} from "../../exceptions.ts";
 import {parseStandardNumber,} from "../../../lib/date/mod.js";
@@ -48,16 +48,7 @@ export const getResourcesTable = async (
     search instanceof Object
   )) throw new RequestSyntaxError();
 
-  const order_parameters = Object.entries(order).reduce(
-    (res: TableOrder, [index, value]: [string, any]) => {
-      if (value in Order) {
-        res[index] = value as Order;
-      }
-      return res;
-    },
-    {} as TableOrder,
-  );
-
+  const order_parameters = parseOrderFromObject(order);
   const table_type = type in ResourceViewType ? type as ResourceViewType : ResourceViewType.project;
 
   if(table_type === ResourceViewType.project){
@@ -72,6 +63,7 @@ export const getResourcesTable = async (
       order_parameters,
       page || 0,
       rows || null,
+      search,
     );
   }else if (table_type === ResourceViewType.detail){
     response.body = await getDetailTableData(

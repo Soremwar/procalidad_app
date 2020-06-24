@@ -1,8 +1,11 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder,
+  TableOrder, getTableModels, TableResult
 } from "../../common/table.ts";
+
+//TODO
+//Add table name constant
 
 const ERROR_DEPENDENCY =
   "No se puede eliminar el area por que hay componentes que dependen de el";
@@ -106,38 +109,32 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: string,
-): Promise<TableData[]> => {
-  //TODO
-  //Replace search string with search object passed from the frontend table definition
-
-  //TODO
-  //Normalize query generator
-
-  const query = `SELECT * FROM (SELECT
+  search: {[key: string]: string},
+): Promise<TableResult> => {
+  const base_query = (
+    `SELECT
       PK_CARGO AS ID,
       NOMBRE AS NAME,
       DESCRIPCION AS DESCRIPTION
-    FROM ORGANIZACION.CARGO) AS TOTAL
-    WHERE
-      UNACCENT(NAME) ILIKE '%${search}%' OR
-      UNACCENT(DESCRIPTION) ILIKE '%${search}%'` +
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+    FROM ORGANIZACION.CARGO`
+  );
 
-  const { rows: result } = await postgres.query(query);
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     string,
     string,
   ]) => new TableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };

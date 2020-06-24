@@ -1,7 +1,9 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
+  getTableModels,
   TableOrder,
+  TableResult,
 } from "../../common/table.ts";
 import {
   TABLE as CLIENT_TABLE,
@@ -179,38 +181,26 @@ export const getTableData = async (
   page: number,
   rows: number | null,
   search: {[key: string]: string},
-): Promise<TableData[]> => {
-  //TODO
-  //Normalize query generator
+): Promise<TableResult> => {
+  const base_query = (
+    `SELECT
+      PK_PROYECTO AS ID,
+      (SELECT NOMBRE FROM ${PROJECT_TYPE_TABLE} WHERE PK_TIPO = FK_TIPO_PROYECTO) AS TYPE,
+      (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT,
+      (SELECT NOMBRE FROM ${AREA_TABLE} WHERE PK_AREA = FK_AREA) AS AREA,
+      NOMBRE AS NAME
+    FROM ${TABLE}`
+  );
 
-  const query = `SELECT * FROM (
-      SELECT
-        PK_PROYECTO AS ID,
-        (SELECT NOMBRE FROM ${PROJECT_TYPE_TABLE} WHERE PK_PROYECTO = FK_TIPO_PROYECTO) AS TYPE,
-        (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT,
-        (SELECT NOMBRE FROM ${AREA_TABLE} WHERE PK_AREA = FK_AREA) AS AREA,
-        NOMBRE AS NAME
-      FROM ${TABLE}
-    ) AS TOTAL` +
-    " " +
-    (Object.keys(search).length
-      ? `WHERE ${Object.entries(search)
-        .map(([column, value]) => (
-          `CAST(${column} AS VARCHAR) ILIKE '${value || '%'}'`
-        )).join(' AND ')}`
-      : '') +
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const { rows: result } = await postgres.query(query);
-
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     string,
     string,
@@ -218,5 +208,8 @@ export const getTableData = async (
     string,
   ]) => new TableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };

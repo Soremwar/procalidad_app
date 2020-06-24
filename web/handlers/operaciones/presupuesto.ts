@@ -10,49 +10,18 @@ import {
   deleteByBudget as deleteBudgetDetail,
   findByBudget as findBudgetDetail,
 } from "../../../api/models/OPERACIONES/PRESUPUESTO_DETALLE.ts";
-import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import {tableRequestHandler} from "../../../api/common/table.ts";
 
 export const getBudgets = async ({ response }: RouterContext) => {
   response.body = await findBudgetItems();
 };
 
-export const getBudgetTable = async ({ request, response }: RouterContext) => {
-  if (!request.hasBody) throw new RequestSyntaxError();
-
-  const {
-    order = {},
-    page,
-    rows,
-    search,
-  } = await request.body().then((x: Body) => x.value);
-
-  if (!(order instanceof Object)) throw new RequestSyntaxError();
-
-  const order_parameters = Object.entries(order).reduce(
-    (res: TableOrder, [index, value]: [string, any]) => {
-      if (value in Order) {
-        res[index] = value as Order;
-      }
-      return res;
-    },
-    {} as TableOrder,
-  );
-
-  const search_query = ["string", "number"].includes(typeof search)
-    ? String(search)
-    : "";
-
-  const data = await getBudgetItemTable(
-    order_parameters,
-    page || 0,
-    rows || null,
-    search_query,
-  );
-
-  response.body = data;
-};
+export const getBudgetTable = async (context: RouterContext) => tableRequestHandler(
+  context,
+  getBudgetItemTable,
+);
 
 export const createBudget = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

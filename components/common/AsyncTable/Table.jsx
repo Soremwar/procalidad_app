@@ -98,6 +98,7 @@ export default function AsyncTable({
   const [source_url, setSourceURL] = useState("");
   const [source_params, setSourceParams] = useState({});
   const [should_fetch_data, setShouldFetchData] = useState(false);
+  const [total_count, setTotalCount] = useState(0);
 
   const updateSortingDirection = (column) => {
     switch (orderBy?.[column]) {
@@ -218,16 +219,17 @@ export default function AsyncTable({
         rowsPerPage,
         search,
         source_params,
-      ).then((data) => {
+      ).then(({count, data}) => {
         let new_selected = new Set();
         data.forEach(({ id }) => {
           selected.has(id) && new_selected.add(id);
         });
         setRows(data);
         setSelected(new_selected);
+        setTotalCount(count);
       }).catch(() => {
-        console.log('failed miseribly');
         setRows([]);
+        setTotalCount(0);
       });
     }
   }, [should_fetch_data]);
@@ -302,10 +304,6 @@ export default function AsyncTable({
                 </TableRow>}
             </TableBody>
           </Table>
-          {/*
-            TODO
-            Get page total number from server
-          */}
           <TableFooter
             length_options={[5, 10, 25]}
             onChangeSelectedPage={handleChangePage}
@@ -313,7 +311,7 @@ export default function AsyncTable({
             page_length={rowsPerPage}
             selected_page={page}
             selected_item_count={selected.size}
-            total_count={rows.length}
+            total_count={total_count}
           />
           </TableContainer>
       </Paper>

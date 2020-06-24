@@ -1,7 +1,7 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder,
+  TableOrder, getTableModels, TableResult
 } from "../../common/table.ts";
 
 //TODO
@@ -128,35 +128,35 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: string,
-): Promise<TableData[]> => {
-  //TODO
-  //Replace search string with search object passed from the frontend table definition
+  search: {[key: string]: string},
+): Promise<TableResult> => {
 
-  //TODO
-  //Normalize query generator
+  const base_query = (
+    `SELECT
+      PK_AREA AS ID,
+      (SELECT NOMBRE FROM ORGANIZACION.TIPO_AREA WHERE PK_TIPO = FK_TIPO_AREA) AS AREA_TYPE,
+      NOMBRE AS NAME,
+      (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_SUPERVISOR) AS SUPERVISOR
+    FROM ${TABLE}`
+  );
 
-  const query =
-    "SELECT * FROM (SELECT PK_AREA AS ID, (SELECT NOMBRE FROM ORGANIZACION.TIPO_AREA WHERE PK_TIPO = FK_TIPO_AREA) AS AREA_TYPE, NOMBRE AS NAME, (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_SUPERVISOR) AS SUPERVISOR FROM ORGANIZACION.AREA) AS TOTAL" +
-    " " +
-    `WHERE UNACCENT(AREA_TYPE) ILIKE '%${search}%' OR UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(SUPERVISOR) ILIKE '%${search}%'` +
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const { rows: result } = await postgres.query(query);
-
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     string,
     string,
     string,
   ]) => new TableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };

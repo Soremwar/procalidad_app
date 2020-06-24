@@ -1,7 +1,7 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder,
+  TableOrder, getTableModels, TableResult
 } from "../../common/table.ts";
 import {
   TABLE as LICENSE_TABLE,
@@ -356,40 +356,35 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: string,
-): Promise<TableData[]> => {
-  //TODO
-  //Replace search string with search object passed from the frontend table definition
+  search: {[key: string]: string},
+): Promise<TableResult> => {
 
-  //TODO
-  //Normalize query generator
-
-  const query = `SELECT * FROM (SELECT
+  const base_query = (
+    `SELECT
       PK_SALARIO AS ID,
       (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA  = FK_PERSONA) AS PERSON,
       CASE WHEN TIPO_SALARIO = 'I' THEN 'Integral' ELSE 'Ordinario' END AS SALARY_TYPE,
       (SELECT NOMBRE FROM ORGANIZACION.COMPUTADOR WHERE PK_COMPUTADOR = FK_COMPUTADOR) AS COMPUTER
-    FROM ${TABLE}) AS TOTAL
-    WHERE
-      UNACCENT(PERSON) ILIKE '%${search}%' OR
-      UNACCENT(COMPUTER) ILIKE '%${search}%'` +
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+    FROM ${TABLE}`
+  );
 
-  const { rows: result } = await postgres.query(query);
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     string,
     string,
     string,
   ]) => new TableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };

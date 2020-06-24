@@ -1,7 +1,7 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder
+  TableOrder, getTableModels, TableResult
 } from "../../common/table.ts";
 
 const TABLE = "CLIENTES.CONTACTO";
@@ -191,39 +191,27 @@ export const getTableData = async (
   page: number,
   rows: number | null,
   search: {[key: string]: string},
-): Promise<any> => {
+): Promise<TableResult> => {
 
-  //TODO
-  //Normalize query generator
-
-  const query = `SELECT * FROM (
-      SELECT
+  const base_query = (
+    `SELECT
         PK_CONTACTO AS ID,
         FK_CLIENTE AS ID_CLIENT,
         NOMBRE AS NAME,
         TELEFONO AS PHONE,
         CORREO AS EMAIL
-      FROM ${TABLE}
-    ) AS TOTAL` +
-    " " +
-    (Object.keys(search).length
-      ? `WHERE ${Object.entries(search)
-        .map(([column, value]) => (
-          `CAST(${column} AS VARCHAR) ILIKE '${value || '%'}'`
-        )).join(' AND ')}`
-      : '') +
-      " " +
-      (Object.values(order).length
-        ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-          `${column} ${order}`
-        ).join(", ")}`
-        : "") +
-      " " +
-      (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+      FROM ${TABLE}`
+  );
 
-  const { rows: result } = await postgres.query(query);
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     number,
     string,
@@ -231,5 +219,8 @@ export const getTableData = async (
     string,
   ]) => new TableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };

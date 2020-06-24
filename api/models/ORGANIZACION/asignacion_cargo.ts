@@ -1,7 +1,7 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder,
+  TableOrder, getTableModels, TableResult,
 } from "../../common/table.ts";
 
 const TABLE = "ORGANIZACION.ASIGNACION_CARGO";
@@ -185,43 +185,35 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: string,
-): Promise<TableData[]> => {
-  //TODO
-  //Replace search string with search object passed from the frontend table definition
+  search: {[key: string]: string},
+): Promise<TableResult> => {
 
-  //TODO
-  //Normalize query generator
-
-  const query = `SELECT * FROM (
-    SELECT
+  const base_query = (
+    `SELECT
       PK_ASIGNACION AS ID,
       (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
       (SELECT NOMBRE FROM ORGANIZACION.SUB_AREA WHERE PK_SUB_AREA = FK_SUB_AREA) AS SUB_AREA,
       (SELECT NOMBRE FROM ORGANIZACION.CARGO WHERE PK_CARGO = FK_CARGO) AS POSITION
-    FROM ${TABLE}
-  ) AS TOTAL
-    WHERE
-      UNACCENT(PERSON) ILIKE '%${search}%' OR
-      UNACCENT(SUB_AREA) ILIKE '%${search}%' OR
-      UNACCENT(POSITION) ILIKE '%${search}%'`
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+    FROM ${TABLE}`
+  );
 
-  const { rows: result } = await postgres.query(query);
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     string,
     string,
     string,
   ]) => new TableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };

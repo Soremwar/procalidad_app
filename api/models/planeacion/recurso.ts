@@ -1,6 +1,6 @@
 import postgres from "../../services/postgres.js";
 import {
-  TableOrder,
+  TableOrder, getTableModels, TableResult
 } from "../../common/table.ts";
 
 import {
@@ -23,6 +23,7 @@ import {
 import {
   TABLE as PERSON_TABLE,
 } from "../ORGANIZACION/PERSONA.ts";
+
 const TABLE = "PLANEACION.RECURSO";
 
 class Recurso {
@@ -306,13 +307,10 @@ export const getTableData = async (
   page: number,
   rows: number | null,
   search: {[key: string]: string},
-): Promise<TableData[]> => {
+): Promise<TableResult> => {
 
-  //TODO
-  //Normalize query generator
-
-  const query = `SELECT * FROM (
-    SELECT
+  const base_query = (
+    `SELECT
       PK_RECURSO,
       (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
@@ -321,26 +319,18 @@ export const getTableData = async (
       TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
       PORCENTAJE||'%' AS ASSIGNATION,
       HORAS AS HOURS
-    FROM ${TABLE}) AS TOTAL` +
-    " " +
-    (Object.keys(search).length
-      ? `WHERE ${Object.entries(search)
-        .map(([column, value]) => (
-        `CAST(${column} AS VARCHAR) ILIKE '${value || '%'}'`
-      )).join(' AND ')}`
-      : '') +
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+    FROM ${TABLE}`
+  );
 
-  const { rows: result } = await postgres.query(query);
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     number,
     string,
@@ -351,7 +341,10 @@ export const getTableData = async (
     number,
   ]) => new TableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };
 
 class ResourceTableData {
@@ -368,33 +361,29 @@ export const getResourceTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-): Promise<ResourceTableData[]> => {
+  search: {[key: string]: string},
+): Promise<TableResult> => {
 
-  //TODO
-  //Normalize query generator
-
-  const query = `SELECT * FROM (
-    SELECT
+  const base_query = (
+    `SELECT
       FK_PERSONA,
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
       TO_CHAR(TO_DATE(CAST(MIN(FECHA_INICIO) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
       TO_CHAR(TO_DATE(CAST(MAX(FECHA_FIN) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
       SUM(HORAS) AS HOURS
     FROM ${TABLE}
-    GROUP BY FK_PERSONA
-    ) AS TOTAL` +
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+    GROUP BY FK_PERSONA`
+  );
 
-  const { rows: result } = await postgres.query(query);
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     string,
     string,
@@ -402,7 +391,10 @@ export const getResourceTableData = async (
     number,
   ]) => new ResourceTableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };
 
 class DetailTableData {
@@ -423,13 +415,10 @@ export const getDetailTableData = async (
   page: number,
   rows: number | null,
   search: {[key: string]: string},
-): Promise<DetailTableData[]> => {
+): Promise<TableResult> => {
 
-  //TODO
-  //Normalize query generator
-
-  const query = `SELECT * FROM (
-    SELECT
+  const base_query = (
+    `SELECT
       PK_RECURSO,
       FK_PERSONA AS ID_PERSON,
       (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
@@ -438,25 +427,18 @@ export const getDetailTableData = async (
       TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
       PORCENTAJE||'%' AS ASSIGNATION,
       HORAS AS HOURS
-    FROM ${TABLE}) AS TOTAL` +
-    " " +
-    (Object.keys(search).length
-      ? `WHERE ${Object.entries(search).map(([column, value]) => (
-        `CAST(${column} AS VARCHAR) ILIKE '${value || '%'}'`  
-      )).join(' AND ')}`
-      : '') +
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+    FROM ${TABLE}`
+  );
 
-  const { rows: result } = await postgres.query(query);
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     number,
     number,
@@ -467,7 +449,10 @@ export const getDetailTableData = async (
     number,
   ]) => new DetailTableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };
 
 class ProjectGanttData {

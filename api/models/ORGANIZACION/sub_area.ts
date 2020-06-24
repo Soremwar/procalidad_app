@@ -1,10 +1,13 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder,
+  TableOrder, getTableModels, TableResult
 } from "../../common/table.ts";
 
+//TODO
+//replace for real this constant in all ocurrences
 const TABLE = "ORGANIZACION.SUB_AREA";
+
 const ERROR_CONSTRAINT_DEFAULT =
   "Uno de los datos seleccionables ingresados para el subarea no existe";
 const getConstraintError = (key: string) =>
@@ -147,41 +150,35 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: string,
-): Promise<TableData[]> => {
-  //TODO
-  //Replace search string with search object passed from the frontend table definition
+  search: {[key: string]: string},
+): Promise<TableResult> => {
 
-  //TODO
-  //Normalize query generator
-
-  const query = `SELECT * FROM (
-      SELECT
+  const base_query = (
+    `SELECT
         PK_SUB_AREA AS ID,
         (SELECT NOMBRE FROM ORGANIZACION.AREA WHERE PK_AREA = FK_AREA) AS AREA,
         NOMBRE AS NAME,
         (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_SUPERVISOR) AS SUPERVISOR
-      FROM ORGANIZACION.SUB_AREA
-    ) AS TOTAL` +
-    " " +
-    `WHERE UNACCENT(AREA) ILIKE '%${search}%' OR UNACCENT(NAME) ILIKE '%${search}%' OR UNACCENT(SUPERVISOR) ILIKE '%${search}%'` +
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
+      FROM ORGANIZACION.SUB_AREA`
+  );
 
-  const { rows: result } = await postgres.query(query);
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-  const models = result.map((x: [
+  const models = data.map((x: [
     number,
     string,
     string,
     string,
   ]) => new TableData(...x));
 
-  return models;
+  return new TableResult(
+    count,
+    models,
+  );
 };
