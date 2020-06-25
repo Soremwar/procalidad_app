@@ -762,7 +762,6 @@ export default () => {
   const [tasks, setTasks] = useState([]);
   const [heatmap_formula, setHeatmapFormula] = useState("occupation");
   const [heatmap_data, setHeatmapData] = useState([]);
-  const [heatmap_blacklist, setHeatmapBlacklist] = useState([]);
   const [value, setValue] = useState(0);
 
   const handleChange = (event, newValue) => {
@@ -861,25 +860,25 @@ export default () => {
           person={selectedPerson}
           setModalOpen={setEditModalOpen}
         />
-        <DeleteModal
-          callback={updateData}
-          is_open={is_delete_modal_open}
-          person={selectedPerson}
-          setModalOpen={setDeleteModalOpen}
-          selected={selected}
-        />
-        <Grid container spacing={10}>
-          <Grid item xs={6}>
-            <AdvancedSelectField
-              fullWidth
-              label="Recurso"
-              onChange={(_event, value) => setSelectedPerson(value)}
-              options={parameters.people}
-              value={selectedPerson}
-            />
-          </Grid>
-        </Grid>
       </ParameterContext.Provider>
+      <DeleteModal
+        callback={updateData}
+        is_open={is_delete_modal_open}
+        person={selectedPerson}
+        setModalOpen={setDeleteModalOpen}
+        selected={selected}
+      />
+      <Grid container spacing={10}>
+        <Grid item xs={6}>
+          <AdvancedSelectField
+            fullWidth
+            label="Recurso"
+            onChange={(_event, value) => setSelectedPerson(value)}
+            options={parameters.people}
+            value={selectedPerson}
+          />
+        </Grid>
+      </Grid>
       <br />
       <div className={classes.bar}>
         <AppBar position="static">
@@ -899,6 +898,7 @@ export default () => {
                     onAddClick={() => setAddModalOpen(true)}
                     onEditClick={(id) => handleEditModalOpen(id)}
                     onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+                    onTableUpdate={() => setDataShouldUpdate(false)}
                     search={{
                       id_person: selectedPerson,
                     }}
@@ -915,6 +915,7 @@ export default () => {
                     onAddClick={() => setAddModalOpen(true)}
                     onEditClick={(id) => handleEditModalOpen(id)}
                     onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+                    onTableUpdate={() => setDataShouldUpdate(false)}
                     request_parameters={{
                       type: 'resource'
                     }}
@@ -952,7 +953,7 @@ export default () => {
                     <option value="occupation">Ocupacion</option>
                   </SelectField>
                   <ResourceHeatmap
-                    blacklisted_dates={heatmap_blacklist}
+                    blacklisted_dates={parameters.blacklisted_dates}
                     data={heatmap_data}
                     end_date={MAX_DATE_HEATMAP}
                     start_date={TODAY}
@@ -962,7 +963,7 @@ export default () => {
               )
               : (
                 <DetailHeatmap
-                  blacklisted_dates={heatmap_blacklist}
+                  blacklisted_dates={parameters.blacklisted_dates}
                   data={heatmap_data}
                   end_date={MAX_DATE_HEATMAP}
                   start_date={TODAY}

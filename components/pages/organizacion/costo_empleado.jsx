@@ -594,6 +594,7 @@ export default () => {
               onAddClick={() => setAddModalOpen(true)}
               onEditClick={(id) => handleEditModalOpen(id)}
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+              onTableUpdate={() => setTableShouldUpdate(false)}
               update_table={tableShouldUpdate}
               url={"organizacion/salario/table"}
             />

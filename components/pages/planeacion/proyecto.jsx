@@ -755,6 +755,7 @@ export default () => {
                   onAddClick={() => setAddModalOpen(true)}
                   onEditClick={(id) => handleEditModalOpen(id)}
                   onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+                  onTableUpdate={() => setDataShouldUpdate(false)}
                   search={{
                     id_project: selectedProyect,
                   }}

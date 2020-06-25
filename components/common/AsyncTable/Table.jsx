@@ -81,6 +81,7 @@ export default function AsyncTable({
   onAddClick,
   onEditClick,
   onDeleteClick,
+  onTableUpdate,
   search: custom_search = {},
   request_parameters = {},
   update_table,
@@ -230,6 +231,8 @@ export default function AsyncTable({
       }).catch(() => {
         setRows([]);
         setTotalCount(0);
+      }).finally(() => {
+        onTableUpdate();
       });
     }
   }, [should_fetch_data]);
