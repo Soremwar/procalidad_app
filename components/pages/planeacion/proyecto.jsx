@@ -739,48 +739,52 @@ export default () => {
         </Grid>
       </ParameterContext.Provider>
       <br />
-      <div className={classes.bar}>
-        <AppBar position="static">
-          <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
-            <Tab label="Planeacion" {...a11yProps(0)} />
-            <Tab label="Gantt" {...a11yProps(1)} disabled={!selectedProyect} />
-          </Tabs>
-        </AppBar>
-        <TabPanel value={value} index={0}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              search={{
-                id_project: selectedProyect,
-              }}
-              update_table={dataShouldUpdate}
-              url={"planeacion/recurso/table"}
-            />
-          </Widget>
-        </TabPanel>
-        <TabPanel
-          index={1}
-          value={value}
-        >
-          {
-            tasks.length
-              ? (
-                <FrappeGantt
-                  tasks={tasks}
-                  viewMode={ViewMode.Week}
+      {
+        selectedClient && selectedProyect && (
+          <div className={classes.bar}>
+            <AppBar position="static">
+              <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
+                <Tab label="Planeacion" {...a11yProps(0)} />
+                <Tab label="Gantt" {...a11yProps(1)} disabled={!selectedProyect} />
+              </Tabs>
+            </AppBar>
+            <TabPanel value={value} index={0}>
+              <Widget noBodyPadding>
+                <AsyncTable
+                  columns={headers}
+                  onAddClick={() => setAddModalOpen(true)}
+                  onEditClick={(id) => handleEditModalOpen(id)}
+                  onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+                  search={{
+                    id_project: selectedProyect,
+                  }}
+                  update_table={dataShouldUpdate}
+                  url={"planeacion/recurso/table"}
                 />
-              )
-              : (
-                <Typography>
-                  No existen datos para mostrar
-                </Typography>
-              )
-          }
-        </TabPanel>
-      </div>
+              </Widget>
+            </TabPanel>
+            <TabPanel
+              index={1}
+              value={value}
+            >
+              {
+                tasks.length
+                  ? (
+                    <FrappeGantt
+                      tasks={tasks}
+                      viewMode={ViewMode.Week}
+                    />
+                  )
+                  : (
+                    <Typography>
+                      No existen datos para mostrar
+                    </Typography>
+                  )
+              }
+            </TabPanel>
+          </div>
+        )
+      }
     </Fragment>
   );
 };
