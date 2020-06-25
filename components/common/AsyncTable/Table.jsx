@@ -119,7 +119,7 @@ export default function AsyncTable({
     }
   };
 
-  //Validation to avoid double fetching on empty filters
+  //Validation to avoid unnecessary fetching on same filters
   const updateSearchFilters = () => {
     const filters = Object.fromEntries(Object.entries({...custom_search, ...search_bar}).filter(([key, value]) => String(key) && String(value)));
     if(!objectsAreEqual(filters, search)){
@@ -135,9 +135,9 @@ export default function AsyncTable({
     }
   };
 
-  //Validation to avoid double fetching on empty source
+  //Validation to avoid unnecessary fetching on same params
   const updateSourceParams = (params) => {
-    if(Object.entries(params).length !== 0 && Object.entries(source_params) !== 0){
+    if(!objectsAreEqual(params, source_params)){
       setSourceParams(params);
       setShouldFetchData(true);
     }
