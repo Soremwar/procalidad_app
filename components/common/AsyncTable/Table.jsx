@@ -174,8 +174,7 @@ export default function AsyncTable({
     setShouldFetchData(true);
   };
 
-  const emptyRows = rowsPerPage -
-    Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+  const emptyRows = rowsPerPage - rows.length;
 
   //Initialize table
   useEffect(() => {
@@ -308,7 +307,7 @@ export default function AsyncTable({
             </TableBody>
           </Table>
           <TableFooter
-            length_options={[5, 10, 25]}
+            length_options={[1, 5, 10, 25]}
             onChangeSelectedPage={handleChangePage}
             onChangePageLength={handleChangeRowsPerPage}
             page_length={rowsPerPage}
