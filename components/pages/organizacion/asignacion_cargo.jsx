@@ -8,6 +8,7 @@ import React, {
 import {
   DialogContentText,
   Grid,
+  TextField,
 } from "@material-ui/core";
 
 import {
@@ -20,6 +21,9 @@ import {
   fetchRoleApi,
   fetchSubAreaApi,
 } from "../../../lib/api/generator.js";
+import {
+  formatDateToStandardString,
+} from "../../../lib/date/mod.js";
 
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
@@ -86,6 +90,7 @@ const AddModal = ({
     position: "",
     sub_area: "",
     roles: [],
+    validity: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -102,6 +107,7 @@ const AddModal = ({
         position: "",
         sub_area: "",
         roles: [],
+        validity: [],
       });
       setLoading(false);
       setError(null);
@@ -176,6 +182,19 @@ const AddModal = ({
         onChange={handleChange}
         value={fields.roles}
       />
+      <TextField
+        fullWidth
+        InputLabelProps={{
+          shrink: true,
+        }}
+        label="Inicio de asignacion"
+        margin="dense"
+        name="validity"
+        onChange={handleChange}
+        required
+        type="date"
+        value={fields.validity}
+      />
     </DialogForm>
   );
 };
@@ -198,6 +217,7 @@ const EditModal = ({
     position: "",
     sub_area: "",
     roles: [],
+    validity: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -209,6 +229,7 @@ const EditModal = ({
         position: data.fk_cargo,
         sub_area: data.fk_sub_area,
         roles: data.fk_roles,
+        validity: formatDateToStandardString(new Date(data.fec_vigencia)),
       });
       setLoading(false);
       setError(null);
@@ -289,6 +310,19 @@ const EditModal = ({
         name="roles"
         onChange={handleChange}
         value={fields.roles}
+      />
+      <TextField
+        fullWidth
+        InputLabelProps={{
+          shrink: true,
+        }}
+        label="Inicio de asignacion"
+        margin="dense"
+        name="validity"
+        onChange={handleChange}
+        required
+        type="date"
+        value={fields.validity}
       />
     </DialogForm>
   );

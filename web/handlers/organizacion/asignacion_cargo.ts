@@ -27,18 +27,21 @@ export const createAssignation = async ({ request, response }: RouterContext) =>
     sub_area,
     position,
     roles,
+    validity,
   }: {
     person: string,
     sub_area: string,
     position: string,
     roles: string[],
+    validity: string,
   } = await request.body().then((x: Body) => x.value);
 
   if (!(
     Number(person) &&
     Number(sub_area) &&
     Number(position) &&
-    Array.isArray(roles)
+    Array.isArray(roles) &&
+    !isNaN(new Date(validity).getTime())
   )) throw new RequestSyntaxError();
 
   if(await isPersonAssigned(Number(person))) throw new Error("La persona ya tiene una asignacion de cargo vigente");
@@ -48,6 +51,7 @@ export const createAssignation = async ({ request, response }: RouterContext) =>
     Number(sub_area),
     Number(position),
     roles.map(Number).filter(Boolean),
+    new Date(validity),
   );
 };
 
@@ -74,12 +78,14 @@ export const updateAssignation = async (
     sub_area,
     position,
     roles,
+    validity,
   } = await request.body().then((x: Body) => x.value);
 
   assignation = await assignation.update(
     Number(sub_area) ? Number(sub_area) : undefined,
     Number(position) ? Number(position) : undefined,
     Array.isArray(roles) ? roles.map(Number).filter(Boolean) : undefined,
+    !isNaN(new Date(validity).getTime()) ? new Date(validity) : undefined,
   );
 
   response.body = assignation;
