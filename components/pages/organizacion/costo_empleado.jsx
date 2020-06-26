@@ -8,12 +8,12 @@ import React, {
 import {
   DialogContentText,
   Grid,
+  TextField,
   Typography,
 } from "@material-ui/core";
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
 import {
   fetchComputerApi,
@@ -21,6 +21,9 @@ import {
   fetchPersonCostApi,
   fetchPeopleApi,
 } from "../../../lib/api/generator.js";
+import {
+  formatDateToStandardString,
+} from "../../../lib/date/mod.js";
 
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
@@ -102,6 +105,7 @@ const AddModal = ({
     licenses: [],
     other: 0,
     salary_type: "",
+    validity: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -117,6 +121,7 @@ const AddModal = ({
         licenses: [],
         other: 0,
         salary_type: "",
+        validity: "",
       });
       setLoading(false);
       setError(null);
@@ -244,6 +249,19 @@ const AddModal = ({
         <option value="I">Integral</option>
         <option value="O">Ordinario</option>
       </SelectField>
+      <TextField
+        fullWidth
+        InputLabelProps={{
+          shrink: true,
+        }}
+        label="Inicio de vigencia"
+        margin="dense"
+        name="validity"
+        onChange={handleChange}
+        required
+        type="date"
+        value={fields.validity}
+      />
       <br /><br />
       {
         result
@@ -292,6 +310,7 @@ const EditModal = ({
     licenses: [],
     other: 0,
     salary_type: "",
+    validity: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -307,6 +326,7 @@ const EditModal = ({
         licenses: data.licencias,
         other: Number(data.otros),
         salary_type: data.tipo_salario,
+        validity: formatDateToStandardString(new Date(data.fec_vigencia)),
       });
       setLoading(false);
       setError(null);
@@ -332,12 +352,8 @@ const EditModal = ({
   }, [fields]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -439,6 +455,19 @@ const EditModal = ({
         <option value="I">Integral</option>
         <option value="O">Ordinario</option>
       </SelectField>
+      <TextField
+        fullWidth
+        InputLabelProps={{
+          shrink: true,
+        }}
+        label="Inicio de vigencia"
+        margin="dense"
+        name="validity"
+        onChange={handleChange}
+        required
+        type="date"
+        value={fields.validity}
+      />
       <br /><br />
       {
         result

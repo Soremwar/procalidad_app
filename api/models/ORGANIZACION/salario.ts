@@ -29,6 +29,7 @@ class Salario {
     public otros: number,
     public salario: number | undefined,
     public tipo_salario: TipoSalario,
+    public fec_vigencia: Date,
   ) { }
 
   async update(
@@ -38,6 +39,7 @@ class Salario {
     licencias: number[] = this.licencias,
     otros: number = this.otros,
     tipo_salario: TipoSalario = this.tipo_salario,
+    fec_vigencia: Date = this.fec_vigencia,
   ): Promise<
     Salario
   > {
@@ -48,6 +50,7 @@ class Salario {
       licencias,
       otros,
       tipo_salario,
+      fec_vigencia,
     });
 
     const person_has_cost: boolean = await personHasCost(this.fk_persona, this.pk_salario);
@@ -61,7 +64,8 @@ class Salario {
         VALOR_BONOS = $4,
         LICENCIAS = '{${licencias.join(',')}}',
         OTROS = $5,
-        TIPO_SALARIO = $6
+        TIPO_SALARIO = $6,
+        FEC_VIGENCIA = $7
       WHERE PK_SALARIO = $1
       RETURNING SALARIO`,
       this.pk_salario,
@@ -70,6 +74,7 @@ class Salario {
       this.valor_bonos,
       this.otros,
       this.tipo_salario,
+      this.fec_vigencia,
     );
 
     const salario = rows[0][0];
@@ -196,6 +201,7 @@ export const findAll = async (): Promise<Salario[]> => {
     g,
     h,
     i,
+    j,
   ]: [
     number,
     number,
@@ -206,6 +212,7 @@ export const findAll = async (): Promise<Salario[]> => {
     number,
     number,
     TipoSalario,
+    Date,
   ]) => new Salario(
     a,
     b,
@@ -216,6 +223,7 @@ export const findAll = async (): Promise<Salario[]> => {
     g,
     h,
     i,
+    j,
   ));
 
   return models;
@@ -235,7 +243,8 @@ export const findById = async (id: number): Promise<Salario | null> => {
       ARRAY_TO_STRING(LICENCIAS, ','),
       OTROS,
       SALARIO,
-      TIPO_SALARIO
+      TIPO_SALARIO,
+      FEC_VIGENCIA
     FROM ${TABLE}
     WHERE PK_SALARIO = $1`,
     id,
@@ -253,6 +262,7 @@ export const findById = async (id: number): Promise<Salario | null> => {
     g,
     h,
     i,
+    j,
   ]: [
     number,
     number,
@@ -263,7 +273,9 @@ export const findById = async (id: number): Promise<Salario | null> => {
     number,
     number,
     TipoSalario,
+    Date,
   ] = rows[0];
+
   return new Salario(
     a,
     b,
@@ -274,6 +286,7 @@ export const findById = async (id: number): Promise<Salario | null> => {
     g,
     h,
     i,
+    j,
   );
 };
 
@@ -301,6 +314,7 @@ export const createNew = async (
   licencias: number[],
   otros: number,
   tipo_salario: TipoSalario,
+  fec_vigencia: Date,
 ): Promise<Salario> => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
@@ -310,7 +324,8 @@ export const createNew = async (
       VALOR_BONOS,
       LICENCIAS,
       OTROS,
-      TIPO_SALARIO
+      TIPO_SALARIO,
+      FEC_VIGENCIA,
     ) VALUES (
       $1,
       $2,
@@ -318,7 +333,8 @@ export const createNew = async (
       $4,
       '{${licencias.join(',')}}',
       $5,
-      $6
+      $6,
+      $7
     ) RETURNING PK_SALARIO`,
     fk_persona,
     fk_computador,
@@ -326,6 +342,7 @@ export const createNew = async (
     valor_bonos,
     otros,
     tipo_salario,
+    fec_vigencia,
   );
 
   const id: number = rows[0][0];
@@ -340,6 +357,7 @@ export const createNew = async (
     otros,
     undefined,
     tipo_salario,
+    fec_vigencia,
   );
 };
 

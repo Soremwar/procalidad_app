@@ -32,6 +32,7 @@ export const createSalary = async ({ request, response }: RouterContext) => {
     licenses,
     other,
     salary_type,
+    validity,
   } = await request.body().then((x: Body) => x.value);
 
   if (
@@ -42,7 +43,8 @@ export const createSalary = async ({ request, response }: RouterContext) => {
       !isNaN(Number(bonus_cost)) &&
       Array.isArray(licenses) &&
       !isNaN(Number(other)) &&
-      salary_type
+      salary_type &&
+      !isNaN(new Date(validity).getTime())
     )
   ) {
     throw new RequestSyntaxError();
@@ -60,6 +62,7 @@ export const createSalary = async ({ request, response }: RouterContext) => {
     licenses.map(Number).filter(Boolean),
     Number(other),
     salary_type in TipoSalario ? salary_type as TipoSalario : TipoSalario.I,
+    new Date(validity),
   );
 
   response.body = salary;
@@ -115,6 +118,7 @@ export const updateSalary = async (
     licenses,
     other,
     salary_type,
+    validity,
   } = await request.body().then((x: Body) => x.value);
 
   salary = await salary.update(
@@ -124,6 +128,7 @@ export const updateSalary = async (
     Array.isArray(licenses) ? undefined : licenses.map(Number).filter(Boolean),
     isNaN(Number(other)) ? undefined : Number(other),
     salary_type in TipoSalario ? salary_type as TipoSalario : TipoSalario.I,
+    !isNaN(new Date(validity).getTime()) ? new Date(validity) : undefined,
   );
 
   response.body = salary;
