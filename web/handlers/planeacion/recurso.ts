@@ -198,7 +198,7 @@ export const getResourcesGantt = async ({ request, response }: RouterContext) =>
     project,
     type,
   }: { [x: string]: string } = Object.fromEntries(
-    request.searchParams.entries(),
+    request.url.searchParams.entries(),
   );
 
   const gantt_type = type in ResourceViewType ? type as ResourceViewType : ResourceViewType.project;
@@ -222,7 +222,7 @@ export const getResourcesHeatmap = async ({ request, response }: RouterContext) 
     person,
     type,
   }: { [x: string]: string } = Object.fromEntries(
-    request.searchParams.entries(),
+    request.url.searchParams.entries(),
   );
 
   const heatmap_type = type == ResourceViewType.resource || type == ResourceViewType.detail

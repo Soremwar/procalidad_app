@@ -66,13 +66,12 @@ class Recurso {
     //Reemplazar 9 por calculo de horas laborales diarias
     const horas_diarias = (this.porcentaje / 100) * 9;
 
-    const is_available = await validateAssignationAvailability(
+    const is_available = await assignationIsAvailable(
       this.fk_persona,
       horas_diarias,
       this.fecha_inicio,
       this.fecha_fin
-    )
-      .then((x) => !x.length);
+    );
 
     if(!is_available) throw new Error("La asignacion no se encuentra disponible en el periodo especificado");
 
@@ -204,8 +203,7 @@ export const createNew = async (
   //Reemplazar 9 por calculo de horas laborales diarias
   const horas_diarias = (porcentaje / 100) * 9;
 
-  const is_available = await validateAssignationAvailability(fk_persona, horas_diarias, fecha_inicio, fecha_fin)
-    .then((x) => !x.length);
+  const is_available = await assignationIsAvailable(fk_persona, horas_diarias, fecha_inicio, fecha_fin);
 
   if(!is_available) throw new Error("La asignacion no se encuentra disponible en el periodo especificado");
 
@@ -262,12 +260,12 @@ export const createNew = async (
   return recurso;
 };
 
-const validateAssignationAvailability = async (
+const assignationIsAvailable = async (
   person: number,
   daily_hours: number,
   start_date: number,
   end_date: number,
-): Promise<[string, string]> => {
+): Promise<Boolean> => {
   const { rows } = await postgres.query(
     `SELECT
       RD.FECHA,
@@ -286,7 +284,7 @@ const validateAssignationAvailability = async (
     end_date,
   );
 
-  return rows;
+  return !rows.length;
 };
 
 class TableData {

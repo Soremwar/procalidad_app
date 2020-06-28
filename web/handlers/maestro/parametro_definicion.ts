@@ -67,7 +67,7 @@ export const searchParameterDefinition = async ({ response, request }:
     parameter: param_parameter,
     limit: param_limit,
   }: { [x: string]: string } = Object.fromEntries(
-    request.searchParams.entries(),
+    request.url.searchParams.entries(),
   );
 
   if (!Number(param_parameter)) throw new RequestSyntaxError();

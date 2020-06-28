@@ -27,7 +27,7 @@ export const searchCity = async ({ response, request }: RouterContext) => {
     query: param_query,
     limit: param_limit,
   }: { [x: string]: string } = Object.fromEntries(
-    request.searchParams.entries(),
+    request.url.searchParams.entries(),
   );
 
   const state: number = Number(param_state);

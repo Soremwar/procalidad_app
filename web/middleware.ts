@@ -1,9 +1,9 @@
-import { RouterContext, Status } from "oak";
+import { Context, Status } from "oak";
 import { Message, formatResponse } from "./http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "./exceptions.ts";
 
 export default async (
-  { response }: RouterContext,
+  { response }: Context,
   next: () => Promise<void>,
 ) => {
   try {

@@ -11,7 +11,7 @@ export class RecursoDetalle {
   ) { }
 }
 
-export const findByResource = async (resource: number): Promise<RecursoDetalle | null> => {
+export const findByResource = async (resource: number): Promise<RecursoDetalle[]> => {
   const { rows } = await postgres.query(
     `SELECT
       FK_RECURSO,
@@ -22,13 +22,11 @@ export const findByResource = async (resource: number): Promise<RecursoDetalle |
     resource,
   );
 
-  const models = rows.map((row: [
+  return rows.map((row: [
     number,
     number,
     number,
   ]) => new RecursoDetalle(...row));
-
-  return models;
 };
 
 export const createNew = async (

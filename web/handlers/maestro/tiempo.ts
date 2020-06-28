@@ -14,7 +14,7 @@ export const getBlacklistedDays = async ({ response, request }: RouterContext) =
     start_date,
     end_date,
   }: { [x: string]: string } = Object.fromEntries(
-    request.searchParams.entries(),
+    request.url.searchParams.entries(),
   );
 
   if(!(

@@ -12,9 +12,9 @@ app.use(allowedMethods);
 app.use(async (context) => {
   //Send to the app or serve static file
   let resource;
-  switch (context.request.path.split("/")[1]) {
+  switch (context.request.url.pathname.split("/")[1]) {
     case "resources":
-      resource = context.request.path;
+      resource = context.request.url.pathname;
       break;
     default:
       resource = "index.html";
