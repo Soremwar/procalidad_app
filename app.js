@@ -1,6 +1,6 @@
 import { Application, send } from "oak";
 import { routes, allowedMethods } from "./web/routes.ts";
-import { address, port } from "./config/api.js";
+import { address, port } from "./config/api_deno.js";
 import middleware from "./web/middleware.ts";
 
 const app = new Application();

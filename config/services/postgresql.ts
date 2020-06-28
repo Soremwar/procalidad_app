@@ -1,4 +1,8 @@
-import config from "../../config.json";
+import {
+  readJson,
+} from "fs";
+
+const config = await readJson("config.json") as any;
 
 const postgresql = config?.services?.postgresql;
 
