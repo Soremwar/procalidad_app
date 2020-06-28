@@ -1,4 +1,4 @@
-import {Body, RouterContext,} from "oak";
+import { Body, RouterContext } from "oak";
 import {
   createNew,
   findAll,
@@ -13,12 +13,16 @@ import {
   getTableData,
   HeatmapFormula,
 } from "../../../api/models/planeacion/recurso.ts";
-import {addLaboralDays,} from "../../../api/models/MAESTRO/dim_tiempo.ts";
+import { addLaboralDays } from "../../../api/models/MAESTRO/dim_tiempo.ts";
 
-import {Order, TableOrder, parseOrderFromObject} from "../../../api/common/table.ts";
-import {formatResponse, Message, Status} from "../../http_utils.ts";
-import {NotFoundError, RequestSyntaxError} from "../../exceptions.ts";
-import {parseStandardNumber,} from "../../../lib/date/mod.js";
+import {
+  Order,
+  TableOrder,
+  parseOrderFromObject,
+} from "../../../api/common/table.ts";
+import { formatResponse, Message, Status } from "../../http_utils.ts";
+import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import { parseStandardNumber } from "../../../lib/date/mod.js";
 
 enum ResourceViewType {
   project = "project",
@@ -43,29 +47,35 @@ export const getResourcesTable = async (
     type,
   } = await request.body().then((x: Body) => x.value);
 
-  if (!(
-    order instanceof Object &&
-    search instanceof Object
-  )) throw new RequestSyntaxError();
+  if (
+    !(
+      order instanceof Object &&
+      search instanceof Object
+    )
+  ) {
+    throw new RequestSyntaxError();
+  }
 
   const order_parameters = parseOrderFromObject(order);
-  const table_type = type in ResourceViewType ? type as ResourceViewType : ResourceViewType.project;
+  const table_type = type in ResourceViewType
+    ? type as ResourceViewType
+    : ResourceViewType.project;
 
-  if(table_type === ResourceViewType.project){
+  if (table_type === ResourceViewType.project) {
     response.body = await getTableData(
       order_parameters,
       page || 0,
       rows || null,
       search,
     );
-  }else if (table_type === ResourceViewType.resource){
+  } else if (table_type === ResourceViewType.resource) {
     response.body = await getResourceTableData(
       order_parameters,
       page || 0,
       rows || null,
       search,
     );
-  }else if (table_type === ResourceViewType.detail){
+  } else if (table_type === ResourceViewType.detail) {
     response.body = await getDetailTableData(
       order_parameters,
       page || 0,
@@ -88,14 +98,16 @@ export const createResource = async ({ request, response }: RouterContext) => {
   }: { [x: string]: string } = await request.body()
     .then((x: Body) => Object.fromEntries(x.value));
 
-  if (!(
-    Number(person) &&
-    Number(budget) &&
-    Number(role) &&
-    parseStandardNumber(start_date) &&
-    Number(assignation) >= 0 && Number(assignation) <= 100 &&
-    Number(hours)
-  )) {
+  if (
+    !(
+      Number(person) &&
+      Number(budget) &&
+      Number(role) &&
+      parseStandardNumber(start_date) &&
+      Number(assignation) >= 0 && Number(assignation) <= 100 &&
+      Number(hours)
+    )
+  ) {
     throw new RequestSyntaxError();
   }
 
@@ -170,7 +182,9 @@ export const updateResource = async (
     Number(role) || undefined,
     parseStandardNumber(start_date) ? Number(start_date) : undefined,
     end_date,
-    Number(assignation) >= 0 && Number(assignation) <= 100 ? Number(assignation) : undefined,
+    Number(assignation) >= 0 && Number(assignation) <= 100
+      ? Number(assignation)
+      : undefined,
     Number(hours) || undefined,
   );
 
@@ -192,7 +206,9 @@ export const deleteResource = async ({ params, response }: RouterContext) => {
   );
 };
 
-export const getResourcesGantt = async ({ request, response }: RouterContext) => {
+export const getResourcesGantt = async (
+  { request, response }: RouterContext,
+) => {
   const {
     person,
     project,
@@ -201,22 +217,26 @@ export const getResourcesGantt = async ({ request, response }: RouterContext) =>
     request.url.searchParams.entries(),
   );
 
-  const gantt_type = type in ResourceViewType ? type as ResourceViewType : ResourceViewType.project;
+  const gantt_type = type in ResourceViewType
+    ? type as ResourceViewType
+    : ResourceViewType.project;
 
-  if(gantt_type === ResourceViewType.project){
+  if (gantt_type === ResourceViewType.project) {
     response.body = await getProjectGanttData(
       Number(project) || undefined,
     );
-  }else if (gantt_type === ResourceViewType.resource){
+  } else if (gantt_type === ResourceViewType.resource) {
     response.body = await getResourceGanttData();
-  }else if (gantt_type === ResourceViewType.detail){
+  } else if (gantt_type === ResourceViewType.detail) {
     response.body = await getDetailGanttData(
       Number(person) || undefined,
     );
   }
 };
 
-export const getResourcesHeatmap = async ({ request, response }: RouterContext) => {
+export const getResourcesHeatmap = async (
+  { request, response }: RouterContext,
+) => {
   const {
     formula,
     person,
@@ -225,17 +245,20 @@ export const getResourcesHeatmap = async ({ request, response }: RouterContext) 
     request.url.searchParams.entries(),
   );
 
-  const heatmap_type = type == ResourceViewType.resource || type == ResourceViewType.detail
-    ? type as ResourceViewType
-    : ResourceViewType.resource;
+  const heatmap_type =
+    type == ResourceViewType.resource || type == ResourceViewType.detail
+      ? type as ResourceViewType
+      : ResourceViewType.resource;
 
-  const heatmap_formula = formula in HeatmapFormula ? formula as HeatmapFormula : HeatmapFormula.occupation;
-  if (heatmap_type === ResourceViewType.resource){
+  const heatmap_formula = formula in HeatmapFormula
+    ? formula as HeatmapFormula
+    : HeatmapFormula.occupation;
+  if (heatmap_type === ResourceViewType.resource) {
     response.body = await getResourceHeatmapData(
       heatmap_formula,
     );
-  }else if (heatmap_type === ResourceViewType.detail){
-    if(!Number(person)) throw new RequestSyntaxError();
+  } else if (heatmap_type === ResourceViewType.detail) {
+    if (!Number(person)) throw new RequestSyntaxError();
 
     response.body = await getDetailHeatmapData(
       Number(person),

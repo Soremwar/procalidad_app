@@ -327,11 +327,23 @@ main_router
 
 main_router
   .get("/api/organizacion/asignacion_cargo", getPositionAssignations)
-  .post("/api/organizacion/asignacion_cargo/table", getPositionAssignationsTable)
+  .post(
+    "/api/organizacion/asignacion_cargo/table",
+    getPositionAssignationsTable,
+  )
   .post("/api/organizacion/asignacion_cargo", createPositionAssignation)
-  .get<{ id: string }>("/api/organizacion/asignacion_cargo/:id", getPositionAssignation)
-  .put<{ id: string }>("/api/organizacion/asignacion_cargo/:id", updatePositionAssignation)
-  .delete<{ id: string }>("/api/organizacion/asignacion_cargo/:id", deletePositionAssignation);
+  .get<{ id: string }>(
+    "/api/organizacion/asignacion_cargo/:id",
+    getPositionAssignation,
+  )
+  .put<{ id: string }>(
+    "/api/organizacion/asignacion_cargo/:id",
+    updatePositionAssignation,
+  )
+  .delete<{ id: string }>(
+    "/api/organizacion/asignacion_cargo/:id",
+    deletePositionAssignation,
+  );
 
 main_router
   .get("/api/operaciones/tipo_presupuesto", getBudgetTypes)
@@ -364,7 +376,10 @@ main_router
   .delete<{ id: string }>("/api/operaciones/presupuesto/:id", deleteBudget);
 
 main_router
-  .get<{ id: string }>("/api/operaciones/presupuesto_detalle/:id", searchBudgetDetails);
+  .get<{ id: string }>(
+    "/api/operaciones/presupuesto_detalle/:id",
+    searchBudgetDetails,
+  );
 
 main_router
   .get("/api/maestro/parametro", getParameters)
@@ -376,7 +391,10 @@ main_router
 
 main_router
   .get("/api/maestro/parametro_definicion", getParameterDefinitions)
-  .post<{ id: string }>("/api/maestro/parametro_definicion/:id", createParameterDefinition)
+  .post<{ id: string }>(
+    "/api/maestro/parametro_definicion/:id",
+    createParameterDefinition,
+  )
   .get("/api/maestro/parametro_definicion/search", searchParameterDefinition)
   .get<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
@@ -402,7 +420,7 @@ main_router
   .post<{ id: string }>("/api/planeacion/recurso", createResource)
   .get<{ id: string }>("/api/planeacion/recurso/:id", getResource)
   .put<{ id: string }>("/api/planeacion/recurso/:id", updateResource)
-  .delete<{ id: string }>( "/api/planeacion/recurso/:id", deleteResource);
+  .delete<{ id: string }>("/api/planeacion/recurso/:id", deleteResource);
 
 export const routes = main_router.routes();
 export const allowedMethods = main_router.allowedMethods();

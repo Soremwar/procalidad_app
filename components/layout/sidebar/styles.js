@@ -16,7 +16,7 @@ export default makeStyles((theme) => ({
     whiteSpace: "nowrap",
   },
   drawerContent: {
-    backgroundColor: '#f6f7ff',
+    backgroundColor: "#f6f7ff",
   },
   drawerOpen: {
     width: drawerWidth,
@@ -63,5 +63,4 @@ export default makeStyles((theme) => ({
       display: "none",
     },
   },
-})
-);
+}));

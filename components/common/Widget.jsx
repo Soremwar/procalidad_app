@@ -4,7 +4,7 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Typography
+  Typography,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 
@@ -48,8 +48,7 @@ const useStyles = makeStyles((theme) => ({
       color: "rgba(255, 255, 255, 0.35)",
     },
   },
-})
-);
+}));
 
 export default ({
   children,

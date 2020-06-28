@@ -8,18 +8,21 @@ import {
 } from "../../../api/models/ORGANIZACION/asignacion_cargo.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getAssignations = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getAssignationsTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getAssignationsTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
-export const createAssignation = async ({ request, response }: RouterContext) => {
+export const createAssignation = async (
+  { request, response }: RouterContext,
+) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -29,22 +32,28 @@ export const createAssignation = async ({ request, response }: RouterContext) =>
     roles,
     validity,
   }: {
-    person: string,
-    sub_area: string,
-    position: string,
-    roles: string[],
-    validity: string,
+    person: string;
+    sub_area: string;
+    position: string;
+    roles: string[];
+    validity: string;
   } = await request.body().then((x: Body) => x.value);
 
-  if (!(
-    Number(person) &&
-    Number(sub_area) &&
-    Number(position) &&
-    Array.isArray(roles) &&
-    !isNaN(new Date(validity).getTime())
-  )) throw new RequestSyntaxError();
+  if (
+    !(
+      Number(person) &&
+      Number(sub_area) &&
+      Number(position) &&
+      Array.isArray(roles) &&
+      !isNaN(new Date(validity).getTime())
+    )
+  ) {
+    throw new RequestSyntaxError();
+  }
 
-  if(await isPersonAssigned(Number(person))) throw new Error("La persona ya tiene una asignacion de cargo vigente");
+  if (await isPersonAssigned(Number(person))) {
+    throw new Error("La persona ya tiene una asignacion de cargo vigente");
+  }
 
   response.body = await createNew(
     Number(person),
@@ -91,7 +100,9 @@ export const updateAssignation = async (
   response.body = assignation;
 };
 
-export const deleteAssignation = async ({ params, response }: RouterContext) => {
+export const deleteAssignation = async (
+  { params, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

@@ -41,7 +41,7 @@ export default ({
   handleSource = defaultSourceHandler,
   name,
   onChange = false,
-  onType = () => { },
+  onType = () => {},
   preload = false,
   required = false,
   source,
@@ -111,9 +111,8 @@ export default ({
       getOptionLabel={(option) => option.text}
       getOptionSelected={(option, selected) => option.value === selected.value}
       id={id}
-      inputValue={value
-        ? getOption(value)?.text || ""
-        : inputValue || input_text}
+      inputValue={value ? getOption(value)?.text || ""
+      : inputValue || input_text}
       loading={loading}
       onChange={(event, new_value) => {
         event.target = document.querySelector(`[id="${id}"]`).cloneNode();

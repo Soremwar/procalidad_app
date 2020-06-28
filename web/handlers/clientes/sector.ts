@@ -3,21 +3,22 @@ import {
   findAll,
   findById,
   createNew,
-  getTableData
+  getTableData,
 } from "../../../api/models/CLIENTES/SECTOR.ts";
 import { TableOrder, Order } from "../../../api/common/table.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getSectors = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getSectorsTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getSectorsTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createSector = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

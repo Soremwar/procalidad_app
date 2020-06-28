@@ -9,7 +9,9 @@ import {
   RequestSyntaxError,
 } from "../../exceptions.ts";
 
-export const getBlacklistedDays = async ({ response, request }: RouterContext) => {
+export const getBlacklistedDays = async (
+  { response, request }: RouterContext,
+) => {
   const {
     start_date,
     end_date,
@@ -17,10 +19,14 @@ export const getBlacklistedDays = async ({ response, request }: RouterContext) =
     request.url.searchParams.entries(),
   );
 
-  if(!(
-    parseStandardNumber(Number(start_date)) &&
-    parseStandardNumber(Number(end_date))
-  )) throw new RequestSyntaxError();
+  if (
+    !(
+      parseStandardNumber(Number(start_date)) &&
+      parseStandardNumber(Number(end_date))
+    )
+  ) {
+    throw new RequestSyntaxError();
+  }
 
   response.body = await getNonLaboralDaysBetween(
     Number(start_date),

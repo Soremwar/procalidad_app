@@ -10,16 +10,17 @@ import {
 } from "../../../api/models/ORGANIZACION/salario.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getSalaries = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getSalariesTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getSalariesTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createSalary = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
@@ -52,7 +53,9 @@ export const createSalary = async ({ request, response }: RouterContext) => {
 
   const person_has_cost: boolean = await personHasCost(person);
 
-  if(person_has_cost) throw new Error("El coste para la persona ya ha sido calculado");
+  if (person_has_cost) {
+    throw new Error("El coste para la persona ya ha sido calculado");
+  }
 
   const salary = await createNew(
     Number(person),
@@ -80,7 +83,7 @@ export const getCalculatedSalary = async (
     computer,
   } = await request.body().then((x: Body) => x.value);
 
-  if(!(salary_type && Number(computer))) throw new RequestSyntaxError();
+  if (!(salary_type && Number(computer))) throw new RequestSyntaxError();
 
   response.body = await getCalculatedResult(
     Number(labour_cost) || 0,

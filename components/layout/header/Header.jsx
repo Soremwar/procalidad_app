@@ -4,12 +4,12 @@ import {
   Toolbar,
   IconButton,
   Menu,
-  MenuItem
+  MenuItem,
 } from "@material-ui/core";
 import {
   Menu as MenuIcon,
   Person as AccountIcon,
-  ArrowBack as ArrowBackIcon
+  ArrowBack as ArrowBackIcon,
 } from "@material-ui/icons";
 
 import useStyles from "./styles.js";
@@ -18,7 +18,7 @@ import { Typography } from "../../common/Wrappers.jsx";
 import {
   useLayoutState,
   useLayoutDispatch,
-  toggleSidebar
+  toggleSidebar,
 } from "../../context/Layout.jsx";
 import { UserContext, signOutUser } from "../../context/User.jsx";
 
@@ -60,10 +60,13 @@ export default function Header(props) {
               />
             )}
         </IconButton>
-        <img src="/resources/img/logo.png" style={{
-          width: 'auto',
-          'maxHeight': '60px',
-        }} />
+        <img
+          src="/resources/img/logo.png"
+          style={{
+            width: "auto",
+            "maxHeight": "60px",
+          }}
+        />
         <div className={classes.grow} />
         <IconButton
           aria-haspopup="true"

@@ -1,7 +1,9 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder, getTableModels, TableResult
+  TableOrder,
+  getTableModels,
+  TableResult,
 } from "../../common/table.ts";
 import {
   TABLE as LICENSE_TABLE,
@@ -30,7 +32,7 @@ class Salario {
     public salario: number | undefined,
     public tipo_salario: TipoSalario,
     public fec_vigencia: Date,
-  ) { }
+  ) {}
 
   async update(
     fk_computador: number = this.fk_computador,
@@ -53,16 +55,21 @@ class Salario {
       fec_vigencia,
     });
 
-    const person_has_cost: boolean = await personHasCost(this.fk_persona, this.pk_salario);
+    const person_has_cost: boolean = await personHasCost(
+      this.fk_persona,
+      this.pk_salario,
+    );
 
-    if(person_has_cost) throw new Error("El coste para la persona ya ha sido calculado");
+    if (person_has_cost) {
+      throw new Error("El coste para la persona ya ha sido calculado");
+    }
 
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
         FK_COMPUTADOR = $2,
         VALOR_PRESTACIONAL = $3,
         VALOR_BONOS = $4,
-        LICENCIAS = '{${licencias.join(',')}}',
+        LICENCIAS = '{${licencias.join(",")}}',
         OTROS = $5,
         TIPO_SALARIO = $6,
         FEC_VIGENCIA = $7
@@ -101,7 +108,7 @@ class CalculoCostoEmpleado {
   constructor(
     public readonly costo: number,
     public readonly costo_total: number,
-  ){}
+  ) {}
 }
 
 export const getCalculatedResult = async (
@@ -130,13 +137,14 @@ export const getCalculatedResult = async (
       SELECT
         CAST($1 AS NUMERIC) AS VALOR_PRESTACIONAL,
         CAST($2 AS NUMERIC) AS VALOR_BONOS,
-        ${licencias.length
-          ? `(SELECT
+        ${
+      licencias.length
+        ? `(SELECT
               COALESCE(SUM(COSTO), 0)
             FROM ${LICENSE_TABLE}
-            WHERE PK_LICENCIA IN (${licencias.join(',')}))`
-          : `0`
-        } AS LICENCIAS,
+            WHERE PK_LICENCIA IN (${licencias.join(",")}))`
+        : `0`
+    } AS LICENCIAS,
         CAST($3 AS NUMERIC) AS OTROS,
         $4 AS TIPO_SALARIO
     ),
@@ -213,18 +221,20 @@ export const findAll = async (): Promise<Salario[]> => {
     number,
     TipoSalario,
     Date,
-  ]) => new Salario(
-    a,
-    b,
-    c,
-    d,
-    e,
-    f.split(',').map(Number).filter(Boolean),
-    g,
-    h,
-    i,
-    j,
-  ));
+  ]) =>
+    new Salario(
+      a,
+      b,
+      c,
+      d,
+      e,
+      f.split(",").map(Number).filter(Boolean),
+      g,
+      h,
+      i,
+      j,
+    )
+  );
 
   return models;
 };
@@ -282,7 +292,7 @@ export const findById = async (id: number): Promise<Salario | null> => {
     c,
     d,
     e,
-    f.split(',').map(Number).filter(Boolean),
+    f.split(",").map(Number).filter(Boolean),
     g,
     h,
     i,
@@ -331,7 +341,7 @@ export const createNew = async (
       $2,
       $3,
       $4,
-      '{${licencias.join(',')}}',
+      '{${licencias.join(",")}}',
       $5,
       $6,
       $7
@@ -367,16 +377,15 @@ class TableData {
     public person: string,
     public salary_type: string,
     public computer: string,
-  ) { }
+  ) {}
 }
 
 export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: {[key: string]: string},
+  search: { [key: string]: string },
 ): Promise<TableResult> => {
-
   const base_query = (
     `SELECT
       PK_SALARIO AS ID,

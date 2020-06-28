@@ -28,8 +28,7 @@ const useStyles = makeStyles((theme) => ({
       color: theme.palette.text.primary,
       backgroundColor: theme.palette.secondary.dark,
     },
-})
-);
+}));
 
 export default function Menu({
   columns,
@@ -54,7 +53,7 @@ export default function Menu({
           <Search
             fullWidth
             onChange={onFilterChange}
-            options={columns.filter(column => column.searchable)}
+            options={columns.filter((column) => column.searchable)}
             variant="outlined"
           />
         </Grid>
@@ -67,8 +66,9 @@ export default function Menu({
           {numSelected == 1 &&
             (
               <Tooltip title="Editar">
-                <IconButton aria-label="edit" onClick={() =>
-                  onEditClick(Array.from(selected)[0])}
+                <IconButton
+                  aria-label="edit"
+                  onClick={() => onEditClick(Array.from(selected)[0])}
                 >
                   <EditICon />
                 </IconButton>
@@ -77,8 +77,9 @@ export default function Menu({
           {numSelected > 0 &&
             (
               <Tooltip title="Eliminar">
-                <IconButton aria-label="delete" onClick={() =>
-                  onDeleteClick(Array.from(selected))}
+                <IconButton
+                  aria-label="delete"
+                  onClick={() => onDeleteClick(Array.from(selected))}
                 >
                   <DeleteIcon />
                 </IconButton>

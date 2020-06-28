@@ -7,19 +7,21 @@ import {
 } from "../../../api/models/OPERACIONES/TIPO_PRESUPUESTO.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getBudgetTypes = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getBudgetTypesTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getBudgetTypesTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
-export const createBudgetType = async ({ request, response }:
-  RouterContext) => {
+export const createBudgetType = async (
+  { request, response }: RouterContext,
+) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -52,8 +54,9 @@ export const getBudgetType = async ({ params, response }: RouterContext) => {
   response.body = budget;
 };
 
-export const updateBudgetType = async ({ params, request, response }:
-  RouterContext) => {
+export const updateBudgetType = async (
+  { params, request, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 

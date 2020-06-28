@@ -12,9 +12,9 @@ import {
   MenuItem,
   Select,
 } from "@material-ui/core";
-import hashGenerator from '../../lib/hash_generator/mod.js';
+import hashGenerator from "../../lib/hash_generator/mod.js";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   formControl: {
     minWidth: 120,
   },
@@ -41,7 +41,7 @@ export default ({
   const [values, setValues] = useState([]);
   const [label_id] = useState(hashGenerator(10));
 
-  const handleChange = event => setValues(event.target.value);
+  const handleChange = (event) => setValues(event.target.value);
 
   return (
     <div>
@@ -63,14 +63,16 @@ export default ({
               style: {
                 maxHeight: 224,
                 width: 250,
-              }
-            }
+              },
+            },
           }}
           multiple
-          onChange={event => (onChange ? onChange(event) : handleChange(event))}
-          renderValue={selected => (
+          onChange={(event) => (onChange
+            ? onChange(event)
+            : handleChange(event))}
+          renderValue={(selected) => (
             <div className={classes.chips}>
-              {selected.map(id => (
+              {selected.map((id) => (
                 <Chip
                   key={id}
                   label={data.find(([entry]) => entry == id)[1]}

@@ -53,5 +53,4 @@ export default makeStyles((theme) => ({
     height: 1,
     backgroundColor: "#D8D8D880",
   },
-})
-);
+}));

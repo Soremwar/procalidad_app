@@ -1,6 +1,8 @@
 import postgres from "../../services/postgres.js";
 import {
-  TableOrder, getTableModels, TableResult
+  TableOrder,
+  getTableModels,
+  TableResult,
 } from "../../common/table.ts";
 
 import {
@@ -38,7 +40,7 @@ class Recurso {
     public fecha_fin: number,
     public porcentaje: number,
     public horas: number,
-  ) { }
+  ) {}
 
   async update(
     fk_persona: number = this.fk_persona,
@@ -70,10 +72,14 @@ class Recurso {
       this.fk_persona,
       horas_diarias,
       this.fecha_inicio,
-      this.fecha_fin
+      this.fecha_fin,
     );
 
-    if(!is_available) throw new Error("La asignacion no se encuentra disponible en el periodo especificado");
+    if (!is_available) {
+      throw new Error(
+        "La asignacion no se encuentra disponible en el periodo especificado",
+      );
+    }
 
     await postgres.query(
       `UPDATE ${TABLE} SET
@@ -95,19 +101,22 @@ class Recurso {
       this.horas,
     );
 
-    const days: number[] = await getLaboralDaysBetween(this.fecha_inicio, this.fecha_fin);
+    const days: number[] = await getLaboralDaysBetween(
+      this.fecha_inicio,
+      this.fecha_fin,
+    );
 
-    try{
-      for (const day of days){
+    try {
+      for (const day of days) {
         await createDetail(
           this.pk_recurso,
           day,
           horas_diarias,
         );
       }
-    }catch(e){
+    } catch (e) {
       await this.delete();
-      throw(e);
+      throw (e);
     }
 
     return this;
@@ -199,13 +208,21 @@ export const createNew = async (
   porcentaje: number,
   horas: number,
 ) => {
-
   //Reemplazar 9 por calculo de horas laborales diarias
   const horas_diarias = (porcentaje / 100) * 9;
 
-  const is_available = await assignationIsAvailable(fk_persona, horas_diarias, fecha_inicio, fecha_fin);
+  const is_available = await assignationIsAvailable(
+    fk_persona,
+    horas_diarias,
+    fecha_inicio,
+    fecha_fin,
+  );
 
-  if(!is_available) throw new Error("La asignacion no se encuentra disponible en el periodo especificado");
+  if (!is_available) {
+    throw new Error(
+      "La asignacion no se encuentra disponible en el periodo especificado",
+    );
+  }
 
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
@@ -244,17 +261,17 @@ export const createNew = async (
 
   const days: number[] = await getLaboralDaysBetween(fecha_inicio, fecha_fin);
 
-  try{
-    for (const day of days){
+  try {
+    for (const day of days) {
       await createDetail(
         id,
         day,
         horas_diarias,
       );
     }
-  }catch(e){
+  } catch (e) {
     await recurso.delete();
-    throw(e);
+    throw (e);
   }
 
   return recurso;
@@ -297,16 +314,15 @@ class TableData {
     public end_date: string,
     public assignation: string,
     public hours: number,
-  ) { }
+  ) {}
 }
 
 export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: {[key: string]: string},
+  search: { [key: string]: string },
 ): Promise<TableResult> => {
-
   const base_query = (
     `SELECT
       PK_RECURSO,
@@ -352,16 +368,15 @@ class ResourceTableData {
     public start_date: string,
     public end_date: string,
     public hours: number,
-  ) { }
+  ) {}
 }
 
 export const getResourceTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: {[key: string]: string},
+  search: { [key: string]: string },
 ): Promise<TableResult> => {
-
   const base_query = (
     `SELECT
       FK_PERSONA,
@@ -405,16 +420,15 @@ class DetailTableData {
     public end_date: string,
     public assignation: string,
     public hours: number,
-  ) { }
+  ) {}
 }
 
 export const getDetailTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: {[key: string]: string},
+  search: { [key: string]: string },
 ): Promise<TableResult> => {
-
   const base_query = (
     `SELECT
       PK_RECURSO,
@@ -476,10 +490,11 @@ export const getProjectGanttData = async (
       PORCENTAJE,
       HORAS
     FROM ${TABLE}
-    ${project
-      ? `WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
-      : ''
-    }`
+    ${
+      project
+        ? `WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
+        : ""
+    }`,
   );
 
   const data = rows.map((row: [
@@ -492,7 +507,7 @@ export const getProjectGanttData = async (
   ]) => new ProjectGanttData(...row));
 
   return data;
-}
+};
 
 class ResourceGanttData {
   constructor(
@@ -511,7 +526,7 @@ export const getResourceGanttData = async (): Promise<ResourceGanttData[]> => {
       MAX(FECHA_FIN) AS END_DATE,
       SUM(HORAS) AS HOURS
     FROM ${TABLE}
-    GROUP BY FK_PERSONA`
+    GROUP BY FK_PERSONA`,
   );
 
   const data = rows.map((row: [
@@ -522,7 +537,7 @@ export const getResourceGanttData = async (): Promise<ResourceGanttData[]> => {
   ]) => new ResourceGanttData(...row));
 
   return data;
-}
+};
 
 class DetailGanttData {
   constructor(
@@ -550,12 +565,11 @@ export const getDetailGanttData = async (
       PORCENTAJE,
       HORAS
     FROM ${TABLE}
-    ${person
-      ? `WHERE FK_PERSONA = ${person}`
-      : project
-        ? `WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
-        : ''
-    }`
+    ${
+      person ? `WHERE FK_PERSONA = ${person}` : project
+      ? `WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
+      : ""
+    }`,
   );
 
   const data = rows.map((row: [
@@ -569,7 +583,7 @@ export const getDetailGanttData = async (
   ]) => new DetailGanttData(...row));
 
   return data;
-}
+};
 
 //TODO
 //Remove laboral hours constant and make personal calculation
@@ -591,7 +605,7 @@ class DetailHeatmapData {
     public dates: DetailHeatmapDate[],
   ) {}
 
-  addDate(date: DetailHeatmapDate){
+  addDate(date: DetailHeatmapDate) {
     this.dates.push(date);
   }
 }
@@ -655,11 +669,13 @@ export const getDetailHeatmapData = async (
   const projects: DetailHeatmapData[] = raw_projects.map((project: [
     number,
     string,
-  ]) => new DetailHeatmapData(
-    project[0],
-    project[1],
-    [],
-  ));
+  ]) =>
+    new DetailHeatmapData(
+      project[0],
+      project[1],
+      [],
+    )
+  );
 
   dates
     .map((row: [
@@ -669,14 +685,16 @@ export const getDetailHeatmapData = async (
       number,
     ]) => new DetailHeatmapDate(...row))
     .forEach((x: DetailHeatmapDate) => {
-      const project = projects.find(project => project.project_id === x.project_id);
-      if(project){
+      const project = projects.find((project) =>
+        project.project_id === x.project_id
+      );
+      if (project) {
         project.addDate(x);
       }
     });
 
   return projects;
-}
+};
 
 class ResourceHeatmapDate {
   constructor(
@@ -694,15 +712,15 @@ class ResourceHeatmapData {
     public dates: ResourceHeatmapDate[],
   ) {}
 
-  addDate(date: ResourceHeatmapDate){
+  addDate(date: ResourceHeatmapDate) {
     this.dates.push(date);
   }
 }
 
 export enum HeatmapFormula {
-  occupation = 'occupation',
-  availability = 'availability',
-};
+  occupation = "occupation",
+  availability = "availability",
+}
 
 export const getResourceHeatmapData = async (
   formula: HeatmapFormula,
@@ -711,12 +729,16 @@ export const getResourceHeatmapData = async (
     `SELECT
       R.FK_PERSONA,
       RD.FECHA,
-      ${formula === 'occupation'
-          ? `SUM(RD.HORAS)`
-          : `ABS(SUM(RD.HORAS) - ${LABORAL_HOURS})`}::NUMERIC,
-       ${formula === 'occupation'
-          ? `TO_CHAR(SUM(RD.HORAS) / ${LABORAL_HOURS} * 100, '000.99')`
-          : `TO_CHAR(ABS(SUM(RD.HORAS) - ${LABORAL_HOURS}) / ${LABORAL_HOURS} * 100, '000.99')`}::NUMERIC
+      ${
+      formula === "occupation"
+        ? `SUM(RD.HORAS)`
+        : `ABS(SUM(RD.HORAS) - ${LABORAL_HOURS})`
+    }::NUMERIC,
+       ${
+      formula === "occupation"
+        ? `TO_CHAR(SUM(RD.HORAS) / ${LABORAL_HOURS} * 100, '000.99')`
+        : `TO_CHAR(ABS(SUM(RD.HORAS) - ${LABORAL_HOURS}) / ${LABORAL_HOURS} * 100, '000.99')`
+    }::NUMERIC
     FROM ${DETAIL_TABLE} AS RD
     JOIN ${TABLE} AS R
       ON RD.FK_RECURSO = R.PK_RECURSO
@@ -742,17 +764,19 @@ export const getResourceHeatmapData = async (
       )
     GROUP BY
       FK_PERSONA,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA)`
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA)`,
   );
 
   const people: ResourceHeatmapData[] = raw_people.map((person: [
     number,
     string,
-  ]) => new ResourceHeatmapData(
-    person[0],
-    person[1],
-    [],
-  ));
+  ]) =>
+    new ResourceHeatmapData(
+      person[0],
+      person[1],
+      [],
+    )
+  );
 
   dates
     .map((row: [
@@ -762,11 +786,11 @@ export const getResourceHeatmapData = async (
       number,
     ]) => new ResourceHeatmapDate(...row))
     .forEach((x: ResourceHeatmapDate) => {
-      const person = people.find(person => person.person_id === x.person_id);
-      if(person){
+      const person = people.find((person) => person.person_id === x.person_id);
+      if (person) {
         person.addDate(x);
       }
     });
 
   return people;
-}
+};

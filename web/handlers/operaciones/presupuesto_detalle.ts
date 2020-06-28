@@ -6,7 +6,9 @@ import {
 } from "../../../api/models/OPERACIONES/PRESUPUESTO_DETALLE.ts";
 import { RequestSyntaxError } from "../../exceptions.ts";
 
-export const searchBudgetDetails = async ({ params, response }: RouterContext) => {
+export const searchBudgetDetails = async (
+  { params, response }: RouterContext,
+) => {
   const budget_id: number = Number(params.id);
   if (!budget_id) throw new RequestSyntaxError();
 

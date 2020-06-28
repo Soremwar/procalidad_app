@@ -1,7 +1,9 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder, getTableModels, TableResult,
+  TableOrder,
+  getTableModels,
+  TableResult,
 } from "../../common/table.ts";
 import {
   TABLE as STATE_TABLE,
@@ -231,9 +233,8 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: {[key: string]: string},
+  search: { [key: string]: string },
 ): Promise<TableResult> => {
-
   const base_query = (
     `SELECT
         PK_CLIENTE AS ID,
@@ -255,11 +256,13 @@ export const getTableData = async (
     ) AS TOTAL` +
     " " +
     (Object.keys(search).length
-        ? `WHERE ${Object.entries(search)
-            .map(([column, value]) => (
-                `CAST(${column} AS VARCHAR) ILIKE '${value || '%'}'`
-            )).join(' AND ')}`
-        : '') +
+      ? `WHERE ${
+        Object.entries(search)
+          .map(([column, value]) => (
+            `CAST(${column} AS VARCHAR) ILIKE '${value || "%"}'`
+          )).join(" AND ")
+      }`
+      : "") +
     " " +
     (Object.values(order).length
       ? `ORDER BY ${

@@ -7,19 +7,21 @@ import {
 } from "../../../api/models/OPERACIONES/TIPO_PROYECTO.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getProjectTypes = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getProjectTypesTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getProjectTypesTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
-export const createProjectType = async ({ request, response }:
-  RouterContext) => {
+export const createProjectType = async (
+  { request, response }: RouterContext,
+) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -52,8 +54,9 @@ export const getProjectType = async ({ params, response }: RouterContext) => {
   response.body = project_type;
 };
 
-export const updateProjectType = async ({ params, request, response }:
-  RouterContext) => {
+export const updateProjectType = async (
+  { params, request, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
@@ -79,8 +82,9 @@ export const updateProjectType = async ({ params, request, response }:
   response.body = project_type;
 };
 
-export const deleteProjectType = async ({ params, response }:
-  RouterContext) => {
+export const deleteProjectType = async (
+  { params, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

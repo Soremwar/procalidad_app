@@ -22,5 +22,4 @@ export default makeStyles((theme) => ({
   fakeToolbar: {
     ...theme.mixins.toolbar,
   },
-})
-);
+}));

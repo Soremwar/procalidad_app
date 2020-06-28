@@ -156,5 +156,4 @@ export default makeStyles((theme) => ({
   sendButtonIcon: {
     marginLeft: theme.spacing(2),
   },
-})
-);
+}));

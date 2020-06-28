@@ -9,8 +9,8 @@ const cellStyles = makeStyles({
     borderBottom: "none",
     fontSize: "10px",
     padding: "2px",
-    margin: 0
-  }
+    margin: 0,
+  },
 });
 
 export const CleanTableCell = ({ children, className = "", ...props }) => {
@@ -30,8 +30,8 @@ const verticalStyles = makeStyles({
     transform: "rotate(-90deg)",
     display: "inline-block",
     padding: 0,
-    margin: 0
-  }
+    margin: 0,
+  },
 });
 
 export const VerticalCell = ({ children, ...props }) => {
@@ -50,7 +50,7 @@ const colors = new Map([
   ["gray", "#D2D0D1"],
 ]);
 
-const dotStyles = makeStyles(theme => ({
+const dotStyles = makeStyles((theme) => ({
   dot: {
     borderRadius: "0%",
     height: "15px",
@@ -91,10 +91,13 @@ export const DetailDot = ({
       className={[
         classes.dot,
         classes[status],
-      ].join(' ')}
-      style={color ? {
-        backgroundColor: color,
-      } : {}}
-    ></div>
+      ].join(" ")}
+      style={color
+        ? {
+          backgroundColor: color,
+        }
+        : {}}
+    >
+    </div>
   );
-}
+};

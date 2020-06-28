@@ -93,11 +93,11 @@ export default {
     },
     MuiCheckbox: {
       colorSecondary: {
-        color: '#6e6e6e',
-        '&$checked': {
-          color: '#6e6e6e',
+        color: "#6e6e6e",
+        "&$checked": {
+          color: "#6e6e6e",
         },
-      }
+      },
     },
     MuiMenu: {
       paper: {

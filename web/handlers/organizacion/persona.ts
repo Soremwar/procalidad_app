@@ -8,16 +8,17 @@ import {
 } from "../../../api/models/ORGANIZACION/PERSONA.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getPeople = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getPeopleTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getPeopleTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createPerson = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

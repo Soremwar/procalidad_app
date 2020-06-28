@@ -1,12 +1,12 @@
 import React, {
   Fragment,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
   DialogContentText,
   Grid,
-  TextField
+  TextField,
 } from "@material-ui/core";
 
 import {
@@ -48,9 +48,27 @@ const deleteContact = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
-  { id: "phone", numeric: false, disablePadding: false, label: "Telefono", searchable: true },
-  { id: "email", numeric: false, disablePadding: false, label: "Correo", searchable: true},
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: false,
+    label: "Nombre",
+    searchable: true,
+  },
+  {
+    id: "phone",
+    numeric: false,
+    disablePadding: false,
+    label: "Telefono",
+    searchable: true,
+  },
+  {
+    id: "email",
+    numeric: false,
+    disablePadding: false,
+    label: "Correo",
+    searchable: true,
+  },
 ];
 
 const AddModal = ({
@@ -296,15 +314,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteContact(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -326,8 +346,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>

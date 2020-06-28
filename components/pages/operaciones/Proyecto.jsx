@@ -1,12 +1,12 @@
 import React, {
   Fragment,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
   DialogContentText,
   Grid,
-  TextField
+  TextField,
 } from "@material-ui/core";
 
 import {
@@ -54,9 +54,27 @@ const deleteProject = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
-  { id: "area", numeric: false, disablePadding: false, label: "Area", searchable: true },
-  { id: "client", numeric: false, disablePadding: false, label: "Cliente", searchable: true },
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: false,
+    label: "Nombre",
+    searchable: true,
+  },
+  {
+    id: "area",
+    numeric: false,
+    disablePadding: false,
+    label: "Area",
+    searchable: true,
+  },
+  {
+    id: "client",
+    numeric: false,
+    disablePadding: false,
+    label: "Cliente",
+    searchable: true,
+  },
 ];
 
 const AddModal = ({
@@ -168,12 +186,12 @@ const EditModal = ({
   updateTable,
 }) => {
   const [fields, setFields] = useState({
-    type: '',
-    client: '',
-    area: '',
-    name: '',
-    description: '',
-    status: '',
+    type: "",
+    client: "",
+    area: "",
+    name: "",
+    description: "",
+    status: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -231,7 +249,7 @@ const EditModal = ({
         fullWidth
         label="Tipo de proyecto"
         name="type"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.type}
       >
@@ -243,7 +261,7 @@ const EditModal = ({
         fullWidth
         label="Cliente"
         name="client"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.client}
       >
@@ -255,7 +273,7 @@ const EditModal = ({
         fullWidth
         label="Area"
         name="area"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.area}
       >
@@ -269,7 +287,7 @@ const EditModal = ({
         name="name"
         label="Nombre del Proyecto"
         fullWidth
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.name}
       />
@@ -280,7 +298,7 @@ const EditModal = ({
         margin="dense"
         multiline
         name="description"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.description}
       />
@@ -288,7 +306,7 @@ const EditModal = ({
         fullWidth
         label="Estado"
         name="status"
-        onChange={event => handleChange(event)}
+        onChange={(event) => handleChange(event)}
         required
         value={fields.status}
       >
@@ -317,15 +335,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteProject(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -347,8 +367,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>
@@ -384,9 +404,9 @@ export default () => {
   };
 
   useEffect(() => {
-    getProjectTypes().then(types => setProjectTypes(types));
-    getClients().then(clients => setClients(clients));
-    getAreas().then(areas => setAreas(areas));
+    getProjectTypes().then((types) => setProjectTypes(types));
+    getClients().then((clients) => setClients(clients));
+    getAreas().then((areas) => setAreas(areas));
     updateTable();
   }, []);
 
@@ -428,9 +448,9 @@ export default () => {
               update_table={tableShouldUpdate}
               url={"operaciones/proyecto/table"}
             />
-          </Widget >
-        </Grid >
-      </Grid >
-    </Fragment >
+          </Widget>
+        </Grid>
+      </Grid>
+    </Fragment>
   );
 };

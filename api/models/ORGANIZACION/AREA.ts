@@ -1,7 +1,9 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder, getTableModels, TableResult
+  TableOrder,
+  getTableModels,
+  TableResult,
 } from "../../common/table.ts";
 
 //TODO
@@ -128,9 +130,8 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: {[key: string]: string},
+  search: { [key: string]: string },
 ): Promise<TableResult> => {
-
   const base_query = (
     `SELECT
       PK_AREA AS ID,

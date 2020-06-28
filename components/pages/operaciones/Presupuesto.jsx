@@ -22,7 +22,7 @@ import {
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
-import{
+import {
   fetchBudgetApi,
   fetchBudgetTypeApi,
   fetchClientApi,
@@ -35,7 +35,7 @@ import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
-import CurrencyField from '@unicef/material-ui-currency-textfield';
+import CurrencyField from "@unicef/material-ui-currency-textfield";
 
 const getRoles = () => fetchRoleApi().then((x) => x.json());
 const getClients = () => fetchClientApi().then((x) => x.json());
@@ -70,7 +70,13 @@ const deleteBudget = async (id) => {
 };
 
 const headers = [
-  { id: "project", numeric: false, disablePadding: false, label: "Proyecto", searchable: true, },
+  {
+    id: "project",
+    numeric: false,
+    disablePadding: false,
+    label: "Proyecto",
+    searchable: true,
+  },
   {
     id: "budget_type",
     numeric: false,
@@ -78,8 +84,20 @@ const headers = [
     label: "Tipo de Presupuesto",
     searchable: true,
   },
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true, },
-  { id: "status", numeric: false, disablePadding: false, label: "Estado", searchable: true, },
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: false,
+    label: "Nombre",
+    searchable: true,
+  },
+  {
+    id: "status",
+    numeric: false,
+    disablePadding: false,
+    label: "Estado",
+    searchable: true,
+  },
 ];
 
 const BudgetRole = ({
@@ -147,7 +165,7 @@ const BudgetRole = ({
           InputProps={{
             inputProps: {
               min: 0,
-            }
+            },
           }}
           name="time"
           onChange={(event) => handleChange(event)}
@@ -162,7 +180,8 @@ const BudgetRole = ({
           currencySymbol="$"
           name="price"
           minimumValue="0"
-          onChange={(_event, value) => setFields(fields => ({ ...fields, price: value }))}
+          onChange={(_event, value) =>
+            setFields((fields) => ({ ...fields, price: value }))}
           outputFormat="number"
           required
           value={fields.price}
@@ -215,7 +234,7 @@ const BudgetDetail = ({
         role.time = time;
         role.price = price;
         return role;
-      })
+      });
     });
   };
 
@@ -271,17 +290,22 @@ const BudgetDetail = ({
       <Grid container style={{ padding: "10px" }}>
         <Grid item xs={6}>
           <Typography variant="h6" gutterBottom>
-            Total de Horas: {roles.reduce((sum, role) => (sum + Number(role.time)), 0)}
+            Total de Horas: {roles.reduce(
+              (sum, role) => (sum + Number(role.time)),
+              0,
+            )}
           </Typography>
         </Grid>
         <Grid item xs={6}>
           <Typography variant="h6" gutterBottom>
-            Valor Total:
-            &nbsp; &nbsp;
+            Valor Total: &nbsp; &nbsp;
             <CurrencyField
               currencySymbol="$"
               disabled
-              value={roles.reduce((sum, role) => (sum + (role.time * role.price)), 0)}
+              value={roles.reduce(
+                (sum, role) => (sum + (role.time * role.price)),
+                0,
+              )}
             />
           </Typography>
         </Grid>
@@ -291,9 +315,7 @@ const BudgetDetail = ({
               checked={distribute}
               onChange={(event) => setDistribute(event.target.checked)}
             />
-            Distribuir tarifas por valor
-            &nbsp;
-            &nbsp;
+            Distribuir tarifas por valor &nbsp; &nbsp;
             <CurrencyField
               currencySymbol="$"
               disabled={!distribute}
@@ -427,11 +449,13 @@ const AddModal = ({
           setProjectQuery(value);
         }}
         required
-        source={`operaciones/proyecto/search?client=${fields.client}&query=${encodeURI(
-          fields.project
-            ? ""
-            : project_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-        )}`}
+        source={`operaciones/proyecto/search?client=${fields.client}&query=${
+          encodeURI(
+            fields.project
+              ? ""
+              : project_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+          )
+        }`}
         value={fields.project}
       />
       <SelectField
@@ -610,11 +634,13 @@ const EditModal = ({
         }}
         preload
         required
-        source={`operaciones/proyecto/search?client=${fields.client}&query=${encodeURI(
-          fields.project
-            ? ""
-            : project_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-        )}`}
+        source={`operaciones/proyecto/search?client=${fields.client}&query=${
+          encodeURI(
+            fields.project
+              ? ""
+              : project_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+          )
+        }`}
         value={fields.project}
       />
       <SelectField
@@ -687,15 +713,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteBudget(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -717,8 +745,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>

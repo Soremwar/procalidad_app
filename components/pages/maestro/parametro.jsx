@@ -42,8 +42,8 @@ const formatDateToInternational = (date) => {
   let month = date.getMonth() + 1;
   let day = date.getDate();
 
-  if (month < 10) month = '0' + month;
-  if (day < 10) day = '0' + day;
+  if (month < 10) month = "0" + month;
+  if (day < 10) day = "0" + day;
 
   return `${year}-${month}-${day}`;
 };
@@ -54,9 +54,11 @@ const fetchParameterDefinitionApi = requestGenerator(
 );
 
 const getParameter = (id) => fetchParameterApi(id).then((x) => x.json());
-const getDefinition = (id) => fetchParameterDefinitionApi(id).then((x) => x.json());
+const getDefinition = (id) =>
+  fetchParameterDefinitionApi(id).then((x) => x.json());
 
-const getDefinitions = (parameter) => fetchParameterDefinitionApi(`search?parameter=${parameter}`);
+const getDefinitions = (parameter) =>
+  fetchParameterDefinitionApi(`search?parameter=${parameter}`);
 
 const createParameter = async (form_data) => {
   return await fetchParameterApi("", {
@@ -99,7 +101,13 @@ const deleteDefinition = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: false,
+    label: "Nombre",
+    searchable: true,
+  },
   {
     id: "description",
     numeric: false,
@@ -178,13 +186,13 @@ const AddModal = ({
   );
 };
 
-const useEditModalStyles = makeStyles(theme => ({
+const useEditModalStyles = makeStyles((theme) => ({
   list: {
-    width: '100%',
+    width: "100%",
     maxWidth: 250,
     backgroundColor: theme.palette.background.paper,
-  }
-}))
+  },
+}));
 
 const EditModal = ({
   id,
@@ -228,13 +236,15 @@ const EditModal = ({
             });
           });
         } else if (selected_definition) {
-          getDefinition(selected_definition).then(({ fec_inicio, fec_fin, valor }) => {
-            setDefinitionFields({
-              start_date: formatDateToInternational(new Date(fec_inicio)),
-              end_date: formatDateToInternational(new Date(fec_fin)),
-              value: valor,
-            });
-          });
+          getDefinition(selected_definition).then(
+            ({ fec_inicio, fec_fin, valor }) => {
+              setDefinitionFields({
+                start_date: formatDateToInternational(new Date(fec_inicio)),
+                end_date: formatDateToInternational(new Date(fec_fin)),
+                value: valor,
+              });
+            },
+          );
         }
         setFetchData(false);
       }
@@ -252,7 +262,9 @@ const EditModal = ({
           }
         })
         .then((definitions) => setDefinitions(definitions))
-        .catch(() => setError('No fue posible cargar las definiciones disponibles'));
+        .catch(() =>
+          setError("No fue posible cargar las definiciones disponibles")
+        );
       setFetchDefinitions(false);
     }
   }, [should_fetch_definitions]);
@@ -279,7 +291,7 @@ const EditModal = ({
 
   const setFocusToParameter = () => {
     if (formulary_changed) {
-      setError('Guarde los cambios registrados primero');
+      setError("Guarde los cambios registrados primero");
     } else {
       setParameterSelected(true);
       setFetchData(true);
@@ -288,7 +300,7 @@ const EditModal = ({
 
   const setFocusToDefinition = (definition) => {
     if (formulary_changed) {
-      setError('Guarde los cambios registrados primero');
+      setError("Guarde los cambios registrados primero");
     } else {
       setParameterSelected(false);
       setSelectedDefinition(definition);
@@ -300,7 +312,10 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await updateParameter(id, new URLSearchParams(parameter_fields));
+    const request = await updateParameter(
+      id,
+      new URLSearchParams(parameter_fields),
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -322,7 +337,10 @@ const EditModal = ({
     if (selected_definition === 0) {
       request = createDefinition(id, new URLSearchParams(definition_fields));
     } else {
-      request = updateDefinition(selected_definition, new URLSearchParams(definition_fields));
+      request = updateDefinition(
+        selected_definition,
+        new URLSearchParams(definition_fields),
+      );
     }
 
     request
@@ -336,9 +354,9 @@ const EditModal = ({
       })
       .catch(async () => {
         const {
-          message = 'No fue posible guardar la definicion',
+          message = "No fue posible guardar la definicion",
         } = await request
-          .then(x => x.json())
+          .then((x) => x.json())
           .catch(() => ({}));
         setError(message);
       })
@@ -356,22 +374,22 @@ const EditModal = ({
   const addDefinition = () => {
     setFocusToDefinition(0);
     setDefinitionFields({
-      start_date: '',
-      end_date: '',
-      value: '',
+      start_date: "",
+      end_date: "",
+      value: "",
     });
   };
 
   const removeDefinition = (id) => {
     deleteDefinition(id)
       .then(() => setFetchDefinitions(true))
-      .catch(() => setError('No fue posible eliminar la definicion'));
+      .catch(() => setError("No fue posible eliminar la definicion"));
   };
 
   return (
     <Dialog
       fullWidth
-      maxWidth={'md'}
+      maxWidth={"md"}
       onClose={() => setModalOpen(false)}
       open={is_open}
       scroll={"paper"}
@@ -396,20 +414,29 @@ const EditModal = ({
                     fec_inicio,
                     fec_fin,
                   }) => {
-                    const start_date = new Date(fec_inicio).toLocaleDateString('es-CO');
-                    const end_date = new Date(fec_fin).toLocaleDateString('es-CO');
+                    const start_date = new Date(fec_inicio).toLocaleDateString(
+                      "es-CO",
+                    );
+                    const end_date = new Date(fec_fin).toLocaleDateString(
+                      "es-CO",
+                    );
                     return (
                       <ListItem
                         button
                         key={pk_definicion}
                         onClick={() => setFocusToDefinition(pk_definicion)}
-                        selected={(pk_definicion === selected_definition) && !is_parameter_selected}
+                        selected={(pk_definicion === selected_definition) &&
+                          !is_parameter_selected}
                       >
-                        <ListItemText>{`${start_date} - ${end_date}`}</ListItemText>
+                        <ListItemText>
+                          {`${start_date} - ${end_date}`}
+                        </ListItemText>
                         <ListItemSecondaryAction>
                           <Button
                             onClick={() => removeDefinition(pk_definicion)}
-                          >-</Button>
+                          >
+                            -
+                          </Button>
                         </ListItemSecondaryAction>
                       </ListItem>
                     );
@@ -419,7 +446,9 @@ const EditModal = ({
                     <ListItemSecondaryAction>
                       <Button
                         onClick={addDefinition}
-                      >+</Button>
+                      >
+                        +
+                      </Button>
                     </ListItemSecondaryAction>
                   </ListItem>
                 </List>
@@ -427,8 +456,8 @@ const EditModal = ({
             </div>
           </Grid>
           <Grid item xs={8}>
-            {
-              is_parameter_selected ? (
+            {is_parameter_selected
+              ? (
                 <Fragment>
                   <TextField
                     margin="dense"
@@ -462,76 +491,73 @@ const EditModal = ({
                     <option value="percentage">Porcentaje</option>
                   </SelectField>
                 </Fragment>
-              ) :
-                (
-                  <Fragment>
-                    <TextField
-                      fullWidth
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                      label="Fecha Inicial"
-                      margin="dense"
-                      name="start_date"
-                      onChange={handleDefinitionChange}
-                      required
-                      type="date"
-                      value={definition_fields.start_date}
-                    />
-                    <TextField
-                      fullWidth
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                      label="Fecha Final"
-                      margin="dense"
-                      name="end_date"
-                      onChange={handleDefinitionChange}
-                      required
-                      type="date"
-                      value={definition_fields.end_date}
-                    />
-                    {
-                      parameter_fields.type == 'string'
-                        ? (
-                          <TextField
-                            fullWidth
-                            label="Valor"
-                            margin="dense"
-                            name="value"
-                            onChange={handleDefinitionChange}
-                            required
-                            value={definition_fields.value}
-                          />
-                        )
-                        : (
-                          <TextField
-                            fullWidth
-                            InputProps={{
-                              ...(
-                                parameter_fields.type == 'percentage'
-                                  ? {
-                                    inputProps: {
-                                      min: 0,
-                                      max: 100,
-                                    }
-                                  }
-                                  : {}
-                              )
-                            }}
-                            label="Valor"
-                            margin="dense"
-                            name="value"
-                            onChange={handleDefinitionChange}
-                            type="number"
-                            required
-                            value={definition_fields.value}
-                          />
-                        )
-                    }
-                  </Fragment>
-                )
-            }
+              )
+              : (
+                <Fragment>
+                  <TextField
+                    fullWidth
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    label="Fecha Inicial"
+                    margin="dense"
+                    name="start_date"
+                    onChange={handleDefinitionChange}
+                    required
+                    type="date"
+                    value={definition_fields.start_date}
+                  />
+                  <TextField
+                    fullWidth
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    label="Fecha Final"
+                    margin="dense"
+                    name="end_date"
+                    onChange={handleDefinitionChange}
+                    required
+                    type="date"
+                    value={definition_fields.end_date}
+                  />
+                  {parameter_fields.type == "string"
+                    ? (
+                      <TextField
+                        fullWidth
+                        label="Valor"
+                        margin="dense"
+                        name="value"
+                        onChange={handleDefinitionChange}
+                        required
+                        value={definition_fields.value}
+                      />
+                    )
+                    : (
+                      <TextField
+                        fullWidth
+                        InputProps={{
+                          ...(
+                            parameter_fields.type == "percentage"
+                              ? {
+                                inputProps: {
+                                  min: 0,
+                                  max: 100,
+                                },
+                              }
+                              : {}
+                          ),
+                        }}
+                        label="Valor"
+                        margin="dense"
+                        name="value"
+                        onChange={handleDefinitionChange}
+                        type="number"
+                        required
+                        value={definition_fields.value}
+                      />
+                    )}
+                </Fragment>
+              )}
           </Grid>
         </Grid>
         {error && (
@@ -550,13 +576,15 @@ const EditModal = ({
             <CircularProgress
               size={26}
             />
-          ) : (
+          )
+          : (
             <Button
               color="primary"
               onClick={submitData}
-            >Guardar</Button>
-          )
-        }
+            >
+              Guardar
+            </Button>
+          )}
       </DialogActions>
     </Dialog>
   );
@@ -610,8 +638,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>

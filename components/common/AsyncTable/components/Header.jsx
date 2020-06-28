@@ -4,7 +4,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  TableSortLabel
+  TableSortLabel,
 } from "@material-ui/core";
 
 export default function Header({
@@ -49,8 +49,7 @@ export default function Header({
                 </span>}
             </TableSortLabel>
           </TableCell>
-        )
-        )}
+        ))}
       </TableRow>
     </TableHead>
   );

@@ -1,11 +1,14 @@
 import postgres from "../../services/postgres.js";
 
-const TABLE = 'MAESTRO.DIM_TIEMPO';
+const TABLE = "MAESTRO.DIM_TIEMPO";
 
 /*
 * Receives a YYYYMMDD type number
 * */
-export const addLaboralDays = async (start_date: number, days: number): Promise<number> => {
+export const addLaboralDays = async (
+  start_date: number,
+  days: number,
+): Promise<number> => {
   const { rows } = await postgres.query(
     `SELECT MAX(COD_FECHA) AS DAY
     FROM(
@@ -27,7 +30,10 @@ export const addLaboralDays = async (start_date: number, days: number): Promise<
   return end_date;
 };
 
-export const getLaboralDaysBetween = async (start_date: number, end_date: number): Promise<number[]> => {
+export const getLaboralDaysBetween = async (
+  start_date: number,
+  end_date: number,
+): Promise<number[]> => {
   const { rows } = await postgres.query(
     `SELECT 
       COD_FECHA

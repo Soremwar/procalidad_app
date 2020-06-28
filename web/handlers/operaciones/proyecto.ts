@@ -14,10 +14,11 @@ export const getProjects = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getProjectsTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getProjectsTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createProject = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

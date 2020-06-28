@@ -3,9 +3,9 @@ import {
   FormControl,
   InputLabel,
   NativeSelect,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import hashGenerator from '../../lib/hash_generator/mod.js';
+} from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
+import hashGenerator from "../../lib/hash_generator/mod.js";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -31,11 +31,11 @@ export default ({
   const classes = useStyles();
   const input_id = id || hashGenerator(10);
 
-  const [value, setValue] = useState(default_value || '');
+  const [value, setValue] = useState(default_value || "");
 
   const handleChange = (event) => {
     setValue(event.target.value);
-  }
+  };
 
   return (
     <FormControl
@@ -49,7 +49,7 @@ export default ({
           id: input_id,
           name,
         }}
-        onChange={event => onChange ? onChange(event) : handleChange(event)}
+        onChange={(event) => onChange ? onChange(event) : handleChange(event)}
         required={required}
         value={value}
         {...props}
@@ -59,4 +59,4 @@ export default ({
       </NativeSelect>
     </FormControl>
   );
-}
+};

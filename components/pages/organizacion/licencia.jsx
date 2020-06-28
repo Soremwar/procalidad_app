@@ -1,12 +1,12 @@
 import React, {
   Fragment,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
   DialogContentText,
   Grid,
-  TextField
+  TextField,
 } from "@material-ui/core";
 
 import {
@@ -15,33 +15,54 @@ import {
 } from "../../../lib/api/request.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
-import CurrencyField from '@unicef/material-ui-currency-textfield';
+import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
 
-const fetchLicenseApi = requestGenerator('organizacion/licencia');
+const fetchLicenseApi = requestGenerator("organizacion/licencia");
 
 const getLicense = (id) => fetchLicenseApi(id).then((x) => x.json());
 
-const createLicense = async (form_data) => fetchLicenseApi("", {
-  body: form_data,
-  method: "POST",
-});
+const createLicense = async (form_data) =>
+  fetchLicenseApi("", {
+    body: form_data,
+    method: "POST",
+  });
 
-const updateLicense = async (id, form_data) => fetchLicenseApi(id, {
-  body: form_data,
-  method: "PUT",
-});
+const updateLicense = async (id, form_data) =>
+  fetchLicenseApi(id, {
+    body: form_data,
+    method: "PUT",
+  });
 
-const deleteLicense = async (id) => fetchLicenseApi(id, {
-  method: "DELETE",
-});
+const deleteLicense = async (id) =>
+  fetchLicenseApi(id, {
+    method: "DELETE",
+  });
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
-  { id: "description", numeric: false, disablePadding: false, label: "Descripcion", searchable: true },
-  { id: "cost", numeric: false, disablePadding: false, label: "Costo", searchable: true },
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: false,
+    label: "Nombre",
+    searchable: true,
+  },
+  {
+    id: "description",
+    numeric: false,
+    disablePadding: false,
+    label: "Descripcion",
+    searchable: true,
+  },
+  {
+    id: "cost",
+    numeric: false,
+    disablePadding: false,
+    label: "Costo",
+    searchable: true,
+  },
 ];
 
 const AddModal = ({
@@ -123,7 +144,8 @@ const AddModal = ({
         label="Costo"
         minimumValue="0"
         name="cost"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, cost: value }))}
+        onChange={(_event, value) =>
+          setFields((fields) => ({ ...fields, cost: value }))}
         outputFormat="number"
         required
         value={fields.cost}
@@ -155,7 +177,10 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await updateLicense(data.pk_licencia, new URLSearchParams(fields));
+    const request = await updateLicense(
+      data.pk_licencia,
+      new URLSearchParams(fields),
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -212,7 +237,8 @@ const EditModal = ({
         label="Costo"
         minimumValue="0"
         name="cost"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, cost: value }))}
+        onChange={(_event, value) =>
+          setFields((fields) => ({ ...fields, cost: value }))}
         outputFormat="number"
         required
         value={fields.cost}
@@ -237,15 +263,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteLicense(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -267,8 +295,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>

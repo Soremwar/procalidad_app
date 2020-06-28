@@ -145,5 +145,4 @@ export default makeStyles((theme) => ({
       bottom: theme.spacing(2),
     },
   },
-})
-);
+}));

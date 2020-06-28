@@ -13,8 +13,7 @@ const useStyles = makeStyles((theme) => ({
     width: 8,
     height: 8,
   },
-})
-);
+}));
 
 export default function Dot({ size, color }) {
   const classes = useStyles();

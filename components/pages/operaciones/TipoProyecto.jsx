@@ -1,12 +1,12 @@
 import React, {
   Fragment,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
   DialogContentText,
   Grid,
-  TextField
+  TextField,
 } from "@material-ui/core";
 
 import {
@@ -45,8 +45,20 @@ const deleteProjectType = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
-  { id: "billable", numeric: false, disablePadding: false, label: "Facturable", searchable: true },
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: false,
+    label: "Nombre",
+    searchable: true,
+  },
+  {
+    id: "billable",
+    numeric: false,
+    disablePadding: false,
+    label: "Facturable",
+    searchable: true,
+  },
 ];
 
 const AddModal = ({
@@ -111,8 +123,8 @@ const EditModal = ({
   updateTable,
 }) => {
   const [fields, setFields] = useState({
-    name: '',
-    billable: '',
+    name: "",
+    billable: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -203,15 +215,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteProjectType(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -233,8 +247,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>

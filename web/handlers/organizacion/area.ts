@@ -3,20 +3,21 @@ import {
   createNew,
   findAll,
   findById,
-  getTableData
+  getTableData,
 } from "../../../api/models/ORGANIZACION/AREA.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getAreas = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getAreasTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getAreasTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createArea = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

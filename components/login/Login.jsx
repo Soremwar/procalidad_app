@@ -5,7 +5,7 @@ import {
   Typography,
   Button,
   TextField,
-  Fade
+  Fade,
 } from "@material-ui/core";
 import { withRouter } from "react-router-dom";
 
@@ -34,8 +34,7 @@ const Login = ({ history }) => {
     setFormFields((last_state) => ({
       ...last_state,
       [field_name]: field_value,
-    })
-    );
+    }));
   };
 
   return (

@@ -46,9 +46,9 @@ export const searchByName = async (
   limit: number,
 ): Promise<Ciudad[]> => {
   const { rows } = await postgres.query(
-    `SELECT PK_CIUDAD, NOMBRE, FK_ESTADO FROM MAESTRO.CIUDAD WHERE UNACCENT(NOMBRE) ILIKE $1 ORDER BY NOMBRE ${limit
-      ? `LIMIT ${limit}`
-      : ""}`,
+    `SELECT PK_CIUDAD, NOMBRE, FK_ESTADO FROM MAESTRO.CIUDAD WHERE UNACCENT(NOMBRE) ILIKE $1 ORDER BY NOMBRE ${
+      limit ? `LIMIT ${limit}` : ""
+    }`,
     `%${query || "%"}%`,
     limit,
   );
@@ -68,9 +68,9 @@ export const searchByNameAndState = async (
   limit: number,
 ): Promise<Ciudad[]> => {
   const { rows } = await postgres.query(
-    `SELECT PK_CIUDAD, NOMBRE, FK_ESTADO FROM MAESTRO.CIUDAD WHERE FK_ESTADO = $1 AND UNACCENT(NOMBRE) ILIKE $2 ORDER BY NOMBRE ${limit
-      ? `LIMIT ${limit}`
-      : ""}`,
+    `SELECT PK_CIUDAD, NOMBRE, FK_ESTADO FROM MAESTRO.CIUDAD WHERE FK_ESTADO = $1 AND UNACCENT(NOMBRE) ILIKE $2 ORDER BY NOMBRE ${
+      limit ? `LIMIT ${limit}` : ""
+    }`,
     state,
     `%${query || "%"}%`,
   );

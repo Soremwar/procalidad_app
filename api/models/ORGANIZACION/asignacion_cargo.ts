@@ -1,7 +1,9 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder, getTableModels, TableResult,
+  TableOrder,
+  getTableModels,
+  TableResult,
 } from "../../common/table.ts";
 
 const TABLE = "ORGANIZACION.ASIGNACION_CARGO";
@@ -14,7 +16,7 @@ class AsignacionCargo {
     public fk_cargo: number,
     public fk_roles: number[],
     public fec_vigencia: Date,
-  ) { }
+  ) {}
 
   async update(
     fk_sub_area: number = this.fk_sub_area,
@@ -32,7 +34,7 @@ class AsignacionCargo {
       `UPDATE ${TABLE} SET
         FK_SUB_AREA = $2,
         FK_CARGO = $3,
-        FK_ROLES = '{${this.fk_roles.join(',')}}',
+        FK_ROLES = '{${this.fk_roles.join(",")}}',
         FEC_VIGENCIA = $4
       WHERE PK_ASIGNACION = $1`,
       this.pk_asignacion,
@@ -82,14 +84,16 @@ export const findAll = async (): Promise<AsignacionCargo[]> => {
     number,
     string,
     Date,
-  ]) => new AsignacionCargo(
-    a,
-    b,
-    c,
-    d,
-    e.split(',').map(Number).filter(Boolean),
-    f,
-  ));
+  ]) =>
+    new AsignacionCargo(
+      a,
+      b,
+      c,
+      d,
+      e.split(",").map(Number).filter(Boolean),
+      f,
+    )
+  );
 };
 
 //TODO
@@ -132,7 +136,7 @@ export const findById = async (id: number): Promise<AsignacionCargo | null> => {
     b,
     c,
     d,
-    e.split(',').map(Number).filter(Boolean),
+    e.split(",").map(Number).filter(Boolean),
     f,
   );
 };
@@ -155,7 +159,7 @@ export const createNew = async (
       $1,
       $2,
       $3,
-      '{${fk_roles.join(',')}}',
+      '{${fk_roles.join(",")}}',
       $4
     ) RETURNING PK_ASIGNACION`,
     fk_persona,
@@ -196,16 +200,15 @@ class TableData {
     public person: string,
     public sub_area: string,
     public position: string,
-  ) { }
+  ) {}
 }
 
 export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: {[key: string]: string},
+  search: { [key: string]: string },
 ): Promise<TableResult> => {
-
   const base_query = (
     `SELECT
       PK_ASIGNACION AS ID,

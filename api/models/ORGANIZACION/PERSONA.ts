@@ -1,7 +1,9 @@
 import postgres from "../../services/postgres.js";
 import { PostgresError } from "deno_postgres";
 import {
-  TableOrder, getTableModels, TableResult
+  TableOrder,
+  getTableModels,
+  TableResult,
 } from "../../common/table.ts";
 
 export const TABLE = "ORGANIZACION.PERSONA";
@@ -24,7 +26,7 @@ class Persona {
     public nombre: string,
     public telefono: string,
     public correo: string,
-  ) { }
+  ) {}
 
   async update(
     tipo_identificacion: TipoIdentificacion = this.tipo_identificacion,
@@ -93,9 +95,7 @@ export const findAll = async (): Promise<Persona[]> => {
     string,
     string,
   ]) => {
-    row[1] = row[1] in TipoIdentificacion
-      ? row[1]
-      : TipoIdentificacion.CC;
+    row[1] = row[1] in TipoIdentificacion ? row[1] : TipoIdentificacion.CC;
     return new Persona(...row);
   });
 
@@ -176,16 +176,15 @@ class TableData {
     public name: string,
     public phone: string,
     public email: string,
-  ) { }
+  ) {}
 }
 
 export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: {[key: string]: string},
+  search: { [key: string]: string },
 ): Promise<TableResult> => {
-
   const base_query = (
     `SELECT
       PK_PERSONA AS ID,

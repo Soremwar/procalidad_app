@@ -7,16 +7,17 @@ import {
 } from "../../../api/models/ORGANIZACION/sub_area.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getSubAreas = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getSubAreasTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getSubAreasTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createSubArea = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

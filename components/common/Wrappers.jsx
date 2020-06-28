@@ -6,7 +6,7 @@ import {
   withStyles,
   Badge as BadgeBase,
   Typography as TypographyBase,
-  Button as ButtonBase
+  Button as ButtonBase,
 } from "@material-ui/core";
 import { useTheme, makeStyles } from "@material-ui/styles";
 
@@ -17,8 +17,7 @@ var useStyles = makeStyles((theme) => ({
     height: 16,
     minWidth: 16,
   },
-})
-);
+}));
 
 function Badge({ children, colorBrightness, color, ...props }) {
   var classes = useStyles();
@@ -36,8 +35,8 @@ function Badge({ children, colorBrightness, color, ...props }) {
           classes={{
             badge: [
               classes.badge,
-              styledProps.classes.badge
-            ].join(' '),
+              styledProps.classes.badge,
+            ].join(" "),
           }}
           {...props}
         >

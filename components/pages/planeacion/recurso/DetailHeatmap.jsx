@@ -30,23 +30,23 @@ const DetailCell = ({
   color = null,
   value = null,
 }) => (
-    <CleanTableCell>
-      <Tooltip title={`Horas: ${value || 0}\n Asignacion: ${assignation}%`}>
-        <div>
-          <DetailDot
-            color={color}
-            status={value && color ? null : "invalid"}
-          />
-        </div>
-      </Tooltip>
-    </CleanTableCell>
-  );
+  <CleanTableCell>
+    <Tooltip title={`Horas: ${value || 0}\n Asignacion: ${assignation}%`}>
+      <div>
+        <DetailDot
+          color={color}
+          status={value && color ? null : "invalid"}
+        />
+      </div>
+    </Tooltip>
+  </CleanTableCell>
+);
 
 const rowStyles = makeStyles({
   row: {
     margin: 0,
     padding: "0px",
-  }
+  },
 });
 
 const CleanTableRow = ({ children, className = "", ...props }) => {
@@ -66,7 +66,7 @@ const detailRowStyles = makeStyles({
     height: "30px",
     margin: 0,
     padding: "0px",
-  }
+  },
 });
 
 const DetailTableRow = ({ children, className = "", ...props }) => {
@@ -126,38 +126,36 @@ export default function ({
           </TableRow>
           <CleanTableRow>
             <CleanTableCell className={classes.detail_column} />
-            {
-              calendar_dates.map(date => (
-                <VerticalCell key={date}>{date}</VerticalCell>
-              ))
-            }
+            {calendar_dates.map((date) => (
+              <VerticalCell key={date}>{date}</VerticalCell>
+            ))}
           </CleanTableRow>
         </TableHead>
         <TableBody>
-          {
-            data.map(({ project_id, project, dates, }) => {
-              const color = getRandomColor();
+          {data.map(({ project_id, project, dates }) => {
+            const color = getRandomColor();
 
-              return (
-                <DetailTableRow key={project_id}>
-                  <CleanTableCell className={classes.detail_column}>{project}</CleanTableCell>
-                  {
-                    calendar_dates.map((calendar_date) => {
-                      const activity = dates.find(({ date }) => calendar_date == date);
-                      return (
-                        <DetailCell
-                          assignation={activity ? Number(activity.assignation) : 0}
-                          color={activity ? color : null}
-                          key={calendar_date}
-                          value={activity ? Number(activity.hours) : 0}
-                        />
-                      );
-                    })
-                  }
-                </DetailTableRow>
-              );
-            })
-          }
+            return (
+              <DetailTableRow key={project_id}>
+                <CleanTableCell className={classes.detail_column}>
+                  {project}
+                </CleanTableCell>
+                {calendar_dates.map((calendar_date) => {
+                  const activity = dates.find(({ date }) =>
+                    calendar_date == date
+                  );
+                  return (
+                    <DetailCell
+                      assignation={activity ? Number(activity.assignation) : 0}
+                      color={activity ? color : null}
+                      key={calendar_date}
+                      value={activity ? Number(activity.hours) : 0}
+                    />
+                  );
+                })}
+              </DetailTableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>

@@ -40,30 +40,51 @@ const getRoles = () => fetchRoleApi().then((x) => x.json());
 
 const getAssignation = (id) => fetchAssignationApi(id).then((x) => x.json());
 
-const createAssignation = async (form_data) => fetchAssignationApi("", {
-  body: form_data,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  method: "POST",
-});
+const createAssignation = async (form_data) =>
+  fetchAssignationApi("", {
+    body: form_data,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
 
-const updateAssignation = async (id, form_data) => fetchAssignationApi(id, {
-  body: form_data,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  method: "PUT",
-});
+const updateAssignation = async (id, form_data) =>
+  fetchAssignationApi(id, {
+    body: form_data,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
 
-const deleteAssignation = async (id) => fetchAssignationApi(id, {
-  method: "DELETE",
-});
+const deleteAssignation = async (id) =>
+  fetchAssignationApi(id, {
+    method: "DELETE",
+  });
 
 const headers = [
-  { id: "person", numeric: false, disablePadding: false, label: "Persona", searchable: true },
-  { id: "sub_area", numeric: false, disablePadding: false, label: "Subarea", searchable: true },
-  { id: "position", numeric: false, disablePadding: false, label: "Cargo", searchable: true },
+  {
+    id: "person",
+    numeric: false,
+    disablePadding: false,
+    label: "Persona",
+    searchable: true,
+  },
+  {
+    id: "sub_area",
+    numeric: false,
+    disablePadding: false,
+    label: "Subarea",
+    searchable: true,
+  },
+  {
+    id: "position",
+    numeric: false,
+    disablePadding: false,
+    label: "Cargo",
+    searchable: true,
+  },
 ];
 
 const ParameterContext = createContext({
@@ -95,10 +116,10 @@ const AddModal = ({
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleChange = event => {
+  const handleChange = (event) => {
     const { name, value } = event.target;
     setFields((prev_state) => ({ ...prev_state, [name]: value }));
-  }
+  };
 
   useEffect(() => {
     if (is_open) {
@@ -142,7 +163,8 @@ const AddModal = ({
         fullWidth
         label="Persona"
         name="person"
-        onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
+        onChange={(_event, value) =>
+          setFields((prev_state) => ({ ...prev_state, person: value }))}
         options={people}
         required
         value={fields.person}
@@ -245,7 +267,10 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await updateAssignation(data.pk_asignacion, JSON.stringify(fields));
+    const request = await updateAssignation(
+      data.pk_asignacion,
+      JSON.stringify(fields),
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -271,7 +296,8 @@ const EditModal = ({
         fullWidth
         label="Persona"
         name="person"
-        onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
+        onChange={(_event, value) =>
+          setFields((prev_state) => ({ ...prev_state, person: value }))}
         options={people}
         required
         value={fields.person}
@@ -344,15 +370,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteAssignation(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -374,8 +402,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>
@@ -412,16 +440,24 @@ export default () => {
   };
 
   useEffect(() => {
-    getPositions().then(positions => setParameters(parameters => ({ ...parameters, positions, })));
-    getSubAreas().then(sub_areas => setParameters(parameters => ({ ...parameters, sub_areas, })));
-    getPeople().then(people => setParameters(parameters => ({
-      ...parameters,
-      people: people.map(({pk_persona, nombre}) => [pk_persona, nombre]),
-    })));
-    getRoles().then(roles => setParameters(parameters => ({
-      ...parameters,
-      roles: roles.map(({ pk_rol, nombre }) => [pk_rol, nombre]),
-    })));
+    getPositions().then((positions) =>
+      setParameters((parameters) => ({ ...parameters, positions }))
+    );
+    getSubAreas().then((sub_areas) =>
+      setParameters((parameters) => ({ ...parameters, sub_areas }))
+    );
+    getPeople().then((people) =>
+      setParameters((parameters) => ({
+        ...parameters,
+        people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
+      }))
+    );
+    getRoles().then((roles) =>
+      setParameters((parameters) => ({
+        ...parameters,
+        roles: roles.map(({ pk_rol, nombre }) => [pk_rol, nombre]),
+      }))
+    );
     updateTable();
   }, []);
 

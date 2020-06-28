@@ -41,10 +41,12 @@ const Layout = (props) => {
       <Fragment>
         <Header history={props.history} />
         <Sidebar />
-        <div className={[
-          classes.content,
-          ...(layout_context.isSidebarOpened ? [classes.contentShift] : []),
-        ].join(" ")}>
+        <div
+          className={[
+            classes.content,
+            ...(layout_context.isSidebarOpened ? [classes.contentShift] : []),
+          ].join(" ")}
+        >
           <div className={classes.fakeToolbar} />
           {/*
             TODO
@@ -61,11 +63,20 @@ const Layout = (props) => {
             <Route path="/organizacion/sub_area" component={SubArea} />
             <Route path="/organizacion/persona" component={Persona} />
             <Route path="/organizacion/cargo" component={Cargo} />
-            <Route path="/organizacion/asignacion_cargo" component={AsignacionCargo} />
+            <Route
+              path="/organizacion/asignacion_cargo"
+              component={AsignacionCargo}
+            />
             <Route path="/organizacion/computador" component={Computador} />
             <Route path="/organizacion/licencia" component={Licencia} />
-            <Route path="/organizacion/costo_empleado" component={CostoEmpleado} />
-            <Route path="/operaciones/tipo_presupuesto" component={TipoPresupuesto} />
+            <Route
+              path="/organizacion/costo_empleado"
+              component={CostoEmpleado}
+            />
+            <Route
+              path="/operaciones/tipo_presupuesto"
+              component={TipoPresupuesto}
+            />
             <Route path="/operaciones/rol" component={Rol} />
             <Route path="/operaciones/presupuesto" component={Presupuesto} />
             <Route path="/maestro/parametro" component={Parametro} />

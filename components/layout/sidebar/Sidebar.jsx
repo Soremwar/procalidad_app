@@ -114,7 +114,7 @@ function Sidebar({ location }) {
         paper: [
           isSidebarOpened ? classes.drawerOpen : classes.drawerClose,
           classes.drawerContent,
-        ].join(' '),
+        ].join(" "),
       }}
       open={isSidebarOpened}
     >

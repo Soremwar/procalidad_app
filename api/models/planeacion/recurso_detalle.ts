@@ -8,10 +8,12 @@ export class RecursoDetalle {
     public fk_recurso: number,
     public fecha: number,
     public horas: number,
-  ) { }
+  ) {}
 }
 
-export const findByResource = async (resource: number): Promise<RecursoDetalle[]> => {
+export const findByResource = async (
+  resource: number,
+): Promise<RecursoDetalle[]> => {
   const { rows } = await postgres.query(
     `SELECT
       FK_RECURSO,

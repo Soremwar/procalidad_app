@@ -27,7 +27,7 @@ import {
 
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
-import CurrencyField from '@unicef/material-ui-currency-textfield';
+import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DialogForm from "../../common/DialogForm.jsx";
 import MultipleSelectField from "../../common/MultipleSelectField.jsx";
 import SelectField from "../../common/SelectField.jsx";
@@ -46,38 +46,62 @@ const getResult = async (
   other,
   salary_type,
   computer,
-) => fetchPersonCostApi('calculo', {
-  body: JSON.stringify({ labour_cost, bonus_cost, licenses, other, salary_type, computer }),
-  headers: {
-    "Content-Type": "application/json",
-  },
-  method: "POST",
-}).then((x) => x.json());
+) =>
+  fetchPersonCostApi("calculo", {
+    body: JSON.stringify(
+      { labour_cost, bonus_cost, licenses, other, salary_type, computer },
+    ),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  }).then((x) => x.json());
 
-const createSalary = async (form_data) => fetchPersonCostApi("", {
-  body: form_data,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  method: "POST",
-});
+const createSalary = async (form_data) =>
+  fetchPersonCostApi("", {
+    body: form_data,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
 
-const updateSalary = async (id, form_data) => fetchPersonCostApi(id, {
-  body: form_data,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  method: "PUT",
-});
+const updateSalary = async (id, form_data) =>
+  fetchPersonCostApi(id, {
+    body: form_data,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
 
-const deleteSalary = async (id) => fetchPersonCostApi(id, {
-  method: "DELETE",
-});
+const deleteSalary = async (id) =>
+  fetchPersonCostApi(id, {
+    method: "DELETE",
+  });
 
 const headers = [
-  { id: "person", numeric: false, disablePadding: false, label: "Persona", searchable: true },
-  { id: "salary_type", numeric: false, disablePadding: false, label: "Tipo de Salario", searchable: true },
-  { id: "computer", numeric: false, disablePadding: false, label: "Computador", searchable: true },
+  {
+    id: "person",
+    numeric: false,
+    disablePadding: false,
+    label: "Persona",
+    searchable: true,
+  },
+  {
+    id: "salary_type",
+    numeric: false,
+    disablePadding: false,
+    label: "Tipo de Salario",
+    searchable: true,
+  },
+  {
+    id: "computer",
+    numeric: false,
+    disablePadding: false,
+    label: "Computador",
+    searchable: true,
+  },
 ];
 
 const ParameterContext = createContext({
@@ -137,10 +161,12 @@ const AddModal = ({
         fields.other,
         fields.salary_type,
         fields.computer,
-      ).then(({ costo, costo_total }) => setResult({
-        cost: costo,
-        total_cost: costo_total,
-      }));
+      ).then(({ costo, costo_total }) =>
+        setResult({
+          cost: costo,
+          total_cost: costo_total,
+        })
+      );
     } else {
       setResult(null);
     }
@@ -182,7 +208,8 @@ const AddModal = ({
         label="Persona"
         name="person"
         options={people}
-        onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
+        onChange={(_event, value) =>
+          setFields((prev_state) => ({ ...prev_state, person: value }))}
         value={fields.person}
       />
       <SelectField
@@ -203,7 +230,8 @@ const AddModal = ({
         label="Valor Prestacional"
         minimumValue="0"
         name="labour_cost"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, labour_cost: value }))}
+        onChange={(_event, value) =>
+          setFields((fields) => ({ ...fields, labour_cost: value }))}
         outputFormat="number"
         required
         value={fields.labour_cost}
@@ -214,7 +242,8 @@ const AddModal = ({
         label="Valor de Bonos"
         minimumValue="0"
         name="bonus_cost"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, bonus_cost: value }))}
+        onChange={(_event, value) =>
+          setFields((fields) => ({ ...fields, bonus_cost: value }))}
         outputFormat="number"
         required
         value={fields.bonus_cost}
@@ -233,7 +262,8 @@ const AddModal = ({
         label="Otros"
         minimumValue="0"
         name="other"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, other: value }))}
+        onChange={(_event, value) =>
+          setFields((fields) => ({ ...fields, other: value }))}
         outputFormat="number"
         required
         value={fields.other}
@@ -262,31 +292,34 @@ const AddModal = ({
         type="date"
         value={fields.validity}
       />
-      <br /><br />
-      {
-        result
-          ? (
-            <Fragment>
-              <CurrencyField
-                currencySymbol="$"
-                disabled
-                fullWidth
-                label="Costo"
-                value={result.cost}
-              />
-              <CurrencyField
-                currencySymbol="$"
-                disabled
-                fullWidth
-                label="Costo Total"
-                value={result.total_cost}
-              />
-            </Fragment>)
-          : (
-            <Typography>Ingrese el modelo de computador y el tipo de salario para realizar el calculo</Typography>
-          )
-      }
-    </DialogForm >
+      <br />
+      <br />
+      {result
+        ? (
+          <Fragment>
+            <CurrencyField
+              currencySymbol="$"
+              disabled
+              fullWidth
+              label="Costo"
+              value={result.cost}
+            />
+            <CurrencyField
+              currencySymbol="$"
+              disabled
+              fullWidth
+              label="Costo Total"
+              value={result.total_cost}
+            />
+          </Fragment>
+        )
+        : (
+          <Typography>
+            Ingrese el modelo de computador y el tipo de salario para realizar
+            el calculo
+          </Typography>
+        )}
+    </DialogForm>
   );
 };
 
@@ -342,10 +375,12 @@ const EditModal = ({
         fields.other,
         fields.salary_type,
         fields.computer,
-      ).then(({ costo, costo_total }) => setResult({
-        cost: costo,
-        total_cost: costo_total,
-      }));
+      ).then(({ costo, costo_total }) =>
+        setResult({
+          cost: costo,
+          total_cost: costo_total,
+        })
+      );
     } else {
       setResult(null);
     }
@@ -388,7 +423,8 @@ const EditModal = ({
         label="Persona"
         name="person"
         options={people}
-        onChange={(_event, value) => setFields(prev_state => ({...prev_state, person: value}))}
+        onChange={(_event, value) =>
+          setFields((prev_state) => ({ ...prev_state, person: value }))}
         value={fields.person}
       />
       <SelectField
@@ -409,7 +445,8 @@ const EditModal = ({
         label="Valor Prestacional"
         minimumValue="0"
         name="labour_cost"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, labour_cost: value }))}
+        onChange={(_event, value) =>
+          setFields((fields) => ({ ...fields, labour_cost: value }))}
         outputFormat="number"
         required
         value={fields.labour_cost}
@@ -420,7 +457,8 @@ const EditModal = ({
         label="Valor de Bonos"
         minimumValue="0"
         name="bonus_cost"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, bonus_cost: value }))}
+        onChange={(_event, value) =>
+          setFields((fields) => ({ ...fields, bonus_cost: value }))}
         outputFormat="number"
         required
         value={fields.bonus_cost}
@@ -439,7 +477,8 @@ const EditModal = ({
         label="Otros"
         minimumValue="0"
         name="other"
-        onChange={(_event, value) => setFields(fields => ({ ...fields, other: value }))}
+        onChange={(_event, value) =>
+          setFields((fields) => ({ ...fields, other: value }))}
         outputFormat="number"
         required
         value={fields.other}
@@ -468,30 +507,33 @@ const EditModal = ({
         type="date"
         value={fields.validity}
       />
-      <br /><br />
-      {
-        result
-          ? (
-            <Fragment>
-              <CurrencyField
-                currencySymbol="$"
-                disabled
-                fullWidth
-                label="Costo"
-                value={result.cost}
-              />
-              <CurrencyField
-                currencySymbol="$"
-                disabled
-                fullWidth
-                label="Costo Total"
-                value={result.total_cost}
-              />
-            </Fragment>)
-          : (
-            <Typography>Ingrese el modelo de computador y el tipo de salario para realizar el calculo</Typography>
-          )
-      }
+      <br />
+      <br />
+      {result
+        ? (
+          <Fragment>
+            <CurrencyField
+              currencySymbol="$"
+              disabled
+              fullWidth
+              label="Costo"
+              value={result.cost}
+            />
+            <CurrencyField
+              currencySymbol="$"
+              disabled
+              fullWidth
+              label="Costo Total"
+              value={result.total_cost}
+            />
+          </Fragment>
+        )
+        : (
+          <Typography>
+            Ingrese el modelo de computador y el tipo de salario para realizar
+            el calculo
+          </Typography>
+        )}
     </DialogForm>
   );
 };
@@ -512,15 +554,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteSalary(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -542,8 +586,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>
@@ -564,17 +608,23 @@ export default () => {
   });
 
   useEffect(() => {
-    getComputers().then(computers => setParameters(prev_state => ({ ...prev_state, computers })));
-    getLicenses().then(licenses => {
-      setParameters(prev_state => ({
+    getComputers().then((computers) =>
+      setParameters((prev_state) => ({ ...prev_state, computers }))
+    );
+    getLicenses().then((licenses) => {
+      setParameters((prev_state) => ({
         ...prev_state,
-        licenses: licenses.map(({ pk_licencia, nombre }) => [pk_licencia, nombre]),
+        licenses: licenses.map((
+          { pk_licencia, nombre },
+        ) => [pk_licencia, nombre]),
       }));
     });
-    getPeople().then(people => setParameters(prev_state => ({
-      ...prev_state,
-      people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
-    })));
+    getPeople().then((people) =>
+      setParameters((prev_state) => ({
+        ...prev_state,
+        people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
+      }))
+    );
     updateTable();
   }, []);
 

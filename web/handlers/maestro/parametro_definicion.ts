@@ -1,8 +1,16 @@
-import {Body, RouterContext} from "oak";
-import {createNew, findAll, findById, searchByParameter,} from "../../../api/models/MAESTRO/parametro_definicion.ts";
-import {findById as findParameterById, TipoParametro,} from "../../../api/models/MAESTRO/parametro.ts";
-import {formatResponse, Message, Status} from "../../http_utils.ts";
-import {NotFoundError, RequestSyntaxError} from "../../exceptions.ts";
+import { Body, RouterContext } from "oak";
+import {
+  createNew,
+  findAll,
+  findById,
+  searchByParameter,
+} from "../../../api/models/MAESTRO/parametro_definicion.ts";
+import {
+  findById as findParameterById,
+  TipoParametro,
+} from "../../../api/models/MAESTRO/parametro.ts";
+import { formatResponse, Message, Status } from "../../http_utils.ts";
+import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
 export const getParameterDefinitions = async ({ response }: RouterContext) => {
   response.body = await findAll();
@@ -10,8 +18,9 @@ export const getParameterDefinitions = async ({ response }: RouterContext) => {
 
 //TODO
 //Add validations for date overlapping
-export const createParameterDefinition = async ({ params, request, response }:
-  RouterContext) => {
+export const createParameterDefinition = async (
+  { params, request, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
@@ -25,8 +34,10 @@ export const createParameterDefinition = async ({ params, request, response }:
   }: { [x: string]: string } = await request.body()
     .then((x: Body) => Object.fromEntries(x.value));
 
-  if(parameter.tipo_parametro === TipoParametro.percentage){
-    if(Number(value) < 0 || Number(value) > 100) throw new RequestSyntaxError();
+  if (parameter.tipo_parametro === TipoParametro.percentage) {
+    if (Number(value) < 0 || Number(value) > 100) {
+      throw new RequestSyntaxError();
+    }
   }
 
   if (
@@ -50,8 +61,9 @@ export const createParameterDefinition = async ({ params, request, response }:
   response.body = definition;
 };
 
-export const getParameterDefinition = async ({ params, response }:
-  RouterContext) => {
+export const getParameterDefinition = async (
+  { params, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -61,8 +73,9 @@ export const getParameterDefinition = async ({ params, response }:
   response.body = definition;
 };
 
-export const searchParameterDefinition = async ({ response, request }:
-  RouterContext) => {
+export const searchParameterDefinition = async (
+  { response, request }: RouterContext,
+) => {
   const {
     parameter: param_parameter,
     limit: param_limit,
@@ -80,8 +93,9 @@ export const searchParameterDefinition = async ({ response, request }:
 
 //TODO
 //Add validations for date overlapping
-export const updateParameterDefinition = async ({ params, request, response }:
-  RouterContext) => {
+export const updateParameterDefinition = async (
+  { params, request, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
@@ -106,8 +120,8 @@ export const updateParameterDefinition = async ({ params, request, response }:
 
   let cleaned_value: string | undefined = value;
 
-  if(parameter.tipo_parametro === TipoParametro.percentage){
-    if(Number(value) < 0 || Number(value) > 100){
+  if (parameter.tipo_parametro === TipoParametro.percentage) {
+    if (Number(value) < 0 || Number(value) > 100) {
       cleaned_value = undefined;
     }
   }
@@ -121,8 +135,9 @@ export const updateParameterDefinition = async ({ params, request, response }:
   response.body = definition;
 };
 
-export const deleteParameterDefinition = async ({ params, response }:
-  RouterContext) => {
+export const deleteParameterDefinition = async (
+  { params, response }: RouterContext,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

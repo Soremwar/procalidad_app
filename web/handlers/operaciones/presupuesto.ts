@@ -12,16 +12,17 @@ import {
 } from "../../../api/models/OPERACIONES/PRESUPUESTO_DETALLE.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getBudgets = async ({ response }: RouterContext) => {
   response.body = await findBudgetItems();
 };
 
-export const getBudgetTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getBudgetItemTable,
-);
+export const getBudgetTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getBudgetItemTable,
+  );
 
 export const createBudget = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

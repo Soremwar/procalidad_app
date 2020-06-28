@@ -58,5 +58,4 @@ export default makeStyles((theme) => ({
     marginBottom: theme.spacing(10),
     textAlign: "center",
   },
-})
-);
+}));

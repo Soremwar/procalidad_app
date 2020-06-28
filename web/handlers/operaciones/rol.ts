@@ -7,16 +7,17 @@ import {
 } from "../../../api/models/OPERACIONES/ROL.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getRoles = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getRolesTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getRolesTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createRole = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

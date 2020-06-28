@@ -13,10 +13,11 @@ export const getClients = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getClientsTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getClientsTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createClient = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

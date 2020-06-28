@@ -35,7 +35,7 @@ const getSectors = () => {
 const getClient = (id) => fetchClientApi(id).then((x) => x.json());
 
 const createClient = async (form_data) => {
-  return fetchClientApi('', {
+  return fetchClientApi("", {
     method: "POST",
     body: form_data,
   });
@@ -55,22 +55,34 @@ const deleteClient = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true },
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: false,
+    label: "Nombre",
+    searchable: true,
+  },
   {
     id: "sector",
     numeric: false,
     disablePadding: false,
     label: "Sector",
-    searchable: true
+    searchable: true,
   },
   {
     id: "business",
     numeric: false,
     disablePadding: false,
     label: "Razon Social",
-    searchable: true
+    searchable: true,
   },
-  { id: "nit", numeric: false, disablePadding: false, label: "NIT", searchable: true },
+  {
+    id: "nit",
+    numeric: false,
+    disablePadding: false,
+    label: "NIT",
+    searchable: true,
+  },
 ];
 
 const ParameterContext = createContext({
@@ -221,11 +233,13 @@ const AddModal = ({
           setCountryQuery(value);
         }}
         required
-        source={`maestro/pais/search?query=${encodeURI(
-          fields.country
-            ? ""
-            : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-        )}&limit=10`}
+        source={`maestro/pais/search?query=${
+          encodeURI(
+            fields.country
+              ? ""
+              : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+          )
+        }&limit=10`}
         value={fields.country}
       />
       <AsyncSelectField
@@ -251,11 +265,13 @@ const AddModal = ({
           setStateQuery(value);
         }}
         required
-        source={`maestro/estado/search?country=${fields.country}&query=${encodeURI(
-          fields.state
-            ? ""
-            : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-        )}`}
+        source={`maestro/estado/search?country=${fields.country}&query=${
+          encodeURI(
+            fields.state
+              ? ""
+              : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+          )
+        }`}
         value={fields.country && fields.state}
       />
       <AsyncSelectField
@@ -281,11 +297,13 @@ const AddModal = ({
           setCityQuery(value);
         }}
         required
-        source={`maestro/ciudad/search?state=${fields.state}&query=${encodeURI(
-          fields.city
-            ? ""
-            : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-        )}`}
+        source={`maestro/ciudad/search?state=${fields.state}&query=${
+          encodeURI(
+            fields.city
+              ? ""
+              : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+          )
+        }`}
         value={fields.country && fields.state && fields.city}
       />
       <TextField
@@ -345,7 +363,10 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await updateClient(data.pk_cliente, new URLSearchParams(fields));
+    const request = await updateClient(
+      data.pk_cliente,
+      new URLSearchParams(fields),
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -437,11 +458,13 @@ const EditModal = ({
         }}
         preload
         required
-        source={`maestro/pais/search?query=${encodeURI(
-          fields.country
-            ? ""
-            : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-        )}`}
+        source={`maestro/pais/search?query=${
+          encodeURI(
+            fields.country
+              ? ""
+              : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+          )
+        }`}
         value={fields.country}
       />
       <AsyncSelectField
@@ -468,11 +491,13 @@ const EditModal = ({
         }}
         preload
         required
-        source={`maestro/estado/search?country=${fields.country}&query=${encodeURI(
-          fields.state
-            ? ""
-            : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-        )}`}
+        source={`maestro/estado/search?country=${fields.country}&query=${
+          encodeURI(
+            fields.state
+              ? ""
+              : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+          )
+        }`}
         value={fields.country && fields.state}
       />
       <AsyncSelectField
@@ -499,11 +524,13 @@ const EditModal = ({
         }}
         preload
         required
-        source={`maestro/ciudad/search?state=${fields.state}&query=${encodeURI(
-          fields.city
-            ? ""
-            : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-        )}`}
+        source={`maestro/ciudad/search?state=${fields.state}&query=${
+          encodeURI(
+            fields.city
+              ? ""
+              : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+          )
+        }`}
         value={fields.country && fields.state && fields.city}
       />
       <TextField
@@ -535,15 +562,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteClient(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -565,8 +594,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>
@@ -600,7 +629,9 @@ export default () => {
   };
 
   useEffect(() => {
-    getSectors().then(sectors => setParameters(prev_state => ({...prev_state, sectors})));
+    getSectors().then((sectors) =>
+      setParameters((prev_state) => ({ ...prev_state, sectors }))
+    );
     updateTable();
   }, []);
 

@@ -1,5 +1,5 @@
 import { RouterContext, Body } from "oak";
-import {RequestSyntaxError} from "../../web/exceptions.ts";
+import { RequestSyntaxError } from "../../web/exceptions.ts";
 import postgres from "../services/postgres.js";
 import { QueryResult } from "deno_postgres/query.ts";
 
@@ -9,10 +9,10 @@ export enum Order {
 }
 
 export interface TableOrder {
-  [key: string]: Order,
+  [key: string]: Order;
 }
 
-export const parseOrderFromObject = (object: {[key: string]: string}) => {
+export const parseOrderFromObject = (object: { [key: string]: string }) => {
   return Object.entries(object).reduce(
     (res: TableOrder, [index, value]: [string, string]) => {
       if (value in Order) {
@@ -22,7 +22,7 @@ export const parseOrderFromObject = (object: {[key: string]: string}) => {
     },
     {} as TableOrder,
   );
-}
+};
 
 export const tableRequestHandler = async (
   { request, response }: RouterContext,
@@ -30,7 +30,7 @@ export const tableRequestHandler = async (
     order: TableOrder,
     page: number,
     rows: number | null,
-    search: {[key: string]: string},
+    search: { [key: string]: string },
   ) => Promise<TableResult>,
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
@@ -42,10 +42,14 @@ export const tableRequestHandler = async (
     search = {},
   } = await request.body().then((x: Body) => x.value);
 
-  if (!(
-    order instanceof Object &&
-    search instanceof Object
-  )) throw new RequestSyntaxError();
+  if (
+    !(
+      order instanceof Object &&
+      search instanceof Object
+    )
+  ) {
+    throw new RequestSyntaxError();
+  }
 
   const order_parameters = parseOrderFromObject(order);
 
@@ -60,25 +64,28 @@ export const tableRequestHandler = async (
 };
 
 export const generateTableSql = (
-    sql: string,
-    order: TableOrder,
-    page: number,
-    rows: number | null,
-    search: {[key: string]: string},
+  sql: string,
+  order: TableOrder,
+  page: number,
+  rows: number | null,
+  search: { [key: string]: string },
 ) => {
   return `SELECT * FROM (${sql}) AS TOTAL` +
     " " +
     (Object.keys(search).length
-      ? `WHERE ${Object.entries(search)
-        .map(([column, value]) => (
-          `CAST(${column} AS VARCHAR) ILIKE '%${value}%'`
-        )).join(' AND ')}`
-      : '') +
+      ? `WHERE ${
+        Object.entries(search)
+          .map(([column, value]) => (
+            `CAST(${column} AS VARCHAR) ILIKE '%${value}%'`
+          )).join(" AND ")
+      }`
+      : "") +
     " " +
     (Object.values(order).length
-      ? `ORDER BY ${Object.entries(order).map(([column, order]) =>
-        `${column} ${order}`
-      ).join(", ")}`
+      ? `ORDER BY ${
+        Object.entries(order).map(([column, order]) => `${column} ${order}`)
+          .join(", ")
+      }`
       : "") +
     " " +
     (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
@@ -86,16 +93,18 @@ export const generateTableSql = (
 
 export const generateCountSql = (
   sql: string,
-  search: {[key: string]: string},
+  search: { [key: string]: string },
 ) => (
   `SELECT COUNT(1) FROM (${sql}) AS TOTAL` +
   " " +
   (Object.keys(search).length
-    ? `WHERE ${Object.entries(search)
-      .map(([column, value]) => (
-        `CAST(${column} AS VARCHAR) ILIKE '%${value}%'`
-      )).join(' AND ')}`
-    : '')
+    ? `WHERE ${
+      Object.entries(search)
+        .map(([column, value]) => (
+          `CAST(${column} AS VARCHAR) ILIKE '%${value}%'`
+        )).join(" AND ")
+    }`
+    : "")
 );
 
 //TODO
@@ -105,8 +114,8 @@ export const getTableModels = async (
   order: TableOrder,
   page: number,
   rows: number | null,
-  search: {[key: string]: string},
-): Promise<{count: number, data: any[]}> => {
+  search: { [key: string]: string },
+): Promise<{ count: number; data: any[] }> => {
   const data_query = generateTableSql(
     sql,
     order,
@@ -121,7 +130,9 @@ export const getTableModels = async (
   );
 
   const { rows: data }: QueryResult = await postgres.query(data_query);
-  const count: number = await postgres.query(count_query).then(({rows}: QueryResult) => rows[0][0]);
+  const count: number = await postgres.query(count_query).then((
+    { rows }: QueryResult,
+  ) => rows[0][0]);
 
   return {
     count,

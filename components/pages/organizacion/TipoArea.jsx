@@ -50,7 +50,13 @@ const deleteProjectType = async (id) => {
 };
 
 const headers = [
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true, },
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: false,
+    label: "Nombre",
+    searchable: true,
+  },
   {
     id: "supervisor",
     numeric: false,
@@ -102,7 +108,7 @@ const AddModal = ({
   };
 
   useEffect(() => {
-    if(is_open){
+    if (is_open) {
       setFields({
         supervisor: "",
         name: "",
@@ -134,7 +140,8 @@ const AddModal = ({
         fullWidth
         label="Supervisor"
         name="supervisor"
-        onChange={(_event, value) => setFields(prev_state => ({...prev_state, supervisor: value}))}
+        onChange={(_event, value) =>
+          setFields((prev_state) => ({ ...prev_state, supervisor: value }))}
         options={people}
         required
         value={fields.supervisor}
@@ -180,7 +187,10 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await updateProjectType(data.pk_tipo, new URLSearchParams(fields));
+    const request = await updateProjectType(
+      data.pk_tipo,
+      new URLSearchParams(fields),
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -214,7 +224,8 @@ const EditModal = ({
         fullWidth
         label="Supervisor"
         name="supervisor"
-        onChange={(_event, value) => setFields(prev_state => ({...prev_state, supervisor: value}))}
+        onChange={(_event, value) =>
+          setFields((prev_state) => ({ ...prev_state, supervisor: value }))}
         options={people}
         required
         value={fields.supervisor}
@@ -239,15 +250,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteProjectType(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -269,8 +282,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>
@@ -304,9 +317,11 @@ export default () => {
   };
 
   useEffect(() => {
-    getPeople().then(people => {
-      const entries = people.map(({pk_persona, nombre}) => [pk_persona, nombre]);
-      setParameters(prev_state => ({...prev_state, people: entries}));
+    getPeople().then((people) => {
+      const entries = people.map((
+        { pk_persona, nombre },
+      ) => [pk_persona, nombre]);
+      setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
     updateTable();
   }, [false]);

@@ -19,8 +19,7 @@ const useStyles = makeStyles((theme) => ({
       boxShadow: theme.customShadows.widgetWide,
     },
   },
-})
-);
+}));
 
 export default ({ title, children }) => {
   const classes = useStyles();

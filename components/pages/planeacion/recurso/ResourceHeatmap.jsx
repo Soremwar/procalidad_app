@@ -80,7 +80,7 @@ const rowStyles = makeStyles({
   row: {
     margin: 0,
     padding: "0px",
-  }
+  },
 });
 
 const CleanTableRow = ({ children, className = "", ...props }) => {
@@ -100,7 +100,7 @@ const detailRowStyles = makeStyles({
     height: "30px",
     margin: 0,
     padding: "0px",
-  }
+  },
 });
 
 const DetailTableRow = ({ children, className = "", ...props }) => {
@@ -161,43 +161,41 @@ export default function ({
           </TableRow>
           <CleanTableRow>
             <CleanTableCell className={classes.detail_column} />
-            {
-              calendar_dates.map(date => (
-                <VerticalCell key={date}>{date}</VerticalCell>
-              ))
-            }
+            {calendar_dates.map((date) => (
+              <VerticalCell key={date}>{date}</VerticalCell>
+            ))}
           </CleanTableRow>
         </TableHead>
         <TableBody>
-          {
-            data.map(({ person_id, person, dates }) => (
-              <DetailTableRow key={person_id}>
-                <CleanTableCell className={classes.detail_column}>{person}</CleanTableCell>
-                {
-                  calendar_dates.map((calendar_date) => {
-                    const activity = dates.find(({ date }) => calendar_date == date);
-                    if (type === 'availability') {
-                      return (
-                        <AvailabilityCell
-                          available={activity ? Number(activity.assignation) : 100}
-                          key={calendar_date}
-                          value={activity ? Number(activity.hours) : 9}
-                        />
-                      );
-                    } else {
-                      return (
-                        <OcupationCell
-                          assignation={activity ? Number(activity.assignation) : 0}
-                          key={calendar_date}
-                          value={activity ? Number(activity.hours) : 0}
-                        />
-                      );
-                    }
-                  })
+          {data.map(({ person_id, person, dates }) => (
+            <DetailTableRow key={person_id}>
+              <CleanTableCell className={classes.detail_column}>
+                {person}
+              </CleanTableCell>
+              {calendar_dates.map((calendar_date) => {
+                const activity = dates.find(({ date }) =>
+                  calendar_date == date
+                );
+                if (type === "availability") {
+                  return (
+                    <AvailabilityCell
+                      available={activity ? Number(activity.assignation) : 100}
+                      key={calendar_date}
+                      value={activity ? Number(activity.hours) : 9}
+                    />
+                  );
+                } else {
+                  return (
+                    <OcupationCell
+                      assignation={activity ? Number(activity.assignation) : 0}
+                      key={calendar_date}
+                      value={activity ? Number(activity.hours) : 0}
+                    />
+                  );
                 }
-              </DetailTableRow>
-            ))
-          }
+              })}
+            </DetailTableRow>
+          ))}
         </TableBody>
       </Table>
     </TableContainer>

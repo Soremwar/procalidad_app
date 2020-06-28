@@ -6,15 +6,15 @@ import { makeStyles } from "@material-ui/core/styles";
 const isStringIn = (target, searchString) => {
   const regex = new RegExp(
     "(?=.*" + searchString.split(/\,|\s/).join(")(?=.*") + ")",
-    "gi"
+    "gi",
   );
   return target.match(regex) !== null;
 };
 
 const useStyles = makeStyles(() => ({
   formControl: {
-    minWidth: 120
-  }
+    minWidth: 120,
+  },
 }));
 
 //TODO
@@ -47,7 +47,7 @@ export default ({
           );
         }}
         getOptionSelected={(option, value) => option[0] === value}
-        getOptionLabel={value => {
+        getOptionLabel={(value) => {
           const option = options.find(([index]) => index === value);
           return option ? option[1] : "";
         }}
@@ -57,10 +57,9 @@ export default ({
             : setValue(new_value?.[0] ?? null);
         }}
         onInputChange={(event, new_value) =>
-          onInputChange && onInputChange(event, new_value[0])
-        }
+          onInputChange && onInputChange(event, new_value[0])}
         options={options}
-        renderInput={params => (
+        renderInput={(params) => (
           <TextField
             {...params}
             {...props}
@@ -70,7 +69,7 @@ export default ({
             variant={variant}
           />
         )}
-        renderOption={option => option[1]}
+        renderOption={(option) => option[1]}
         value={value === "" ? null : value}
       />
     </FormControl>

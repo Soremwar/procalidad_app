@@ -3,12 +3,12 @@ import React, {
   Fragment,
   useContext,
   useEffect,
-  useState
+  useState,
 } from "react";
 import {
   DialogContentText,
   Grid,
-  TextField
+  TextField,
 } from "@material-ui/core";
 
 import {
@@ -60,7 +60,13 @@ const headers = [
     label: "Tipo de Area",
     searchable: true,
   },
-  { id: "name", numeric: false, disablePadding: false, label: "Nombre", searchable: true, },
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: false,
+    label: "Nombre",
+    searchable: true,
+  },
   {
     id: "supervisor",
     numeric: false,
@@ -164,7 +170,8 @@ const AddModal = ({
         fullWidth
         name="supervisor"
         label="Supervisor"
-        onChange={(_event, value) => setFields(prev_value => ({...prev_value, supervisor: value}))}
+        onChange={(_event, value) =>
+          setFields((prev_value) => ({ ...prev_value, supervisor: value }))}
         options={people}
         required
         value={fields.supervisor}
@@ -263,7 +270,8 @@ const EditModal = ({
         fullWidth
         name="supervisor"
         label="Supervisor"
-        onChange={(_event, value) => setFields(prev_value => ({...prev_value, supervisor: value}))}
+        onChange={(_event, value) =>
+          setFields((prev_value) => ({ ...prev_value, supervisor: value }))}
         options={people}
         required
         value={fields.supervisor}
@@ -288,15 +296,17 @@ const DeleteModal = ({
     const delete_progress = selected.map((id) => deleteArea(id));
 
     Promise.allSettled(delete_progress)
-      .then((results) => results.reduce(async (total, result) => {
-        if (result.status == 'rejected') {
-          total.push(result.reason.message);
-        } else if (!result.value.ok) {
-          total.push(await formatResponseJson(result.value));
-        }
-        return total;
-      }, []))
-      .then(errors => {
+      .then((results) =>
+        results.reduce(async (total, result) => {
+          if (result.status == "rejected") {
+            total.push(result.reason.message);
+          } else if (!result.value.ok) {
+            total.push(await formatResponseJson(result.value));
+          }
+          return total;
+        }, [])
+      )
+      .then((errors) => {
         if (errors.length) {
           setError(errors[0]);
         } else {
@@ -318,8 +328,8 @@ const DeleteModal = ({
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
-        Esta operacion no se puede deshacer.
-        ¿Esta seguro que desea eliminar estos <b>{selected.length}</b>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
         &nbsp;elementos?
       </DialogContentText>
     </DialogForm>
@@ -356,10 +366,14 @@ export default () => {
   //TODO
   //Add error catching for data fetching
   useEffect(() => {
-    getAreaTypes().then(area_types => setParameters(prev_state => ({...prev_state, area_types})));
-    getPeople().then(people => {
-      const entries = people.map(({pk_persona, nombre}) => [pk_persona, nombre]);
-      setParameters(prev_state => ({...prev_state, people: entries}));
+    getAreaTypes().then((area_types) =>
+      setParameters((prev_state) => ({ ...prev_state, area_types }))
+    );
+    getPeople().then((people) => {
+      const entries = people.map((
+        { pk_persona, nombre },
+      ) => [pk_persona, nombre]);
+      setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
     updateTable();
   }, [false]);

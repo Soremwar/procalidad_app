@@ -16,7 +16,7 @@ import {
 const useStyles = makeStyles(() => ({
   formControl: {
     minWidth: 120,
-  }
+  },
 }));
 
 export default ({
@@ -32,11 +32,11 @@ export default ({
   const [value, setValue] = useState("");
 
   //Dont open on input click
-  const handleOpen = ({type}) => type === "click" && setOpen(true);
+  const handleOpen = ({ type }) => type === "click" && setOpen(true);
 
   //Dont close on input click
-  const handleClose = ({type}) => {
-    if(["blur", "click", "keydown"].includes(type)){
+  const handleClose = ({ type }) => {
+    if (["blur", "click", "keydown"].includes(type)) {
       setOpen(false);
     }
   };
@@ -54,21 +54,21 @@ export default ({
       <Autocomplete
         disabled={!options.length}
         getOptionLabel={() => search_string}
-        getOptionSelected={option => option.id === value}
+        getOptionSelected={(option) => option.id === value}
         onChange={(_event, option) => setValue(option?.id || "")}
         onClose={handleClose}
         onInputChange={(_event, value) => setSearchString(value)}
         onOpen={handleOpen}
         open={open}
         options={options}
-        renderInput={params => (
+        renderInput={(params) => (
           <TextField
             {...params}
             label={options.find(({ id }) => id === value)?.label || ""}
             variant={variant}
           />
         )}
-        renderOption={option => option.label}
+        renderOption={(option) => option.label}
         value={value === "" ? null : value}
       />
     </FormControl>

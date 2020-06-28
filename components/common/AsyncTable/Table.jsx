@@ -1,6 +1,6 @@
 import React, {
   useEffect,
-  useState
+  useState,
 } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
@@ -10,7 +10,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableRow
+  TableRow,
 } from "@material-ui/core";
 
 import { requestGenerator } from "../../../lib/api/request.js";
@@ -56,9 +56,12 @@ const getTableData = async (
   search,
   params,
 ) => {
-
   //Avoid overlapping of parameters
-  const url_params = Object.fromEntries(Object.entries(params).filter(([index]) => !([order, page, rows, search].includes(index))));
+  const url_params = Object.fromEntries(
+    Object.entries(params).filter(([index]) =>
+      !([order, page, rows, search].includes(index))
+    ),
+  );
 
   return fetchApi(source, {
     method: "POST",
@@ -67,10 +70,10 @@ const getTableData = async (
       "Content-Type": "application/json",
     },
   })
-    .then(request => {
-      if(request.ok){
+    .then((request) => {
+      if (request.ok) {
         return request.json();
-      }else{
+      } else {
         throw new Error("Fetching error");
       }
     });
@@ -121,15 +124,19 @@ export default function AsyncTable({
 
   //Validation to avoid unnecessary fetching on same filters
   const updateSearchFilters = () => {
-    const filters = Object.fromEntries(Object.entries({...custom_search, ...search_bar}).filter(([key, value]) => String(key) && String(value)));
-    if(!objectsAreEqual(filters, search)){
+    const filters = Object.fromEntries(
+      Object.entries({ ...custom_search, ...search_bar }).filter((
+        [key, value],
+      ) => String(key) && String(value)),
+    );
+    if (!objectsAreEqual(filters, search)) {
       setSearch(filters);
       setShouldFetchData(true);
     }
   };
 
   const updateURLSource = (new_source) => {
-    if(new_source !== source_url){
+    if (new_source !== source_url) {
       setSourceURL(new_source);
       setShouldFetchData(true);
     }
@@ -137,7 +144,7 @@ export default function AsyncTable({
 
   //Validation to avoid unnecessary fetching on same params
   const updateSourceParams = (params) => {
-    if(!objectsAreEqual(params, source_params)){
+    if (!objectsAreEqual(params, source_params)) {
       setSourceParams(params);
       setShouldFetchData(true);
     }
@@ -180,8 +187,10 @@ export default function AsyncTable({
   useEffect(() => {
     setSearch(
       Object.fromEntries(
-        Object.entries({...custom_search}).filter(([key, value]) => String(key) && String(value))
-      )
+        Object.entries({ ...custom_search }).filter(([key, value]) =>
+          String(key) && String(value)
+        ),
+      ),
     );
     setSourceURL(data_source);
     setSourceParams(request_parameters);
@@ -200,7 +209,7 @@ export default function AsyncTable({
   }, [request_parameters]);
 
   useEffect(() => {
-    if(update_table){
+    if (update_table) {
       setShouldFetchData(true);
     }
   }, [update_table]);
@@ -219,7 +228,7 @@ export default function AsyncTable({
         rowsPerPage,
         search,
         source_params,
-      ).then(({count, data}) => {
+      ).then(({ count, data }) => {
         let new_selected = new Set();
         data.forEach(({ id }) => {
           selected.has(id) && new_selected.add(id);
@@ -315,7 +324,7 @@ export default function AsyncTable({
             selected_item_count={selected.size}
             total_count={total_count}
           />
-          </TableContainer>
+        </TableContainer>
       </Paper>
     </div>
   );

@@ -3,20 +3,21 @@ import {
   findAll,
   findById,
   createNew,
-  getTableData
+  getTableData,
 } from "../../../api/models/CLIENTES/CONTACTO.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getContacts = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getContactsTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getContactsTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createContact = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();

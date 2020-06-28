@@ -7,16 +7,17 @@ import {
 } from "../../../api/models/ORGANIZACION/TIPO_AREA.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {tableRequestHandler} from "../../../api/common/table.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 export const getAreaTypes = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getAreaTypesTable = async (context: RouterContext) => tableRequestHandler(
-  context,
-  getTableData,
-);
+export const getAreaTypesTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getTableData,
+  );
 
 export const createAreaType = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
