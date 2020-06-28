@@ -64,7 +64,9 @@ export const createAssignation = async (
   );
 };
 
-export const getAssignation = async ({ params, response }: RouterContext) => {
+export const getAssignation = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -75,7 +77,7 @@ export const getAssignation = async ({ params, response }: RouterContext) => {
 };
 
 export const updateAssignation = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -101,7 +103,7 @@ export const updateAssignation = async (
 };
 
 export const deleteAssignation = async (
-  { params, response }: RouterContext,
+  { params, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();

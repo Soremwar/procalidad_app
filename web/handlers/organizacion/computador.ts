@@ -42,7 +42,9 @@ export const createComputer = async ({ request, response }: RouterContext) => {
   response.body = computer;
 };
 
-export const getComputer = async ({ params, response }: RouterContext) => {
+export const getComputer = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -53,7 +55,7 @@ export const getComputer = async ({ params, response }: RouterContext) => {
 };
 
 export const updateComputer = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -83,7 +85,9 @@ export const updateComputer = async (
   response.body = computer;
 };
 
-export const deleteComputer = async ({ params, response }: RouterContext) => {
+export const deleteComputer = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

@@ -95,7 +95,9 @@ export const getCalculatedSalary = async (
   );
 };
 
-export const getSalary = async ({ params, response }: RouterContext) => {
+export const getSalary = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -106,7 +108,7 @@ export const getSalary = async ({ params, response }: RouterContext) => {
 };
 
 export const updateSalary = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -137,7 +139,9 @@ export const updateSalary = async (
   response.body = salary;
 };
 
-export const deleteSalary = async ({ params, response }: RouterContext) => {
+export const deleteSalary = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

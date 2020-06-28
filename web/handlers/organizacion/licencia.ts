@@ -42,7 +42,9 @@ export const createLicence = async ({ request, response }: RouterContext) => {
   response.body = licencia;
 };
 
-export const getLicence = async ({ params, response }: RouterContext) => {
+export const getLicence = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -53,7 +55,7 @@ export const getLicence = async ({ params, response }: RouterContext) => {
 };
 
 export const updateLicence = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -83,7 +85,9 @@ export const updateLicence = async (
   response.body = licencia;
 };
 
-export const deleteLicence = async ({ params, response }: RouterContext) => {
+export const deleteLicence = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

@@ -56,7 +56,9 @@ export const createContact = async ({ request, response }: RouterContext) => {
   );
 };
 
-export const getContact = async ({ params, response }: RouterContext) => {
+export const getContact = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -67,7 +69,7 @@ export const getContact = async ({ params, response }: RouterContext) => {
 };
 
 export const updateContact = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -109,7 +111,9 @@ export const updateContact = async (
   response.body = contact;
 };
 
-export const deleteContact = async ({ params, response }: RouterContext) => {
+export const deleteContact = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

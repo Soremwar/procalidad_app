@@ -57,7 +57,9 @@ export const createClient = async ({ request, response }: RouterContext) => {
   );
 };
 
-export const getClient = async ({ params, response }: RouterContext) => {
+export const getClient = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -68,7 +70,7 @@ export const getClient = async ({ params, response }: RouterContext) => {
 };
 
 export const updateClient = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -110,7 +112,9 @@ export const updateClient = async (
   response.body = client;
 };
 
-export const deleteClient = async ({ params, response }: RouterContext) => {
+export const deleteClient = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

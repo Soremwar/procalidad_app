@@ -62,7 +62,9 @@ export const createProject = async ({ request, response }: RouterContext) => {
   );
 };
 
-export const getProject = async ({ params, response }: RouterContext) => {
+export const getProject = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -90,7 +92,7 @@ export const searchProject = async ({ response, request }: RouterContext) => {
 };
 
 export const updateProject = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -129,7 +131,9 @@ export const updateProject = async (
   response.body = project;
 };
 
-export const deleteProject = async ({ params, response }: RouterContext) => {
+export const deleteProject = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

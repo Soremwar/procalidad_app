@@ -40,7 +40,9 @@ export const createPosition = async ({ request, response }: RouterContext) => {
   response.body = position;
 };
 
-export const getPosition = async ({ params, response }: RouterContext) => {
+export const getPosition = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -51,7 +53,7 @@ export const getPosition = async ({ params, response }: RouterContext) => {
 };
 
 export const updatePosition = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -78,7 +80,9 @@ export const updatePosition = async (
   response.body = position;
 };
 
-export const deletePosition = async ({ params, response }: RouterContext) => {
+export const deletePosition = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

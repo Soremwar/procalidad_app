@@ -61,7 +61,9 @@ export const createPerson = async ({ request, response }: RouterContext) => {
   );
 };
 
-export const getPerson = async ({ params, response }: RouterContext) => {
+export const getPerson = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -72,7 +74,7 @@ export const getPerson = async ({ params, response }: RouterContext) => {
 };
 
 export const updatePerson = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -110,7 +112,9 @@ export const updatePerson = async (
   response.body = person;
 };
 
-export const deletePerson = async ({ params, response }: RouterContext) => {
+export const deletePerson = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

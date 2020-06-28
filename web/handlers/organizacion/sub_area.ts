@@ -46,7 +46,9 @@ export const createSubArea = async ({ request, response }: RouterContext) => {
   );
 };
 
-export const getSubArea = async ({ params, response }: RouterContext) => {
+export const getSubArea = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -57,7 +59,7 @@ export const getSubArea = async ({ params, response }: RouterContext) => {
 };
 
 export const updateSubArea = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -87,7 +89,9 @@ export const updateSubArea = async (
   response.body = sub_area;
 };
 
-export const deleteSubArea = async ({ params, response }: RouterContext) => {
+export const deleteSubArea = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

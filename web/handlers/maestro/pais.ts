@@ -10,7 +10,9 @@ export const getCountries = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getCountry = async ({ params, response }: RouterContext) => {
+export const getCountry = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

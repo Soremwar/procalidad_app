@@ -11,7 +11,9 @@ export const getStates = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
-export const getState = async ({ params, response }: RouterContext) => {
+export const getState = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

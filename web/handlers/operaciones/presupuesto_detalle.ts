@@ -7,7 +7,7 @@ import {
 import { RequestSyntaxError } from "../../exceptions.ts";
 
 export const searchBudgetDetails = async (
-  { params, response }: RouterContext,
+  { params, response }: RouterContext<{ id: string }>,
 ) => {
   const budget_id: number = Number(params.id);
   if (!budget_id) throw new RequestSyntaxError();

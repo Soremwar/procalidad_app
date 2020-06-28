@@ -42,7 +42,9 @@ export const createAreaType = async ({ request, response }: RouterContext) => {
   );
 };
 
-export const getAreaType = async ({ params, response }: RouterContext) => {
+export const getAreaType = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -53,7 +55,7 @@ export const getAreaType = async ({ params, response }: RouterContext) => {
 };
 
 export const updateAreaType = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -80,7 +82,9 @@ export const updateAreaType = async (
   response.body = area_type;
 };
 
-export const deleteAreaType = async ({ params, response }: RouterContext) => {
+export const deleteAreaType = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

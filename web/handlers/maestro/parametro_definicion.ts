@@ -19,7 +19,7 @@ export const getParameterDefinitions = async ({ response }: RouterContext) => {
 //TODO
 //Add validations for date overlapping
 export const createParameterDefinition = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -62,7 +62,7 @@ export const createParameterDefinition = async (
 };
 
 export const getParameterDefinition = async (
-  { params, response }: RouterContext,
+  { params, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
@@ -94,7 +94,7 @@ export const searchParameterDefinition = async (
 //TODO
 //Add validations for date overlapping
 export const updateParameterDefinition = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -136,7 +136,7 @@ export const updateParameterDefinition = async (
 };
 
 export const deleteParameterDefinition = async (
-  { params, response }: RouterContext,
+  { params, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();

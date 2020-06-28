@@ -74,7 +74,9 @@ export const createBudget = async ({ request, response }: RouterContext) => {
   );
 };
 
-export const getBudget = async ({ params, response }: RouterContext) => {
+export const getBudget = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -87,7 +89,7 @@ export const getBudget = async ({ params, response }: RouterContext) => {
 };
 
 export const updateBudget = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -126,7 +128,9 @@ export const updateBudget = async (
   response.body = budget;
 };
 
-export const deleteBudget = async ({ params, response }: RouterContext) => {
+export const deleteBudget = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

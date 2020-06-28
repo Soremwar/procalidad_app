@@ -1,4 +1,4 @@
-import { Body, RouterContext } from "oak";
+import { Body, RouterContext, Context } from "oak";
 import {
   createNew,
   findAll,
@@ -131,7 +131,9 @@ export const createResource = async ({ request, response }: RouterContext) => {
   response.body = position;
 };
 
-export const getResource = async ({ params, response }: RouterContext) => {
+export const getResource = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -142,7 +144,7 @@ export const getResource = async ({ params, response }: RouterContext) => {
 };
 
 export const updateResource = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -191,7 +193,9 @@ export const updateResource = async (
   response.body = resource;
 };
 
-export const deleteResource = async ({ params, response }: RouterContext) => {
+export const deleteResource = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

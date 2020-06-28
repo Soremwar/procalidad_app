@@ -42,7 +42,9 @@ export const createRole = async ({ request, response }: RouterContext) => {
   );
 };
 
-export const getRole = async ({ params, response }: RouterContext) => {
+export const getRole = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -53,7 +55,7 @@ export const getRole = async ({ params, response }: RouterContext) => {
 };
 
 export const updateRole = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -80,7 +82,9 @@ export const updateRole = async (
   response.body = role;
 };
 
-export const deleteRole = async ({ params, response }: RouterContext) => {
+export const deleteRole = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

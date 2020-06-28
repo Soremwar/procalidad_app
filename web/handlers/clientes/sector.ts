@@ -41,7 +41,9 @@ export const createSector = async ({ request, response }: RouterContext) => {
   );
 };
 
-export const getSector = async ({ params, response }: RouterContext) => {
+export const getSector = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
@@ -52,7 +54,7 @@ export const getSector = async ({ params, response }: RouterContext) => {
 };
 
 export const updateSector = async (
-  { params, request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -76,7 +78,9 @@ export const updateSector = async (
   response.body = sector;
 };
 
-export const deleteSector = async ({ params, response }: RouterContext) => {
+export const deleteSector = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 

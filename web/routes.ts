@@ -243,7 +243,7 @@ main_router
   .get("/api/operaciones/proyecto", getProjects)
   .post("/api/operaciones/proyecto/table", getProjectsTable)
   .post("/api/operaciones/proyecto", createProject)
-  .get<{ id: string }>("/api/operaciones/proyecto/search", searchProject)
+  .get("/api/operaciones/proyecto/search", searchProject)
   .get<{ id: string }>("/api/operaciones/proyecto/:id", getProject)
   .put<{ id: string }>("/api/operaciones/proyecto/:id", updateProject)
   .delete<{ id: string }>(
@@ -417,7 +417,7 @@ main_router
   .get("/api/planeacion/recurso/gantt", getResourcesGantt)
   .get("/api/planeacion/recurso/heatmap", getResourcesHeatmap)
   .post("/api/planeacion/recurso/table", getResourcesTable)
-  .post<{ id: string }>("/api/planeacion/recurso", createResource)
+  .post("/api/planeacion/recurso", createResource)
   .get<{ id: string }>("/api/planeacion/recurso/:id", getResource)
   .put<{ id: string }>("/api/planeacion/recurso/:id", updateResource)
   .delete<{ id: string }>("/api/planeacion/recurso/:id", deleteResource);
