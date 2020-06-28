@@ -1,7 +1,8 @@
 {
    "imports": {
-      "deno_postgres": "https://deno.land/x/postgres@3dd86a1a8b8a5aae727b99fe423d6227049cff6e/mod.ts",
-      "deno_postgres/": "https://deno.land/x/postgres@3dd86a1a8b8a5aae727b99fe423d6227049cff6e/",
-      "oak": "https://raw.githubusercontent.com/Soremwar/oak/v0.41/mod.ts"
+      "deno_postgres": "https://deno.land/x/postgres@ecad494a86a66f7a7b140b8b3091e3d5885ea491/mod.ts",
+      "deno_postgres/": "https://deno.land/x/postgres@ecad494a86a66f7a7b140b8b3091e3d5885ea491/",
+      "fs": "https://deno.land/std@0.59.0/fs/mod.ts",
+      "oak": "https://deno.land/x/oak@46cc54eb651e58bf5425413fa5b50022e881b56f/mod.ts"
    }
 }
