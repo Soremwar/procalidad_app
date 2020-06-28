@@ -640,7 +640,8 @@ const EditModal = ({
               {budgets
                 .filter(({ fk_proyecto }) => fk_proyecto == fields.project)
                 .map(({ pk_presupuesto, nombre }) => (
-                  <option key={pk_presupuesto} value={pk_presupuesto}>{nombre}
+                  <option key={pk_presupuesto} value={pk_presupuesto}>
+                    {nombre}
                   </option>
                 ))}
             </SelectField>

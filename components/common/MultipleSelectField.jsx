@@ -67,9 +67,9 @@ export default ({
             },
           }}
           multiple
-          onChange={(event) => (onChange
-            ? onChange(event)
-            : handleChange(event))}
+          onChange={(
+            event,
+          ) => (onChange ? onChange(event) : handleChange(event))}
           renderValue={(selected) => (
             <div className={classes.chips}>
               {selected.map((id) => (

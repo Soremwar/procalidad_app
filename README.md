@@ -10,3 +10,9 @@ Para compilar la aplicación React necesaria para correr la página
 yarn install
 yarn compile
 ```
+
+### Notas:
+Asegurese de permitir el acceso de Deno a la red como servicio
+
+#### En un servidor Linux:
+`setcap cap_net_bind_service=ep /ruta/a/deno`
