@@ -1,25 +1,15 @@
 import React, {
-  useEffect,
-  useState,
+  useContext,
 } from "react";
 import { makeStyles } from "@material-ui/styles";
 import {
-  Table,
-  TableBody,
-  TableContainer,
-  TableHead,
   TableRow,
   Tooltip,
-  Paper,
 } from "@material-ui/core";
-import {
-  parseDateToStandardNumber,
-  parseStandardNumber,
-} from "../../../../lib/date/mod.js";
-import {
+import Heatmap, {
   CleanTableCell,
+  DateParameters,
   DetailDot,
-  VerticalCell,
 } from "./Heatmap.jsx";
 
 const AvailabilityCell = ({
@@ -76,25 +66,6 @@ const OcupationCell = ({
   );
 };
 
-const rowStyles = makeStyles({
-  row: {
-    margin: 0,
-    padding: "0px",
-  },
-});
-
-const CleanTableRow = ({ children, className = "", ...props }) => {
-  const styles = rowStyles();
-  return (
-    <TableRow
-      className={[styles.row, ...className.split(" ")].join(" ")}
-      {...props}
-    >
-      {children}
-    </TableRow>
-  );
-};
-
 const detailRowStyles = makeStyles({
   row: {
     height: "30px",
@@ -115,89 +86,53 @@ const DetailTableRow = ({ children, className = "", ...props }) => {
   );
 };
 
-const tableStyles = makeStyles({
-  table: {
-    borderCollapse: "collapse",
-  },
-  detail_column: {
-    minWidth: "100px",
-  },
-});
+const HeatmapData = ({
+  data,
+  type,
+}) => {
+  const { calendar_dates } = useContext(DateParameters);
 
-export default function ({
+  return data.map(({ person_id, person, dates }) => (
+    <DetailTableRow key={person_id}>
+      <CleanTableCell>
+        {person}
+      </CleanTableCell>
+      {calendar_dates.map((calendar_date) => {
+        const activity = dates.find(({ date }) => calendar_date == date);
+        if (type === "availability") {
+          return (
+            <AvailabilityCell
+              available={activity ? Number(activity.assignation) : 100}
+              key={calendar_date}
+              value={activity ? Number(activity.hours) : 9}
+            />
+          );
+        } else {
+          return (
+            <OcupationCell
+              assignation={activity ? Number(activity.assignation) : 0}
+              key={calendar_date}
+              value={activity ? Number(activity.hours) : 0}
+            />
+          );
+        }
+      })}
+    </DetailTableRow>
+  ));
+};
+
+export default ({
   blacklisted_dates,
   data,
   end_date,
   start_date,
   type,
-}) {
-  const classes = tableStyles();
-  const [calendar_dates, setCalendarDates] = useState([]);
-
-  useEffect(() => {
-    let dates = [];
-
-    for (
-      let x = parseStandardNumber(start_date);
-      x <= parseStandardNumber(end_date);
-      x.setDate(x.getDate() + 1)
-    ) {
-      if (!blacklisted_dates.includes(parseDateToStandardNumber(x))) {
-        dates.push(parseDateToStandardNumber(x));
-      }
-    }
-
-    setCalendarDates(dates);
-  }, [start_date, end_date, blacklisted_dates]);
-
-  return (
-    <TableContainer component={Paper}>
-      <Table aria-label="spanning table" className={classes.table}>
-        <TableHead>
-          <TableRow>
-            <CleanTableCell align="center" colSpan={calendar_dates.length}>
-              Fechas
-            </CleanTableCell>
-          </TableRow>
-          <CleanTableRow>
-            <CleanTableCell className={classes.detail_column} />
-            {calendar_dates.map((date) => (
-              <VerticalCell key={date}>{date}</VerticalCell>
-            ))}
-          </CleanTableRow>
-        </TableHead>
-        <TableBody>
-          {data.map(({ person_id, person, dates }) => (
-            <DetailTableRow key={person_id}>
-              <CleanTableCell className={classes.detail_column}>
-                {person}
-              </CleanTableCell>
-              {calendar_dates.map((calendar_date) => {
-                const activity = dates.find(({ date }) =>
-                  calendar_date == date
-                );
-                if (type === "availability") {
-                  return (
-                    <AvailabilityCell
-                      available={activity ? Number(activity.assignation) : 100}
-                      key={calendar_date}
-                      value={activity ? Number(activity.hours) : 9}
-                    />
-                  );
-                } else {
-                  return (
-                    <OcupationCell
-                      assignation={activity ? Number(activity.assignation) : 0}
-                      key={calendar_date}
-                      value={activity ? Number(activity.hours) : 0}
-                    />
-                  );
-                }
-              })}
-            </DetailTableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-}
+}) => (
+  <Heatmap
+    blacklisted_dates={blacklisted_dates}
+    end_date={end_date}
+    start_date={start_date}
+  >
+    <HeatmapData data={data} type={type} />
+  </Heatmap>
+);

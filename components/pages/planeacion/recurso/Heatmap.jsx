@@ -1,8 +1,30 @@
-import React from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+} from "react";
 import { makeStyles } from "@material-ui/styles";
 import {
+  Table,
+  TableBody,
   TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from "@material-ui/core";
+
+import {
+  parseDateToStandardNumber,
+  parseStandardNumber,
+} from "../../../../lib/date/mod.js";
+import {
+  months as month_lang,
+} from "../../../../lib/date/lang.js";
+
+export const DateParameters = createContext({
+  calendar_dates: [],
+});
 
 const cellStyles = makeStyles({
   row: {
@@ -22,6 +44,25 @@ export const CleanTableCell = ({ children, className = "", ...props }) => {
     >
       {children}
     </TableCell>
+  );
+};
+
+const rowStyles = makeStyles({
+  row: {
+    margin: 0,
+    padding: "0px",
+  },
+});
+
+const CleanTableRow = ({ children, className = "", ...props }) => {
+  const styles = rowStyles();
+  return (
+    <TableRow
+      className={[styles.row, ...className.split(" ")].join(" ")}
+      {...props}
+    >
+      {children}
+    </TableRow>
   );
 };
 
@@ -99,5 +140,79 @@ export const DetailDot = ({
         : {}}
     >
     </div>
+  );
+};
+
+const tableStyles = makeStyles({
+  table: {
+    borderCollapse: "collapse",
+  },
+  detail_column: {
+    minWidth: "100px",
+  },
+});
+
+export default ({
+  blacklisted_dates,
+  children,
+  end_date,
+  start_date,
+}) => {
+  const classes = tableStyles();
+  const [calendar_dates, setCalendarDates] = useState([]);
+
+  useEffect(() => {
+    let dates = [];
+
+    for (
+      let x = parseStandardNumber(start_date);
+      x <= parseStandardNumber(end_date);
+      x.setDate(x.getDate() + 1)
+    ) {
+      if (!blacklisted_dates.includes(parseDateToStandardNumber(x))) {
+        dates.push(parseDateToStandardNumber(x));
+      }
+    }
+
+    setCalendarDates(dates);
+  }, [start_date, end_date, blacklisted_dates]);
+
+  return (
+    <TableContainer component={Paper}>
+      <Table className={classes.table}>
+        <TableHead>
+          <CleanTableRow>
+            <CleanTableCell className={classes.detail_column} />
+            {Object.entries(calendar_dates
+            .reduce((month_count, current_date) => {
+              const current_month = String(current_date).substr(4, 2);
+              if(current_month in month_count){
+                month_count[current_month] += 1;
+              }else{
+                month_count[current_month] = 1;
+              }
+              return month_count
+            }, {}))
+            .map(([month_id, count]) => (
+              <CleanTableCell align="center" colSpan={count}>
+                {month_lang.get(month_id)}
+              </CleanTableCell>
+            ))
+            }
+          </CleanTableRow>
+          <CleanTableRow>
+            <CleanTableCell className={classes.detail_column} />
+            {calendar_dates.map((date) => (
+              <VerticalCell key={date}>{String(date).substr(6, 2)}</VerticalCell>
+            ))}
+          </CleanTableRow>
+        </TableHead>
+        <TableBody>
+          <DateParameters.Provider value={{ calendar_dates }}>
+            {children}
+          </DateParameters.Provider>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
