@@ -8,14 +8,15 @@ import {
   Fade,
 } from "@material-ui/core";
 import { withRouter } from "react-router-dom";
+import GoogleLogin from "react-google-login";
+
+import {
+  attemptManualLogin,
+  loginWithGoogle,
+  UserContext,
+} from "../context/User.jsx";
 
 import useStyles from "./styles.js";
-//TODO
-//Lazy load image
-//import google_icon from "../../public/resources/img/google.svg";
-
-// context
-import { UserContext, loginUser } from "../context/User.jsx";
 
 const Login = ({ history }) => {
   const classes = useStyles();
@@ -59,14 +60,21 @@ const Login = ({ history }) => {
             <Typography variant="h1" className={classes.greeting}>
               Bienvenido!
             </Typography>
-            <Button size="large" className={classes.googleButton}>
-              {/*
-                  TODO
-                  Load file with lazy loading
-                  <img src={google_icon} alt="google" className={classes.googleIcon} />
-                */}
-              Google Logo&nbsp;Iniciar sesión con Google
-            </Button>
+            <GoogleLogin
+              clientId="754494090542-7kmmopqoulege94gf4mm988ukmda7jv2.apps.googleusercontent.com"
+              cookiePolicy={"single_host_origin"}
+              buttonText="Iniciar Sesión"
+              onSuccess={(api_response) =>
+                loginWithGoogle(
+                  userDispatch,
+                  api_response,
+                  history,
+                  setLoginError,
+                  setIsLoading,
+                )}
+              onFailure={() => setLoginError("La autenticación fallo")}
+              redirectUri={"http://localhost/login"}
+            />
             <div className={classes.formDividerContainer}>
               <div className={classes.formDivider} />
               <Typography className={classes.formDividerWord}>o</Typography>
@@ -119,7 +127,7 @@ const Login = ({ history }) => {
                   <Button
                     disabled={!form_fields.username && !form_fields.password}
                     onClick={() =>
-                      loginUser(
+                      attemptManualLogin(
                         userDispatch,
                         form_fields.username,
                         form_fields.password,

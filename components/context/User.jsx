@@ -30,21 +30,9 @@ const loginReducer = (state, action) => {
   }
 };
 
-const attemptLogin = (username, password) => {
-  //TODO
-  //Verify session with google server
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (username === dev_username && password === dev_password) {
-        resolve("Autenticado con éxito");
-      } else {
-        reject("Credenciales incorrectas");
-      }
-    }, 1000);
-  });
-};
-
-export const loginUser = (
+//TODO
+//Create session with server
+export const attemptManualLogin = (
   dispatch,
   username,
   password,
@@ -53,17 +41,27 @@ export const loginUser = (
   setIsLoading,
 ) => {
   setIsLoading(true);
-  attemptLogin(username, password)
-    .then(() => {
-      dispatch({ type: ACTIONS.LOGIN });
-      history.push("/home");
-    })
-    .catch((message) => {
-      //TODO
-      //Replace with error detection
-      setLoginError(message);
-      setIsLoading(false);
-    });
+  if (username === dev_username && password === dev_password) {
+    dispatch({ type: ACTIONS.LOGIN });
+    history.push("/home");
+  } else {
+    setLoginError("Credenciales incorrectas");
+    setIsLoading(false);
+  }
+};
+
+//TODO
+//Create session with server
+//Check if email is allowed with API
+export const loginWithGoogle = (
+  dispatch,
+  api_data,
+  history,
+  setLoginError,
+) => {
+  console.log(api_data);
+  dispatch({ type: ACTIONS.LOGIN });
+  history.push("/home");
 };
 
 export const signOutUser = (dispatch, history) => {
