@@ -118,7 +118,6 @@ class TableData {
     public id: number,
     public name: string,
     public description: string,
-    public cost: number,
   ) {}
 }
 
@@ -132,8 +131,7 @@ export const getTableData = async (
     `SELECT
       PK_LICENCIA AS ID,
       NOMBRE AS NAME,
-      DESCRIPCION AS DESCRIPTION,
-      COSTO AS COST
+      DESCRIPCION AS DESCRIPTION
     FROM ${TABLE}`
   );
 
@@ -149,7 +147,6 @@ export const getTableData = async (
     number,
     string,
     string,
-    number,
   ]) => new TableData(...x));
 
   return new TableResult(

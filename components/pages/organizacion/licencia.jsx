@@ -11,16 +11,16 @@ import {
 
 import {
   formatResponseJson,
-  requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  fetchLicenseApi,
+} from "../../../lib/api/generator.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
-
-const fetchLicenseApi = requestGenerator("organizacion/licencia");
 
 const getLicense = (id) => fetchLicenseApi(id).then((x) => x.json());
 
@@ -54,13 +54,6 @@ const headers = [
     numeric: false,
     disablePadding: false,
     label: "Descripcion",
-    searchable: true,
-  },
-  {
-    id: "cost",
-    numeric: false,
-    disablePadding: false,
-    label: "Costo",
     searchable: true,
   },
 ];
