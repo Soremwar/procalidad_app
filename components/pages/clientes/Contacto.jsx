@@ -69,6 +69,13 @@ const headers = [
     label: "Correo",
     searchable: true,
   },
+  {
+    id: "client",
+    numeric: false,
+    disablePadding: false,
+    label: "Cliente",
+    searchable: true,
+  },
 ];
 
 const AddModal = ({

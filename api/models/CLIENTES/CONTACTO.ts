@@ -5,6 +5,7 @@ import {
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
+import { TABLE as CLIENT_TABLE } from "./CLIENTE.ts";
 
 const TABLE = "CLIENTES.CONTACTO";
 
@@ -181,7 +182,7 @@ export const createNew = async (
 class TableData {
   constructor(
     public id: number,
-    public id_client: number,
+    public client: string,
     public name: string,
     public phone: string,
     public email: string,
@@ -197,7 +198,7 @@ export const getTableData = async (
   const base_query = (
     `SELECT
         PK_CONTACTO AS ID,
-        FK_CLIENTE AS ID_CLIENT,
+        (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE  = FK_CLIENTE) AS CLIENT,
         NOMBRE AS NAME,
         TELEFONO AS PHONE,
         CORREO AS EMAIL
@@ -214,7 +215,7 @@ export const getTableData = async (
 
   const models = data.map((x: [
     number,
-    number,
+    string,
     string,
     string,
     string,
