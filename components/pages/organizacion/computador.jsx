@@ -59,13 +59,6 @@ const headers = [
     label: "Descripcion",
     searchable: true,
   },
-  {
-    id: "cost",
-    numeric: false,
-    disablePadding: false,
-    label: "Costo",
-    searchable: true,
-  },
 ];
 
 const AddModal = ({
