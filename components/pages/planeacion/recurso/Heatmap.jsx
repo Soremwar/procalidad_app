@@ -184,26 +184,27 @@ export default ({
           <CleanTableRow>
             <CleanTableCell className={classes.detail_column} />
             {Object.entries(calendar_dates
-            .reduce((month_count, current_date) => {
-              const current_month = String(current_date).substr(4, 2);
-              if(current_month in month_count){
-                month_count[current_month] += 1;
-              }else{
-                month_count[current_month] = 1;
-              }
-              return month_count
-            }, {}))
-            .map(([month_id, count]) => (
-              <CleanTableCell align="center" colSpan={count}>
-                {month_lang.get(month_id)}
-              </CleanTableCell>
-            ))
-            }
+              .reduce((month_count, current_date) => {
+                const current_month = String(current_date).substr(4, 2);
+                if (current_month in month_count) {
+                  month_count[current_month] += 1;
+                } else {
+                  month_count[current_month] = 1;
+                }
+                return month_count;
+              }, {}))
+              .map(([month_id, count]) => (
+                <CleanTableCell align="center" colSpan={count}>
+                  {month_lang.get(month_id)}
+                </CleanTableCell>
+              ))}
           </CleanTableRow>
           <CleanTableRow>
             <CleanTableCell className={classes.detail_column} />
             {calendar_dates.map((date) => (
-              <VerticalCell key={date}>{String(date).substr(6, 2)}</VerticalCell>
+              <VerticalCell key={date}>
+                {String(date).substr(6, 2)}
+              </VerticalCell>
             ))}
           </CleanTableRow>
         </TableHead>

@@ -11,6 +11,11 @@ yarn install
 yarn compile
 ```
 
+Para formatear el código de la aplicación
+```bash
+deno fmt api components config lib web
+```
+
 ### Notas:
 Asegurese de permitir el acceso de Deno a la red como servicio
 
