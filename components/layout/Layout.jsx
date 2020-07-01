@@ -29,6 +29,7 @@ import TipoPresupuesto from "../pages/operaciones/TipoPresupuesto.jsx";
 import Rol from "../pages/operaciones/Rol.jsx";
 import Presupuesto from "../pages/operaciones/Presupuesto.jsx";
 import Parametro from "../pages/maestro/parametro.jsx";
+import Acceso from "../pages/maestro/acceso.jsx";
 import PlaneacionProyecto from "../pages/planeacion/proyecto.jsx";
 import PlaneacionRecurso from "../pages/planeacion/recurso.jsx";
 
@@ -80,6 +81,7 @@ const Layout = (props) => {
             <Route path="/operaciones/rol" component={Rol} />
             <Route path="/operaciones/presupuesto" component={Presupuesto} />
             <Route path="/maestro/parametro" component={Parametro} />
+            <Route path="/maestro/acceso" component={Acceso} />
             <Route path="/planeacion/proyecto" component={PlaneacionProyecto} />
             <Route path="/planeacion/recurso" component={PlaneacionRecurso} />
           </Switch>

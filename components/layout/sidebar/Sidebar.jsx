@@ -32,6 +32,7 @@ const structure = [
     icon: <AccountBoxIcon />,
     children: [
       { label: "Parametro", link: "/maestro/parametro" },
+      { label: "Acceso", link: "/maestro/acceso" },
     ],
   },
   {

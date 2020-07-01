@@ -175,6 +175,18 @@ import {
   getBlacklistedDays,
 } from "./handlers/maestro/tiempo.ts";
 import {
+  getProfile,
+  getProfiles,
+} from "./handlers/maestro/profile.ts";
+import {
+  createAccess,
+  deleteAccess,
+  getAccess,
+  getAccesses,
+  getAccessesTable,
+  updateAccess,
+} from "./handlers/maestro/access.ts";
+import {
   createResource,
   deleteResource,
   getResource,
@@ -411,6 +423,18 @@ main_router
 
 main_router
   .get("/api/maestro/tiempo/blacklist", getBlacklistedDays);
+
+main_router
+  .get("/api/maestro/permiso", getProfiles)
+  .get<{ id: string }>("/api/maestro/permiso/:id", getProfile);
+
+main_router
+  .get("/api/maestro/acceso", getAccesses)
+  .post("/api/maestro/acceso/table", getAccessesTable)
+  .post("/api/maestro/acceso", createAccess)
+  .get<{ id: string }>("/api/maestro/acceso/:id", getAccess)
+  .put<{ id: string }>("/api/maestro/acceso/:id", updateAccess)
+  .delete<{ id: string }>("/api/maestro/acceso/:id", deleteAccess);
 
 main_router
   .get("/api/planeacion/recurso", getResources)
