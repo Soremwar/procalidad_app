@@ -1,5 +1,6 @@
 {
    "imports": {
+      "ajv": "https://cdn.pika.dev/ajv@6.12.2",
       "deno_postgres": "https://deno.land/x/postgres@ecad494a86a66f7a7b140b8b3091e3d5885ea491/mod.ts",
       "deno_postgres/": "https://deno.land/x/postgres@ecad494a86a66f7a7b140b8b3091e3d5885ea491/",
       "fs": "https://deno.land/std@0.59.0/fs/mod.ts",
