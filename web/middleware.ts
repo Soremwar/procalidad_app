@@ -1,18 +1,14 @@
 import { Context, Status } from "oak";
 import { validateJwt } from "djwt/validate.ts";
-import { Message, formatResponse } from "./http_utils.ts";
+import { formatResponse, Message } from "./http_utils.ts";
 import {
   AuthenticationRejectedError,
   ForbiddenAccessError,
   NotFoundError,
   RequestSyntaxError,
 } from "./exceptions.ts";
-import {
-  Profiles,
-} from "../api/common/profiles.ts";
-import {
-  encryption_key,
-} from "../config/api_deno.js";
+import { Profiles } from "../api/common/profiles.ts";
+import { encryption_key } from "../config/api_deno.js";
 
 export const errorHandler = async (
   { response }: Context,
@@ -29,6 +25,12 @@ export const errorHandler = async (
           error.message || Message.Unauthorized,
         );
         break;
+      case ForbiddenAccessError:
+        response = formatResponse(
+          response,
+          Status.Forbidden,
+          error.message || Message.Forbidden,
+        );
       case RequestSyntaxError:
         response = formatResponse(
           response,
