@@ -6,7 +6,6 @@ import Ajv from "ajv";
 import {
   createNew,
   findAll,
-  findByEmail,
   findById,
   getTableData,
   hasAccessDefined,
@@ -92,21 +91,6 @@ export const getAccess = async (
   if (!id) throw new RequestSyntaxError();
 
   const acceso = await findById(id);
-  if (!acceso) throw new NotFoundError();
-
-  response.body = acceso;
-};
-
-export const findAccess = async ({ request, response }: RouterContext) => {
-  const {
-    email,
-  }: { [x: string]: string } = Object.fromEntries(
-    request.url.searchParams.entries(),
-  );
-
-  if (!email) throw new RequestSyntaxError();
-
-  const acceso = await findByEmail(email);
   if (!acceso) throw new NotFoundError();
 
   response.body = acceso;
