@@ -3,6 +3,7 @@
       "ajv": "https://cdn.pika.dev/ajv@6.12.2",
       "deno_postgres": "https://deno.land/x/postgres@ecad494a86a66f7a7b140b8b3091e3d5885ea491/mod.ts",
       "deno_postgres/": "https://deno.land/x/postgres@ecad494a86a66f7a7b140b8b3091e3d5885ea491/",
+      "djwt/": "https://deno.land/x/djwt@9eae2530bb02574023198245b0af291d77667d0a/",
       "fs": "https://deno.land/std@0.59.0/fs/mod.ts",
       "oak": "https://deno.land/x/oak@46cc54eb651e58bf5425413fa5b50022e881b56f/mod.ts"
    }

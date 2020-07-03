@@ -1,16 +1,19 @@
 import { Application, send } from "oak";
 import { routes, allowedMethods } from "./web/routes.ts";
 import { address, port } from "./config/api_deno.js";
-import middleware from "./web/middleware.ts";
+import {
+  errorHandler,
+} from "./web/middleware.ts";
 
 const app = new Application();
 
-app.use(middleware);
+app.use(errorHandler);
 app.use(routes);
 app.use(allowedMethods);
 
+//If route not found in API router
+//Default to static file (React App)
 app.use(async (context) => {
-  //Send to the app or serve static file
   let resource;
   switch (context.request.url.pathname.split("/")[1]) {
     case "resources":

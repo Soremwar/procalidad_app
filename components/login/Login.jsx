@@ -12,7 +12,7 @@ import GoogleLogin from "react-google-login";
 
 import {
   attemptManualLogin,
-  loginWithGoogle,
+  attemptGoogleLogin,
   UserContext,
 } from "../context/User.jsx";
 
@@ -65,7 +65,7 @@ const Login = ({ history }) => {
               cookiePolicy={"single_host_origin"}
               buttonText="Iniciar Sesión"
               onSuccess={(api_response) =>
-                loginWithGoogle(
+                attemptGoogleLogin(
                   userDispatch,
                   api_response,
                   history,

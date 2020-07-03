@@ -7,12 +7,7 @@ import {
 
 const config = await readJson("config.json");
 
-const address = config?.api?.address || "127.0.0.1";
-const port = Number(config?.api?.port) || 8000;
-const prefix = config?.api?.prefix || "api";
-
-export {
-  address,
-  port,
-  prefix,
-};
+export const address = config?.api?.address || "127.0.0.1";
+export const encryption_key = config?.api?.encryption_key || "secret-key";
+export const port = Number(config?.api?.port) || 8000;
+export const prefix = config?.api?.prefix || "api";

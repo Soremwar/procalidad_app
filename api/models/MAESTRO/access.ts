@@ -89,6 +89,27 @@ export const findById = async (id: number): Promise<Access | null> => {
   return new Access(...result);
 };
 
+export const findByEmail = async (email: string): Promise<Access | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      FK_PERSONA,
+      ARRAY_AGG(FK_PERMISO)
+    FROM ${TABLE} 
+    WHERE FK_PERSONA = (SELECT PK_PERSONA FROM ${PEOPLE_TABLE} WHERE CORREO ILIKE $1)
+    GROUP BY FK_PERSONA`,
+    email,
+  );
+
+  if (!rows[0]) return null;
+
+  const result: [
+    number,
+    number[],
+  ] = rows[0];
+
+  return new Access(...result);
+};
+
 export const createNew = async (
   person: number,
   profiles: number[],

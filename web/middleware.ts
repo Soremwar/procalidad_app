@@ -1,8 +1,20 @@
 import { Context, Status } from "oak";
+import { validateJwt } from "djwt/validate.ts";
 import { Message, formatResponse } from "./http_utils.ts";
-import { NotFoundError, RequestSyntaxError } from "./exceptions.ts";
+import {
+  AuthenticationRejectedError,
+  ForbiddenAccessError,
+  NotFoundError,
+  RequestSyntaxError,
+} from "./exceptions.ts";
+import {
+  Profiles,
+} from "../api/common/profiles.ts";
+import {
+  encryption_key,
+} from "../config/api_deno.js";
 
-export default async (
+export const errorHandler = async (
   { response }: Context,
   next: () => Promise<void>,
 ) => {
@@ -10,6 +22,13 @@ export default async (
     await next();
   } catch (error) {
     switch (error.constructor) {
+      case AuthenticationRejectedError:
+        response = formatResponse(
+          response,
+          Status.Unauthorized,
+          error.message || Message.Unauthorized,
+        );
+        break;
       case RequestSyntaxError:
         response = formatResponse(
           response,
@@ -32,4 +51,35 @@ export default async (
         );
     }
   }
+};
+
+export const checkProfileAccess = (required_profiles: Profiles[]) => {
+  return async (
+    { cookies }: Context,
+    next: () => Promise<void>,
+  ) => {
+    const session_cookie = cookies.get("PA_AUTH");
+    if (!session_cookie) {
+      throw new AuthenticationRejectedError("El usuario no esta autenticado");
+    }
+
+    const session_data = await validateJwt(session_cookie, encryption_key);
+    if (!session_data.isValid) {
+      throw new AuthenticationRejectedError("La sesion es invalida");
+    }
+
+    const context = session_data.payload?.context as any;
+    const user_profiles: Profiles[] = Array.isArray(context?.user?.profiles)
+      ? context?.user?.profiles
+      : [];
+
+    const has_required_profiles = user_profiles.some((profile) =>
+      required_profiles.includes(profile)
+    );
+    if (!has_required_profiles) {
+      throw new ForbiddenAccessError("No tiene acceso a este contenido");
+    }
+
+    await next();
+  };
 };

@@ -6,6 +6,7 @@ import Ajv from "ajv";
 import {
   createNew,
   findAll,
+  findByEmail,
   findById,
   getTableData,
   hasAccessDefined,
@@ -78,12 +79,10 @@ export const createAccess = async ({ request, response }: RouterContext) => {
     throw new Error("Esta persona ya tiene un acceso definido");
   }
 
-  const licencia = await createNew(
+  response.body = await createNew(
     value.person,
     value.profiles,
   );
-
-  response.body = licencia;
 };
 
 export const getAccess = async (
@@ -92,10 +91,25 @@ export const getAccess = async (
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  const licencia = await findById(id);
-  if (!licencia) throw new NotFoundError();
+  const acceso = await findById(id);
+  if (!acceso) throw new NotFoundError();
 
-  response.body = licencia;
+  response.body = acceso;
+};
+
+export const findAccess = async ({ request, response }: RouterContext) => {
+  const {
+    email,
+  }: { [x: string]: string } = Object.fromEntries(
+    request.url.searchParams.entries(),
+  );
+
+  if (!email) throw new RequestSyntaxError();
+
+  const acceso = await findByEmail(email);
+  if (!acceso) throw new NotFoundError();
+
+  response.body = acceso;
 };
 
 export const updateAccess = async (
@@ -104,8 +118,8 @@ export const updateAccess = async (
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  let licencia = await findById(id);
-  if (!licencia) throw new NotFoundError();
+  let acceso = await findById(id);
+  if (!acceso) throw new NotFoundError();
 
   const {
     type,
@@ -118,12 +132,10 @@ export const updateAccess = async (
     throw new RequestSyntaxError();
   }
 
-  licencia = await licencia.update(
+  response.body = await acceso.update(
     value.person,
     value.profiles,
   );
-
-  response.body = licencia;
 };
 
 export const deleteAccess = async (
@@ -132,10 +144,11 @@ export const deleteAccess = async (
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  let licencia = await findById(id);
-  if (!licencia) throw new NotFoundError();
+  let acceso = await findById(id);
+  if (!acceso) throw new NotFoundError();
 
-  await licencia.delete();
+  await acceso.delete();
+
   response = formatResponse(
     response,
     Status.OK,

@@ -3,6 +3,18 @@ import {
   username as dev_username,
   password as dev_password,
 } from "../../config/app.js";
+import {
+  fetchAuthApi,
+} from "../../lib/api/generator.js";
+
+const createSession = (email) =>
+  fetchAuthApi("", {
+    body: JSON.stringify({ email }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
 
 export const UserContext = React.createContext();
 
@@ -49,19 +61,33 @@ export const attemptManualLogin = (
     setIsLoading(false);
   }
 };
-
-//TODO
-//Create session with server
-//Check if email is allowed with API
-export const loginWithGoogle = (
+export const attemptGoogleLogin = (
   dispatch,
   api_data,
   history,
   setLoginError,
 ) => {
-  console.log(api_data);
-  dispatch({ type: ACTIONS.LOGIN });
-  history.push("/home");
+  createSession(api_data.profileObj.email)
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error(response.status);
+      }
+    })
+    .then(() => {
+      dispatch({ type: ACTIONS.LOGIN });
+      history.push("/home");
+    })
+    .catch(({ message }) => {
+      switch (message) {
+        case "401":
+          setLoginError("El usuario no se encuentra registrado");
+          break;
+        default:
+          setLoginError("Ocurrio un error al procesar el usuario");
+      }
+    });
 };
 
 export const signOutUser = (dispatch, history) => {

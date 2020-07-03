@@ -1,5 +1,11 @@
 import { Router } from "oak";
 import {
+  checkProfileAccess,
+} from "./middleware.ts";
+import {
+  createSession,
+} from "./handlers/auth.ts";
+import {
   createContact,
   deleteContact,
   getContact,
@@ -181,6 +187,7 @@ import {
 import {
   createAccess,
   deleteAccess,
+  findAccess,
   getAccess,
   getAccesses,
   getAccessesTable,
@@ -201,6 +208,9 @@ const main_router = new Router();
 
 // TODO Should be wrapped inside api_router
 // It should be called inside main router
+main_router
+  .post("/api/auth", createSession);
+
 main_router
   .get("/api/clientes/contacto", getContacts)
   .post("/api/clientes/contacto/table", getContactsTable)
@@ -430,6 +440,7 @@ main_router
 
 main_router
   .get("/api/maestro/acceso", getAccesses)
+  .get("/api/maestro/acceso/email", findAccess)
   .post("/api/maestro/acceso/table", getAccessesTable)
   .post("/api/maestro/acceso", createAccess)
   .get<{ id: string }>("/api/maestro/acceso/:id", getAccess)

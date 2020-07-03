@@ -1,6 +1,7 @@
 {
   "api": {
     "address": "localhost",
+    "encryption_key": "secret-key",
     "port": 8000,
     "prefix": "api"
   },
