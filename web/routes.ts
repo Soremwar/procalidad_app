@@ -521,6 +521,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -545,6 +546,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -586,6 +588,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -610,6 +613,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -660,6 +664,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -684,6 +689,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -725,7 +731,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getProjectTypes,
   )
@@ -743,7 +753,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getProjectType,
   )
@@ -778,6 +792,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -802,6 +817,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -861,6 +877,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -885,6 +902,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -923,6 +941,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -947,6 +966,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -985,6 +1005,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -1009,6 +1030,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -1056,6 +1078,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -1070,8 +1093,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getAreaTypes,
   )
@@ -1090,8 +1116,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getAreaType,
   )
@@ -1126,8 +1155,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getAreas,
   )
@@ -1146,8 +1178,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getArea,
   )
@@ -1182,8 +1217,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getSubAreas,
   )
@@ -1202,8 +1240,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getSubArea,
   )
@@ -1242,6 +1283,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getPeople,
   )
@@ -1266,6 +1308,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getPerson,
   )
@@ -1303,9 +1346,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getPositions,
   )
@@ -1325,9 +1370,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getPosition,
   )
@@ -1365,9 +1412,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getPositionAssignations,
   )
@@ -1387,9 +1436,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getPositionAssignation,
   )
@@ -1422,12 +1473,69 @@ main_router
   );
 
 main_router
-  .get("/api/organizacion/computador", getComputers)
-  .post("/api/organizacion/computador/table", getComputersTable)
-  .get<{ id: string }>("/api/organizacion/computador/:id", getComputer)
-  .post("/api/organizacion/computador", createComputer)
-  .put<{ id: string }>("/api/organizacion/computador/:id", updateComputer)
-  .delete<{ id: string }>("/api/organizacion/computador/:id", deleteComputer);
+  .get(
+    "/api/organizacion/computador",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    getComputers,
+  )
+  .post(
+    "/api/organizacion/computador/table",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    getComputersTable,
+  )
+  .get<{ id: string }>(
+    "/api/organizacion/computador/:id",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    getComputer,
+  )
+  .post(
+    "/api/organizacion/computador",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    createComputer,
+  )
+  .put<{ id: string }>(
+    "/api/organizacion/computador/:id",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    updateComputer,
+  )
+  .delete<{ id: string }>(
+    "/api/organizacion/computador/:id",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    deleteComputer,
+  );
 
 main_router
   .get(
@@ -1435,8 +1543,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getLicences,
   )
@@ -1455,8 +1566,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getLicence,
   )
@@ -1494,8 +1608,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getSalaries,
   )
@@ -1524,8 +1641,11 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
     ]),
     getSalary,
   )
@@ -1563,6 +1683,7 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -1606,6 +1727,19 @@ main_router
     ]),
     getResourcesTable,
   )
+  .get<{ id: string }>(
+    "/api/planeacion/recurso/:id",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    getResource,
+  )
   .post(
     "/api/planeacion/recurso",
     checkProfileAccess([
@@ -1617,18 +1751,6 @@ main_router
       Profiles.SALES,
     ]),
     createResource,
-  )
-  .get<{ id: string }>(
-    "/api/planeacion/recurso/:id",
-    checkProfileAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
-    getResource,
   )
   .put<{ id: string }>(
     "/api/planeacion/recurso/:id",
