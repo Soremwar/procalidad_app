@@ -74,7 +74,11 @@ export const createSession = async (
     { header: jwt_header, key: encryption_key, payload },
   );
 
-  cookies.set("PA_AUTH", session_key);
+  cookies.set("PA_AUTH", session_key, {
+    httpOnly: false,
+  });
 
-  response.body = "Autenticación exitosa";
+  response.body = {
+    profiles: access.profiles,
+  };
 };

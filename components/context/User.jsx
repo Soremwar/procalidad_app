@@ -1,4 +1,7 @@
-import React from "react";
+import React, {
+  createContext,
+  useReducer,
+} from "react";
 import {
   username as dev_username,
   password as dev_password,
@@ -16,7 +19,13 @@ const createSession = (email) =>
     method: "POST",
   });
 
-export const UserContext = React.createContext();
+export const UserContext = createContext({
+  email: "",
+  image: "",
+  is_authenticated: false,
+  name: "",
+  profiles: [],
+});
 
 export const ACTIONS = {
   LOGIN: "LOGIN_SUCCESS",
@@ -29,13 +38,17 @@ const loginReducer = (state, action) => {
       //TODO
       //Set user name and email
       return {
-        ...state,
-        isAuthenticated: true,
-        name: "Usuario",
-        email: "mail@example.com",
+        email: action.value.email,
+        image: action.value.image,
+        is_authenticated: true,
+        name: action.value.name,
+        profiles: action.value.profiles,
       };
     case ACTIONS.SIGN_OUT:
-      return { ...state, isAuthenticated: false };
+      return {
+        ...state,
+        is_authenticated: false,
+      };
     default: {
       throw new Error(`Unhandled action type: ${action.type}`);
     }
@@ -61,6 +74,7 @@ export const attemptManualLogin = (
     setIsLoading(false);
   }
 };
+
 export const attemptGoogleLogin = (
   dispatch,
   api_data,
@@ -75,8 +89,16 @@ export const attemptGoogleLogin = (
         throw new Error(response.status);
       }
     })
-    .then(() => {
-      dispatch({ type: ACTIONS.LOGIN });
+    .then(({ profiles }) => {
+      dispatch({
+        type: ACTIONS.LOGIN,
+        value: {
+          email: api_data.profileObj.email,
+          image: api_data.profileObj.imageUrl,
+          name: api_data.profileObj.name,
+          profiles,
+        },
+      });
       history.push("/home");
     })
     .catch(({ message }) => {
@@ -96,12 +118,12 @@ export const signOutUser = (dispatch, history) => {
 };
 
 export const UserProvider = ({ children }) => {
-  const [state, dispatch] = React.useReducer(loginReducer, {
-    //TODO
-    //Add login server key
-    name: null,
-    email: null,
-    isAuthenticated: false,
+  const [state, dispatch] = useReducer(loginReducer, {
+    email: "",
+    image: "",
+    is_authenticated: false,
+    name: "",
+    profiles: [],
   });
 
   return (

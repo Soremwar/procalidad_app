@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Drawer, IconButton, List } from "@material-ui/core";
 import {
   Home as HomeIcon,
@@ -13,7 +17,6 @@ import useStyles from "./styles.js";
 
 // components
 import SidebarLink from "./components/sidebar_link/SidebarLink.jsx";
-import Dot from "./components/Dot.jsx";
 
 // context
 import {
@@ -21,66 +24,289 @@ import {
   useLayoutDispatch,
   toggleSidebar,
 } from "../../context/Layout.jsx";
+import {
+  UserContext,
+} from "../../context/User.jsx";
+
+//TODO
+//Make profiles constant (shared?)
+const Profiles = {
+  ADMINISTRATOR: 1,
+  CONTROLLER: 2,
+  AREA_MANAGER: 3,
+  PROYECT_MANAGER: 4,
+  HUMAN_RESOURCES: 5,
+  SALES: 6,
+  CONSULTANT: 7,
+};
 
 //TODO
 //Centralize links to component with virtual routing
-
 const structure = [
   { label: "Inicio", link: "/home", icon: <HomeIcon /> },
   {
     label: "Sistema",
     icon: <AccountBoxIcon />,
     children: [
-      { label: "Parametro", link: "/maestro/parametro" },
-      { label: "Acceso", link: "/maestro/acceso" },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Parametro",
+        link: "/maestro/parametro",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+        ],
+        label: "Acceso",
+        link: "/maestro/acceso",
+      },
     ],
   },
   {
     label: "Clientes",
     icon: <AccountBoxIcon />,
     children: [
-      { label: "Sector", link: "/clientes/sector" },
-      { label: "Cliente", link: "/clientes/cliente" },
-      { label: "Contacto", link: "/clientes/contacto" },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Sector",
+        link: "/clientes/sector",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Cliente",
+        link: "/clientes/cliente",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Contacto",
+        link: "/clientes/contacto",
+      },
     ],
   },
   {
     label: "Operaciones",
     icon: <AccountBoxIcon />,
     children: [
-      { label: "Tipo de Proyecto", link: "/operaciones/tipo_proyecto" },
-      { label: "Proyecto", link: "/operaciones/proyecto" },
-      { label: "Tipo de Presupuesto", link: "/operaciones/tipo_presupuesto" },
-      { label: "Rol", link: "/operaciones/rol" },
-      { label: "Presupuesto", link: "/operaciones/presupuesto" },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+        ],
+        label: "Tipo de Proyecto",
+        link: "/operaciones/tipo_proyecto",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Proyecto",
+        link: "/operaciones/proyecto",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Tipo de Presupuesto",
+        link: "/operaciones/tipo_presupuesto",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Rol",
+        link: "/operaciones/rol",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Presupuesto",
+        link: "/operaciones/presupuesto",
+      },
     ],
   },
   {
     label: "Organizacion",
     icon: <AccountBoxIcon />,
     children: [
-      { label: "Tipo de Area", link: "/organizacion/tipo_area" },
-      { label: "Area", link: "/organizacion/area" },
-      { label: "SubArea", link: "/organizacion/sub_area" },
-      { label: "Persona", link: "/organizacion/persona" },
-      { label: "Cargo", link: "/organizacion/cargo" },
-      { label: "Asignacion de Cargo", link: "/organizacion/asignacion_cargo" },
-      { label: "Computador", link: "/organizacion/computador" },
-      { label: "Licencias", link: "/organizacion/licencia" },
-      { label: "Costo Empleado", link: "/organizacion/costo_empleado" },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Tipo de Area",
+        link: "/organizacion/tipo_area",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Area",
+        link: "/organizacion/area",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "SubArea",
+        link: "/organizacion/sub_area",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONSULTANT,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+        ],
+        label: "Persona",
+        link: "/organizacion/persona",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+        ],
+        label: "Cargo",
+        link: "/organizacion/cargo",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+        ],
+        label: "Asignacion de Cargo",
+        link: "/organizacion/asignacion_cargo",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Computador",
+        link: "/organizacion/computador",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Licencias",
+        link: "/organizacion/licencia",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Costo Empleado",
+        link: "/organizacion/costo_empleado",
+      },
     ],
   },
   {
     label: "Planeacion",
     icon: <AccountBoxIcon />,
     children: [
-      { label: "Por proyecto", link: "/planeacion/proyecto" },
-      { label: "Por recurso", link: "/planeacion/recurso" },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Por proyecto",
+        link: "/planeacion/proyecto",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Por recurso",
+        link: "/planeacion/recurso",
+      },
     ],
   },
 ];
 
-function Sidebar({ location }) {
+const Sidebar = ({ location }) => {
+  const [context] = useContext(UserContext);
+
   const classes = useStyles();
   const theme = useTheme();
 
@@ -130,17 +356,37 @@ function Sidebar({ location }) {
         </IconButton>
       </div>
       <List className={classes.sidebarList}>
-        {structure.map((link, index) => (
-          <SidebarLink
-            key={index}
-            location={location}
-            isSidebarOpened={isSidebarOpened}
-            {...link}
-          />
-        ))}
+        {structure
+          .reduce((arr, category) => {
+            if (category.children) {
+              category.children = category.children.reduce((arr, module) => {
+                if (
+                  context.profiles.some((profile) =>
+                    module.allowed_profiles.includes(profile)
+                  )
+                ) {
+                  arr.push(module);
+                }
+                return arr;
+              }, []);
+
+              if (category.children.length) {
+                arr.push(category);
+              }
+            }
+            return arr;
+          }, [])
+          .map((link, index) => (
+            <SidebarLink
+              key={index}
+              location={location}
+              isSidebarOpened={isSidebarOpened}
+              {...link}
+            />
+          ))}
       </List>
     </Drawer>
   );
-}
+};
 
 export default withRouter(Sidebar);

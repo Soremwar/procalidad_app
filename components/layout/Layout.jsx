@@ -1,5 +1,9 @@
-import React, { Fragment } from "react";
+import React, {
+  Fragment,
+  useContext,
+} from "react";
 import {
+  Redirect,
   Route,
   Switch,
   withRouter,
@@ -9,6 +13,7 @@ import useStyles from "./styles";
 import Header from "./header/Header.jsx";
 import Sidebar from "./sidebar/Sidebar.jsx";
 
+import { UserContext } from "../context/User.jsx";
 import { useLayoutState } from "../context/Layout.jsx";
 
 import Sector from "../pages/clientes/Sector.jsx";
@@ -33,6 +38,37 @@ import Acceso from "../pages/maestro/acceso.jsx";
 import PlaneacionProyecto from "../pages/planeacion/proyecto.jsx";
 import PlaneacionRecurso from "../pages/planeacion/recurso.jsx";
 
+//TODO
+//Make profiles constant (shared?)
+const Profiles = {
+  ADMINISTRATOR: 1,
+  CONTROLLER: 2,
+  AREA_MANAGER: 3,
+  PROYECT_MANAGER: 4,
+  HUMAN_RESOURCES: 5,
+  SALES: 6,
+  CONSULTANT: 7,
+};
+
+const ProfiledRoute = ({
+  allowed_profiles,
+  component,
+  ...props
+}) => {
+  const [context] = useContext(UserContext);
+  const { profiles } = context;
+
+  return (
+    <Route
+      {...props}
+      render={(children_props) =>
+        profiles.some((profile) => allowed_profiles.includes(profile))
+          ? React.createElement(component, children_props)
+          : <Redirect to={"/"} />}
+    />
+  );
+};
+
 const Layout = (props) => {
   const classes = useStyles();
   const layout_context = useLayoutState();
@@ -54,36 +90,234 @@ const Layout = (props) => {
             Find a way to encapsulate routes over section
           */}
           <Switch>
-            <Route path="/clientes/sector" component={Sector} />
-            <Route path="/clientes/cliente" component={Cliente} />
-            <Route path="/clientes/contacto" component={Contacto} />
-            <Route path="/operaciones/tipo_proyecto" component={TipoProyecto} />
-            <Route path="/operaciones/proyecto" component={Proyecto} />
-            <Route path="/organizacion/tipo_area" component={TipoArea} />
-            <Route path="/organizacion/area" component={Area} />
-            <Route path="/organizacion/sub_area" component={SubArea} />
-            <Route path="/organizacion/persona" component={Persona} />
-            <Route path="/organizacion/cargo" component={Cargo} />
-            <Route
-              path="/organizacion/asignacion_cargo"
-              component={AsignacionCargo}
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={Parametro}
+              path="/maestro/parametro"
             />
-            <Route path="/organizacion/computador" component={Computador} />
-            <Route path="/organizacion/licencia" component={Licencia} />
-            <Route
-              path="/organizacion/costo_empleado"
-              component={CostoEmpleado}
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+              ]}
+              component={Acceso}
+              path="/maestro/acceso"
             />
-            <Route
-              path="/operaciones/tipo_presupuesto"
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
+              component={Sector}
+              path="/clientes/sector"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
+              component={Cliente}
+              path="/clientes/cliente"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
+              component={Contacto}
+              path="/clientes/contacto"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+              ]}
+              component={TipoProyecto}
+              path="/operaciones/tipo_proyecto"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
+              component={Proyecto}
+              path="/operaciones/proyecto"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
               component={TipoPresupuesto}
+              path="/operaciones/tipo_presupuesto"
             />
-            <Route path="/operaciones/rol" component={Rol} />
-            <Route path="/operaciones/presupuesto" component={Presupuesto} />
-            <Route path="/maestro/parametro" component={Parametro} />
-            <Route path="/maestro/acceso" component={Acceso} />
-            <Route path="/planeacion/proyecto" component={PlaneacionProyecto} />
-            <Route path="/planeacion/recurso" component={PlaneacionRecurso} />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
+              component={Rol}
+              path="/operaciones/rol"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
+              component={Presupuesto}
+              path="/operaciones/presupuesto"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={TipoArea}
+              path="/organizacion/tipo_area"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={Area}
+              path="/organizacion/area"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={SubArea}
+              path="/organizacion/sub_area"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONSULTANT,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+              ]}
+              component={Persona}
+              path="/organizacion/persona"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+              ]}
+              component={Cargo}
+              path="/organizacion/cargo"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+              ]}
+              component={AsignacionCargo}
+              path="/organizacion/asignacion_cargo"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={Computador}
+              path="/organizacion/computador"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={Licencia}
+              path="/organizacion/licencia"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={CostoEmpleado}
+              path="/organizacion/costo_empleado"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
+              component={PlaneacionProyecto}
+              path="/planeacion/proyecto"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
+              component={PlaneacionRecurso}
+              path="/planeacion/recurso"
+            />
           </Switch>
         </div>
       </Fragment>
