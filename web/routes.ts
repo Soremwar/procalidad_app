@@ -184,6 +184,14 @@ import {
   getResourcesTable,
   updateResource,
 } from "./handlers/planeacion/recurso.ts";
+import {
+  createAssignation,
+  deleteAssignation,
+  getAssignation,
+  getAssignations,
+  getAssignationsTable,
+  updateAssignation,
+} from "./handlers/asignacion/asignacion.ts";
 
 const main_router = new Router();
 
@@ -1775,6 +1783,82 @@ main_router
       Profiles.SALES,
     ]),
     deleteResource,
+  );
+
+main_router
+  .get(
+    "/api/asignacion/asignacion",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    getAssignations,
+  )
+  .get<{ id: string }>(
+    "/api/asignacion/asignacion/:id",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    getAssignation,
+  )
+  .post(
+    "/api/asignacion/asignacion/table",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    getAssignationsTable,
+  )
+  .post(
+    "/api/asignacion/asignacion",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    createAssignation,
+  )
+  .put<{ id: string }>(
+    "/api/asignacion/asignacion/:id",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    updateAssignation,
+  )
+  .delete<{ id: string }>(
+    "/api/asignacion/asignacion/:id",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    deleteAssignation,
   );
 
 export const routes = main_router.routes();

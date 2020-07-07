@@ -302,6 +302,24 @@ const structure = [
       },
     ],
   },
+  {
+    label: "Asignacion",
+    icon: <AccountBoxIcon />,
+    children: [
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
+        ],
+        label: "Asignacion",
+        link: "/asignacion/asignacion",
+      },
+    ],
+  },
 ];
 
 const Sidebar = ({ location }) => {

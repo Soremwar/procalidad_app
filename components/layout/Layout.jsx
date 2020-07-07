@@ -37,6 +37,7 @@ import Parametro from "../pages/maestro/parametro.jsx";
 import Acceso from "../pages/maestro/acceso.jsx";
 import PlaneacionProyecto from "../pages/planeacion/proyecto.jsx";
 import PlaneacionRecurso from "../pages/planeacion/recurso.jsx";
+import Asignacion from "../pages/asignacion/asignacion.jsx";
 
 //TODO
 //Make profiles constant (shared?)
@@ -317,6 +318,18 @@ const Layout = (props) => {
               ]}
               component={PlaneacionRecurso}
               path="/planeacion/recurso"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.AREA_MANAGER,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+                Profiles.PROYECT_MANAGER,
+                Profiles.SALES,
+              ]}
+              component={Asignacion}
+              path="/asignacion/asignacion"
             />
           </Switch>
         </div>
