@@ -26,8 +26,9 @@ export const createProject = async ({ request, response }: RouterContext) => {
   const {
     type,
     client,
-    area,
+    sub_area,
     name,
+    supervisor,
     description,
     status,
   }: { [x: string]: string } = await request.body()
@@ -37,8 +38,9 @@ export const createProject = async ({ request, response }: RouterContext) => {
     !(
       Number(type) &&
       Number(client) &&
-      Number(area) &&
+      Number(sub_area) &&
       name &&
+      Number(supervisor) &&
       description &&
       Number.isInteger(Number(status))
     )
@@ -46,19 +48,14 @@ export const createProject = async ({ request, response }: RouterContext) => {
     throw new RequestSyntaxError();
   }
 
-  await createNew(
+  response.body = await createNew(
     Number(type),
     Number(client),
-    Number(area),
+    Number(sub_area),
     name,
+    Number(supervisor),
     description,
     Number(status),
-  );
-
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
   );
 };
 
@@ -106,29 +103,30 @@ export const updateProject = async (
   const {
     type,
     client,
-    area,
+    sub_area,
     name,
+    supervisor,
     description,
     status,
   }: {
     type?: string;
     client?: string;
-    area?: string;
+    sub_area?: string;
     name?: string;
+    supervisor?: string;
     description?: string;
     status?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
-  project = await project.update(
+  response.body = await project.update(
     Number(type) || undefined,
     Number(client) || undefined,
-    Number(area) || undefined,
+    Number(sub_area) || undefined,
     name,
+    Number(supervisor) || undefined,
     description,
     Number.isInteger(Number(status)) ? Number(status) : undefined,
   );
-
-  response.body = project;
 };
 
 export const deleteProject = async (

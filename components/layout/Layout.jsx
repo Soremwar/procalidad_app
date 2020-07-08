@@ -19,7 +19,7 @@ import { useLayoutState } from "../context/Layout.jsx";
 import Sector from "../pages/clientes/Sector.jsx";
 import Cliente from "../pages/clientes/Cliente.jsx";
 import Contacto from "../pages/clientes/Contacto.jsx";
-import Proyecto from "../pages/operaciones/Proyecto.jsx";
+import Proyecto from "../pages/operaciones/proyecto.jsx";
 import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
 import TipoArea from "../pages/organizacion/TipoArea.jsx";
 import Area from "../pages/organizacion/Area.jsx";

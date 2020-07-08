@@ -1,11 +1,12 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
   useState,
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
 
@@ -13,45 +14,49 @@ import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
-  fetchAreaApi,
+  fetchSubAreaApi,
   fetchClientApi,
+  fetchPeopleApi,
   fetchProjectApi,
   fetchProjectTypeApi,
 } from "../../../lib/api/generator.js";
 
+import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
-import Widget from "../../common/Widget.jsx";
 
-const getProjectTypes = () => fetchProjectTypeApi().then((x) => x.json());
-
+const getSubAreas = () => fetchSubAreaApi().then((x) => x.json());
 const getClients = () => fetchClientApi().then((x) => x.json());
-
-const getAreas = () => fetchAreaApi().then((x) => x.json());
+const getPeople = () => fetchPeopleApi().then((x) => x.json());
+const getProjectTypes = () => fetchProjectTypeApi().then((x) => x.json());
 
 const getProject = (id) => fetchProjectApi(id).then((x) => x.json());
 
-const createProject = async (form_data) => {
-  return await fetchProjectApi("", {
+const createProject = async (form_data) =>
+  fetchProjectApi("", {
     method: "POST",
     body: form_data,
   });
-};
 
-const updateProject = async (id, form_data) => {
-  return await fetchProjectApi(id, {
+const updateProject = async (id, form_data) =>
+  fetchProjectApi(id, {
     method: "PUT",
     body: form_data,
   });
-};
 
-const deleteProject = async (id) => {
-  return await fetchProjectApi(id, {
+const deleteProject = async (id) =>
+  fetchProjectApi(id, {
     method: "DELETE",
   });
-};
+
+const ParameterContext = createContext({
+  sub_areas: [],
+  clients: [],
+  people: [],
+  project_types: [],
+});
 
 const headers = [
   {
@@ -62,38 +67,78 @@ const headers = [
     searchable: true,
   },
   {
-    id: "area",
-    numeric: false,
-    disablePadding: false,
-    label: "Area",
-    searchable: true,
-  },
-  {
     id: "client",
     numeric: false,
     disablePadding: false,
     label: "Cliente",
     searchable: true,
   },
+  {
+    id: "sub_area",
+    numeric: false,
+    disablePadding: false,
+    label: "Subarea",
+    searchable: true,
+  },
+  {
+    id: "supervisor",
+    numeric: false,
+    disablePadding: false,
+    label: "Supervisor",
+    searchable: true,
+  },
 ];
 
 const AddModal = ({
-  areas,
-  clients,
   is_open,
-  project_types,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    sub_areas,
+    clients,
+    people,
+    project_types,
+  } = useContext(ParameterContext);
+
+  const [fields, setFields] = useState({
+    type: "",
+    client: "",
+    sub_area: "",
+    name: "",
+    supervisor: "",
+    description: "",
+    status: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        type: "",
+        client: "",
+        sub_area: "",
+        name: "",
+        supervisor: "",
+        description: "",
+        status: "",
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [is_open]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createProject(new URLSearchParams(form_data));
+    const request = await createProject(new URLSearchParams(fields));
 
     if (request.ok) {
       setModalOpen(false);
@@ -118,7 +163,9 @@ const AddModal = ({
         fullWidth
         label="Tipo de proyecto"
         name="type"
+        onChange={handleChange}
         required
+        value={fields.type}
       >
         {project_types.map(({ pk_tipo, nombre }) => (
           <option key={pk_tipo} value={pk_tipo}>{nombre}</option>
@@ -128,7 +175,9 @@ const AddModal = ({
         fullWidth
         label="Cliente"
         name="client"
+        onChange={handleChange}
         required
+        value={fields.client}
       >
         {clients.map(({ pk_cliente, nombre }) => (
           <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
@@ -136,12 +185,14 @@ const AddModal = ({
       </SelectField>
       <SelectField
         fullWidth
-        label="Area"
-        name="area"
+        label="Subarea"
+        name="sub_area"
+        onChange={handleChange}
         required
+        value={fields.sub_area}
       >
-        {areas.map(({ pk_area, nombre }) => (
-          <option key={pk_area} value={pk_area}>{nombre}</option>
+        {sub_areas.map(({ pk_sub_area, nombre }) => (
+          <option key={pk_sub_area} value={pk_sub_area}>{nombre}</option>
         ))}
       </SelectField>
       <TextField
@@ -150,7 +201,19 @@ const AddModal = ({
         name="name"
         label="Nombre del Proyecto"
         fullWidth
+        onChange={handleChange}
         required
+        value={fields.name}
+      />
+      <AdvancedSelectField
+        fullWidth
+        label="Supervisor"
+        name="supervisor"
+        onChange={(_e, value) =>
+          setFields((prev_state) => ({ ...prev_state, supervisor: value }))}
+        options={people}
+        required
+        value={fields.supervisor}
       />
       <TextField
         autoFocus
@@ -159,37 +222,46 @@ const AddModal = ({
         margin="dense"
         multiline
         name="description"
+        onChange={handleChange}
         required
+        value={fields.description}
       />
       <SelectField
         fullWidth
         label="Estado"
         name="status"
+        onChange={handleChange}
         required
+        value={fields.status}
       >
-        <option value={"0"}>Cancelado</option>
-        <option value={"1"}>Finalizado</option>
-        <option value={"2"}>En proceso</option>
-        <option value={"3"}>En etapa comercial</option>
+        <option value="0">Cancelado</option>
+        <option value="1">Finalizado</option>
+        <option value="2">En proceso</option>
+        <option value="3">En etapa comercial</option>
       </SelectField>
     </DialogForm>
   );
 };
 
 const EditModal = ({
-  areas,
-  clients,
   data,
   is_open,
-  project_types,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    sub_areas,
+    clients,
+    people,
+    project_types,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     type: "",
     client: "",
-    area: "",
+    sub_area: "",
     name: "",
+    supervisor: "",
     description: "",
     status: "",
   });
@@ -201,30 +273,30 @@ const EditModal = ({
       setFields({
         type: data.fk_tipo_proyecto,
         client: data.fk_cliente,
-        area: data.fk_area,
+        sub_area: data.fk_sub_area,
         name: data.nombre,
+        supervisor: data.fk_supervisor,
         description: data.descripcion,
         status: data.estado,
       });
+      setLoading(false);
+      setError(null);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_proyecto;
-    const request = await updateProject(id, new URLSearchParams(form_data));
+    const request = await updateProject(
+      data.pk_proyecto,
+      new URLSearchParams(fields),
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -249,7 +321,7 @@ const EditModal = ({
         fullWidth
         label="Tipo de proyecto"
         name="type"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.type}
       >
@@ -261,7 +333,7 @@ const EditModal = ({
         fullWidth
         label="Cliente"
         name="client"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.client}
       >
@@ -271,14 +343,14 @@ const EditModal = ({
       </SelectField>
       <SelectField
         fullWidth
-        label="Area"
-        name="area"
-        onChange={(event) => handleChange(event)}
+        label="Subarea"
+        name="sub_area"
+        onChange={handleChange}
         required
-        value={fields.area}
+        value={fields.sub_area}
       >
-        {areas.map(({ pk_area, nombre }) => (
-          <option key={pk_area} value={pk_area}>{nombre}</option>
+        {sub_areas.map(({ pk_sub_area, nombre }) => (
+          <option key={pk_sub_area} value={pk_sub_area}>{nombre}</option>
         ))}
       </SelectField>
       <TextField
@@ -287,9 +359,19 @@ const EditModal = ({
         name="name"
         label="Nombre del Proyecto"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
+      />
+      <AdvancedSelectField
+        fullWidth
+        label="Supervisor"
+        name="supervisor"
+        onChange={(_e, value) =>
+          setFields((prev_state) => ({ ...prev_state, supervisor: value }))}
+        options={people}
+        required
+        value={fields.supervisor}
       />
       <TextField
         autoFocus
@@ -298,7 +380,7 @@ const EditModal = ({
         margin="dense"
         multiline
         name="description"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.description}
       />
@@ -306,7 +388,7 @@ const EditModal = ({
         fullWidth
         label="Estado"
         name="status"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.status}
       >
@@ -378,15 +460,18 @@ const DeleteModal = ({
 //TODO
 //Switch to context
 export default () => {
+  const [parameters, setParameters] = useState({
+    sub_areas: [],
+    clients: [],
+    people: [],
+    project_types: [],
+  });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
   const [selected_project, setSelectedProject] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
-  const [project_types, setProjectTypes] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [areas, setAreas] = useState([]);
 
   const handleEditModalOpen = async (id) => {
     const data = await getProject(id);
@@ -404,53 +489,55 @@ export default () => {
   };
 
   useEffect(() => {
-    getProjectTypes().then((types) => setProjectTypes(types));
-    getClients().then((clients) => setClients(clients));
-    getAreas().then((areas) => setAreas(areas));
+    getSubAreas().then((sub_areas) =>
+      setParameters((prev_state) => ({ ...prev_state, sub_areas }))
+    );
+    getClients().then((clients) =>
+      setParameters((prev_state) => ({ ...prev_state, clients }))
+    );
+    getPeople().then((people) =>
+      setParameters((prev_state) => ({
+        ...prev_state,
+        people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
+      }))
+    );
+    getProjectTypes().then((project_types) =>
+      setParameters((prev_state) => ({ ...prev_state, project_types }))
+    );
     updateTable();
   }, []);
 
   return (
     <Fragment>
-      <Title title={"Proyecto"} />
-      <AddModal
-        areas={areas}
-        clients={clients}
-        is_open={is_add_modal_open}
-        project_types={project_types}
-        setModalOpen={setAddModalOpen}
-        updateTable={updateTable}
-      />
-      <EditModal
-        areas={areas}
-        clients={clients}
-        data={selected_project}
-        is_open={is_edit_modal_open}
-        project_types={project_types}
-        setModalOpen={setEditModalOpen}
-        updateTable={updateTable}
-      />
+      <Title title="Proyecto" />
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          is_open={is_add_modal_open}
+          setModalOpen={setAddModalOpen}
+          updateTable={updateTable}
+        />
+        <EditModal
+          data={selected_project}
+          is_open={is_edit_modal_open}
+          setModalOpen={setEditModalOpen}
+          updateTable={updateTable}
+        />
+      </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
         setModalOpen={setDeleteModalOpen}
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"operaciones/proyecto/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"operaciones/proyecto/table"}
+      />
     </Fragment>
   );
 };

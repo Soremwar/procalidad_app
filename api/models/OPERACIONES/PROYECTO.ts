@@ -9,11 +9,11 @@ import {
   TABLE as CLIENT_TABLE,
 } from "../CLIENTES/CLIENTE.ts";
 import {
-  TABLE as PROJECT_TYPE_TABLE,
-} from "./TIPO_PROYECTO.ts";
+  TABLE as PEOPLE_TABLE,
+} from "../ORGANIZACION/PERSONA.ts";
 import {
-  TABLE as AREA_TABLE,
-} from "../ORGANIZACION/AREA.ts";
+  TABLE as SUB_AREA_TABLE,
+} from "../ORGANIZACION/sub_area.ts";
 
 export const TABLE = "OPERACIONES.PROYECTO";
 const ERROR_DEPENDENCY =
@@ -24,8 +24,9 @@ class Proyecto {
     public readonly pk_proyecto: number,
     public fk_tipo_proyecto: number,
     public fk_cliente: number,
-    public fk_area: number,
+    public fk_sub_area: number,
     public nombre: string,
+    public fk_supervisor: number,
     public descripcion: string,
     public estado: number,
   ) {}
@@ -33,8 +34,9 @@ class Proyecto {
   async update(
     fk_tipo_proyecto: number = this.fk_tipo_proyecto,
     fk_cliente: number = this.fk_cliente,
-    fk_area: number = this.fk_area,
+    fk_sub_area: number = this.fk_sub_area,
     nombre: string = this.nombre,
+    fk_supervisor: number = this.fk_supervisor,
     descripcion: string = this.descripcion,
     estado: number = this.estado,
   ): Promise<
@@ -43,18 +45,28 @@ class Proyecto {
     Object.assign(this, {
       fk_tipo_proyecto,
       fk_cliente,
-      fk_area,
+      fk_sub_area,
       nombre,
+      fk_supervisor,
       descripcion,
       estado,
     });
     await postgres.query(
-      `UPDATE ${TABLE} SET FK_TIPO_PROYECTO = $2, FK_CLIENTE = $3, FK_AREA = $4, NOMBRE = $5, DESCRIPCION = $6, ESTADO = $7 WHERE PK_PROYECTO = $1`,
+      `UPDATE ${TABLE} SET
+        FK_TIPO_PROYECTO = $2,
+        FK_CLIENTE = $3,
+        FK_SUB_AREA = $4,
+        NOMBRE = $5,
+        FK_SUPERVISOR = $6,
+        DESCRIPCION = $7,
+        ESTADO = $8
+      WHERE PK_PROYECTO = $1`,
       this.pk_proyecto,
       this.fk_tipo_proyecto,
       this.fk_cliente,
-      this.fk_area,
+      this.fk_sub_area,
       this.nombre,
+      this.fk_supervisor,
       this.descripcion,
       this.estado,
     );
@@ -78,37 +90,59 @@ class Proyecto {
 
 export const findAll = async (): Promise<Proyecto[]> => {
   const { rows } = await postgres.query(
-    `SELECT PK_PROYECTO, FK_TIPO_PROYECTO, FK_CLIENTE, FK_AREA, NOMBRE, DESCRIPCION, ESTADO FROM ${TABLE}`,
+    `SELECT
+      PK_PROYECTO,
+      FK_TIPO_PROYECTO,
+      FK_CLIENTE,
+      FK_SUB_AREA,
+      NOMBRE,
+      FK_SUPERVISOR,
+      DESCRIPCION,
+      ESTADO
+    FROM ${TABLE}`,
   );
 
-  const models = rows.map((row: [
+  return rows.map((row: [
     number,
     number,
     number,
     number,
     string,
+    number,
     string,
     number,
   ]) => new Proyecto(...row));
-
-  return models;
 };
 
 export const findById = async (id: number): Promise<Proyecto | null> => {
   const { rows } = await postgres.query(
-    `SELECT PK_PROYECTO, FK_TIPO_PROYECTO, FK_CLIENTE, FK_AREA, NOMBRE, DESCRIPCION, ESTADO FROM ${TABLE} WHERE PK_PROYECTO = $1`,
+    `SELECT
+      PK_PROYECTO,
+      FK_TIPO_PROYECTO,
+      FK_CLIENTE,
+      FK_SUB_AREA,
+      NOMBRE,
+      FK_SUPERVISOR,
+      DESCRIPCION,
+      ESTADO
+    FROM ${TABLE}
+    WHERE PK_PROYECTO = $1`,
     id,
   );
+
   if (!rows[0]) return null;
+
   const result: [
     number,
     number,
     number,
     number,
     string,
+    number,
     string,
     number,
   ] = rows[0];
+
   return new Proyecto(...result);
 };
 
@@ -122,8 +156,9 @@ export const searchByNameAndClient = async (
       PK_PROYECTO,
       FK_TIPO_PROYECTO,
       FK_CLIENTE,
-      FK_AREA,
+      FK_SUB_AREA,
       NOMBRE,
+      FK_SUPERVISOR,
       DESCRIPCION,
       ESTADO
     FROM ${TABLE}
@@ -140,6 +175,7 @@ export const searchByNameAndClient = async (
     number,
     number,
     string,
+    number,
     string,
     number,
   ]) => new Proyecto(...result));
@@ -150,17 +186,48 @@ export const searchByNameAndClient = async (
 export const createNew = async (
   fk_tipo_proyecto: number,
   fk_cliente: number,
-  fk_area: number,
+  fk_sub_area: number,
   nombre: string,
+  fk_supervisor: number,
   descripcion: string,
   estado: number,
 ) => {
-  await postgres.query(
-    `INSERT INTO ${TABLE} (FK_TIPO_PROYECTO, FK_CLIENTE, FK_AREA, NOMBRE, DESCRIPCION, ESTADO) VALUES ($1, $2, $3, $4, $5, $6)`,
+  const { rows } = await postgres.query(
+    `INSERT INTO ${TABLE} (
+      PK_PROYECTO,
+      FK_TIPO_PROYECTO,
+      FK_CLIENTE,
+      FK_SUB_AREA,
+      NOMBRE,
+      FK_SUPERVISOR,
+      DESCRIPCION,
+      ESTADO
+    ) VALUES (
+      $1,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6
+    ) RETURNING PK_PROYECTO`,
     fk_tipo_proyecto,
     fk_cliente,
-    fk_area,
+    fk_sub_area,
     nombre,
+    fk_supervisor,
+    descripcion,
+    estado,
+  );
+
+  const id: number = rows[0][0];
+
+  return new Proyecto(
+    id,
+    fk_tipo_proyecto,
+    fk_cliente,
+    fk_sub_area,
+    nombre,
+    fk_supervisor,
     descripcion,
     estado,
   );
@@ -169,10 +236,10 @@ export const createNew = async (
 class TableData {
   constructor(
     public id: number,
-    public type: string,
-    public client: string,
-    public area: string,
     public name: string,
+    public client: string,
+    public sub_area: string,
+    public supervisor: string,
   ) {}
 }
 
@@ -185,10 +252,10 @@ export const getTableData = async (
   const base_query = (
     `SELECT
       PK_PROYECTO AS ID,
-      (SELECT NOMBRE FROM ${PROJECT_TYPE_TABLE} WHERE PK_TIPO = FK_TIPO_PROYECTO) AS TYPE,
+      NOMBRE AS NAME,
       (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE = FK_CLIENTE) AS CLIENT,
-      (SELECT NOMBRE FROM ${AREA_TABLE} WHERE PK_AREA = FK_AREA) AS AREA,
-      NOMBRE AS NAME
+      (SELECT NOMBRE FROM ${SUB_AREA_TABLE} WHERE PK_SUB_AREA = FK_SUB_AREA) AS SUB_AREA,
+      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_SUPERVISOR) AS SUPERVISOR
     FROM ${TABLE}`
   );
 

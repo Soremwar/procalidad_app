@@ -8,7 +8,7 @@ import {
 
 //TODO
 //replace for real this constant in all ocurrences
-const TABLE = "ORGANIZACION.SUB_AREA";
+export const TABLE = "ORGANIZACION.SUB_AREA";
 
 const ERROR_CONSTRAINT_DEFAULT =
   "Uno de los datos seleccionables ingresados para el subarea no existe";
