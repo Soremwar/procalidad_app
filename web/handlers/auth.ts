@@ -79,6 +79,7 @@ export const createSession = async (
   });
 
   response.body = {
+    id: access.person,
     profiles: access.profiles,
   };
 };

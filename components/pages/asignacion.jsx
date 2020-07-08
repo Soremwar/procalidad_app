@@ -6,8 +6,6 @@ import React, {
   useState,
 } from "react";
 import {
-  AppBar,
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -15,27 +13,20 @@ import {
   DialogContentText,
   DialogTitle,
   Grid,
-  Tab,
-  Tabs,
   TextField,
-  Typography,
 } from "@material-ui/core";
 import {
-  makeStyles,
-} from "@material-ui/styles";
-import {
-  FrappeGantt,
-  Task,
-  ViewMode,
-} from "frappe-gantt-react";
+  UserContext,
+  UserProvider,
+} from "../context/User.jsx";
 
 import {
   formatResponseJson,
-} from "../../../lib/api/request.js";
+} from "../../lib/api/request.js";
 import {
   parseDateToStandardNumber,
   parseStandardNumber,
-} from "../../../lib/date/mod.js";
+} from "../../lib/date/mod.js";
 import {
   fetchAssignationApi,
   fetchClientApi,
@@ -43,14 +34,14 @@ import {
   fetchBudgetDetailApi,
   fetchPeopleApi,
   fetchProjectApi,
-} from "../../../lib/api/generator.js";
+} from "../../lib/api/generator.js";
 
-import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
-import AsyncSelectField from "../../common/AsyncSelectField.jsx";
-import AsyncTable from "../../common/AsyncTable/Table.jsx";
-import DialogForm from "../../common/DialogForm.jsx";
-import Title from "../../common/Title.jsx";
-import SelectField from "../../common/SelectField.jsx";
+import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
+import AsyncSelectField from "../common/AsyncSelectField.jsx";
+import AsyncTable from "../common/AsyncTable/Table.jsx";
+import DialogForm from "../common/DialogForm.jsx";
+import Title from "../common/Title.jsx";
+import SelectField from "../common/SelectField.jsx";
 
 const formatDateToInputDate = (date) => {
   const year = date.getFullYear();
@@ -611,6 +602,7 @@ const DeleteModal = ({
 };
 
 export default () => {
+  const [userState] = useContext(UserContext);
   const [parameters, setParameters] = useState({
     budgets: [],
     clients: [],
@@ -661,7 +653,7 @@ export default () => {
 
   useEffect(() => {
     setSelectedProject("");
-  }, [selectedClient]);
+  }, [selectedClient, userState.id]);
 
   useEffect(() => {
     if (selectedProject) {
@@ -715,7 +707,10 @@ export default () => {
               value={selectedProject}
             >
               {parameters.projects
-                .filter(({ fk_cliente }) => fk_cliente == selectedClient)
+                .filter(({ fk_cliente, fk_supervisor }) =>
+                  fk_cliente == selectedClient &&
+                  fk_supervisor == userState.id
+                )
                 .map(({ pk_proyecto, nombre }) => (
                   <option key={pk_proyecto} value={pk_proyecto}>
                     {nombre}

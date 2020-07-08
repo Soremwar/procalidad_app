@@ -21,6 +21,7 @@ const createSession = (email) =>
 
 export const UserContext = createContext({
   email: "",
+  id: "",
   image: "",
   is_authenticated: false,
   name: "",
@@ -39,6 +40,7 @@ const loginReducer = (state, action) => {
       //Set user name and email
       return {
         email: action.value.email,
+        id: action.value.id,
         image: action.value.image,
         is_authenticated: true,
         name: action.value.name,
@@ -89,11 +91,12 @@ export const attemptGoogleLogin = (
         throw new Error(response.status);
       }
     })
-    .then(({ profiles }) => {
+    .then(({ id, profiles }) => {
       dispatch({
         type: ACTIONS.LOGIN,
         value: {
           email: api_data.profileObj.email,
+          id,
           image: api_data.profileObj.imageUrl,
           name: api_data.profileObj.name,
           profiles,
@@ -120,6 +123,7 @@ export const signOutUser = (dispatch, history) => {
 export const UserProvider = ({ children }) => {
   const [state, dispatch] = useReducer(loginReducer, {
     email: "",
+    id: "",
     image: "",
     is_authenticated: false,
     name: "",
