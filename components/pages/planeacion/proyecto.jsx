@@ -673,7 +673,7 @@ export default () => {
   const [value, setValue] = useState(0);
   const classes = useStyles();
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (newValue) => {
     setValue(newValue);
     setDataShouldUpdate(true);
   };
@@ -732,8 +732,9 @@ export default () => {
   useEffect(() => {
     if (!selectedProyect) {
       setValue(0);
+    } else {
+      updateData();
     }
-    updateData();
   }, [selectedProyect]);
 
   return (
