@@ -192,6 +192,13 @@ import {
   getAssignationsTable,
   updateAssignation,
 } from "./handlers/asignacion/asignacion.ts";
+import {
+  createWeekDetail,
+  getWeekDetail,
+  getWeekDetailTable,
+  getWeeksDetail,
+  updateWeekDetail,
+} from "./handlers/organizacion/registro.ts";
 
 const main_router = new Router();
 
@@ -1859,6 +1866,43 @@ main_router
       Profiles.SALES,
     ]),
     deleteAssignation,
+  );
+
+main_router
+  .get(
+    "/api/registro",
+    checkProfileAccess([
+      Profiles.CONSULTANT,
+    ]),
+    getWeeksDetail,
+  )
+  .get<{ id: string }>(
+    "/api/registro/:id",
+    checkProfileAccess([
+      Profiles.CONSULTANT,
+    ]),
+    getWeekDetail,
+  )
+  .get<{ id: string }>(
+    "/api/registro/table/:id",
+    checkProfileAccess([
+      Profiles.CONSULTANT,
+    ]),
+    getWeekDetailTable,
+  )
+  .post(
+    "/api/registro",
+    checkProfileAccess([
+      Profiles.CONSULTANT,
+    ]),
+    createWeekDetail,
+  )
+  .put<{ id: string }>(
+    "/api/registro/:id",
+    checkProfileAccess([
+      Profiles.CONSULTANT,
+    ]),
+    updateWeekDetail,
   );
 
 export const routes = main_router.routes();

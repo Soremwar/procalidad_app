@@ -283,6 +283,7 @@ const AddModal = ({
               InputProps={{
                 inputProps: {
                   min: 0.5,
+                  step: 0.5,
                 },
               }}
               label="Horas"
@@ -453,6 +454,7 @@ const EditModal = ({
               InputProps={{
                 inputProps: {
                   min: 0.5,
+                  step: 0.5,
                 },
               }}
               label="Horas"

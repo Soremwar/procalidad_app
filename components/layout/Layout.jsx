@@ -38,6 +38,7 @@ import Acceso from "../pages/maestro/acceso.jsx";
 import PlaneacionProyecto from "../pages/planeacion/proyecto.jsx";
 import PlaneacionRecurso from "../pages/planeacion/recurso.jsx";
 import Asignacion from "../pages/asignacion.jsx";
+import Registro from "../pages/registro.jsx";
 
 //TODO
 //Make profiles constant (shared?)
@@ -330,6 +331,13 @@ const Layout = (props) => {
               ]}
               component={Asignacion}
               path="/asignacion/asignacion"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.CONSULTANT,
+              ]}
+              component={Registro}
+              path="/registro"
             />
           </Switch>
         </div>

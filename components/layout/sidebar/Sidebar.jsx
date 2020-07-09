@@ -320,6 +320,19 @@ const structure = [
       },
     ],
   },
+  {
+    label: "Registro",
+    icon: <AccountBoxIcon />,
+    children: [
+      {
+        allowed_profiles: [
+          Profiles.CONSULTANT,
+        ],
+        label: "Registro",
+        link: "/registro",
+      },
+    ],
+  },
 ];
 
 const Sidebar = ({ location }) => {

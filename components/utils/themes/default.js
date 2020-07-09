@@ -3,7 +3,7 @@ import tinycolor from "tinycolor2";
 const primary = "#A6001A";
 const secondary = "#F4F3ED";
 const warning = "#FFC260";
-const success = "#3CD4A0";
+const success = "#3096a9";
 const info = "#B2D9FF";
 const error = "#FF4C4C";
 

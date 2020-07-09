@@ -18,7 +18,7 @@ import {
   TABLE as WEEK_TABLE,
 } from "../MAESTRO/dim_semana.ts";
 
-const TABLE = "ASIGNACION.ASIGNACION";
+export const TABLE = "ASIGNACION.ASIGNACION";
 
 class Asignacion {
   constructor(

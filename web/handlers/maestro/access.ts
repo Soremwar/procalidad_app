@@ -14,7 +14,7 @@ import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
 import {
-  TRUTHY_NUMERIC_VALUE,
+  TRUTHY_INTEGER,
 } from "../../../lib/ajv/types.js";
 
 const post_request = {
@@ -24,9 +24,9 @@ const post_request = {
     "profiles",
   ],
   properties: {
-    "person": TRUTHY_NUMERIC_VALUE,
+    "person": TRUTHY_INTEGER,
     "profiles": {
-      items: TRUTHY_NUMERIC_VALUE,
+      items: TRUTHY_INTEGER,
       type: "array",
     },
   },
@@ -35,9 +35,9 @@ const post_request = {
 const put_request = {
   $id: "put",
   properties: {
-    "person": TRUTHY_NUMERIC_VALUE,
+    "person": TRUTHY_INTEGER,
     "profiles": {
-      items: TRUTHY_NUMERIC_VALUE,
+      items: TRUTHY_INTEGER,
       type: "array",
     },
   },

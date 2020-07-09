@@ -26,7 +26,7 @@ import {
   TABLE as PERSON_TABLE,
 } from "../ORGANIZACION/PERSONA.ts";
 
-const TABLE = "PLANEACION.RECURSO";
+export const TABLE = "PLANEACION.RECURSO";
 
 class Recurso {
   constructor(
