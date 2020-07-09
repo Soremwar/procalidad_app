@@ -95,17 +95,10 @@ const headers = [
     searchable: true,
   },
   {
-    id: "start_date",
+    id: "date",
     numeric: false,
     disablePadding: false,
-    label: "Fecha Inicio",
-    searchable: true,
-  },
-  {
-    id: "end_date",
-    numeric: false,
-    disablePadding: false,
-    label: "Fecha Fin",
+    label: "Fecha",
     searchable: true,
   },
   {
@@ -113,13 +106,6 @@ const headers = [
     numeric: false,
     disablePadding: false,
     label: "Horas",
-    searchable: true,
-  },
-  {
-    id: "assignation",
-    numeric: false,
-    disablePadding: false,
-    label: "Asignacion",
     searchable: true,
   },
 ];
@@ -166,20 +152,15 @@ const AddModal = ({
     person: "",
     budget: "",
     role: "",
-    start_date: parseDateToStandardNumber(new Date()),
-    assignation: "",
+    date: parseDateToStandardNumber(new Date()),
     hours: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -206,8 +187,7 @@ const AddModal = ({
         person: "",
         budget: "",
         role: "",
-        start_date: parseDateToStandardNumber(new Date()),
-        assignation: "",
+        date: parseDateToStandardNumber(new Date()),
         hours: "",
       });
     }
@@ -283,42 +263,26 @@ const AddModal = ({
             />
             <TextField
               fullWidth
-              label="Fecha Inicio"
+              label="Fecha de Asignacion"
               margin="dense"
-              name="start_date"
+              name="date"
               onChange={(event) => {
                 const date = parseDateToStandardNumber(
                   new Date(event.target.value),
                 );
-                setFields((fields) => ({ ...fields, start_date: date }));
+                setFields((fields) => ({ ...fields, date: date }));
               }}
               required
               type="date"
               value={formatDateToInputDate(
-                parseStandardNumber(fields.start_date) || new Date(),
+                parseStandardNumber(fields.date) || new Date(),
               )}
             />
             <TextField
               fullWidth
               InputProps={{
                 inputProps: {
-                  min: 0,
-                  max: 100,
-                },
-              }}
-              label="% Asignacion"
-              margin="dense"
-              name="assignation"
-              onChange={handleChange}
-              required
-              type="number"
-              value={fields.assignation}
-            />
-            <TextField
-              fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0,
+                  min: 0.5,
                 },
               }}
               label="Horas"
@@ -357,8 +321,7 @@ const EditModal = ({
     person: "",
     budget: "",
     role: "",
-    start_date: "",
-    assignation: "",
+    date: "",
     hours: "",
   });
   const [is_loading, setLoading] = useState(false);
@@ -367,30 +330,25 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        person: data.fk_persona,
-        budget: data.fk_presupuesto,
-        role: data.fk_rol,
-        start_date: data.fecha_inicio,
-        assignation: data.porcentaje,
-        hours: data.horas,
+        person: data.person,
+        budget: data.budget,
+        role: data.role,
+        date: data.date,
+        hours: data.hours,
       });
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    updateAssignation(data.pk_asignacion, new URLSearchParams(fields))
+    updateAssignation(data.id, new URLSearchParams(fields))
       .then(async (request) => {
         if (request.ok) {
           setModalOpen(false);
@@ -475,42 +433,26 @@ const EditModal = ({
             />
             <TextField
               fullWidth
-              label="Fecha Inicio"
+              label="Fecha de Asignacion"
               margin="dense"
-              name="start_date"
+              name="date"
               onChange={(event) => {
                 const date = parseDateToStandardNumber(
                   new Date(event.target.value),
                 );
-                setFields((fields) => ({ ...fields, start_date: date }));
+                setFields((fields) => ({ ...fields, date }));
               }}
               required
               type="date"
               value={formatDateToInputDate(
-                parseStandardNumber(fields.start_date) || new Date(),
+                parseStandardNumber(fields.date) || new Date(),
               )}
             />
             <TextField
               fullWidth
               InputProps={{
                 inputProps: {
-                  min: 0,
-                  max: 100,
-                },
-              }}
-              label="% Asignacion"
-              margin="dense"
-              name="assignation"
-              onChange={handleChange}
-              required
-              type="number"
-              value={fields.assignation}
-            />
-            <TextField
-              fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0,
+                  min: 0.5,
                 },
               }}
               label="Horas"
@@ -608,9 +550,11 @@ export default () => {
     clients: [],
     people: [],
     projects: [],
+    weeks: [],
   });
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedProject, setSelectedProject] = useState("");
+  const [selected_week, setSelectedWeek] = useState("");
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
@@ -628,9 +572,7 @@ export default () => {
     setDeleteModalOpen(true);
   };
 
-  const updateTable = () => {
-    setDataShouldUpdate(true);
-  };
+  const updateTable = () => selectedProject && setDataShouldUpdate(true);
 
   useEffect(() => {
     getBudgets().then((budgets) =>
@@ -648,7 +590,6 @@ export default () => {
     getProjects().then((projects) =>
       setParameters((prev_state) => ({ ...prev_state, projects }))
     );
-    updateTable();
   }, []);
 
   useEffect(() => {
@@ -656,9 +597,7 @@ export default () => {
   }, [selectedClient, userState.id]);
 
   useEffect(() => {
-    if (selectedProject) {
-      updateTable();
-    }
+    updateTable();
   }, [selectedProject]);
 
   return (
@@ -686,7 +625,7 @@ export default () => {
           callback={updateTable}
         />
         <Grid container spacing={10}>
-          <Grid item xs={6}>
+          <Grid item xs={4}>
             <SelectField
               fullWidth
               label="Cliente"
@@ -698,7 +637,7 @@ export default () => {
               ))}
             </SelectField>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={4}>
             <SelectField
               disabled={!selectedClient}
               fullWidth
@@ -718,6 +657,21 @@ export default () => {
                 ))}
             </SelectField>
           </Grid>
+          <Grid item xs={4}>
+            <SelectField
+              fullWidth
+              label="Semana"
+              onChange={(event) => setSelectedWeek(event.target.value)}
+              value={selected_week}
+            >
+              {parameters.weeks
+                .map(({ code, text }) => (
+                  <option key={code} value={code}>
+                    {text}
+                  </option>
+                ))}
+            </SelectField>
+          </Grid>
         </Grid>
       </ParameterContext.Provider>
       <br />
@@ -730,6 +684,7 @@ export default () => {
           onTableUpdate={() => setDataShouldUpdate(false)}
           search={{
             id_project: selectedProject,
+            week: selected_week,
           }}
           update_table={dataShouldUpdate}
           url={"asignacion/asignacion/table"}

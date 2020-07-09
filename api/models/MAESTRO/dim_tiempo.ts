@@ -1,6 +1,6 @@
 import postgres from "../../services/postgres.js";
 
-const TABLE = "MAESTRO.DIM_TIEMPO";
+export const TABLE = "MAESTRO.DIM_TIEMPO";
 
 /*
 * Receives a YYYYMMDD type number
@@ -25,9 +25,7 @@ export const addLaboralDays = async (
     days,
   );
 
-  const end_date: number = rows[0][0];
-
-  return end_date;
+  return rows[0][0] as number;
 };
 
 export const getLaboralDaysBetween = async (
@@ -45,12 +43,10 @@ export const getLaboralDaysBetween = async (
     end_date,
   );
 
-  const days: number[] = rows.reduce((total: number[], [day]: [number]) => {
+  return rows.reduce((total: number[], [day]: [number]) => {
     total.push(day);
     return total;
   }, []);
-
-  return days;
 };
 
 export const getNonLaboralDaysBetween = async (
@@ -68,10 +64,8 @@ export const getNonLaboralDaysBetween = async (
     end_date,
   );
 
-  const days: number[] = rows.reduce((total: number[], [day]: [number]) => {
+  return rows.reduce((total: number[], [day]: [number]) => {
     total.push(day);
     return total;
   }, []);
-
-  return days;
 };

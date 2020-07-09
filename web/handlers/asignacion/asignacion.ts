@@ -32,8 +32,7 @@ export const createAssignation = async (
     person,
     budget,
     role,
-    start_date,
-    assignation,
+    date,
     hours,
   }: { [x: string]: string } = await request.body()
     .then((x: Body) => Object.fromEntries(x.value));
@@ -43,28 +42,18 @@ export const createAssignation = async (
       Number(person) &&
       Number(budget) &&
       Number(role) &&
-      parseStandardNumber(start_date) &&
-      Number(assignation) >= 0 && Number(assignation) <= 100 &&
+      parseStandardNumber(date) &&
       Number(hours)
     )
   ) {
     throw new RequestSyntaxError();
   }
 
-  //TODO
-  //Reemplazar 9 por calculo de horas laborales diarias
-  const end_date = await addLaboralDays(
-    Number(start_date),
-    Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
-  );
-
   response.body = await createNew(
     Number(person),
     Number(budget),
     Number(role),
-    Number(start_date),
-    end_date,
-    Number(assignation),
+    Number(date),
     Number(hours),
   );
 };
@@ -97,34 +86,21 @@ export const updateAssignation = async (
     person,
     budget,
     role,
-    start_date,
-    assignation,
+    date,
     hours,
   }: {
     person?: string;
     budget?: string;
     role?: string;
-    start_date?: string;
-    assignation?: string;
+    date?: string;
     hours?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
-
-  //TODO
-  //Reemplazar 9 por calculo de horas laborales diarias
-  const end_date = await addLaboralDays(
-    Number(start_date),
-    Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
-  );
 
   response.body = await resource.update(
     Number(person) || undefined,
     Number(budget) || undefined,
     Number(role) || undefined,
-    parseStandardNumber(start_date) ? Number(start_date) : undefined,
-    end_date,
-    Number(assignation) >= 0 && Number(assignation) <= 100
-      ? Number(assignation)
-      : undefined,
+    parseStandardNumber(date) ? Number(date) : undefined,
     Number(hours) || undefined,
   );
 };
