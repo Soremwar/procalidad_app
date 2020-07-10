@@ -132,7 +132,7 @@ export const getTableModels = async (
   const { rows: data }: QueryResult = await postgres.query(data_query);
   const count: number = await postgres.query(count_query).then((
     { rows }: QueryResult,
-  ) => rows[0][0]);
+  ) => Number(rows[0][0]));
 
   return {
     count,
