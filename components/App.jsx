@@ -10,16 +10,16 @@ import { CookiesProvider } from "react-cookie";
 
 const App = () => {
   return (
-    <UserProvider>
-      <CookiesProvider>
+    <CookiesProvider>
+      <UserProvider>
         <LayoutProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
             <Router />
           </ThemeProvider>
         </LayoutProvider>
-      </CookiesProvider>
-    </UserProvider>
+      </UserProvider>
+    </CookiesProvider>
   );
 };
 

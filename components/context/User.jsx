@@ -9,6 +9,8 @@ import {
 import {
   fetchAuthApi,
 } from "../../lib/api/generator.js";
+import { useCookies, Cookies } from "react-cookie";
+import decodeJwt from "jwt-decode";
 
 const createSession = (email) =>
   fetchAuthApi("", {
@@ -48,8 +50,12 @@ const loginReducer = (state, action) => {
       };
     case ACTIONS.SIGN_OUT:
       return {
-        ...state,
+        email: "",
+        id: "",
+        image: "",
         is_authenticated: false,
+        name: "",
+        profiles: [],
       };
     default: {
       throw new Error(`Unhandled action type: ${action.type}`);
@@ -116,19 +122,49 @@ export const attemptGoogleLogin = (
 };
 
 export const signOutUser = (dispatch, history) => {
+  new Cookies().remove("PA_AUTH");
   dispatch({ type: ACTIONS.SIGN_OUT });
   history.push("/login");
 };
 
-export const UserProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(loginReducer, {
+//TODO
+//Improve session check
+//Get google avatar from server
+const decodeSessionCookie = (session_token) => {
+  const session = {
     email: "",
     id: "",
     image: "",
     is_authenticated: false,
     name: "",
     profiles: [],
-  });
+  };
+
+  try {
+    const {
+      context,
+      exp,
+    } = decodeJwt(session_token);
+    if (Date.now() > exp) throw new Error();
+
+    Object.assign(session, {
+      email: context.user.email,
+      id: context.user.id,
+      is_authenticated: true,
+      name: context.user.name,
+      profiles: context.user.profiles,
+    });
+  } finally {
+    return session;
+  }
+};
+
+export const UserProvider = ({ children }) => {
+  const [cookies] = useCookies("PA_AUTH");
+  const [state, dispatch] = useReducer(
+    loginReducer,
+    decodeSessionCookie(cookies.PA_AUTH),
+  );
 
   return (
     <UserContext.Provider value={[state, dispatch]}>

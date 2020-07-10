@@ -11,9 +11,14 @@ import {
   findByEmail,
 } from "../../api/models/MAESTRO/access.ts";
 import {
+  findById,
+} from "../../api/models/ORGANIZACION/PERSONA.ts";
+import {
   AuthenticationRejectedError,
+  NotFoundError,
   RequestSyntaxError,
 } from "../exceptions.ts";
+import { user } from "../../config/services/postgresql.ts";
 
 const jwt_header: Jose = {
   alg: "HS256",
@@ -57,14 +62,21 @@ export const createSession = async (
   const access = await findByEmail(value.email);
   if (!access) throw new AuthenticationRejectedError();
 
+  const person = await findById(access.person);
+  if (!person) throw new NotFoundError();
+
+  const user_data = {
+    id: access.person,
+    name: person.nombre,
+    email: person.correo,
+    profiles: access.profiles,
+  };
+
   //TODO
   //Change issuer to use config name
   const payload: Payload = {
     context: {
-      user: {
-        id: access.person,
-        profiles: access.profiles,
-      },
+      user: user_data,
     },
     exp: setExpiration(new Date().getTime() + 30 * 24 * 60 * 60 * 1000),
     iss: "PROCALIDAD_APP",
@@ -78,8 +90,5 @@ export const createSession = async (
     httpOnly: false,
   });
 
-  response.body = {
-    id: access.person,
-    profiles: access.profiles,
-  };
+  response.body = user_data;
 };
