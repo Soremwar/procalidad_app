@@ -26,6 +26,9 @@ export default ({
           rowsPerPageOptions={length_options}
           component="div"
           count={total_count}
+          labelDisplayedRows={({ from, to, count }) =>
+            `Viendo ${from}-${to} de ${count}`}
+          labelRowsPerPage="Filas por pagina"
           rowsPerPage={page_length}
           page={selected_page}
           onChangePage={onChangeSelectedPage}
