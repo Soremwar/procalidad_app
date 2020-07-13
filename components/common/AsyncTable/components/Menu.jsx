@@ -50,12 +50,14 @@ export default function Menu({
     >
       <Grid container alignItems="center">
         <Grid container item xs={6} justify="flex-start">
-          <Search
-            fullWidth
-            onChange={onFilterChange}
-            options={columns.filter((column) => column.searchable)}
-            variant="outlined"
-          />
+          {!!columns.filter((column) => column.searchable).length && (
+            <Search
+              fullWidth
+              onChange={onFilterChange}
+              options={columns.filter((column) => column.searchable)}
+              variant="outlined"
+            />
+          )}
         </Grid>
         <Grid container item xs={6} justify="flex-end">
           <Tooltip title="Agregar">
