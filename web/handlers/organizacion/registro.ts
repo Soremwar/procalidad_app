@@ -5,6 +5,9 @@ import {
   findById,
   getTableData,
 } from "../../../api/models/ORGANIZACION/registro_detalle.ts";
+import {
+  findLastOpenWeek,
+} from "../../../api/models/ORGANIZACION/control_cierre_semana.ts";
 import Ajv from "ajv";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import {
@@ -58,6 +61,21 @@ export const getWeekDetail = async (
   if (!detail) throw new NotFoundError();
 
   response.body = detail;
+};
+
+export const getOpenWeek = async ({ request, response }: RouterContext) => {
+  const {
+    person,
+  }: {
+    person?: string;
+  } = Object.fromEntries(
+    request.url.searchParams.entries(),
+  );
+
+  //I can pass both undefined or a number to the function
+  if (person !== undefined && !Number(person)) throw new RequestSyntaxError();
+
+  response.body = await findLastOpenWeek(person ? Number(person) : undefined);
 };
 
 export const getWeekDetailTable = async (

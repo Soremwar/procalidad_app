@@ -194,6 +194,7 @@ import {
 } from "./handlers/asignacion/asignacion.ts";
 import {
   createWeekDetail,
+  getOpenWeek,
   getWeekDetail,
   getWeekDetailTable,
   getWeeksDetail,
@@ -1875,6 +1876,19 @@ main_router
       Profiles.CONSULTANT,
     ]),
     getWeeksDetail,
+  )
+  .get(
+    "/api/registro/semana",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    getOpenWeek,
   )
   .get<{ id: string }>(
     "/api/registro/:id",

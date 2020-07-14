@@ -50,6 +50,42 @@ class WeekControl {
   }
 }
 
+export const createNew = async (
+  person: number,
+  week: number,
+  status: boolean,
+  close_date: Date,
+): Promise<WeekControl> => {
+  const { rows } = await postgres.query(
+    `INSERT INTO ${TABLE} (
+      FK_PERSONA,
+      FK_SEMANA,
+      BAN_ESTADO,
+      FECHA_CIERRE
+    ) VALUES (
+      $1,
+      $2,
+      $3,
+      $4
+    )
+    RETURNING PK_CIERRE_SEMANA`,
+    person,
+    week,
+    status,
+    close_date,
+  );
+
+  const id: number = rows[0][0];
+
+  return new WeekControl(
+    id,
+    person,
+    week,
+    status,
+    close_date,
+  );
+};
+
 export const findAll = async (): Promise<WeekControl[]> => {
   const { rows } = await postgres.query(
     `SELECT
@@ -96,38 +132,21 @@ export const findById = async (id: number): Promise<WeekControl | null> => {
   return new WeekControl(...result);
 };
 
-export const createNew = async (
-  person: number,
-  week: number,
-  status: boolean,
-  close_date: Date,
-): Promise<WeekControl> => {
+/*
+* Returns the first day of the open week of the registry as YYYYMMDD
+* If no person is provided, it will return the lowest open week available
+* */
+export const findLastOpenWeek = async (person?: number): Promise<number> => {
   const { rows } = await postgres.query(
-    `INSERT INTO ${TABLE} (
-      FK_PERSONA,
-      FK_SEMANA,
-      BAN_ESTADO,
-      FECHA_CIERRE
-    ) VALUES (
-      $1,
-      $2,
-      $3,
-      $4
-    )
-    RETURNING PK_CIERRE_SEMANA`,
-    person,
-    week,
-    status,
-    close_date,
+    `SELECT
+      TO_CHAR(COALESCE(
+        MIN(S.FECHA_INICIO),
+        (SELECT FECHA_INICIO FROM MAESTRO.DIM_SEMANA WHERE NOW() BETWEEN FECHA_INICIO AND FECHA_FIN)
+      ), 'YYYYMMDD') AS FECHA
+    FROM ORGANIZACION.CONTROL_CIERRE_SEMANA AS C
+    JOIN MAESTRO.DIM_SEMANA AS S ON C.FK_SEMANA = S.PK_SEMANA
+    ${person ? `WHERE C.FK_PERSONA = ${person}` : ""}`,
   );
 
-  const id: number = rows[0][0];
-
-  return new WeekControl(
-    id,
-    person,
-    week,
-    status,
-    close_date,
-  );
+  return rows[0][0];
 };

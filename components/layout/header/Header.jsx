@@ -30,7 +30,7 @@ export default function Header(props) {
   const [profileMenu, setProfileMenu] = useState(null);
 
   return (
-    <AppBar position="fixed" color="secondary" className={classes.appBar}>
+    <AppBar position="fixed" className={classes.appBar}>
       <Toolbar className={classes.toolbar}>
         <IconButton
           color="inherit"

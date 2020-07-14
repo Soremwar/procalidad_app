@@ -16,9 +16,14 @@ import {
 import {
   UserContext,
 } from "../context/User.jsx";
+import {
+  parseStandardNumber,
+} from "../../lib/date/mod.js";
 
 import Title from "../common/Title.jsx";
 import Table from "./registro/Table.jsx";
+
+const getWeekDate = (id) => fetchWeekDetailApi(`semana?person=${id}`);
 
 const getTableData = (id) =>
   fetchWeekDetailApi(`table/${id}`).then((x) => x.json());
@@ -52,9 +57,31 @@ const submitWeekDetail = async ({ id, control_id, budget_id, used_hours }) => {
 export default () => {
   const [context] = useContext(UserContext);
 
+  const [current_week, setCurrentWeek] = useState(null);
   const [table_data, setTableData] = useState(new Map());
   const [alert_open, setAlertOpen] = useState(false);
   const [error, setError] = useState(null);
+
+  const updateCurrentWeek = () => {
+    if (context.id) {
+      setAlertOpen(false);
+      setError(null);
+      getWeekDate(context.id)
+        .then(async (response) => {
+          if (response.ok) {
+            const current_week = parseStandardNumber(await response.json());
+            if (!current_week) throw new Error();
+            setCurrentWeek(current_week);
+          } else {
+            throw new Error();
+          }
+        })
+        .catch(() => {
+          setError("No fue posible actualizar la fecha de registro");
+          setAlertOpen(true);
+        });
+    }
+  };
 
   //Set budget_id as unique key since id can be null
   const updateTable = () => {
@@ -104,7 +131,7 @@ export default () => {
           if (response.ok) {
             updateTable();
           } else {
-            setError(true);
+            setError("No fue posible actualizar el registro");
           }
         })
         .finally(() => setAlertOpen(true));
@@ -120,6 +147,7 @@ export default () => {
   };
 
   useEffect(() => {
+    updateCurrentWeek();
     updateTable();
   }, []);
 
@@ -130,6 +158,7 @@ export default () => {
         data={table_data}
         onRowSave={handleRowSave}
         onRowUpdate={updateRow}
+        week={current_week}
       />
       <Snackbar
         anchorOrigin={{

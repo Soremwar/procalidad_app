@@ -1,10 +1,11 @@
 import React, {
   useState,
-  useEffect,
-  Fragment,
 } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
+  AppBar,
+  Button,
+  Grid,
   IconButton,
   Paper,
   Table,
@@ -13,20 +14,29 @@ import {
   TableContainer,
   TableRow,
   TextField,
+  Toolbar,
+  Typography,
 } from "@material-ui/core";
 import {
   CloudDone as OnlineIcon,
   OfflinePin as OfflineIcon,
 } from "@material-ui/icons";
+import {
+  months,
+} from "../../../lib/date/lang.js";
 
 import TableHeaders from "./components/Header.jsx";
 import TableFooter from "./components/Footer.jsx";
 
-const ErrorValidationLabel = ({ children }) => (
-  <label style={{ color: "red", display: "block" }}>
-    {children}
-  </label>
-);
+const parseDateAsWeek = (date) => {
+  const day = date.getDate();
+  const month = date.getMonth();
+  const month_string = month < 10
+    ? months.get(`0${month}`)
+    : months.get(String(month));
+
+  return `Semana del ${day} de ${month_string}`;
+};
 
 const columns = [
   { id: "client", label: "Cliente", orderable: true },
@@ -36,26 +46,20 @@ const columns = [
 ];
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    width: "100%",
+  menu: {
+    backgroundColor: theme.palette.secondary.main,
+    color: theme.palette.text.primary,
+    flexGrow: 1,
   },
   paper: {
     width: "100%",
     marginBottom: theme.spacing(2),
   },
+  root: {
+    width: "100%",
+  },
   table: {
     minWidth: 750,
-  },
-  visuallyHidden: {
-    border: 0,
-    clip: "rect(0 0 0 0)",
-    height: 1,
-    margin: -1,
-    overflow: "hidden",
-    padding: 0,
-    position: "absolute",
-    top: 20,
-    width: 1,
   },
 }));
 
@@ -63,6 +67,7 @@ export default function ({
   data,
   onRowSave,
   onRowUpdate,
+  week,
 }) {
   const classes = useStyles();
 
@@ -100,6 +105,20 @@ export default function ({
   return (
     <div className={classes.root}>
       <Paper className={classes.paper}>
+        <AppBar className={classes.menu} position="static">
+          <Toolbar>
+            <Grid container alignItems="center">
+              <Grid container item xs={6} justify="flex-start">
+                <Typography>
+                  {week ? parseDateAsWeek(week) : "Semana no disponible"}
+                </Typography>
+              </Grid>
+              <Grid container item xs={6} justify="flex-end">
+                <Button variant="contained">Solicitar horas</Button>
+              </Grid>
+            </Grid>
+          </Toolbar>
+        </AppBar>
         <TableContainer>
           <Table
             className={classes.table}
