@@ -189,6 +189,7 @@ import {
   deleteAssignation,
   getAssignation,
   getAssignations,
+  getAssignationWeeks,
   getAssignationsTable,
   updateAssignation,
 } from "./handlers/organizacion/asignacion.ts";
@@ -1807,6 +1808,18 @@ main_router
       Profiles.SALES,
     ]),
     getAssignations,
+  )
+  .get(
+    "/api/asignacion/asignacion/semanas",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    getAssignationWeeks,
   )
   .get<{ id: string }>(
     "/api/asignacion/asignacion/:id",

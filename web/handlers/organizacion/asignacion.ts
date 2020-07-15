@@ -3,6 +3,7 @@ import {
   createNew,
   findAll,
   findById,
+  getAvailableWeeks,
   getTableData,
 } from "../../../api/models/asignacion/asignacion.ts";
 import {
@@ -57,18 +58,6 @@ export const createAssignation = async (
   );
 };
 
-export const getAssignation = async (
-  { params, response }: RouterContext<{ id: string }>,
-) => {
-  const id: number = Number(params.id);
-  if (!id) throw new RequestSyntaxError();
-
-  const resource = await findById(id);
-  if (!resource) throw new NotFoundError();
-
-  response.body = resource;
-};
-
 export const updateAssignation = async (
   { params, request, response }: RouterContext<{ id: string }>,
 ) => {
@@ -119,4 +108,22 @@ export const deleteAssignation = async (
     Status.OK,
     Message.OK,
   );
+};
+
+export const getAssignation = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
+  const id: number = Number(params.id);
+  if (!id) throw new RequestSyntaxError();
+
+  const resource = await findById(id);
+  if (!resource) throw new NotFoundError();
+
+  response.body = resource;
+};
+
+export const getAssignationWeeks = async (
+  { response }: RouterContext,
+) => {
+  response.body = await getAvailableWeeks();
 };

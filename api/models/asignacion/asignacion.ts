@@ -4,7 +4,6 @@ import {
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
-
 import {
   TABLE as BUDGET_TABLE,
 } from "../OPERACIONES/PRESUPUESTO.ts";
@@ -17,6 +16,9 @@ import {
 import {
   TABLE as WEEK_TABLE,
 } from "../MAESTRO/dim_semana.ts";
+import {
+  TABLE as CONTROL_TABLE,
+} from "../ORGANIZACION/control_cierre_semana.ts";
 
 export const TABLE = "ASIGNACION.ASIGNACION";
 
@@ -164,6 +166,23 @@ export const createNew = async (
   );
 };
 
+export const getAvailableWeeks = async (): Promise<number[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD') AS WEEK_DATE
+    FROM ${TABLE} AS A
+    JOIN ${WEEK_TABLE} AS S
+    ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
+    JOIN ${CONTROL_TABLE} AS C
+    ON S.PK_SEMANA = C.FK_SEMANA
+    WHERE C.BAN_ESTADO = false
+    group by 
+    TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD')`,
+  );
+
+  return rows.map(([x]: [number]) => x);
+};
+
 class TableData {
   constructor(
     public id: number,
@@ -171,7 +190,7 @@ class TableData {
     public person: string,
     public role: string,
     public date: string,
-    public week_code: string,
+    public week_date: number,
     public hours: number,
   ) {}
 }
@@ -185,13 +204,18 @@ export const getTableData = async (
   const base_query = (
     `SELECT
       PK_ASIGNACION AS ID,
-      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
-      (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = FK_ROL) AS ROLE,
-      TO_CHAR(TO_DATE(CAST(FECHA AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
-      (SELECT COD_SEMANA FROM ${WEEK_TABLE} WHERE TO_DATE(CAST(FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN FECHA_INICIO AND FECHA_FIN) AS WEEK_CODE,
+      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = A.FK_PRESUPUESTO) AS ID_PROJECT,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = A.FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = A.FK_ROL) AS ROLE,
+      TO_CHAR(TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
+      TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD') AS WEEK_DATE,
       HORAS AS HOURS
-    FROM ${TABLE}`
+    FROM ${TABLE} AS A
+    JOIN ${WEEK_TABLE} AS S
+    ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
+    JOIN ${CONTROL_TABLE} AS C
+    ON S.PK_SEMANA = C.FK_SEMANA
+    WHERE C.BAN_ESTADO = FALSE`
   );
 
   const { count, data } = await getTableModels(
@@ -208,7 +232,7 @@ export const getTableData = async (
     string,
     string,
     string,
-    string,
+    number,
     number,
   ]) => new TableData(...x));
 

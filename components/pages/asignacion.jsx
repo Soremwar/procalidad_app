@@ -17,7 +17,6 @@ import {
 } from "@material-ui/core";
 import {
   UserContext,
-  UserProvider,
 } from "../context/User.jsx";
 
 import {
@@ -27,6 +26,9 @@ import {
   parseDateToStandardNumber,
   parseStandardNumber,
 } from "../../lib/date/mod.js";
+import {
+  months,
+} from "../../lib/date/lang.js";
 import {
   fetchAssignationApi,
   fetchClientApi,
@@ -42,6 +44,14 @@ import AsyncTable from "../common/AsyncTable/Table.jsx";
 import DialogForm from "../common/DialogForm.jsx";
 import Title from "../common/Title.jsx";
 import SelectField from "../common/SelectField.jsx";
+
+const parseNumberAsWeek = (date) => {
+  date = String(date);
+  const day = date.substr(6, 2);
+  const month = months.get(date.substr(4, 2));
+
+  return `${day} de ${month}`;
+};
 
 const formatDateToInputDate = (date) => {
   const year = date.getFullYear();
@@ -59,6 +69,7 @@ const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
 const getProjects = () => fetchProjectApi().then((x) => x.json());
+const getWeeks = () => fetchAssignationApi("semanas").then((x) => x.json());
 
 const getAssignation = (id) => fetchAssignationApi(id).then((x) => x.json());
 
@@ -554,8 +565,8 @@ export default () => {
     projects: [],
     weeks: [],
   });
-  const [selectedClient, setSelectedClient] = useState("");
-  const [selectedProject, setSelectedProject] = useState("");
+  const [selected_client, setSelectedClient] = useState("");
+  const [selected_project, setSelectedProject] = useState("");
   const [selected_week, setSelectedWeek] = useState("");
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
@@ -574,7 +585,11 @@ export default () => {
     setDeleteModalOpen(true);
   };
 
-  const updateTable = () => selectedProject && setDataShouldUpdate(true);
+  const updateTable = () => {
+    if (selected_project && selected_week) {
+      setDataShouldUpdate(true);
+    }
+  };
 
   useEffect(() => {
     getBudgets().then((budgets) =>
@@ -592,15 +607,18 @@ export default () => {
     getProjects().then((projects) =>
       setParameters((prev_state) => ({ ...prev_state, projects }))
     );
+    getWeeks().then((weeks) =>
+      setParameters((prev_state) => ({ ...prev_state, weeks }))
+    );
   }, []);
 
   useEffect(() => {
     setSelectedProject("");
-  }, [selectedClient, userState.id]);
+  }, [selected_client, userState.id]);
 
   useEffect(() => {
     updateTable();
-  }, [selectedProject]);
+  }, [selected_project, selected_week]);
 
   return (
     <Fragment>
@@ -609,19 +627,19 @@ export default () => {
         <AddModal
           callback={updateTable}
           is_open={is_add_modal_open}
-          project={selectedProject}
+          project={selected_project}
           setModalOpen={setAddModalOpen}
         />
         <EditModal
           callback={updateTable}
           data={selected_resource}
           is_open={is_edit_modal_open}
-          project={selectedProject}
+          project={selected_project}
           setModalOpen={setEditModalOpen}
         />
         <DeleteModal
           is_open={is_delete_modal_open}
-          project={selectedProject}
+          project={selected_project}
           setModalOpen={setDeleteModalOpen}
           selected={selected}
           callback={updateTable}
@@ -632,7 +650,7 @@ export default () => {
               fullWidth
               label="Cliente"
               onChange={(event) => setSelectedClient(event.target.value)}
-              value={selectedClient}
+              value={selected_client}
             >
               {parameters.clients.map(({ pk_cliente, nombre }) => (
                 <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
@@ -641,15 +659,15 @@ export default () => {
           </Grid>
           <Grid item xs={4}>
             <SelectField
-              disabled={!selectedClient}
+              disabled={!selected_client}
               fullWidth
               label="Proyecto"
               onChange={(event) => setSelectedProject(event.target.value)}
-              value={selectedProject}
+              value={selected_project}
             >
               {parameters.projects
                 .filter(({ fk_cliente, fk_supervisor }) =>
-                  fk_cliente == selectedClient &&
+                  fk_cliente == selected_client &&
                   fk_supervisor == userState.id
                 )
                 .map(({ pk_proyecto, nombre }) => (
@@ -667,9 +685,9 @@ export default () => {
               value={selected_week}
             >
               {parameters.weeks
-                .map(({ code, text }) => (
-                  <option key={code} value={code}>
-                    {text}
+                .map((week) => (
+                  <option key={week} value={week}>
+                    {parseNumberAsWeek(week)}
                   </option>
                 ))}
             </SelectField>
@@ -677,7 +695,7 @@ export default () => {
         </Grid>
       </ParameterContext.Provider>
       <br />
-      {selectedClient && selectedProject && (
+      {selected_project && selected_week && (
         <AsyncTable
           columns={headers}
           onAddClick={() => setAddModalOpen(true)}
@@ -685,8 +703,8 @@ export default () => {
           onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
           onTableUpdate={() => setDataShouldUpdate(false)}
           search={{
-            id_project: selectedProject,
-            week: selected_week,
+            id_project: selected_project,
+            week_date: selected_week,
           }}
           update_table={dataShouldUpdate}
           url={"asignacion/asignacion/table"}
