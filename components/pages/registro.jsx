@@ -28,7 +28,7 @@ import SelectField from "../common/SelectField.jsx";
 import Title from "../common/Title.jsx";
 import Table from "./registro/Table.jsx";
 
-const getWeekDate = (id) => fetchWeekDetailApi(`semana?person=${id}`);
+const getWeekDate = (id) => fetchWeekDetailApi(`semana/${id}`);
 
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getProjects = () => fetchProjectApi().then((x) => x.json());
@@ -259,13 +259,14 @@ export default () => {
     if (Number(row.used_hours)) {
       submitWeekDetail(context.id, row)
         .then((response) => {
-          if (response.ok) {
-            updateTable();
-          } else {
+          if (!response.ok) {
             setError("No fue posible actualizar el registro");
           }
         })
-        .finally(() => setAlertOpen(true));
+        .finally(() => {
+          setAlertOpen(true);
+          updateTable();
+        });
     } else {
       setError(`${row.used_hours} no es un numero valido`);
       setAlertOpen(true);

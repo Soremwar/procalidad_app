@@ -193,8 +193,9 @@ import {
   updateAssignation,
 } from "./handlers/organizacion/asignacion.ts";
 import {
+  closePersonWeek,
   createWeekDetail,
-  getOpenWeek,
+  getPersonOpenWeek,
   getWeekDetail,
   getWeekDetailTable,
   getWeeksDetail,
@@ -1877,32 +1878,19 @@ main_router
     ]),
     getWeeksDetail,
   )
-  .get(
-    "/api/registro/semana",
+  .get<{ person: string }>(
+    "/api/registro/semana/:person",
     checkProfileAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
     ]),
-    getOpenWeek,
+    getPersonOpenWeek,
   )
-  .get<{ id: string }>(
-    "/api/registro/clientes/:id",
+  .put<{ person: string }>(
+    "/api/registro/semana/:person",
     checkProfileAccess([
       Profiles.CONSULTANT,
     ]),
-    getWeekDetail,
-  )
-  .get<{ id: string }>(
-    "/api/registro/proyectos/:id",
-    checkProfileAccess([
-      Profiles.CONSULTANT,
-    ]),
-    getWeekDetail,
+    closePersonWeek,
   )
   .get<{ id: string }>(
     "/api/registro/:id",

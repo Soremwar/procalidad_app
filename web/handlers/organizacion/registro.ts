@@ -7,7 +7,8 @@ import {
 } from "../../../api/models/ORGANIZACION/registro_detalle.ts";
 import {
   createNewControl,
-  findLastOpenWeek,
+  findOpenWeek,
+  getOpenWeekAsDate,
 } from "../../../api/models/ORGANIZACION/control_cierre_semana.ts";
 import Ajv from "ajv";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
@@ -68,19 +69,13 @@ export const getWeekDetail = async (
   response.body = detail;
 };
 
-export const getOpenWeek = async ({ request, response }: RouterContext) => {
-  const {
-    person,
-  }: {
-    person?: string;
-  } = Object.fromEntries(
-    request.url.searchParams.entries(),
-  );
+export const getPersonOpenWeek = async (
+  { params, response }: RouterContext<{ person: string }>,
+) => {
+  const person: number = Number(params.person);
+  if (!person) throw new RequestSyntaxError();
 
-  //I can pass both undefined or a number to the function
-  if (person !== undefined && !Number(person)) throw new RequestSyntaxError();
-
-  response.body = await findLastOpenWeek(person ? Number(person) : undefined);
+  response.body = await getOpenWeekAsDate(person);
 };
 
 export const getWeekDetailTable = async (
@@ -149,4 +144,16 @@ export const updateWeekDetail = async (
   response.body = await detail.update(
     Number(value.hours),
   );
+};
+
+export const closePersonWeek = async (
+  { params, response }: RouterContext<{ person: string }>,
+) => {
+  const person: number = Number(params.person);
+  if (!person) throw new RequestSyntaxError();
+
+  const week = await findOpenWeek(person);
+  if (!week) throw new NotFoundError("No existen registros en esta semana");
+
+  response.body = await week.close();
 };
