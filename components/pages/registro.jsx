@@ -36,18 +36,18 @@ const getProjects = () => fetchProjectApi().then((x) => x.json());
 const getTableData = (id) =>
   fetchWeekDetailApi(`table/${id}`).then((x) => x.json());
 
-const createWeekDetail = async (person, control, budget, hours) =>
+const createWeekDetail = async (person, control, budget, role, hours) =>
   fetchWeekDetailApi(person, {
-    body: JSON.stringify({ control, budget, hours }),
+    body: JSON.stringify({ control, budget, role, hours }),
     headers: {
       "Content-Type": "application/json",
     },
     method: "POST",
   });
 
-const updateWeekDetail = async (id, control, budget, hours) =>
+const updateWeekDetail = async (id, control, budget, role, hours) =>
   fetchWeekDetailApi(id, {
-    body: JSON.stringify({ control, budget, hours }),
+    body: JSON.stringify({ control, budget, role, hours }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -56,12 +56,12 @@ const updateWeekDetail = async (id, control, budget, hours) =>
 
 const submitWeekDetail = async (
   person,
-  { id, control_id, budget_id, used_hours },
+  { id, control_id, budget_id, role_id, used_hours },
 ) => {
   if (id) {
-    return updateWeekDetail(id, control_id, budget_id, used_hours);
+    return updateWeekDetail(id, control_id, budget_id, role_id, used_hours);
   } else {
-    return createWeekDetail(person, control_id, budget_id, used_hours);
+    return createWeekDetail(person, control_id, budget_id, role_id, used_hours);
   }
 };
 

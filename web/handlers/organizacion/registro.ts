@@ -26,11 +26,13 @@ const post_structure = {
       type: ["string", "number", "null"],
     },
     "budget": TRUTHY_INTEGER,
+    "role": TRUTHY_INTEGER,
     "hours": UNSIGNED_NUMBER,
   },
   required: [
     "control",
     "budget",
+    "role",
     "hours",
   ],
 };
@@ -117,6 +119,7 @@ export const createWeekDetail = async (
   response.body = await createNew(
     control,
     Number(value.budget),
+    Number(value.role),
     Number(value.hours),
   );
 };

@@ -6,17 +6,14 @@ import {
   TABLE as WEEK_TABLE,
 } from "../MAESTRO/dim_semana.ts";
 import {
-  TABLE as PLANNING_TABLE,
-} from "../planeacion/recurso.ts";
-import {
-  TABLE as DETAIL_PLANNING_TABLE,
-} from "../planeacion/recurso_detalle.ts";
-import {
   TABLE as ASSIGNATION_TABLE,
 } from "../asignacion/asignacion.ts";
 import {
   TABLE as BUDGET_TABLE,
 } from "../OPERACIONES/PRESUPUESTO.ts";
+import {
+  TABLE as ROLE_TABLE,
+} from "../OPERACIONES/ROL.ts";
 import {
   TABLE as PROJECT_TABLE,
 } from "../OPERACIONES/PROYECTO.ts";
@@ -31,6 +28,7 @@ class WeekDetail {
     public readonly id: number,
     public readonly week: number,
     public readonly budget: number,
+    public readonly role: number,
     public hours: number,
   ) {}
 
@@ -64,20 +62,24 @@ class WeekDetail {
 export const createNew = async (
   week: number,
   budget: number,
+  role: number,
   hours: number,
 ): Promise<WeekDetail> => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_CIERRE_SEMANA,
       FK_PRESUPUESTO,
+      FK_ROL,
       HORAS
     ) VALUES (
       $1,
       $2,
-      $3
+      $3,
+      $4
     ) RETURNING PK_REGISTRO`,
     week,
     budget,
+    role,
     hours,
   );
 
@@ -87,6 +89,7 @@ export const createNew = async (
     id,
     week,
     budget,
+    role,
     hours,
   );
 };
@@ -97,6 +100,7 @@ export const findById = async (id: number): Promise<WeekDetail | null> => {
       PK_REGISTRO,
       FK_CIERRE_SEMANA,
       FK_PRESUPUESTO,
+      FK_ROL,
       HORAS
     FROM ${TABLE}
     WHERE PK_REGISTRO = $1`,
@@ -106,6 +110,7 @@ export const findById = async (id: number): Promise<WeekDetail | null> => {
   if (!rows[0]) return null;
 
   const result: [
+    number,
     number,
     number,
     number,
@@ -121,11 +126,13 @@ export const findAll = async (): Promise<WeekDetail[]> => {
       PK_REGISTRO,
       FK_CIERRE_SEMANA,
       FK_PRESUPUESTO,
+      FK_ROL,
       HORAS
     FROM ${TABLE}`,
   );
 
   return rows.map((row: [
+    number,
     number,
     number,
     number,
@@ -137,9 +144,11 @@ class WeekDetailData {
   constructor(
     public readonly id: number | null,
     public readonly control_id: number | null,
-    public readonly budget_id: number,
     public readonly client: string,
     public readonly project: string,
+    public readonly budget_id: number,
+    public readonly role_id: number,
+    public readonly role: string,
     public readonly expected_hours: number,
     public readonly used_hours: number | null,
     public readonly server_updated: boolean,
@@ -182,6 +191,7 @@ export const getTableData = async (
       SELECT
         C.PK_CIERRE_SEMANA,
         A.FK_PRESUPUESTO,
+        A.FK_ROL,
         SUM(A.HORAS) AS HORAS
       FROM
         ${ASSIGNATION_TABLE} A
@@ -191,14 +201,17 @@ export const getTableData = async (
         WHERE A.FK_PERSONA = $1
       GROUP BY
         C.PK_CIERRE_SEMANA,
-        A.FK_PRESUPUESTO
+        A.FK_PRESUPUESTO,
+        A.FK_ROL
     )
     SELECT
       REG.PK_REGISTRO AS ID,
       TOTAL.PK_CIERRE_SEMANA AS CONTROL_ID,
-      TOTAL.FK_PRESUPUESTO AS BUDGET_ID,
       CLI.NOMBRE AS CLIENT,
       PROY.NOMBRE AS PROJECT,
+      TOTAL.FK_PRESUPUESTO AS BUDGET_ID,
+      TOTAL.FK_ROL AS ROLE_ID,
+      ROL.NOMBRE AS ROLE,
       SUM(TOTAL.HORAS) AS EXPECTED_HOURS,
       REG.HORAS AS USED_HOURS,
       TRUE AS SERVER_UPDATED
@@ -206,10 +219,14 @@ export const getTableData = async (
     LEFT JOIN
       ${TABLE} AS REG
       ON REG.FK_PRESUPUESTO = TOTAL.FK_PRESUPUESTO
+      AND REG.FK_ROL = TOTAL.FK_ROL
       AND REG.FK_CIERRE_SEMANA = TOTAL.PK_CIERRE_SEMANA
     JOIN
       ${BUDGET_TABLE} AS PRES
       ON PRES.PK_PRESUPUESTO = TOTAL.FK_PRESUPUESTO
+    JOIN
+      ${ROLE_TABLE} AS ROL
+      ON ROL.PK_ROL = TOTAL.FK_ROL
     JOIN
       ${PROJECT_TABLE} AS PROY
       ON PROY.PK_PROYECTO = PRES.FK_PROYECTO
@@ -220,6 +237,8 @@ export const getTableData = async (
       REG.PK_REGISTRO,
       TOTAL.PK_CIERRE_SEMANA,
       TOTAL.FK_PRESUPUESTO,
+      TOTAL.FK_ROL,
+      ROL.NOMBRE,
       CLI.PK_CLIENTE,
       PROY.PK_PROYECTO,
       REG.HORAS`,
@@ -227,13 +246,15 @@ export const getTableData = async (
   );
 
   return rows.map((row: [
-    number,
-    number,
-    number,
+    number | null,
+    number | null,
     string,
     string,
     number,
     number,
+    string,
+    number,
+    number | null,
     boolean,
   ]) => new WeekDetailData(...row));
 };

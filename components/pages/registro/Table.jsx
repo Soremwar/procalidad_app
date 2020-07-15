@@ -41,6 +41,7 @@ const parseDateAsWeek = (date) => {
 const columns = [
   { id: "client", label: "Cliente", orderable: true },
   { id: "project", label: "Proyecto", orderable: true },
+  { id: "role", label: "Rol", orderable: true },
   { id: "expected_hours", label: "Horas asignadas", orderable: true },
   { id: "used_hours", label: "Horas ejecutadas", orderable: false },
 ];
