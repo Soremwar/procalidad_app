@@ -1,7 +1,28 @@
 import postgres from "../../services/postgres.js";
 import {
+  TABLE as TIME_TABLE,
+} from "../MAESTRO/dim_tiempo.ts";
+import {
   TABLE as WEEK_TABLE,
 } from "../MAESTRO/dim_semana.ts";
+import {
+  TABLE as ASSIGNATION_TABLE,
+} from "../asignacion/asignacion.ts";
+import {
+  TABLE as REGISTRY_TABLE,
+} from "./registro_detalle.ts";
+import {
+  TABLE as BUDGET_TABLE,
+} from "../OPERACIONES/PRESUPUESTO.ts";
+import {
+  TABLE as ROLE_TABLE,
+} from "../OPERACIONES/ROL.ts";
+import {
+  TABLE as PROJECT_TABLE,
+} from "../OPERACIONES/PROYECTO.ts";
+import {
+  TABLE as CLIENT_TABLE,
+} from "../CLIENTES/CLIENTE.ts";
 
 export const TABLE = "ORGANIZACION.CONTROL_CIERRE_SEMANA";
 
@@ -15,6 +36,17 @@ class WeekControl {
   ) {}
 
   async close(): Promise<WeekControl> {
+    const validation = await validateWeek(this.person, this.week);
+
+    if (!validation.goal_reached) {
+      throw new Error(
+        "Las horas registradas no coinciden con el esperado semanal",
+      );
+    }
+    if (!validation.assignation_completed) {
+      throw new Error("Las horas registradas exceden la asignacion aprobada");
+    }
+
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
         BAN_ESTADO = TRUE,
@@ -254,4 +286,69 @@ export const getOpenWeekAsDate = async (person: number): Promise<number> => {
   );
 
   return rows[0][0];
+};
+
+export const validateWeek = async (
+  person: number,
+  week: number,
+): Promise<{ goal_reached: boolean; assignation_completed: boolean }> => {
+  const { rows } = await postgres.query(
+    `WITH DETALLE AS (
+      SELECT
+        S.PK_SEMANA,
+        A.FK_PRESUPUESTO,
+        A.FK_ROL,
+        SUM(A.HORAS) AS ESPERADO,
+        R.HORAS AS EJECUTADO
+      FROM ${ASSIGNATION_TABLE} A
+      JOIN ${WEEK_TABLE} S
+      ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
+      LEFT JOIN (
+        SELECT
+          FK_SEMANA,
+          FK_PERSONA,
+          FK_PRESUPUESTO,
+          FK_ROL,
+          HORAS
+        FROM ${TABLE} AS CCS
+        JOIN ${REGISTRY_TABLE} AS RD
+        ON CCS.PK_CIERRE_SEMANA = RD.FK_CIERRE_SEMANA
+      ) AS R
+      ON S.PK_SEMANA = R.FK_SEMANA
+      AND A.FK_PERSONA = R.FK_PERSONA
+      AND A.FK_PRESUPUESTO = R.FK_PRESUPUESTO
+      AND A.FK_ROL = R.FK_ROL
+      WHERE S.PK_SEMANA = $1
+      AND A.FK_PERSONA = $2
+      GROUP BY
+      S.PK_SEMANA,
+        A.FK_PRESUPUESTO,
+        A.FK_ROL,
+        R.HORAS
+    ), EJECUTADO AS (
+      SELECT CASE WHEN SUM(EJECUTADO) = (
+        SELECT
+          SUM(1) * 9
+        FROM ${TIME_TABLE} T
+        JOIN ${WEEK_TABLE} S
+        ON FECHA BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
+        WHERE S.PK_SEMANA = $1
+        AND BAN_FESTIVO = FALSE
+        AND EXTRACT(ISODOW FROM T.FECHA) NOT IN (6,7)
+      ) THEN TRUE ELSE FALSE END AS META_ALCANZADA FROM DETALLE
+    ), IRREGULARIDADES AS (
+        SELECT CASE WHEN COUNT(1) = 0 THEN TRUE ELSE FALSE END AS ASIGNACION_CUMPLIDA
+      FROM DETALLE
+      WHERE ESPERADO < EJECUTADO
+    )
+    SELECT E.META_ALCANZADA, I.ASIGNACION_CUMPLIDA
+    FROM EJECUTADO E
+    JOIN IRREGULARIDADES I ON 1 = 1`,
+    week,
+    person,
+  );
+
+  const [goal_reached, assignation_completed]: [boolean, boolean] = rows[0];
+
+  return { goal_reached, assignation_completed };
 };

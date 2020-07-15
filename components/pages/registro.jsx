@@ -54,6 +54,11 @@ const updateWeekDetail = async (id, control, budget, role, hours) =>
     method: "PUT",
   });
 
+const closeWeek = async (person) =>
+  fetchWeekDetailApi(`semana/${person}`, {
+    method: "PUT",
+  });
+
 const submitWeekDetail = async (
   person,
   { id, control_id, budget_id, role_id, used_hours },
@@ -283,7 +288,16 @@ export default () => {
       setError("Guarde su tiempo antes de cerrar la semana");
       setAlertOpen(true);
     } else {
-      console.log("lets go");
+      closeWeek(context.id)
+        .then(async (response) => {
+          if (!response.ok) {
+            setError(await response.json().then((body) => body.message));
+            setAlertOpen(true);
+          }
+        }).finally(() => {
+          updateCurrentWeek();
+          updateTable();
+        });
     }
   };
 
