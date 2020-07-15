@@ -185,7 +185,10 @@ export default function ({
                     <TableCell>
                       <TextField
                         onChange={(event) =>
-                          onRowUpdate(row.budget_id, event.target.value)}
+                          onRowUpdate(
+                            `${row.budget_id}_${row.role_id}`,
+                            event.target.value,
+                          )}
                         style={{ width: "150px" }}
                         value={row.used_hours || ""}
                       />

@@ -219,34 +219,41 @@ export default () => {
     }
   };
 
-  //Set budget_id as unique key since id can be null
+  //Set budget_id and role_id as unique key since id can be null
   const updateTable = () => {
     if (context.id) {
       getTableData(context.id)
         .then((data) => {
           setTableData((prev_state) => {
             return new Map(
-              Array.from(prev_state).reduce((total, [index, value]) => {
-                const match = total.findIndex(([index_t]) => index_t === index);
-                if (match !== -1) {
-                  if (
-                    value.server_updated ||
-                    total[match][1].used_hours == value.used_hours
-                  ) {
-                    total[match] = [index, { ...total[match][1] }];
-                  } else {
-                    total[match] = [
-                      index,
-                      {
-                        ...total[match][1],
-                        used_hours: value.used_hours,
-                        server_updated: value.server_updated,
-                      },
-                    ];
+              Array.from(prev_state).reduce(
+                (total, [index, value]) => {
+                  const match = total.findIndex(([index_t]) =>
+                    index_t === index
+                  );
+                  if (match !== -1) {
+                    if (
+                      value.server_updated ||
+                      total[match][1].used_hours == value.used_hours
+                    ) {
+                      total[match] = [index, { ...total[match][1] }];
+                    } else {
+                      total[match] = [
+                        index,
+                        {
+                          ...total[match][1],
+                          used_hours: value.used_hours,
+                          server_updated: value.server_updated,
+                        },
+                      ];
+                    }
                   }
-                }
-                return total;
-              }, data.map((record) => [record.budget_id, record])),
+                  return total;
+                },
+                data.map((
+                  record,
+                ) => [`${record.budget_id}_${record.role_id}`, record]),
+              ),
             );
           });
         });
