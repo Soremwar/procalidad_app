@@ -1,88 +1,93 @@
 import postgres from "../../services/postgres.js";
+import {
+  TABLE as WEEK_TABLE,
+} from "../MAESTRO/dim_semana.ts";
 
 export const TABLE = "ORGANIZACION.CONTROL_CIERRE_SEMANA";
 
 class WeekControl {
   constructor(
     public readonly id: number,
-    public person: number,
-    public week: number,
+    public readonly person: number,
+    public readonly week: number,
     public status: boolean,
-    public close_date: Date,
+    public close_date: Date | null,
   ) {}
 
-  async update(
-    person: number = this.person,
-    week: number = this.week,
-    status: boolean = this.status,
-    close_date: Date = this.close_date,
-  ): Promise<WeekControl> {
-    Object.assign(this, {
-      person,
-      week,
-      status,
-      close_date,
-    });
-
+  async close(): Promise<void> {
     await postgres.query(
-      `UPDATE ${TABLE}
-      SET
-        FK_PERSONA = $2,
-        FK_SEMANA = $3,
-        BAN_ESTADO = $4,
-        FECHA_CIERRE = $5
+      `UPDATE ${TABLE} SET
+        BAN_ESTADO = TRUE,
+        FECHA_CIERRE = NOW()
       WHERE PK_CIERRE_SEMANA = $1`,
       this.id,
-      this.person,
-      this.week,
-      this.status,
-      this.close_date,
     );
 
-    return this;
-  }
-
-  async delete(): Promise<void> {
-    await postgres.query(
-      `DELETE FROM ${TABLE} WHERE PK_PRESUPUESTO = $1`,
-      this.id,
-    );
+    await createNewWeek(this.person, this.week);
   }
 }
 
-export const createNew = async (
+export const createNewControl = async (
   person: number,
-  week: number,
-  status: boolean,
-  close_date: Date,
 ): Promise<WeekControl> => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_PERSONA,
       FK_SEMANA,
-      BAN_ESTADO,
-      FECHA_CIERRE
+      BAN_ESTADO
     ) VALUES (
       $1,
-      $2,
-      $3,
-      $4
-    )
-    RETURNING PK_CIERRE_SEMANA`,
+      (SELECT PK_SEMANA FROM ${WEEK_TABLE} WHERE NOW() - INTERVAL '1 WEEK' BETWEEN FECHA_INICIO AND FECHA_FIN),
+      FALSE
+    ) RETURNING PK_CIERRE_SEMANA, FK_SEMANA`,
     person,
-    week,
-    status,
-    close_date,
   );
 
-  const id: number = rows[0][0];
+  const [id, week]: [number, number] = rows[0];
 
   return new WeekControl(
     id,
     person,
     week,
-    status,
-    close_date,
+    false,
+    null,
+  );
+};
+
+export const createNewWeek = async (
+  person: number,
+  prev_week: number,
+): Promise<WeekControl> => {
+  const { rows } = await postgres.query(
+    `INSERT INTO ${TABLE} (
+      FK_PERSONA,
+      FK_SEMANA,
+      BAN_ESTADO
+    ) VALUES (
+      $1,
+      (
+        SELECT PK_SEMANA
+        FROM ${WEEK_TABLE}
+        WHERE (
+          SELECT FECHA_INICIO + INTERVAL '1 WEEK'
+          FROM ${WEEK_TABLE}
+          WHERE PK_SEMANA = $2
+        ) BETWEEN FECHA_INICIO AND FECHA_FIN
+      ),
+      FALSE
+    ) RETURNING PK_CIERRE_SEMANA, FK_SEMANA`,
+    person,
+    prev_week,
+  );
+
+  const [id, week]: [number, number] = rows[0];
+
+  return new WeekControl(
+    id,
+    person,
+    week,
+    false,
+    null,
   );
 };
 

@@ -6,6 +6,7 @@ import {
   getTableData,
 } from "../../../api/models/ORGANIZACION/registro_detalle.ts";
 import {
+  createNewControl,
   findLastOpenWeek,
 } from "../../../api/models/ORGANIZACION/control_cierre_semana.ts";
 import Ajv from "ajv";
@@ -18,12 +19,16 @@ import {
 const post_structure = {
   $id: "post",
   properties: {
-    "week": TRUTHY_INTEGER,
+    "control": {
+      minimum: 1,
+      pattern: "^[0-9]+$|^null$",
+      type: ["string", "number", "null"],
+    },
     "budget": TRUTHY_INTEGER,
     "hours": UNSIGNED_NUMBER,
   },
   required: [
-    "week",
+    "control",
     "budget",
     "hours",
   ],
@@ -88,8 +93,10 @@ export const getWeekDetailTable = async (
 };
 
 export const createWeekDetail = async (
-  { request, response }: RouterContext,
+  { params, request, response }: RouterContext<{ person: string }>,
 ) => {
+  const person: number = Number(params.person);
+  if (!person) throw new RequestSyntaxError();
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -103,8 +110,17 @@ export const createWeekDetail = async (
     throw new RequestSyntaxError();
   }
 
+  let control: number;
+  if (String(value.control) === "null") {
+    control = await createNewControl(
+      person,
+    ).then((week_control) => week_control.id);
+  } else {
+    control = Number(value.control);
+  }
+
   response.body = await createNew(
-    Number(value.week),
+    control,
     Number(value.budget),
     Number(value.hours),
   );

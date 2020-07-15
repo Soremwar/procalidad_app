@@ -191,7 +191,7 @@ import {
   getAssignations,
   getAssignationsTable,
   updateAssignation,
-} from "./handlers/asignacion/asignacion.ts";
+} from "./handlers/organizacion/asignacion.ts";
 import {
   createWeekDetail,
   getOpenWeek,
@@ -1891,6 +1891,20 @@ main_router
     getOpenWeek,
   )
   .get<{ id: string }>(
+    "/api/registro/clientes/:id",
+    checkProfileAccess([
+      Profiles.CONSULTANT,
+    ]),
+    getWeekDetail,
+  )
+  .get<{ id: string }>(
+    "/api/registro/proyectos/:id",
+    checkProfileAccess([
+      Profiles.CONSULTANT,
+    ]),
+    getWeekDetail,
+  )
+  .get<{ id: string }>(
     "/api/registro/:id",
     checkProfileAccess([
       Profiles.CONSULTANT,
@@ -1904,8 +1918,8 @@ main_router
     ]),
     getWeekDetailTable,
   )
-  .post(
-    "/api/registro",
+  .post<{ person: string }>(
+    "/api/registro/:person",
     checkProfileAccess([
       Profiles.CONSULTANT,
     ]),

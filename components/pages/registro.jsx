@@ -6,11 +6,14 @@ import React, {
 } from "react";
 import {
   Snackbar,
+  TextField,
 } from "@material-ui/core";
 import {
   Alert,
 } from "@material-ui/lab";
 import {
+  fetchClientApi,
+  fetchProjectApi,
   fetchWeekDetailApi,
 } from "../../lib/api/generator.js";
 import {
@@ -20,47 +23,175 @@ import {
   parseStandardNumber,
 } from "../../lib/date/mod.js";
 
+import DialogForm from "../common/DialogForm.jsx";
+import SelectField from "../common/SelectField.jsx";
 import Title from "../common/Title.jsx";
 import Table from "./registro/Table.jsx";
 
 const getWeekDate = (id) => fetchWeekDetailApi(`semana?person=${id}`);
 
+const getClients = () => fetchClientApi().then((x) => x.json());
+const getProjects = () => fetchProjectApi().then((x) => x.json());
+
 const getTableData = (id) =>
   fetchWeekDetailApi(`table/${id}`).then((x) => x.json());
 
-const createWeekDetail = async (week, budget, hours) =>
-  fetchWeekDetailApi("", {
-    body: JSON.stringify({ week, budget, hours }),
+const createWeekDetail = async (person, control, budget, hours) =>
+  fetchWeekDetailApi(person, {
+    body: JSON.stringify({ control, budget, hours }),
     headers: {
       "Content-Type": "application/json",
     },
     method: "POST",
   });
 
-const updateWeekDetail = async (id, week, budget, hours) =>
+const updateWeekDetail = async (id, control, budget, hours) =>
   fetchWeekDetailApi(id, {
-    body: JSON.stringify({ week, budget, hours }),
+    body: JSON.stringify({ control, budget, hours }),
     headers: {
       "Content-Type": "application/json",
     },
     method: "PUT",
   });
 
-const submitWeekDetail = async ({ id, control_id, budget_id, used_hours }) => {
+const submitWeekDetail = async (
+  person,
+  { id, control_id, budget_id, used_hours },
+) => {
   if (id) {
     return updateWeekDetail(id, control_id, budget_id, used_hours);
   } else {
-    return createWeekDetail(control_id, budget_id, used_hours);
+    return createWeekDetail(person, control_id, budget_id, used_hours);
   }
+};
+
+const AddModal = ({
+  clients,
+  is_open,
+  projects,
+  setModalOpen,
+}) => {
+  const [fields, setFields] = useState({
+    client: "",
+    project: "",
+    hours: "",
+    description: "",
+  });
+  const [is_loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        client: "",
+        project: "",
+        hours: "",
+        description: "",
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [is_open]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
+
+    const request = await createArea(new URLSearchParams(fields));
+
+    if (request.ok) {
+      setModalOpen(false);
+      updateTable();
+    } else {
+      const { message } = await request.json();
+      setError(message);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <DialogForm
+      error={error}
+      handleSubmit={handleSubmit}
+      is_loading={is_loading}
+      is_open={is_open}
+      setIsOpen={setModalOpen}
+      title={"Formato de solicitud de horas"}
+    >
+      <SelectField
+        label="Cliente"
+        fullWidth
+        name="client"
+        onChange={handleChange}
+        required
+        value={fields.client}
+      >
+        {clients.map(({ pk_cliente, nombre }) => (
+          <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
+        ))}
+      </SelectField>
+      <SelectField
+        label="Proyecto"
+        fullWidth
+        name="project"
+        onChange={handleChange}
+        required
+        value={fields.project}
+      >
+        {projects.map(({ pk_proyecto, nombre }) => (
+          <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
+        ))}
+      </SelectField>
+      <TextField
+        fullWidth
+        InputProps={{
+          inputProps: {
+            min: 0.5,
+            step: 0.5,
+          },
+        }}
+        label="Horas"
+        name="hours"
+        onChange={handleChange}
+        required
+        type="number"
+        value={fields.hours}
+      />
+      <TextField
+        fullWidth
+        InputProps={{
+          inputProps: {
+            maxLength: 255,
+          },
+        }}
+        label="Descripcion"
+        name="description"
+        onChange={handleChange}
+        required
+        rows="2"
+        value={fields.description}
+      />
+    </DialogForm>
+  );
 };
 
 export default () => {
   const [context] = useContext(UserContext);
 
-  const [current_week, setCurrentWeek] = useState(null);
-  const [table_data, setTableData] = useState(new Map());
   const [alert_open, setAlertOpen] = useState(false);
+  const [current_week, setCurrentWeek] = useState(null);
   const [error, setError] = useState(null);
+  const [parameters, setParameters] = useState({
+    clients: [],
+    projects: [],
+  });
+  const [request_modal_open, setRequestModalOpen] = useState(false);
+  const [table_data, setTableData] = useState(new Map());
 
   const updateCurrentWeek = () => {
     if (context.id) {
@@ -126,7 +257,7 @@ export default () => {
     setAlertOpen(false);
     setError(false);
     if (Number(row.used_hours)) {
-      submitWeekDetail(row)
+      submitWeekDetail(context.id, row)
         .then((response) => {
           if (response.ok) {
             updateTable();
@@ -141,6 +272,20 @@ export default () => {
     }
   };
 
+  const handleWeekSave = () => {
+    setAlertOpen(false);
+    setError(null);
+    const entries_not_saved = Array.from(table_data).some(([_i, value]) =>
+      !value.server_updated
+    );
+    if (entries_not_saved) {
+      setError("Guarde su tiempo antes de cerrar la semana");
+      setAlertOpen(true);
+    } else {
+      console.log("lets go");
+    }
+  };
+
   const handleAlertClose = (_event, reason) => {
     if (reason === "clickaway") return;
     setAlertOpen(false);
@@ -148,16 +293,30 @@ export default () => {
 
   useEffect(() => {
     updateCurrentWeek();
+    getClients().then((clients) =>
+      setParameters((prev_state) => ({ ...prev_state, clients }))
+    );
+    getProjects().then((projects) =>
+      setParameters((prev_state) => ({ ...prev_state, projects }))
+    );
     updateTable();
   }, []);
 
   return (
     <Fragment>
       <Title title={"Registro"} />
+      <AddModal
+        clients={parameters.clients}
+        is_open={request_modal_open}
+        projects={parameters.projects}
+        setModalOpen={setRequestModalOpen}
+      />
       <Table
         data={table_data}
+        onButtonClick={() => setRequestModalOpen(true)}
         onRowSave={handleRowSave}
         onRowUpdate={updateRow}
+        onWeekSave={handleWeekSave}
         week={current_week}
       />
       <Snackbar

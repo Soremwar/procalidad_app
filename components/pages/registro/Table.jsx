@@ -65,8 +65,10 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ({
   data,
+  onButtonClick,
   onRowSave,
   onRowUpdate,
+  onWeekSave,
   week,
 }) {
   const classes = useStyles();
@@ -114,7 +116,12 @@ export default function ({
                 </Typography>
               </Grid>
               <Grid container item xs={6} justify="flex-end">
-                <Button variant="contained">Solicitar horas</Button>
+                <Button
+                  onClick={onButtonClick}
+                  variant="contained"
+                >
+                  Solicitar horas
+                </Button>
               </Grid>
             </Grid>
           </Toolbar>
@@ -202,6 +209,7 @@ export default function ({
             length_options={[1, 5, 10, 25]}
             onChangeSelectedPage={handleChangePage}
             onChangePageLength={handleChangeRowsPerPage}
+            onWeekSave={onWeekSave}
             page_length={rowsPerPage}
             selected_page={page}
             total_count={data.size}

@@ -66,7 +66,7 @@ export const createNew = async (
   budget: number,
   hours: number,
 ): Promise<WeekDetail> => {
-  await postgres.query(
+  const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_CIERRE_SEMANA,
       FK_PRESUPUESTO,
@@ -74,15 +74,14 @@ export const createNew = async (
     ) VALUES (
       $1,
       $2,
-      $3,
-      $4
+      $3
     ) RETURNING PK_REGISTRO`,
     week,
     budget,
     hours,
   );
 
-  const id: number = [0][0];
+  const id: number = rows[0][0];
 
   return new WeekDetail(
     id,
@@ -137,7 +136,7 @@ export const findAll = async (): Promise<WeekDetail[]> => {
 class WeekDetailData {
   constructor(
     public readonly id: number | null,
-    public readonly control_id: number,
+    public readonly control_id: number | null,
     public readonly budget_id: number,
     public readonly client: string,
     public readonly project: string,
@@ -152,29 +151,34 @@ export const getTableData = async (
 ): Promise<WeekDetailData[]> => {
   const { rows } = await postgres.query(
     `WITH CONTROL AS (
-      SELECT C.PK_CIERRE_SEMANA, S.FECHA_INICIO, S.FECHA_FIN
-      FROM ${CONTROL_TABLE} C
-      JOIN ${WEEK_TABLE} S ON C.FK_SEMANA = S.PK_SEMANA
-      WHERE C.FK_PERSONA = $1
-      AND C.BAN_ESTADO = FALSE
-    ),
-    TOTAL AS (
       SELECT
-        C.PK_CIERRE_SEMANA,
-        P.FK_PRESUPUESTO,
-        SUM(PR.HORAS) AS HORAS
-      FROM
-        ${DETAIL_PLANNING_TABLE} PR
-      JOIN
-        ${PLANNING_TABLE} P
-        ON P.PK_RECURSO = PR.FK_RECURSO
-      JOIN
-        CONTROL C
-        ON TO_DATE(PR.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN C.FECHA_INICIO AND C.FECHA_FIN
-      GROUP BY
-        C.PK_CIERRE_SEMANA,
-        P.FK_PRESUPUESTO
-      UNION ALL
+        PK_CIERRE_SEMANA,
+        TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER AS FECHA_INICIO,
+        TO_CHAR(FECHA_FIN, 'YYYYMMDD')::INTEGER AS FECHA_FIN
+      FROM (
+        SELECT
+          C.PK_CIERRE_SEMANA,
+          S.FECHA_INICIO,
+          S.FECHA_FIN
+        FROM ${WEEK_TABLE} S
+        JOIN ${CONTROL_TABLE} C ON S.PK_SEMANA = COALESCE(C.FK_SEMANA, 1284)
+        WHERE C.FK_PERSONA = $1
+        AND C.BAN_ESTADO = FALSE
+        UNION ALL
+        SELECT
+          NULL AS PK_INICIO_SEMANA,
+          FECHA_INICIO,
+          FECHA_FIN
+        FROM ${WEEK_TABLE}
+        WHERE NOW() - INTERVAL '1 WEEK' BETWEEN FECHA_INICIO AND FECHA_FIN
+        AND NOT EXISTS (
+          SELECT 1
+          FROM ${CONTROL_TABLE}
+          WHERE FK_PERSONA = $1
+          AND BAN_ESTADO = FALSE
+        )
+      ) A
+    ), TOTAL AS (
       SELECT
         C.PK_CIERRE_SEMANA,
         A.FK_PRESUPUESTO,
@@ -183,7 +187,8 @@ export const getTableData = async (
         ${ASSIGNATION_TABLE} A
       JOIN
         CONTROL C
-        ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN C.FECHA_INICIO AND C.FECHA_FIN
+        ON A.FECHA BETWEEN C.FECHA_INICIO AND C.FECHA_FIN
+        WHERE A.FK_PERSONA = $1
       GROUP BY
         C.PK_CIERRE_SEMANA,
         A.FK_PRESUPUESTO
