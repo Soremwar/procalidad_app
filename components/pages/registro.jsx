@@ -142,7 +142,6 @@ const AddModal = ({
     if (request.ok) {
       setModalOpen(false);
       onSuccess();
-      updateTable();
     } else {
       const { message } = await request.json();
       setError(message);

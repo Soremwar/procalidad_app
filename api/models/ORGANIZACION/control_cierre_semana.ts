@@ -11,22 +11,10 @@ import {
 import {
   TABLE as REGISTRY_TABLE,
 } from "./registro_detalle.ts";
-import {
-  TABLE as BUDGET_TABLE,
-} from "../OPERACIONES/PRESUPUESTO.ts";
-import {
-  TABLE as ROLE_TABLE,
-} from "../OPERACIONES/ROL.ts";
-import {
-  TABLE as PROJECT_TABLE,
-} from "../OPERACIONES/PROYECTO.ts";
-import {
-  TABLE as CLIENT_TABLE,
-} from "../CLIENTES/CLIENTE.ts";
 
 export const TABLE = "ORGANIZACION.CONTROL_CIERRE_SEMANA";
 
-class WeekControl {
+export class WeekControl {
   constructor(
     public readonly id: number,
     public readonly person: number,
@@ -186,6 +174,41 @@ export const findById = async (id: number): Promise<WeekControl | null> => {
     number,
     boolean,
     Date,
+  ] = rows[0];
+
+  return new WeekControl(...result);
+};
+
+export const findByPersonAndDate = async (
+  person: number,
+  date: number,
+): Promise<WeekControl | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_CIERRE_SEMANA,
+      FK_PERSONA,
+      FK_SEMANA,
+      BAN_ESTADO,
+      FECHA_CIERRE
+    FROM ${TABLE}
+    WHERE FK_SEMANA = (
+      SELECT PK_SEMANA
+      FROM ${WEEK_TABLE}
+      WHERE TO_DATE($2::VARCHAR, 'YYYYMMDD') BETWEEN FECHA_INICIO AND FECHA_FIN 
+    )
+    AND FK_PERSONA = $1`,
+    person,
+    date,
+  );
+
+  if (!rows[0]) return null;
+
+  const result: [
+    number,
+    number,
+    number,
+    boolean,
+    Date | null,
   ] = rows[0];
 
   return new WeekControl(...result);

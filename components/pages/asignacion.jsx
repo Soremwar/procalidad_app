@@ -6,15 +6,21 @@ import React, {
   useState,
 } from "react";
 import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
+  AppBar,
+  Box,
   DialogContentText,
-  DialogTitle,
   Grid,
+  Snackbar,
+  Tab,
+  Tabs,
   TextField,
 } from "@material-ui/core";
+import {
+  makeStyles,
+} from "@material-ui/styles";
+import {
+  Alert,
+} from "@material-ui/lab";
 import {
   UserContext,
 } from "../context/User.jsx";
@@ -36,6 +42,7 @@ import {
   fetchBudgetDetailApi,
   fetchPeopleApi,
   fetchProjectApi,
+  fetchAssignationRequestApi,
 } from "../../lib/api/generator.js";
 
 import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
@@ -43,6 +50,7 @@ import AsyncSelectField from "../common/AsyncSelectField.jsx";
 import AsyncTable from "../common/AsyncTable/Table.jsx";
 import DialogForm from "../common/DialogForm.jsx";
 import Title from "../common/Title.jsx";
+import RequestTable from "./asignacion/Table.jsx";
 import SelectField from "../common/SelectField.jsx";
 
 const parseNumberAsWeek = (date) => {
@@ -90,6 +98,18 @@ const deleteAssignation = async (id) =>
     method: "DELETE",
   });
 
+const getAssignationRequestTable = async () =>
+  fetchAssignationRequestApi("table");
+
+const updateAssignationRequest = async (id, approved) =>
+  fetchAssignationRequestApi(id, {
+    body: JSON.stringify({ approved }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
 const headers = [
   {
     id: "person",
@@ -128,24 +148,18 @@ const ParameterContext = createContext({
   projects: [],
 });
 
-const NotSelectedProjectDialog = ({
-  open,
-  setOpen,
-}) => (
-  <Dialog
-    onClose={() => setOpen(false)}
-    open={open}
+const TabPanel = ({ children, index, value }) => (
+  <div
+    role="tabpanel"
+    hidden={value !== index}
+    id={`simple-tabpanel-${index}`}
   >
-    <DialogTitle>Datos incompletos</DialogTitle>
-    <DialogContent>
-      <DialogContentText>
-        Seleccione el proyecto a agregar antes de acceder a este menu
-      </DialogContentText>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={() => setOpen(false)} color="primary">Cerrar</Button>
-    </DialogActions>
-  </Dialog>
+    {value === index && (
+      <Box p={3}>
+        {children}
+      </Box>
+    )}
+  </div>
 );
 
 const AddModal = ({
@@ -206,113 +220,104 @@ const AddModal = ({
 
   return (
     <Fragment>
-      {project
-        ? (
-          <DialogForm
-            error={error}
-            handleSubmit={handleSubmit}
-            is_loading={is_loading}
-            is_open={is_open}
-            setIsOpen={setModalOpen}
-            title={"Crear Nuevo"}
-          >
-            <AdvancedSelectField
-              fullWidth
-              name="person"
-              label="Recurso"
-              onChange={(_event, value) =>
-                setFields((prev_value) => ({ ...prev_value, person: value }))}
-              options={people}
-              required
-              value={fields.person}
-            />
-            <SelectField
-              fullWidth
-              label="Presupuesto"
-              margin="dense"
-              name="budget"
-              onChange={handleChange}
-              required
-              value={fields.budget}
-            >
-              {budgets
-                .filter(({ fk_proyecto }) => fk_proyecto == project)
-                .map(({ pk_presupuesto, nombre }) => (
-                  <option key={pk_presupuesto} value={pk_presupuesto}>
-                    {nombre}
-                  </option>
-                ))}
-            </SelectField>
-            <AsyncSelectField
-              disabled={!fields.budget}
-              fullWidth
-              handleSource={async (source) => {
-                const available_roles = await getBudgetDetails(fields.budget)
-                  .then((details) =>
-                    details.reduce((res, { fk_rol }) => {
-                      res.push(fk_rol);
-                      return res;
-                    }, [])
-                  );
+      <DialogForm
+        error={error}
+        handleSubmit={handleSubmit}
+        is_loading={is_loading}
+        is_open={is_open}
+        setIsOpen={setModalOpen}
+        title={"Crear Nuevo"}
+      >
+        <AdvancedSelectField
+          fullWidth
+          name="person"
+          label="Recurso"
+          onChange={(_event, value) =>
+            setFields((prev_value) => ({ ...prev_value, person: value }))}
+          options={people}
+          required
+          value={fields.person}
+        />
+        <SelectField
+          fullWidth
+          label="Presupuesto"
+          margin="dense"
+          name="budget"
+          onChange={handleChange}
+          required
+          value={fields.budget}
+        >
+          {budgets
+            .filter(({ fk_proyecto }) => fk_proyecto == project)
+            .map(({ pk_presupuesto, nombre }) => (
+              <option key={pk_presupuesto} value={pk_presupuesto}>
+                {nombre}
+              </option>
+            ))}
+        </SelectField>
+        <AsyncSelectField
+          disabled={!fields.budget}
+          fullWidth
+          handleSource={async (source) => {
+            const available_roles = await getBudgetDetails(fields.budget)
+              .then((details) =>
+                details.reduce((res, { fk_rol }) => {
+                  res.push(fk_rol);
+                  return res;
+                }, [])
+              );
 
-                return Object.values(source)
-                  .filter(({ pk_rol }) => available_roles.includes(pk_rol))
-                  .map(({
-                    pk_rol,
-                    nombre,
-                  }) => {
-                    return { value: String(pk_rol), text: nombre };
-                  });
-              }}
-              label="Rol"
-              margin="dense"
-              name="role"
-              onChange={handleChange}
-              required
-              source={`operaciones/rol`}
-              value={fields.budget && fields.role}
-            />
-            <TextField
-              fullWidth
-              label="Fecha de Asignacion"
-              margin="dense"
-              name="date"
-              onChange={(event) => {
-                const date = parseDateToStandardNumber(
-                  new Date(event.target.value),
-                );
-                setFields((fields) => ({ ...fields, date: date }));
-              }}
-              required
-              type="date"
-              value={formatDateToInputDate(
-                parseStandardNumber(fields.date) || new Date(),
-              )}
-            />
-            <TextField
-              fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0.5,
-                  step: 0.5,
-                },
-              }}
-              label="Horas"
-              margin="dense"
-              name="hours"
-              onChange={handleChange}
-              required
-              type="number"
-              value={fields.hours}
-            />
-          </DialogForm>
-        )
-        : (
-          <NotSelectedProjectDialog
-            open={is_open}
-            setOpen={setModalOpen}
-          />
-        )}
+            return Object.values(source)
+              .filter(({ pk_rol }) => available_roles.includes(pk_rol))
+              .map(({
+                pk_rol,
+                nombre,
+              }) => {
+                return { value: String(pk_rol), text: nombre };
+              });
+          }}
+          label="Rol"
+          margin="dense"
+          name="role"
+          onChange={handleChange}
+          required
+          source={`operaciones/rol`}
+          value={fields.budget && fields.role}
+        />
+        <TextField
+          fullWidth
+          label="Fecha de Asignacion"
+          margin="dense"
+          name="date"
+          onChange={(event) => {
+            const date = parseDateToStandardNumber(
+              new Date(event.target.value),
+            );
+            setFields((fields) => ({ ...fields, date: date }));
+          }}
+          required
+          type="date"
+          value={formatDateToInputDate(
+            parseStandardNumber(fields.date) || new Date(),
+          )}
+        />
+        <TextField
+          fullWidth
+          InputProps={{
+            inputProps: {
+              min: 0.5,
+              step: 0.5,
+            },
+          }}
+          label="Horas"
+          margin="dense"
+          name="hours"
+          onChange={handleChange}
+          required
+          type="number"
+          value={fields.hours}
+        />
+      </DialogForm>
     </Fragment>
   );
 };
@@ -376,114 +381,107 @@ const EditModal = ({
 
   return (
     <Fragment>
-      {project
-        ? (
-          <DialogForm
-            error={error}
-            handleSubmit={handleSubmit}
-            is_loading={is_loading}
-            is_open={is_open}
-            setIsOpen={setModalOpen}
-            title={"Editar"}
-          >
-            <AdvancedSelectField
-              fullWidth
-              name="person"
-              label="Recurso"
-              onChange={(_event, value) =>
-                setFields((prev_value) => ({ ...prev_value, person: value }))}
-              options={people}
-              required
-              value={fields.person}
-            />
-            <SelectField
-              fullWidth
-              label="Presupuesto"
-              margin="dense"
-              name="budget"
-              onChange={handleChange}
-              required
-              value={fields.budget}
-            >
-              {budgets.map(({ pk_presupuesto, nombre }) => (
-                <option key={pk_presupuesto} value={pk_presupuesto}>
-                  {nombre}
-                </option>
-              ))}
-            </SelectField>
-            <AsyncSelectField
-              disabled={!fields.budget}
-              fullWidth
-              handleSource={async (source) => {
-                const available_roles = await getBudgetDetails(fields.budget)
-                  .then((details) =>
-                    details.reduce((res, { fk_rol }) => {
-                      res.push(fk_rol);
-                      return res;
-                    }, [])
-                  );
+      <DialogForm
+        error={error}
+        handleSubmit={handleSubmit}
+        is_loading={is_loading}
+        is_open={is_open}
+        setIsOpen={setModalOpen}
+        title={"Editar"}
+      >
+        <AdvancedSelectField
+          fullWidth
+          name="person"
+          label="Recurso"
+          onChange={(_event, value) =>
+            setFields((prev_value) => ({ ...prev_value, person: value }))}
+          options={people}
+          required
+          value={fields.person}
+        />
+        <SelectField
+          fullWidth
+          label="Presupuesto"
+          margin="dense"
+          name="budget"
+          onChange={handleChange}
+          required
+          value={fields.budget}
+        >
+          {budgets
+            .filter(({ fk_proyecto }) => fk_proyecto == project)
+            .map(({ pk_presupuesto, nombre }) => (
+              <option key={pk_presupuesto} value={pk_presupuesto}>
+                {nombre}
+              </option>
+            ))}
+        </SelectField>
+        <AsyncSelectField
+          disabled={!fields.budget}
+          fullWidth
+          handleSource={async (source) => {
+            const available_roles = await getBudgetDetails(fields.budget)
+              .then((details) =>
+                details.reduce((res, { fk_rol }) => {
+                  res.push(fk_rol);
+                  return res;
+                }, [])
+              );
 
-                return Object.values(source)
-                  .filter(({ pk_rol }) => {
-                    if (!fields.budget) return true;
-                    return available_roles.includes(pk_rol);
-                  })
-                  .map(({
-                    pk_rol,
-                    nombre,
-                  }) => {
-                    return { value: String(pk_rol), text: nombre };
-                  });
-              }}
-              label="Rol"
-              margin="dense"
-              name="role"
-              onChange={handleChange}
-              required
-              source={`operaciones/rol`}
-              value={fields.budget && fields.role}
-            />
-            <TextField
-              fullWidth
-              label="Fecha de Asignacion"
-              margin="dense"
-              name="date"
-              onChange={(event) => {
-                const date = parseDateToStandardNumber(
-                  new Date(event.target.value),
-                );
-                setFields((fields) => ({ ...fields, date }));
-              }}
-              required
-              type="date"
-              value={formatDateToInputDate(
-                parseStandardNumber(fields.date) || new Date(),
-              )}
-            />
-            <TextField
-              fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0.5,
-                  step: 0.5,
-                },
-              }}
-              label="Horas"
-              margin="dense"
-              name="hours"
-              onChange={handleChange}
-              required
-              type="number"
-              value={fields.hours}
-            />
-          </DialogForm>
-        )
-        : (
-          <NotSelectedProjectDialog
-            open={is_open}
-            setOpen={setModalOpen}
-          />
-        )}
+            return Object.values(source)
+              .filter(({ pk_rol }) => {
+                if (!fields.budget) return true;
+                return available_roles.includes(pk_rol);
+              })
+              .map(({
+                pk_rol,
+                nombre,
+              }) => {
+                return { value: String(pk_rol), text: nombre };
+              });
+          }}
+          label="Rol"
+          margin="dense"
+          name="role"
+          onChange={handleChange}
+          required
+          source={`operaciones/rol`}
+          value={fields.budget && fields.role}
+        />
+        <TextField
+          fullWidth
+          label="Fecha de Asignacion"
+          margin="dense"
+          name="date"
+          onChange={(event) => {
+            const date = parseDateToStandardNumber(
+              new Date(event.target.value),
+            );
+            setFields((fields) => ({ ...fields, date }));
+          }}
+          required
+          type="date"
+          value={formatDateToInputDate(
+            parseStandardNumber(fields.date) || new Date(),
+          )}
+        />
+        <TextField
+          fullWidth
+          InputProps={{
+            inputProps: {
+              min: 0.5,
+              step: 0.5,
+            },
+          }}
+          label="Horas"
+          margin="dense"
+          name="hours"
+          onChange={handleChange}
+          required
+          type="number"
+          value={fields.hours}
+        />
+      </DialogForm>
     </Fragment>
   );
 };
@@ -491,7 +489,6 @@ const EditModal = ({
 const DeleteModal = ({
   callback,
   is_open,
-  project,
   selected,
   setModalOpen,
 }) => {
@@ -528,35 +525,35 @@ const DeleteModal = ({
 
   return (
     <Fragment>
-      {project
-        ? (
-          <DialogForm
-            error={error}
-            handleSubmit={handleSubmit}
-            is_loading={is_loading}
-            is_open={is_open}
-            setIsOpen={setModalOpen}
-            title={"Eliminar Elementos"}
-            confirmButtonText={"Confirmar"}
-          >
-            <DialogContentText>
-              Esta operacion no se puede deshacer. ¿Esta seguro que desea
-              eliminar estos <b>{selected.length}</b>
-              &nbsp;elementos?
-            </DialogContentText>
-          </DialogForm>
-        )
-        : (
-          <NotSelectedProjectDialog
-            open={is_open}
-            setOpen={setModalOpen}
-          />
-        )}
+      <DialogForm
+        error={error}
+        handleSubmit={handleSubmit}
+        is_loading={is_loading}
+        is_open={is_open}
+        setIsOpen={setModalOpen}
+        title={"Eliminar Elementos"}
+        confirmButtonText={"Confirmar"}
+      >
+        <DialogContentText>
+          Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+          estos <b>{selected.length}</b>
+          &nbsp;elementos?
+        </DialogContentText>
+      </DialogForm>
     </Fragment>
   );
 };
 
+const useStyles = makeStyles((theme) => ({
+  bar: {
+    flexGrow: 1,
+    backgroundColor: theme.palette.background.paper,
+  },
+}));
+
 export default () => {
+  const classes = useStyles();
+
   const [userState] = useContext(UserContext);
   const [parameters, setParameters] = useState({
     budgets: [],
@@ -565,15 +562,32 @@ export default () => {
     projects: [],
     weeks: [],
   });
+  const [alert_open, setAlertOpen] = useState(false);
+  const [assignation_table_should_update, setAssignationTableShouldUpdate] =
+    useState(false);
+  const [error, setError] = useState(null);
+  const [is_add_modal_open, setAddModalOpen] = useState(false);
+  const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
+  const [is_edit_modal_open, setEditModalOpen] = useState(false);
+  const [request_table_data, setRequestTableData] = useState([]);
+  const [selected, setSelected] = useState([]);
   const [selected_client, setSelectedClient] = useState("");
   const [selected_project, setSelectedProject] = useState("");
-  const [selected_week, setSelectedWeek] = useState("");
-  const [is_add_modal_open, setAddModalOpen] = useState(false);
-  const [is_edit_modal_open, setEditModalOpen] = useState(false);
-  const [selected, setSelected] = useState([]);
   const [selected_resource, setSelectedResource] = useState({});
-  const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [dataShouldUpdate, setDataShouldUpdate] = useState(false);
+  const [selected_tab, setSelectedTab] = useState(0);
+  const [selected_week, setSelectedWeek] = useState("");
+
+  const handleTabChange = (tab_id) => {
+    setSelectedTab(tab_id);
+    if (tab_id === 0) {
+      updateAssignationTable();
+    }
+  };
+
+  const handleAlertClose = (_event, reason) => {
+    if (reason === "clickaway") return;
+    setAlertOpen(false);
+  };
 
   const handleEditModalOpen = async (id) => {
     setSelectedResource(await getAssignation(id));
@@ -585,9 +599,48 @@ export default () => {
     setDeleteModalOpen(true);
   };
 
-  const updateTable = () => {
-    if (selected_project && selected_week) {
-      setDataShouldUpdate(true);
+  const handleRequestUpdate = (id, approved) => {
+    setAlertOpen(false);
+    setError(null);
+    updateAssignationRequest(id, approved)
+      .then((response) => {
+        if (response.ok) {
+          setAlertOpen(true);
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => {
+        setError("Ocurrio un error al aplicar la solicitud");
+        setAlertOpen(true);
+      })
+      .finally(() => {
+        updateRequestTable();
+      });
+  };
+
+  const updateAssignationTable = () => {
+    if (selected_project && selected_week && (selected_tab === 0)) {
+      setAssignationTableShouldUpdate(true);
+    }
+  };
+
+  const updateRequestTable = () => {
+    setAlertOpen(false);
+    setError(null);
+    if (selected_project && selected_week && (selected_tab === 1)) {
+      getAssignationRequestTable()
+        .then(async (response) => {
+          if (response.ok) {
+            setRequestTableData(await response.json());
+          } else {
+            throw new Error();
+          }
+        })
+        .catch(() => {
+          setError("Ocurrio un error al cargar las solicitudes");
+          setAlertOpen(true);
+        });
     }
   };
 
@@ -617,32 +670,32 @@ export default () => {
   }, [selected_client, userState.id]);
 
   useEffect(() => {
-    updateTable();
-  }, [selected_project, selected_week]);
+    updateAssignationTable();
+    updateRequestTable();
+  }, [selected_project, selected_week, selected_tab]);
 
   return (
     <Fragment>
       <Title title={"Asignacion"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
-          callback={updateTable}
+          callback={updateAssignationTable}
           is_open={is_add_modal_open}
           project={selected_project}
           setModalOpen={setAddModalOpen}
         />
         <EditModal
-          callback={updateTable}
+          callback={updateAssignationTable}
           data={selected_resource}
           is_open={is_edit_modal_open}
           project={selected_project}
           setModalOpen={setEditModalOpen}
         />
         <DeleteModal
+          callback={updateAssignationTable}
           is_open={is_delete_modal_open}
-          project={selected_project}
           setModalOpen={setDeleteModalOpen}
           selected={selected}
-          callback={updateTable}
         />
         <Grid container spacing={10}>
           <Grid item xs={4}>
@@ -696,20 +749,61 @@ export default () => {
       </ParameterContext.Provider>
       <br />
       {selected_project && selected_week && (
-        <AsyncTable
-          columns={headers}
-          onAddClick={() => setAddModalOpen(true)}
-          onEditClick={(id) => handleEditModalOpen(id)}
-          onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-          onTableUpdate={() => setDataShouldUpdate(false)}
-          search={{
-            id_project: selected_project,
-            week_date: selected_week,
-          }}
-          update_table={dataShouldUpdate}
-          url={"asignacion/asignacion/table"}
-        />
+        <div className={classes.bar}>
+          <AppBar position="static">
+            <Tabs
+              value={selected_tab}
+              onChange={(_event, value) => handleTabChange(value)}
+            >
+              <Tab label="Asignaciones Activas" id="simple-tab-0" />
+              <Tab
+                label="Solicitudes"
+                id="simple-tab-1"
+              />
+            </Tabs>
+          </AppBar>
+          <TabPanel index={0} value={selected_tab}>
+            <AsyncTable
+              columns={headers}
+              onAddClick={() => setAddModalOpen(true)}
+              onEditClick={(id) => handleEditModalOpen(id)}
+              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+              onTableUpdate={setAssignationTableShouldUpdate}
+              search={{
+                id_project: selected_project,
+                week_date: selected_week,
+              }}
+              update_table={assignation_table_should_update}
+              url={"asignacion/asignacion/table"}
+            />
+          </TabPanel>
+          <TabPanel index={1} value={selected_tab}>
+            <RequestTable
+              data={request_table_data}
+              onUpdateRequest={(row_id, approved) =>
+                handleRequestUpdate(row_id, approved)}
+            />
+          </TabPanel>
+        </div>
       )}
+      <Snackbar
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        open={alert_open}
+        autoHideDuration={3000}
+        onClose={handleAlertClose}
+      >
+        <Alert
+          elevation={6}
+          variant="filled"
+          onClose={handleAlertClose}
+          severity={error ? "error" : "success"}
+        >
+          {error || "El registro fue guardado con exito"}
+        </Alert>
+      </Snackbar>
     </Fragment>
   );
 };

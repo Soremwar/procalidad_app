@@ -3,9 +3,6 @@ import React, {
 } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
-  AppBar,
-  Button,
-  Grid,
   IconButton,
   Paper,
   Table,
@@ -13,40 +10,31 @@ import {
   TableCell,
   TableContainer,
   TableRow,
-  TextField,
-  Toolbar,
-  Typography,
 } from "@material-ui/core";
 import {
-  CloudDone as OnlineIcon,
-  OfflinePin as OfflineIcon,
+  Cancel as RejectIcon,
+  CheckCircle as ConfirmIcon,
 } from "@material-ui/icons";
-import {
-  months,
-} from "../../../lib/date/lang.js";
 
 import TableHeaders from "./components/Header.jsx";
 import TableFooter from "./components/Footer.jsx";
 
-const parseDateAsWeek = (date) => {
-  const day = date.getDate();
-  const month = date.getMonth();
-  const month_string = month < 10
-    ? months.get(`0${month}`)
-    : months.get(String(month));
-
-  return `Semana del ${day} de ${month_string}`;
-};
-
 const columns = [
-  { id: "client", label: "Cliente", orderable: true },
-  { id: "project", label: "Proyecto", orderable: true },
+  { id: "person", label: "Recurso", orderable: true },
+  { id: "budget", label: "Presupuesto", orderable: true },
   { id: "role", label: "Rol", orderable: true },
-  { id: "expected_hours", label: "Horas asignadas", orderable: true },
-  { id: "used_hours", label: "Horas ejecutadas", orderable: false },
+  { id: "date", label: "Fecha", orderable: true },
+  { id: "hours", label: "Horas solicitadas", orderable: true },
+  { id: "description", label: "Descripcion", orderable: false },
 ];
 
 const useStyles = makeStyles((theme) => ({
+  button_approve: {
+    color: theme.palette.success.main,
+  },
+  button_reject: {
+    color: theme.palette.error.main,
+  },
   menu: {
     backgroundColor: theme.palette.secondary.main,
     color: theme.palette.text.primary,
@@ -66,11 +54,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ({
   data,
-  onButtonClick,
-  onRowSave,
-  onRowUpdate,
-  onWeekSave,
-  week,
+  onUpdateRequest,
 }) {
   const classes = useStyles();
 
@@ -103,30 +87,11 @@ export default function ({
     setPage(0);
   };
 
-  const emptyRows = rowsPerPage - data.size;
+  const emptyRows = rowsPerPage - data.length;
 
   return (
     <div className={classes.root}>
       <Paper className={classes.paper}>
-        <AppBar className={classes.menu} position="static">
-          <Toolbar>
-            <Grid container alignItems="center">
-              <Grid container item xs={6} justify="flex-start">
-                <Typography>
-                  {week ? parseDateAsWeek(week) : "Semana no disponible"}
-                </Typography>
-              </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <Button
-                  onClick={onButtonClick}
-                  variant="contained"
-                >
-                  Solicitar horas
-                </Button>
-              </Grid>
-            </Grid>
-          </Toolbar>
-        </AppBar>
         <TableContainer>
           <Table
             className={classes.table}
@@ -141,7 +106,7 @@ export default function ({
               updateSortingDirection={updateSortingDirection}
             />
             <TableBody>
-              {Array.from(data.values())
+              {data
                 .filter((_r, index) => {
                   const start = rowsPerPage * page;
                   const end = start + rowsPerPage - 1;
@@ -183,22 +148,17 @@ export default function ({
                         <TableCell key={index}>{value}</TableCell>
                       ))}
                     <TableCell>
-                      <TextField
-                        onChange={(event) =>
-                          onRowUpdate(
-                            `${row.budget_id}_${row.role_id}`,
-                            event.target.value,
-                          )}
-                        style={{ width: "150px" }}
-                        value={row.used_hours || ""}
-                      />
-                    </TableCell>
-                    <TableCell>
                       <IconButton
-                        aria-label="Guardar"
-                        onClick={() => onRowSave(row)}
+                        aria-label="Aceptar"
+                        onClick={() => onUpdateRequest(row.id, true)}
                       >
-                        {row.server_updated ? <OnlineIcon /> : <OfflineIcon />}
+                        <ConfirmIcon className={classes.button_approve} />
+                      </IconButton>
+                      <IconButton
+                        aria-label="Rechazar"
+                        onClick={() => onUpdateRequest(row.id, false)}
+                      >
+                        <RejectIcon className={classes.button_reject} />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -213,10 +173,9 @@ export default function ({
             length_options={[1, 5, 10, 25]}
             onChangeSelectedPage={handleChangePage}
             onChangePageLength={handleChangeRowsPerPage}
-            onWeekSave={onWeekSave}
             page_length={rowsPerPage}
             selected_page={page}
-            total_count={data.size}
+            total_count={data.length}
           />
         </TableContainer>
       </Paper>

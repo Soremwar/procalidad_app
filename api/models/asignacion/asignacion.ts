@@ -49,6 +49,8 @@ class Asignacion {
       hours,
     });
 
+    //TODO
+    //Should throw on updating assignation on a closed week
     await postgres.query(
       `UPDATE ${TABLE} SET
           FK_PERSONA = $2,
@@ -68,6 +70,8 @@ class Asignacion {
     return this;
   }
 
+  //TODO
+  //Should throw on creating assignation on a closed week
   async delete(): Promise<void> {
     await postgres.query(
       `DELETE FROM ${TABLE} WHERE PK_ASIGNACION = $1`,
@@ -126,6 +130,8 @@ export const findById = async (id: number): Promise<Asignacion | null> => {
   return new Asignacion(...result);
 };
 
+//TODO
+//Should throw on creating assignation on a closed week
 export const createNew = async (
   person: number,
   budget: number,

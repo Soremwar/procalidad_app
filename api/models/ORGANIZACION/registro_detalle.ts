@@ -32,6 +32,8 @@ class WeekDetail {
     public hours: number,
   ) {}
 
+  //TODO
+  //Should throw on updating registry on a closed week
   async update(
     hours: number,
   ): Promise<WeekDetail> {
@@ -50,6 +52,8 @@ class WeekDetail {
     return this;
   }
 
+  //TODO
+  //Should throw on deleting registry on a closed week
   async delete(): Promise<void> {
     await postgres.query(
       `DELETE FROM ${TABLE}
@@ -59,6 +63,8 @@ class WeekDetail {
   }
 }
 
+//TODO
+//Should throw on creating registry on a closed week
 export const createNew = async (
   week: number,
   budget: number,

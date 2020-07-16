@@ -168,6 +168,8 @@ const NotSelectedProjectDialog = ({
   </Dialog>
 );
 
+//TODO
+//Refactor the hell out of this
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 

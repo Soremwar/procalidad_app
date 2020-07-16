@@ -205,6 +205,8 @@ import {
 } from "./handlers/organizacion/registro.ts";
 import {
   createAssignationRequest,
+  getAssignationRequestTable,
+  updateAssignationRequest,
 } from "./handlers/asignacion_solicitud.ts";
 
 const main_router = new Router();
@@ -1952,12 +1954,36 @@ main_router
   );
 
 main_router
+  .get(
+    "/api/asignacion_solicitud/table",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    getAssignationRequestTable,
+  )
   .post<{ person: string }>(
     "/api/asignacion_solicitud/:person",
     checkProfileAccess([
       Profiles.CONSULTANT,
     ]),
     createAssignationRequest,
+  )
+  .put<{ id: string }>(
+    "/api/asignacion_solicitud/:id",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    updateAssignationRequest,
   );
 
 export const routes = main_router.routes();
