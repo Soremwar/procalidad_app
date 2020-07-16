@@ -3,11 +3,13 @@ import {
   createNew,
   findAll,
   findById,
+  findByProject,
   getTableData,
 } from "../../../api/models/OPERACIONES/ROL.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
+import { searchByName } from "../../../api/models/MAESTRO/PAIS.ts";
 
 export const getRoles = async ({ response }: RouterContext) => {
   response.body = await findAll();
@@ -30,15 +32,9 @@ export const createRole = async ({ request, response }: RouterContext) => {
 
   if (!name) throw new RequestSyntaxError();
 
-  await createNew(
+  response.body = await createNew(
     name,
     description,
-  );
-
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
   );
 };
 
@@ -74,12 +70,10 @@ export const updateRole = async (
     description?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
-  role = await role.update(
+  response.body = await role.update(
     name,
     description,
   );
-
-  response.body = role;
 };
 
 export const deleteRole = async (
@@ -97,4 +91,16 @@ export const deleteRole = async (
     Status.OK,
     Message.OK,
   );
+};
+
+export const searchRoles = async ({ request, response }: RouterContext) => {
+  const {
+    proyecto,
+  }: { [x: string]: string } = Object.fromEntries(
+    request.url.searchParams.entries(),
+  );
+
+  if (!Number(proyecto)) throw new RequestSyntaxError();
+
+  response.body = await findByProject(Number(proyecto));
 };

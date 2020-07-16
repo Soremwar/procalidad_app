@@ -124,6 +124,43 @@ export const findById = async (id: number): Promise<Presupuesto | null> => {
   return new Presupuesto(...result);
 };
 
+/*
+* Works under the premise that only one budget can be open at a time
+* for a given project. If that were to change this whole system would have
+* to be reformulated
+* */
+export const findByProject = async (
+  project: number,
+): Promise<Presupuesto | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_PRESUPUESTO,
+      (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = FK_PROYECTO) AS FK_CLIENTE,
+      FK_PROYECTO,
+      FK_TIPO_PRESUPUESTO,
+      NOMBRE,
+      DESCRIPCION,
+      ESTADO
+    FROM ${TABLE}
+    WHERE FK_PROYECTO = $1`,
+    project,
+  );
+
+  if (!rows[0]) return null;
+
+  const result: [
+    number,
+    number,
+    number,
+    number,
+    string,
+    string,
+    boolean,
+  ] = rows[0];
+
+  return new Presupuesto(...result);
+};
+
 export const createNew = async (
   fk_proyecto: number,
   fk_tipo_presupuesto: number,

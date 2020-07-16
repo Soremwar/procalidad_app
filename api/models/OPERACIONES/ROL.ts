@@ -76,12 +76,50 @@ export const findById = async (id: number): Promise<Rol | null> => {
   return new Rol(...result);
 };
 
+export const findByProject = async (project: number): Promise<Rol[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_ROL,
+      NOMBRE,
+      DESCRIPCION
+    FROM ${TABLE}
+    WHERE PK_ROL IN (
+      SELECT FK_ROL
+      FROM OPERACIONES.PRESUPUESTO_DETALLE PD
+      JOIN OPERACIONES.PRESUPUESTO P 
+      ON PD.FK_PRESUPUESTO = P.PK_PRESUPUESTO
+      WHERE P.FK_PROYECTO = $1
+    )`,
+    project,
+  );
+
+  return rows.map((result: [
+    number,
+    string,
+    string,
+  ]) => new Rol(...result));
+};
+
 export const createNew = async (
   nombre: string,
   descripcion: string,
-) => {
-  await postgres.query(
-    `INSERT INTO ${TABLE} (NOMBRE, DESCRIPCION) VALUES ($1, $2)`,
+): Promise<Rol> => {
+  const { rows } = await postgres.query(
+    `INSERT INTO ${TABLE} (
+      NOMBRE,
+      DESCRIPCION
+    ) VALUES (
+      $1,
+      $2
+    ) RETURNING PK_ROL`,
+    nombre,
+    descripcion,
+  );
+
+  const id: number = rows[0][0];
+
+  return new Rol(
+    id,
     nombre,
     descripcion,
   );

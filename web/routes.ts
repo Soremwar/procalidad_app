@@ -137,6 +137,7 @@ import {
   getRole,
   getRoles,
   getRolesTable,
+  searchRoles,
   updateRole,
 } from "./handlers/operaciones/rol.ts";
 import {
@@ -202,6 +203,9 @@ import {
   getWeeksDetail,
   updateWeekDetail,
 } from "./handlers/organizacion/registro.ts";
+import {
+  createAssignationRequest,
+} from "./handlers/asignacion_solicitud.ts";
 
 const main_router = new Router();
 
@@ -978,6 +982,19 @@ main_router
       Profiles.SALES,
     ]),
     getRolesTable,
+  )
+  .get(
+    "/api/operaciones/rol/search",
+    checkProfileAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    searchRoles,
   )
   .get<{ id: string }>(
     "/api/operaciones/rol/:id",
@@ -1932,6 +1949,15 @@ main_router
       Profiles.CONSULTANT,
     ]),
     updateWeekDetail,
+  );
+
+main_router
+  .post<{ person: string }>(
+    "/api/asignacion_solicitud/:person",
+    checkProfileAccess([
+      Profiles.CONSULTANT,
+    ]),
+    createAssignationRequest,
   );
 
 export const routes = main_router.routes();

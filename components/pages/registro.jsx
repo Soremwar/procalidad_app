@@ -1,4 +1,5 @@
 import React, {
+  createContext,
   Fragment,
   useContext,
   useEffect,
@@ -12,6 +13,7 @@ import {
   Alert,
 } from "@material-ui/lab";
 import {
+  fetchAssignationRequestApi,
   fetchClientApi,
   fetchProjectApi,
   fetchWeekDetailApi,
@@ -21,8 +23,12 @@ import {
 } from "../context/User.jsx";
 import {
   parseStandardNumber,
+  parseDateToStandardNumber,
+  formatStandardNumberToStandardString,
+  formatStandardStringToStandardNumber,
 } from "../../lib/date/mod.js";
 
+import AsyncSelectField from "../common/AsyncSelectField.jsx";
 import DialogForm from "../common/DialogForm.jsx";
 import SelectField from "../common/SelectField.jsx";
 import Title from "../common/Title.jsx";
@@ -59,6 +65,15 @@ const closeWeek = async (person) =>
     method: "PUT",
   });
 
+const createAssignationRequest = async (person, parameters) =>
+  fetchAssignationRequestApi(person, {
+    body: JSON.stringify(parameters),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
 const submitWeekDetail = async (
   person,
   { id, control_id, budget_id, role_id, used_hours },
@@ -70,15 +85,27 @@ const submitWeekDetail = async (
   }
 };
 
+const ParameterContext = createContext({
+  clients: [],
+  projects: [],
+});
+
 const AddModal = ({
-  clients,
   is_open,
-  projects,
+  person_id,
+  onSuccess,
   setModalOpen,
 }) => {
+  const {
+    clients,
+    projects,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     client: "",
     project: "",
+    role: "",
+    date: parseDateToStandardNumber(new Date()),
     hours: "",
     description: "",
   });
@@ -90,6 +117,8 @@ const AddModal = ({
       setFields({
         client: "",
         project: "",
+        role: "",
+        date: parseDateToStandardNumber(new Date()),
         hours: "",
         description: "",
       });
@@ -98,19 +127,21 @@ const AddModal = ({
     }
   }, [is_open]);
 
+  useEffect(() => {
+    setFields((prev_state) => ({ ...prev_state, project: "" }));
+  }, [fields.client]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
-
-    const request = await createArea(new URLSearchParams(fields));
+    const request = await createAssignationRequest(person_id, fields);
 
     if (request.ok) {
       setModalOpen(false);
+      onSuccess();
       updateTable();
     } else {
       const { message } = await request.json();
@@ -141,6 +172,7 @@ const AddModal = ({
         ))}
       </SelectField>
       <SelectField
+        disabled={!fields.client}
         label="Proyecto"
         fullWidth
         name="project"
@@ -148,10 +180,44 @@ const AddModal = ({
         required
         value={fields.project}
       >
-        {projects.map(({ pk_proyecto, nombre }) => (
-          <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
-        ))}
+        {projects
+          .filter(({ fk_cliente }) => fk_cliente == fields.client)
+          .map(({ pk_proyecto, nombre }) => (
+            <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
+          ))}
       </SelectField>
+      <AsyncSelectField
+        disabled={!fields.project}
+        fullWidth
+        handleSource={async (source) =>
+          source.map(({ pk_rol, nombre }) => ({
+            value: String(pk_rol),
+            text: nombre,
+          }))}
+        label="Rol"
+        margin="dense"
+        name="role"
+        onChange={handleChange}
+        required
+        source={`operaciones/rol/search?proyecto=${fields.project}`}
+        value={fields.project && fields.role}
+      />
+      <TextField
+        fullWidth
+        label="Horas"
+        name="hours"
+        onChange={(event) => {
+          //Dont calculate event.target.value inside hook (asyncronous stuff)
+          const value = event.target.value;
+          setFields((prev_state) => ({
+            ...prev_state,
+            date: formatStandardStringToStandardNumber(value),
+          }));
+        }}
+        required
+        type="date"
+        value={formatStandardNumberToStandardString(fields.date)}
+      />
       <TextField
         fullWidth
         InputProps={{
@@ -327,12 +393,17 @@ export default () => {
   return (
     <Fragment>
       <Title title={"Registro"} />
-      <AddModal
-        clients={parameters.clients}
-        is_open={request_modal_open}
-        projects={parameters.projects}
-        setModalOpen={setRequestModalOpen}
-      />
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          is_open={request_modal_open}
+          person_id={context.id}
+          onSuccess={() => {
+            setError(false);
+            setAlertOpen(true);
+          }}
+          setModalOpen={setRequestModalOpen}
+        />
+      </ParameterContext.Provider>
       <Table
         data={table_data}
         onButtonClick={() => setRequestModalOpen(true)}
