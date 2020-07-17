@@ -9,6 +9,9 @@ import {
   TABLE as ASSIGNATION_TABLE,
 } from "./asignacion.ts";
 import {
+  deleteByWeekControl as deleteAssignationRequests,
+} from "./asignacion_solicitud.ts";
+import {
   TABLE as REGISTRY_TABLE,
 } from "./registro.ts";
 
@@ -34,6 +37,8 @@ export class WeekControl {
     if (!validation.assignation_completed) {
       throw new Error("Las horas registradas exceden la asignacion aprobada");
     }
+
+    await deleteAssignationRequests(this.id);
 
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET

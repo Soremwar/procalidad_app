@@ -110,6 +110,13 @@ export const findById = async (id: number): Promise<AssignationRequest> => {
   return new AssignationRequest(...result);
 };
 
+export const deleteByWeekControl = async (control: number): Promise<void> => {
+  await postgres.query(
+    `DELETE FROM ${TABLE} WHERE FK_CONTROL_SEMANA = $1`,
+    control,
+  );
+};
+
 class TableData {
   constructor(
     public readonly id: number,
