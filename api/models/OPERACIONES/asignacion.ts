@@ -165,14 +165,15 @@ export const createNew = async (
       $2,
       $3,
       $4,
-      $5::INTEGER,
+      $5,
       $6
-    ) ON CONFLICT (FK_PRESUPUESTO, FK_ROL, FECHA) DO
+    ) ON CONFLICT (FK_PRESUPUESTO, FK_PERSONA, FK_ROL, FECHA) DO
     UPDATE SET HORAS = $6 + A.HORAS
     RETURNING PK_ASIGNACION, HORAS`,
     person,
     budget,
     role,
+    week,
     date,
     hours,
   );
