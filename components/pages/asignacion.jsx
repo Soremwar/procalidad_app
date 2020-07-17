@@ -390,6 +390,7 @@ const EditModal = ({
         title={"Editar"}
       >
         <AdvancedSelectField
+          disabled
           fullWidth
           name="person"
           label="Recurso"
@@ -400,6 +401,7 @@ const EditModal = ({
           value={fields.person}
         />
         <SelectField
+          disabled
           fullWidth
           label="Presupuesto"
           margin="dense"
@@ -417,7 +419,7 @@ const EditModal = ({
             ))}
         </SelectField>
         <AsyncSelectField
-          disabled={!fields.budget}
+          disabled
           fullWidth
           handleSource={async (source) => {
             const available_roles = await getBudgetDetails(fields.budget)
@@ -449,6 +451,7 @@ const EditModal = ({
           value={fields.budget && fields.role}
         />
         <TextField
+          disabled
           fullWidth
           label="Fecha de Asignacion"
           margin="dense"
