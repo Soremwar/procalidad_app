@@ -8,7 +8,7 @@ import {
 } from "./asignacion.ts";
 import {
   TABLE as BUDGET_TABLE,
-} from "./PRESUPUESTO.ts";
+} from "./budget.ts";
 import {
   TABLE as ROLE_TABLE,
 } from "./ROL.ts";

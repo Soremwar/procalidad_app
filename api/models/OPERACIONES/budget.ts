@@ -5,16 +5,19 @@ import {
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
+import {
+  findById as findProject,
+} from "./PROYECTO.ts";
 
 export const TABLE = "OPERACIONES.PRESUPUESTO";
 const ERROR_DEPENDENCY =
   "No se puede eliminar el presupuesto por que hay componentes que dependen de el";
 
-class Presupuesto {
+class Budget {
   constructor(
     public readonly pk_presupuesto: number,
     public fk_cliente: number | undefined,
-    public fk_proyecto: number,
+    public readonly fk_proyecto: number,
     public fk_tipo_presupuesto: number,
     public nombre: string,
     public descripcion: string,
@@ -22,20 +25,35 @@ class Presupuesto {
   ) {}
 
   async update(
-    fk_proyecto: number = this.fk_proyecto,
     fk_tipo_presupuesto: number = this.fk_tipo_presupuesto,
     nombre: string = this.nombre,
     descripcion: string = this.descripcion,
-    estado: boolean = this.estado,
+    nuevo_estado?: boolean,
   ): Promise<
-    Presupuesto
+    Budget
   > {
+    //Revisa si el nuevo estado ha cambiado
+    //Si el nuevo estado es abierto corre la validacion de presupuesto unico
+    if (
+      nuevo_estado !== this.estado && nuevo_estado !== undefined &&
+      nuevo_estado
+    ) {
+      const project = await findProject(this.fk_proyecto);
+      if (!project) {
+        throw new Error("El proyecto asociado a este presupuesto no existe");
+      }
+
+      if (await project.hasOpenBudget()) {
+        throw new Error(
+          "El proyecto asociado a este presupuesto ya tiene un presupuesto abierto",
+        );
+      }
+    }
     Object.assign(this, {
-      fk_proyecto,
       fk_tipo_presupuesto,
       nombre,
       descripcion,
-      estado,
+      estado: nuevo_estado ?? this.estado,
     });
     await postgres.query(
       `UPDATE ${TABLE}
@@ -51,7 +69,7 @@ class Presupuesto {
       this.fk_tipo_presupuesto,
       this.nombre,
       this.descripcion,
-      this.estado,
+      nuevo_estado ?? this.estado,
     );
 
     return this;
@@ -71,7 +89,7 @@ class Presupuesto {
   }
 }
 
-export const findAll = async (): Promise<Presupuesto[]> => {
+export const findAll = async (): Promise<Budget[]> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_PRESUPUESTO,
@@ -84,7 +102,7 @@ export const findAll = async (): Promise<Presupuesto[]> => {
     FROM ${TABLE}`,
   );
 
-  const models = rows.map((row: [
+  return rows.map((row: [
     number,
     undefined,
     number,
@@ -92,12 +110,10 @@ export const findAll = async (): Promise<Presupuesto[]> => {
     string,
     string,
     boolean,
-  ]) => new Presupuesto(...row));
-
-  return models;
+  ]) => new Budget(...row));
 };
 
-export const findById = async (id: number): Promise<Presupuesto | null> => {
+export const findById = async (id: number): Promise<Budget | null> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_PRESUPUESTO,
@@ -121,7 +137,7 @@ export const findById = async (id: number): Promise<Presupuesto | null> => {
     string,
     boolean,
   ] = rows[0];
-  return new Presupuesto(...result);
+  return new Budget(...result);
 };
 
 /*
@@ -131,7 +147,7 @@ export const findById = async (id: number): Promise<Presupuesto | null> => {
 * */
 export const findByProject = async (
   project: number,
-): Promise<Presupuesto | null> => {
+): Promise<Budget | null> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_PRESUPUESTO,
@@ -158,7 +174,7 @@ export const findByProject = async (
     boolean,
   ] = rows[0];
 
-  return new Presupuesto(...result);
+  return new Budget(...result);
 };
 
 export const createNew = async (
@@ -166,8 +182,21 @@ export const createNew = async (
   fk_tipo_presupuesto: number,
   nombre: string,
   descripcion: string,
-  estado: boolean,
+  abierto: boolean,
 ): Promise<number> => {
+  if (abierto) {
+    const project = await findProject(fk_proyecto);
+    if (!project) {
+      throw new Error("El proyecto asociado a este presupuesto no existe");
+    }
+
+    if (await project.hasOpenBudget()) {
+      throw new Error(
+        "El proyecto asociado a este presupuesto ya tiene un presupuesto abierto",
+      );
+    }
+  }
+
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_PROYECTO,
@@ -181,7 +210,7 @@ export const createNew = async (
     fk_tipo_presupuesto,
     nombre,
     descripcion,
-    estado,
+    abierto,
   );
 
   //Returns created id

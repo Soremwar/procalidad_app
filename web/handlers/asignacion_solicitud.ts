@@ -17,7 +17,7 @@ import {
 } from "../../api/models/OPERACIONES/registro.ts";
 import {
   findByProject as findBudgetByProject,
-} from "../../api/models/OPERACIONES/PRESUPUESTO.ts";
+} from "../../api/models/OPERACIONES/budget.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
   BOOLEAN,

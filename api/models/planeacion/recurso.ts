@@ -15,7 +15,7 @@ import {
 } from "../MAESTRO/dim_tiempo.ts";
 import {
   TABLE as BUDGET_TABLE,
-} from "../OPERACIONES/PRESUPUESTO.ts";
+} from "../OPERACIONES/budget.ts";
 import {
   TABLE as PROJECT_TABLE,
 } from "../OPERACIONES/PROYECTO.ts";

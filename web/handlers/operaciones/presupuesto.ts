@@ -4,7 +4,7 @@ import {
   findAll as findBudgetItems,
   findById as findBudgetItem,
   getTableData as getBudgetItemTable,
-} from "../../../api/models/OPERACIONES/PRESUPUESTO.ts";
+} from "../../../api/models/OPERACIONES/budget.ts";
 import {
   createNew as createBudgetDetail,
   deleteByBudget as deleteBudgetDetail,
@@ -98,7 +98,6 @@ export const updateBudget = async (
   if (!budget) throw new NotFoundError();
 
   const {
-    project,
     budget_type,
     name,
     description,
@@ -107,7 +106,6 @@ export const updateBudget = async (
   } = await request.body().then((x: Body) => x.value);
 
   budget = await budget.update(
-    Number(project) || undefined,
     Number(budget_type) || undefined,
     name,
     description,

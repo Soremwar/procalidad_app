@@ -1,5 +1,7 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
   useState,
 } from "react";
@@ -26,6 +28,7 @@ import {
   fetchBudgetApi,
   fetchBudgetTypeApi,
   fetchClientApi,
+  fetchProjectApi,
   fetchRoleApi,
 } from "../../../lib/api/generator.js";
 
@@ -37,9 +40,10 @@ import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 import CurrencyField from "@unicef/material-ui-currency-textfield";
 
-const getRoles = () => fetchRoleApi().then((x) => x.json());
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getBudgetTypes = () => fetchBudgetTypeApi().then((x) => x.json());
+const getProjects = () => fetchProjectApi().then((x) => x.json());
+const getRoles = () => fetchRoleApi().then((x) => x.json());
 
 const getBudget = (id) => fetchBudgetApi(id).then((x) => x.json());
 
@@ -100,6 +104,12 @@ const headers = [
   },
 ];
 
+const ParameterContext = createContext({
+  budget_types: [],
+  clients: [],
+  projects: [],
+});
+
 const BudgetRole = ({
   id,
   index,
@@ -116,12 +126,8 @@ const BudgetRole = ({
   });
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   useEffect(() => {
@@ -148,7 +154,7 @@ const BudgetRole = ({
           margin="dense"
           name="role"
           fullWidth
-          onChange={(event) => handleChange(event)}
+          onChange={handleChange}
           required
           value={fields.role}
         >
@@ -168,7 +174,7 @@ const BudgetRole = ({
             },
           }}
           name="time"
-          onChange={(event) => handleChange(event)}
+          onChange={handleChange}
           required
           type="number"
           value={fields.time}
@@ -332,12 +338,16 @@ const BudgetDetail = ({
 };
 
 const AddModal = ({
-  budget_types,
-  clients,
   is_open,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    budget_types,
+    clients,
+    projects,
+  } = useContext(ParameterContext);
+
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fields, setFields] = useState({
@@ -348,7 +358,6 @@ const AddModal = ({
     description: "",
     status: "",
   });
-  const [project_query, setProjectQuery] = useState("");
   const [roles, setRoles] = useState([]);
 
   const handleChange = (event) => {
@@ -418,7 +427,7 @@ const AddModal = ({
         name="client"
         label="Cliente"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.client}
       >
@@ -426,44 +435,27 @@ const AddModal = ({
           <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
         ))}
       </SelectField>
-      <AsyncSelectField
+      <SelectField
         disabled={!fields.client}
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_proyecto,
-            nombre,
-          }) => {
-            return { value: String(pk_proyecto), text: nombre };
-          })
-        )}
-        label="Proyecto"
-        margin="dense"
         name="project"
-        onChange={(event) => handleChange(event)}
-        onType={(event) => {
-          if (fields.project) {
-            setFields((old_state) => ({ ...old_state, project: "" }));
-          }
-          const value = event.target.value;
-          setProjectQuery(value);
-        }}
+        label="Proyecto"
+        fullWidth
+        onChange={handleChange}
         required
-        source={`operaciones/proyecto/search?client=${fields.client}&query=${
-          encodeURI(
-            fields.project
-              ? ""
-              : project_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }`}
         value={fields.project}
-      />
+      >
+        {projects
+          .filter(({ fk_cliente }) => fk_cliente == fields.client)
+          .map(({ pk_proyecto, nombre }) => (
+            <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
+          ))}
+      </SelectField>
       <SelectField
         margin="dense"
         name="budget_type"
         label="Tipo de Presupuesto"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.budget_type}
       >
@@ -476,7 +468,7 @@ const AddModal = ({
         name="name"
         label="Nombre"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
@@ -485,7 +477,7 @@ const AddModal = ({
         name="description"
         label="Descripcion"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.description}
       />
@@ -494,7 +486,7 @@ const AddModal = ({
         name="status"
         label="Estado"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.status}
       >
@@ -513,13 +505,17 @@ const AddModal = ({
 };
 
 const EditModal = ({
-  budget_types,
-  clients,
   data,
   is_open,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    budget_types,
+    clients,
+    projects,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     project: "",
     budget_type: "",
@@ -529,7 +525,6 @@ const EditModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [project_query, setProjectQuery] = useState("");
   const [roles, setRoles] = useState([]);
 
   useEffect(() => {
@@ -551,12 +546,8 @@ const EditModal = ({
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -574,8 +565,10 @@ const EditModal = ({
       return;
     }
 
-    const id = data.pk_presupuesto;
-    const request = await updateBudget(id, { ...fields, roles });
+    const request = await updateBudget(
+      data.pk_presupuesto,
+      { ...fields, roles },
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -598,11 +591,12 @@ const EditModal = ({
       title={"Editar"}
     >
       <SelectField
+        disabled
         margin="dense"
         name="client"
         label="Cliente"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.client}
       >
@@ -610,45 +604,27 @@ const EditModal = ({
           <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
         ))}
       </SelectField>
-      <AsyncSelectField
-        disabled={!fields.client}
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_proyecto,
-            nombre,
-          }) => {
-            return { value: String(pk_proyecto), text: nombre };
-          })
-        )}
-        label="Proyecto"
-        margin="dense"
+      <SelectField
+        disabled
         name="project"
-        onChange={(event) => handleChange(event)}
-        onType={(event) => {
-          if (fields.project) {
-            setFields((old_state) => ({ ...old_state, project: "" }));
-          }
-          const value = event.target.value;
-          setProjectQuery(value);
-        }}
-        preload
+        label="Proyecto"
+        fullWidth
+        onChange={handleChange}
         required
-        source={`operaciones/proyecto/search?client=${fields.client}&query=${
-          encodeURI(
-            fields.project
-              ? ""
-              : project_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }`}
         value={fields.project}
-      />
+      >
+        {projects
+          .filter(({ fk_cliente }) => fk_cliente == fields.client)
+          .map(({ pk_proyecto, nombre }) => (
+            <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
+          ))}
+      </SelectField>
       <SelectField
         margin="dense"
         name="budget_type"
         label="Tipo de Presupuesto"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.budget_type}
       >
@@ -661,7 +637,7 @@ const EditModal = ({
         name="name"
         label="Nombre"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
@@ -670,7 +646,7 @@ const EditModal = ({
         name="description"
         label="Descripcion"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.description}
       />
@@ -679,7 +655,7 @@ const EditModal = ({
         name="status"
         label="Estado"
         fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.status}
       >
@@ -754,14 +730,19 @@ const DeleteModal = ({
 };
 
 export default () => {
+  const [budget_types, setBudgetTypes] = useState([]);
+  const [clients, setClients] = useState([]);
   const [is_add_modal_open, setAddModalOpen] = useState(false);
+  const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
+  const [is_edit_modal_open, setEditModalOpen] = useState(false);
+  const [parameters, setParameters] = useState({
+    budget_types: [],
+    clients: [],
+    projects: [],
+  });
   const [selected, setSelected] = useState([]);
   const [selected_budget, setSelectedBudget] = useState({});
-  const [is_edit_modal_open, setEditModalOpen] = useState(false);
-  const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
-  const [clients, setClients] = useState([]);
-  const [budget_types, setBudgetTypes] = useState([]);
 
   const handleEditModalOpen = async (id) => {
     const data = await getBudget(id);
@@ -779,29 +760,34 @@ export default () => {
   };
 
   useEffect(() => {
-    getClients().then((clients) => setClients(clients));
-    getBudgetTypes().then((budget_types) => setBudgetTypes(budget_types));
+    getBudgetTypes().then((budget_types) =>
+      setParameters((prev_state) => ({ ...prev_state, budget_types }))
+    );
+    getClients().then((clients) =>
+      setParameters((prev_state) => ({ ...prev_state, clients }))
+    );
+    getProjects().then((projects) =>
+      setParameters((prev_state) => ({ ...prev_state, projects }))
+    );
     updateTable();
   }, []);
 
   return (
     <Fragment>
       <Title title={"Presupuesto"} />
-      <AddModal
-        budget_types={budget_types}
-        clients={clients}
-        is_open={is_add_modal_open}
-        setModalOpen={setAddModalOpen}
-        updateTable={updateTable}
-      />
-      <EditModal
-        budget_types={budget_types}
-        clients={clients}
-        data={selected_budget}
-        is_open={is_edit_modal_open}
-        setModalOpen={setEditModalOpen}
-        updateTable={updateTable}
-      />
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          is_open={is_add_modal_open}
+          setModalOpen={setAddModalOpen}
+          updateTable={updateTable}
+        />
+        <EditModal
+          data={selected_budget}
+          is_open={is_edit_modal_open}
+          setModalOpen={setEditModalOpen}
+          updateTable={updateTable}
+        />
+      </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
         setModalOpen={setDeleteModalOpen}

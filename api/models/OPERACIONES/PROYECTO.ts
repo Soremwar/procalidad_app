@@ -14,6 +14,9 @@ import {
 import {
   TABLE as SUB_AREA_TABLE,
 } from "../ORGANIZACION/sub_area.ts";
+import {
+  TABLE as BUDGET_TABLE,
+} from "./budget.ts";
 
 export const TABLE = "OPERACIONES.PROYECTO";
 const ERROR_DEPENDENCY =
@@ -30,6 +33,19 @@ class Proyecto {
     public descripcion: string,
     public estado: number,
   ) {}
+
+  async hasOpenBudget(): Promise<boolean> {
+    const { rows } = await postgres.query(
+      `SELECT
+        CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END
+      FROM ${BUDGET_TABLE}
+      WHERE FK_PROYECTO = $1
+      AND ESTADO = TRUE`,
+      this.pk_proyecto,
+    );
+
+    return rows[0][0];
+  }
 
   async update(
     fk_tipo_proyecto: number = this.fk_tipo_proyecto,
