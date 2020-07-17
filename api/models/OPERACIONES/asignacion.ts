@@ -133,7 +133,7 @@ export const createNew = async (
   hours: number,
 ) => {
   const { rows } = await postgres.query(
-    `INSERT INTO ${TABLE} (
+    `INSERT INTO ${TABLE} AS A (
       FK_PERSONA,
       FK_PRESUPUESTO,
       FK_ROL,
@@ -151,7 +151,9 @@ export const createNew = async (
       ),
       $4::INTEGER,
       $5
-    ) RETURNING PK_ASIGNACION, FK_SEMANA`,
+    ) ON CONFLICT (FK_PRESUPUESTO, FK_ROL, FECHA) DO
+    UPDATE SET HORAS = $5 + A.HORAS
+    RETURNING PK_ASIGNACION, FK_SEMANA, HORAS`,
     person,
     budget,
     role,
@@ -159,7 +161,7 @@ export const createNew = async (
     hours,
   );
 
-  const [id, week]: [number, number] = rows[0];
+  const [id, week, final_hours]: [number, number, number] = rows[0];
 
   return new Asignacion(
     id,
@@ -168,7 +170,7 @@ export const createNew = async (
     role,
     week,
     date,
-    hours,
+    final_hours,
   );
 };
 

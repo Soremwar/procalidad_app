@@ -248,7 +248,9 @@ const AddModal = ({
           value={fields.budget}
         >
           {budgets
-            .filter(({ fk_proyecto }) => fk_proyecto == project)
+            .filter(({ fk_proyecto, estado }) =>
+              fk_proyecto == project && estado
+            )
             .map(({ pk_presupuesto, nombre }) => (
               <option key={pk_presupuesto} value={pk_presupuesto}>
                 {nombre}
@@ -411,7 +413,9 @@ const EditModal = ({
           value={fields.budget}
         >
           {budgets
-            .filter(({ fk_proyecto }) => fk_proyecto == project)
+            .filter(({ fk_proyecto, estado }) =>
+              fk_proyecto == project && estado
+            )
             .map(({ pk_presupuesto, nombre }) => (
               <option key={pk_presupuesto} value={pk_presupuesto}>
                 {nombre}
