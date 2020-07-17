@@ -333,8 +333,11 @@ export default () => {
   const handleRowSave = (row) => {
     setAlertOpen(false);
     setError(false);
-    if (Number(row.used_hours)) {
-      submitWeekDetail(context.id, row)
+    if (Number(row.used_hours) >= 0) {
+      submitWeekDetail(
+        context.id,
+        { ...row, used_hours: Number(row.used_hours) },
+      )
         .then((response) => {
           if (!response.ok) {
             setError("No fue posible actualizar el registro");

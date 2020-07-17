@@ -47,6 +47,9 @@ const columns = [
 ];
 
 const useStyles = makeStyles((theme) => ({
+  button_online: {
+    color: theme.palette.success.main,
+  },
   menu: {
     backgroundColor: theme.palette.secondary.main,
     color: theme.palette.text.primary,
@@ -184,6 +187,11 @@ export default function ({
                       ))}
                     <TableCell>
                       <TextField
+                        error={Number(row.expected_hours) <
+                          Number(row.used_hours)}
+                        helperText={Number(row.expected_hours) <
+                            Number(row.used_hours) &&
+                          "Las horas usadas exceden las asignadas"}
                         onChange={(event) =>
                           onRowUpdate(
                             `${row.budget_id}_${row.role_id}`,
@@ -198,7 +206,9 @@ export default function ({
                         aria-label="Guardar"
                         onClick={() => onRowSave(row)}
                       >
-                        {row.server_updated ? <OnlineIcon /> : <OfflineIcon />}
+                        {row.server_updated
+                          ? <OnlineIcon className={classes.button_online} />
+                          : <OfflineIcon />}
                       </IconButton>
                     </TableCell>
                   </TableRow>
