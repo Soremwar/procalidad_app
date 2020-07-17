@@ -322,6 +322,27 @@ export const getOpenWeekAsDate = async (person: number): Promise<number> => {
   return rows[0][0];
 };
 
+//TODO
+//This should run a check for a week, and if it were not to find it
+//It should create it calling the createNewWeek or createNewControl functions
+export const isWeekOpen = async (
+  person: number,
+  week: number,
+): Promise<boolean> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END
+    FROM OPERACIONES.CONTROL_SEMANA
+    WHERE FK_PERSONA = $1
+    AND FK_SEMANA = $2
+    AND BAN_CERRADO = FALSE`,
+    person,
+    week,
+  );
+
+  return rows[0][0];
+};
+
 export const validateWeek = async (
   person: number,
   week: number,

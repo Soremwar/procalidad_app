@@ -14,9 +14,11 @@ import {
   TABLE as PERSON_TABLE,
 } from "../ORGANIZACION/PERSONA.ts";
 import {
+  findIdByDate as findIsWeekByDate,
   TABLE as WEEK_TABLE,
 } from "../MAESTRO/dim_semana.ts";
 import {
+  isWeekOpen as isControlOpen,
   TABLE as CONTROL_TABLE,
 } from "./control_semana.ts";
 
@@ -41,13 +43,17 @@ class Asignacion {
   ): Promise<
     Asignacion
   > {
+    const is_control_open = await isControlOpen(this.person, this.week);
+    if (!is_control_open) {
+      throw new Error(
+        "La semana asociada a esta asignacion se encuentra cerrada",
+      );
+    }
+
     Object.assign(this, {
       hours,
     });
 
-    //TODO
-    //Should throw on updating assignation on a closed week
-    //Should update possible registry created by it
     await postgres.query(
       `UPDATE ${TABLE} SET
           HORAS = $2
@@ -60,8 +66,15 @@ class Asignacion {
   }
 
   //TODO
-  //Should throw on creating assignation on a closed week
+  //Should delete assignations on cascade
   async delete(): Promise<void> {
+    const is_control_open = await isControlOpen(this.person, this.week);
+    if (!is_control_open) {
+      throw new Error(
+        "La semana asociada a esta asignacion se encuentra cerrada",
+      );
+    }
+
     await postgres.query(
       `DELETE FROM ${TABLE} WHERE PK_ASIGNACION = $1`,
       this.id,
@@ -123,8 +136,6 @@ export const findById = async (id: number): Promise<Asignacion | null> => {
   return new Asignacion(...result);
 };
 
-//TODO
-//Should throw on creating assignation on a closed week
 export const createNew = async (
   person: number,
   budget: number,
@@ -132,6 +143,15 @@ export const createNew = async (
   date: number,
   hours: number,
 ) => {
+  const week = await findIsWeekByDate(date);
+  if (!week) throw new Error("Fecha invalida");
+  const is_control_open = await isControlOpen(person, week);
+  if (!is_control_open) {
+    throw new Error(
+      "La semana asociada a esta asignacion se encuentra cerrada",
+    );
+  }
+
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} AS A (
       FK_PERSONA,
@@ -144,16 +164,12 @@ export const createNew = async (
       $1,
       $2,
       $3,
-      (
-      SELECT PK_SEMANA
-      FROM ${WEEK_TABLE}
-      WHERE TO_DATE($4::VARCHAR, 'YYYYMMDD') BETWEEN FECHA_INICIO AND FECHA_FIN
-      ),
-      $4::INTEGER,
-      $5
+      $4,
+      $5::INTEGER,
+      $6
     ) ON CONFLICT (FK_PRESUPUESTO, FK_ROL, FECHA) DO
-    UPDATE SET HORAS = $5 + A.HORAS
-    RETURNING PK_ASIGNACION, FK_SEMANA, HORAS`,
+    UPDATE SET HORAS = $6 + A.HORAS
+    RETURNING PK_ASIGNACION, HORAS`,
     person,
     budget,
     role,
@@ -161,7 +177,7 @@ export const createNew = async (
     hours,
   );
 
-  const [id, week, final_hours]: [number, number, number] = rows[0];
+  const [id, final_hours]: [number, number] = rows[0];
 
   return new Asignacion(
     id,
