@@ -151,24 +151,13 @@ export const updateAssignationRequest = async (
     : value.approved;
 
   if (approved) {
-    //Save assignation so if registry fails we are able to revert it
-    const assignation = await createAssignation(
+    await createAssignation(
       control.person,
       assignation_request.budget,
       assignation_request.role,
       assignation_request.date,
       assignation_request.hours,
     );
-
-    await createRegistry(
-      control.id,
-      assignation_request.budget,
-      assignation_request.role,
-      assignation_request.hours,
-    ).catch(async (err) => {
-      await assignation.delete();
-      throw err;
-    });
   }
 
   await assignation_request.delete();
