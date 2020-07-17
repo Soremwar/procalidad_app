@@ -4,7 +4,7 @@ import {
   findAll,
   findById,
   getTableData,
-} from "../../api/models/OPERACIONES/registro_detalle.ts";
+} from "../../api/models/OPERACIONES/registro.ts";
 import {
   createNewControl,
   findOpenWeek,

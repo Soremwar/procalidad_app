@@ -10,7 +10,7 @@ import {
 } from "./asignacion.ts";
 import {
   TABLE as REGISTRY_TABLE,
-} from "./registro_detalle.ts";
+} from "./registro.ts";
 
 export const TABLE = "OPERACIONES.CONTROL_SEMANA";
 

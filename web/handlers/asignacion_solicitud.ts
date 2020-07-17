@@ -14,7 +14,7 @@ import {
 } from "../../api/models/OPERACIONES/control_semana.ts";
 import {
   createNew as createRegistry,
-} from "../../api/models/OPERACIONES/registro_detalle.ts";
+} from "../../api/models/OPERACIONES/registro.ts";
 import {
   findByProject as findBudgetByProject,
 } from "../../api/models/OPERACIONES/PRESUPUESTO.ts";
