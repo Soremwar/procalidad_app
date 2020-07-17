@@ -675,7 +675,7 @@ export default () => {
   const [value, setValue] = useState(0);
   const classes = useStyles();
 
-  const handleChange = (newValue) => {
+  const handleTabChange = (newValue) => {
     setValue(newValue);
     setDataShouldUpdate(true);
   };
@@ -803,7 +803,7 @@ export default () => {
           <AppBar position="static">
             <Tabs
               value={value}
-              onChange={handleChange}
+              onChange={(_e, tab) => handleTabChange(tab)}
               aria-label="simple tabs example"
             >
               <Tab label="Planeacion" {...a11yProps(0)} />
