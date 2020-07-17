@@ -236,6 +236,7 @@ export const getTableData = async (
         AND C.FK_PERSONA = $1
         AND C.BAN_CERRADO = FALSE
     WHERE A.FK_SEMANA = (SELECT PK_SEMANA FROM SEMANA_ABIERTA)
+    AND A.FK_PERSONA = $1
       GROUP BY
         C.PK_CONTROL,
         C.FK_SEMANA,
