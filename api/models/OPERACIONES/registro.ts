@@ -62,14 +62,21 @@ class WeekDetail {
   }
 }
 
-//TODO
-//Should throw on creating registry on a closed week
 export const createNew = async (
   control: number,
   budget: number,
   role: number,
   hours: number,
 ): Promise<WeekDetail> => {
+  const week_control = await findControl(control);
+  //Shouldn't ever happen cause of constraints
+  if (!week_control) throw new Error("La semana referenciada no existe");
+
+  if (week_control.closed) {
+    throw new Error(
+      "La semana a la que pertenece este registro se encuentra cerrada",
+    );
+  }
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_CONTROL_SEMANA,
