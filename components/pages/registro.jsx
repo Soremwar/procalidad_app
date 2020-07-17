@@ -265,8 +265,6 @@ export default () => {
 
   const updateCurrentWeek = () => {
     if (context.id) {
-      setAlertOpen(false);
-      setError(null);
       getWeekDate(context.id)
         .then(async (response) => {
           if (response.ok) {
@@ -278,6 +276,7 @@ export default () => {
           }
         })
         .catch(() => {
+          setAlertOpen(false);
           setError("No fue posible actualizar la fecha de registro");
           setAlertOpen(true);
         });
@@ -331,20 +330,21 @@ export default () => {
   };
 
   const handleRowSave = (row) => {
-    setAlertOpen(false);
-    setError(false);
     if (Number(row.used_hours) >= 0) {
       submitWeekDetail(
         context.id,
         { ...row, used_hours: Number(row.used_hours) },
       )
         .then((response) => {
+          setAlertOpen(false);
           if (!response.ok) {
             setError("No fue posible actualizar el registro");
+          } else {
+            setError(null);
           }
+          setAlertOpen(true);
         })
         .finally(() => {
-          setAlertOpen(true);
           updateTable();
         });
     } else {
@@ -354,8 +354,6 @@ export default () => {
   };
 
   const handleWeekSave = () => {
-    setAlertOpen(false);
-    setError(null);
     const entries_not_saved = Array.from(table_data).some(([_i, value]) =>
       !value.server_updated
     );
@@ -365,11 +363,16 @@ export default () => {
     } else {
       closeWeek(context.id)
         .then(async (response) => {
+          setAlertOpen(false);
           if (!response.ok) {
-            setError(await response.json().then((body) => body.message));
-            setAlertOpen(true);
+            const res = await response.json().then((body) => body.message);
+            setError(res);
+          } else {
+            setError(null);
           }
-        }).finally(() => {
+          setAlertOpen(true);
+        })
+        .finally(() => {
           updateCurrentWeek();
           updateTable();
         });

@@ -233,10 +233,10 @@ export const findOpenWeek = async (
       PK_CONTROL,
       FK_PERSONA,
       FK_SEMANA,
-      BAN_ESTADO,
+      BAN_CERRADO,
       FECHA_CIERRE
     FROM ${TABLE}
-    WHERE BAN_ESTADO = FALSE
+    WHERE BAN_CERRADO = FALSE
     AND FK_PERSONA = $1`,
     person,
   );
