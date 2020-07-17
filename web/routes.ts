@@ -193,7 +193,7 @@ import {
   getAssignationWeeks,
   getAssignationsTable,
   updateAssignation,
-} from "./handlers/organizacion/asignacion.ts";
+} from "./handlers/asignacion.ts";
 import {
   closePersonWeek,
   createWeekDetail,
@@ -202,7 +202,7 @@ import {
   getWeekDetailTable,
   getWeeksDetail,
   updateWeekDetail,
-} from "./handlers/organizacion/registro.ts";
+} from "./handlers/registro.ts";
 import {
   createAssignationRequest,
   getAssignationRequestTable,

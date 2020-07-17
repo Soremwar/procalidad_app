@@ -30,7 +30,7 @@ import TableFooter from "./components/Footer.jsx";
 
 const parseDateAsWeek = (date) => {
   const day = date.getDate();
-  const month = date.getMonth();
+  const month = date.getMonth() + 1;
   const month_string = month < 10
     ? months.get(`0${month}`)
     : months.get(String(month));

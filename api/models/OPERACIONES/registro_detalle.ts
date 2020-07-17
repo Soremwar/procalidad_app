@@ -1,45 +1,54 @@
 import postgres from "../../services/postgres.js";
 import {
+  findById as findControl,
   TABLE as CONTROL_TABLE,
-} from "./control_cierre_semana.ts";
-import {
-  TABLE as WEEK_TABLE,
-} from "../MAESTRO/dim_semana.ts";
+} from "./control_semana.ts";
 import {
   TABLE as ASSIGNATION_TABLE,
-} from "../asignacion/asignacion.ts";
+} from "./asignacion.ts";
 import {
   TABLE as BUDGET_TABLE,
-} from "../OPERACIONES/PRESUPUESTO.ts";
+} from "./PRESUPUESTO.ts";
 import {
   TABLE as ROLE_TABLE,
-} from "../OPERACIONES/ROL.ts";
+} from "./ROL.ts";
 import {
   TABLE as PROJECT_TABLE,
-} from "../OPERACIONES/PROYECTO.ts";
+} from "./PROYECTO.ts";
 import {
   TABLE as CLIENT_TABLE,
 } from "../CLIENTES/CLIENTE.ts";
+import {
+  TABLE as WEEK_TABLE,
+} from "../MAESTRO/dim_semana.ts";
 
-export const TABLE = "ORGANIZACION.REGISTRO_DETALLE";
+export const TABLE = "OPERACIONES.REGISTRO";
 
 class WeekDetail {
   constructor(
     public readonly id: number,
-    public readonly week: number,
+    public readonly control: number,
     public readonly budget: number,
     public readonly role: number,
     public hours: number,
   ) {}
 
-  //TODO
-  //Should throw on updating registry on a closed week
   async update(
     hours: number,
   ): Promise<WeekDetail> {
     Object.assign(this, {
       hours,
     });
+
+    const control = await findControl(this.control);
+    //Shouldn't ever happen cause of constraints
+    if (!control) throw new Error("La semana referenciada no existe");
+
+    if (control.closed) {
+      throw new Error(
+        "La semana a la que pertenece este registro se encuentra cerrada",
+      );
+    }
 
     await postgres.query(
       `UPDATE ${TABLE} SET
@@ -51,29 +60,19 @@ class WeekDetail {
 
     return this;
   }
-
-  //TODO
-  //Should throw on deleting registry on a closed week
-  async delete(): Promise<void> {
-    await postgres.query(
-      `DELETE FROM ${TABLE}
-      WHERE PK_REGISTRO = $1`,
-      this.id,
-    );
-  }
 }
 
 //TODO
 //Should throw on creating registry on a closed week
 export const createNew = async (
-  week: number,
+  control: number,
   budget: number,
   role: number,
   hours: number,
 ): Promise<WeekDetail> => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
-      FK_CIERRE_SEMANA,
+      FK_CONTROL_SEMANA,
       FK_PRESUPUESTO,
       FK_ROL,
       HORAS
@@ -83,7 +82,7 @@ export const createNew = async (
       $3,
       $4
     ) RETURNING PK_REGISTRO`,
-    week,
+    control,
     budget,
     role,
     hours,
@@ -93,7 +92,7 @@ export const createNew = async (
 
   return new WeekDetail(
     id,
-    week,
+    control,
     budget,
     role,
     hours,
@@ -104,7 +103,7 @@ export const findById = async (id: number): Promise<WeekDetail | null> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_REGISTRO,
-      FK_CIERRE_SEMANA,
+      FK_CONTROL_SEMANA,
       FK_PRESUPUESTO,
       FK_ROL,
       HORAS
@@ -130,7 +129,7 @@ export const findAll = async (): Promise<WeekDetail[]> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_REGISTRO,
-      FK_CIERRE_SEMANA,
+      FK_CONTROL_SEMANA,
       FK_PRESUPUESTO,
       FK_ROL,
       HORAS
@@ -165,54 +164,80 @@ export const getTableData = async (
   person: number,
 ): Promise<WeekDetailData[]> => {
   const { rows } = await postgres.query(
-    `WITH CONTROL AS (
+    `WITH SEMANA_ABIERTA AS (
       SELECT
-        PK_CIERRE_SEMANA,
-        TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER AS FECHA_INICIO,
-        TO_CHAR(FECHA_FIN, 'YYYYMMDD')::INTEGER AS FECHA_FIN
+        C.FK_SEMANA AS PK_SEMANA
+      FROM ${CONTROL_TABLE} AS C
+      JOIN ${WEEK_TABLE} AS S ON C.FK_SEMANA = S.PK_SEMANA
+      WHERE C.BAN_CERRADO = FALSE
+      AND C.FK_PERSONA = $1
+      UNION ALL
+      SELECT PK_SEMANA
+      FROM (
+        SELECT PK_SEMANA
+        FROM ${WEEK_TABLE}
+        WHERE COD_SEMANA > (
+          SELECT COD_SEMANA
+          FROM ${WEEK_TABLE}
+          WHERE PK_SEMANA = (
+            SELECT
+              MAX(FK_SEMANA)
+            FROM ${CONTROL_TABLE}
+            WHERE FK_PERSONA = $1
+          )
+        )
+        ORDER BY COD_SEMANA ASC
+        LIMIT 1
+      ) A
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM ${CONTROL_TABLE}
+        WHERE BAN_CERRADO = FALSE
+        AND FK_PERSONA = $1
+      )
+      UNION ALL
+      SELECT
+        PK_SEMANA
       FROM (
         SELECT
-          C.PK_CIERRE_SEMANA,
-          S.FECHA_INICIO,
-          S.FECHA_FIN
-        FROM ${WEEK_TABLE} S
-        JOIN ${CONTROL_TABLE} C ON S.PK_SEMANA = COALESCE(C.FK_SEMANA, 1284)
-        WHERE C.FK_PERSONA = $1
-        AND C.BAN_ESTADO = FALSE
-        UNION ALL
-        SELECT
-          NULL AS PK_INICIO_SEMANA,
-          FECHA_INICIO,
-          FECHA_FIN
+          PK_SEMANA
         FROM ${WEEK_TABLE}
-        WHERE NOW() - INTERVAL '1 WEEK' BETWEEN FECHA_INICIO AND FECHA_FIN
-        AND NOT EXISTS (
-          SELECT 1
-          FROM ${CONTROL_TABLE}
-          WHERE FK_PERSONA = $1
-          AND BAN_ESTADO = FALSE
+        WHERE COD_SEMANA < (
+          SELECT
+            COD_SEMANA
+          FROM ${WEEK_TABLE}
+          WHERE NOW() BETWEEN FECHA_INICIO AND FECHA_FIN
         )
+        ORDER BY COD_SEMANA DESC
+        LIMIT 1
       ) A
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM ${CONTROL_TABLE}
+        WHERE FK_PERSONA = $1
+      )
     ), TOTAL AS (
       SELECT
-        C.PK_CIERRE_SEMANA,
+        C.PK_CONTROL,
+        C.FK_SEMANA,
         A.FK_PRESUPUESTO,
         A.FK_ROL,
         SUM(A.HORAS) AS HORAS
-      FROM
-        ${ASSIGNATION_TABLE} A
-      JOIN
-        CONTROL C
-        ON A.FECHA BETWEEN C.FECHA_INICIO AND C.FECHA_FIN
-        WHERE A.FK_PERSONA = $1
+      FROM ${ASSIGNATION_TABLE} A
+      LEFT JOIN ${CONTROL_TABLE} C
+        ON A.FK_SEMANA = C.FK_SEMANA
+        AND C.FK_PERSONA = $1
+        AND C.BAN_CERRADO = FALSE
+    WHERE A.FK_SEMANA = (SELECT PK_SEMANA FROM SEMANA_ABIERTA)
       GROUP BY
-        C.PK_CIERRE_SEMANA,
+        C.PK_CONTROL,
+        C.FK_SEMANA,
         A.FK_PRESUPUESTO,
         A.FK_ROL
     )
     SELECT
       REG.PK_REGISTRO AS ID,
-      TOTAL.PK_CIERRE_SEMANA AS CONTROL_ID,
+      TOTAL.PK_CONTROL AS CONTROL_ID,
       CLI.NOMBRE AS CLIENT,
       PROY.NOMBRE AS PROJECT,
       TOTAL.FK_PRESUPUESTO AS BUDGET_ID,
@@ -222,26 +247,21 @@ export const getTableData = async (
       REG.HORAS AS USED_HOURS,
       TRUE AS SERVER_UPDATED
     FROM TOTAL
-    LEFT JOIN
-      ${TABLE} AS REG
+    LEFT JOIN ${TABLE} AS REG
       ON REG.FK_PRESUPUESTO = TOTAL.FK_PRESUPUESTO
       AND REG.FK_ROL = TOTAL.FK_ROL
-      AND REG.FK_CIERRE_SEMANA = TOTAL.PK_CIERRE_SEMANA
-    JOIN
-      ${BUDGET_TABLE} AS PRES
+      AND REG.FK_CONTROL_SEMANA = TOTAL.PK_CONTROL
+    JOIN ${BUDGET_TABLE} AS PRES
       ON PRES.PK_PRESUPUESTO = TOTAL.FK_PRESUPUESTO
-    JOIN
-      ${ROLE_TABLE} AS ROL
+    JOIN ${ROLE_TABLE} AS ROL
       ON ROL.PK_ROL = TOTAL.FK_ROL
-    JOIN
-      ${PROJECT_TABLE} AS PROY
+    JOIN ${PROJECT_TABLE} AS PROY
       ON PROY.PK_PROYECTO = PRES.FK_PROYECTO
-    JOIN
-      ${CLIENT_TABLE} AS CLI
+    JOIN ${CLIENT_TABLE} AS CLI
       ON CLI.PK_CLIENTE = PROY.FK_CLIENTE
     GROUP BY
       REG.PK_REGISTRO,
-      TOTAL.PK_CIERRE_SEMANA,
+      TOTAL.PK_CONTROL,
       TOTAL.FK_PRESUPUESTO,
       TOTAL.FK_ROL,
       ROL.NOMBRE,

@@ -738,9 +738,9 @@ export default () => {
               value={selected_week}
             >
               {parameters.weeks
-                .map((week) => (
-                  <option key={week} value={week}>
-                    {parseNumberAsWeek(week)}
+                .map(({ code, date }) => (
+                  <option key={code} value={code}>
+                    {parseNumberAsWeek(date)}
                   </option>
                 ))}
             </SelectField>
@@ -771,7 +771,7 @@ export default () => {
               onTableUpdate={setAssignationTableShouldUpdate}
               search={{
                 id_project: selected_project,
-                week_date: selected_week,
+                id_week: selected_week,
               }}
               update_table={assignation_table_should_update}
               url={"asignacion/asignacion/table"}

@@ -5,13 +5,13 @@ import {
   findById,
   getAvailableWeeks,
   getTableData,
-} from "../../../api/models/asignacion/asignacion.ts";
+} from "../../api/models/OPERACIONES/asignacion.ts";
 import {
   tableRequestHandler,
-} from "../../../api/common/table.ts";
-import { formatResponse, Message, Status } from "../../http_utils.ts";
-import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import { parseStandardNumber } from "../../../lib/date/mod.js";
+} from "../../api/common/table.ts";
+import { formatResponse, Message, Status } from "../http_utils.ts";
+import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
+import { parseStandardNumber } from "../../lib/date/mod.js";
 
 export const getAssignations = async ({ response }: RouterContext) => {
   response.body = await findAll();
@@ -71,24 +71,12 @@ export const updateAssignation = async (
     .then((x: Body) => Array.from(x.value));
 
   const {
-    person,
-    budget,
-    role,
-    date,
     hours,
   }: {
-    person?: string;
-    budget?: string;
-    role?: string;
-    date?: string;
     hours?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
   response.body = await resource.update(
-    Number(person) || undefined,
-    Number(budget) || undefined,
-    Number(role) || undefined,
-    parseStandardNumber(date) ? Number(date) : undefined,
     Number(hours) || undefined,
   );
 };

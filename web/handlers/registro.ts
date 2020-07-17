@@ -4,18 +4,18 @@ import {
   findAll,
   findById,
   getTableData,
-} from "../../../api/models/ORGANIZACION/registro_detalle.ts";
+} from "../../api/models/OPERACIONES/registro_detalle.ts";
 import {
   createNewControl,
   findOpenWeek,
   getOpenWeekAsDate,
-} from "../../../api/models/ORGANIZACION/control_cierre_semana.ts";
+} from "../../api/models/OPERACIONES/control_semana.ts";
 import Ajv from "ajv";
-import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
   TRUTHY_INTEGER,
   UNSIGNED_NUMBER,
-} from "../../../lib/ajv/types.js";
+} from "../../lib/ajv/types.js";
 
 const post_structure = {
   $id: "post",

@@ -6,10 +6,10 @@ import {
 } from "../../common/table.ts";
 import {
   TABLE as BUDGET_TABLE,
-} from "../OPERACIONES/PRESUPUESTO.ts";
+} from "./PRESUPUESTO.ts";
 import {
   TABLE as ROLE_TABLE,
-} from "../OPERACIONES/ROL.ts";
+} from "./ROL.ts";
 import {
   TABLE as PERSON_TABLE,
 } from "../ORGANIZACION/PERSONA.ts";
@@ -18,9 +18,9 @@ import {
 } from "../MAESTRO/dim_semana.ts";
 import {
   TABLE as CONTROL_TABLE,
-} from "../ORGANIZACION/control_cierre_semana.ts";
+} from "./control_semana.ts";
 
-export const TABLE = "ASIGNACION.ASIGNACION";
+export const TABLE = "OPERACIONES.ASIGNACION";
 
 class Asignacion {
   constructor(
@@ -28,42 +28,31 @@ class Asignacion {
     public person: number,
     public budget: number,
     public role: number,
+    public week: number,
     public date: number,
     public hours: number,
   ) {}
 
+  /*
+  * Updates only the hours for each assignation
+  * */
   async update(
-    person: number = this.person,
-    budget: number = this.budget,
-    role: number = this.role,
-    date: number = this.date,
     hours: number = this.hours,
   ): Promise<
     Asignacion
   > {
     Object.assign(this, {
-      person,
-      budget,
-      role,
-      date,
       hours,
     });
 
     //TODO
     //Should throw on updating assignation on a closed week
+    //Should update possible registry created by it
     await postgres.query(
       `UPDATE ${TABLE} SET
-          FK_PERSONA = $2,
-          FK_PRESUPUESTO = $3,
-          FK_ROL = $4,
-          FECHA = $5,
-          HORAS = $6
+          HORAS = $2
         WHERE PK_ASIGNACION = $1`,
       this.id,
-      this.person,
-      this.budget,
-      this.role,
-      this.date,
       this.hours,
     );
 
@@ -87,12 +76,14 @@ export const findAll = async (): Promise<Asignacion[]> => {
       FK_PERSONA,
       FK_PRESUPUESTO,
       FK_ROL,
+      FK_SEMANA,
       FECHA,
       HORAS
     FROM ${TABLE}`,
   );
 
   return rows.map((row: [
+    number,
     number,
     number,
     number,
@@ -109,6 +100,7 @@ export const findById = async (id: number): Promise<Asignacion | null> => {
       FK_PERSONA,
       FK_PRESUPUESTO,
       FK_ROL,
+      FK_SEMANA,
       FECHA,
       HORAS
     FROM ${TABLE}
@@ -119,6 +111,7 @@ export const findById = async (id: number): Promise<Asignacion | null> => {
   if (!rows[0]) return null;
 
   const result: [
+    number,
     number,
     number,
     number,
@@ -144,15 +137,21 @@ export const createNew = async (
       FK_PERSONA,
       FK_PRESUPUESTO,
       FK_ROL,
+      FK_SEMANA,
       FECHA,
       HORAS
     ) VALUES (
       $1,
       $2,
       $3,
-      $4,
+      (
+      SELECT PK_SEMANA
+      FROM ${WEEK_TABLE}
+      WHERE TO_DATE($4::VARCHAR, 'YYYYMMDD') BETWEEN FECHA_INICIO AND FECHA_FIN
+      ),
+      $4::INTEGER,
       $5
-    ) RETURNING PK_ASIGNACION`,
+    ) RETURNING PK_ASIGNACION, FK_SEMANA`,
     person,
     budget,
     role,
@@ -160,43 +159,70 @@ export const createNew = async (
     hours,
   );
 
-  const id: number = rows[0][0];
+  const [id, week]: [number, number] = rows[0];
 
   return new Asignacion(
     id,
     person,
     budget,
     role,
+    week,
     date,
     hours,
   );
 };
 
-export const getAvailableWeeks = async (): Promise<number[]> => {
+interface AvailableWeeks {
+  code: number;
+  date: number;
+}
+
+/*
+* Returns the week code and start date of the weeks available for assignation
+* */
+export const getAvailableWeeks = async (): Promise<AvailableWeeks[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD') AS WEEK_DATE
-    FROM ${TABLE} AS A
-    JOIN ${WEEK_TABLE} AS S
-    ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
-    JOIN ${CONTROL_TABLE} AS C
-    ON S.PK_SEMANA = C.FK_SEMANA
-    WHERE C.BAN_ESTADO = false
-    group by 
-    TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD')`,
+      FK_SEMANA AS WEEK_CODE,
+      TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER AS WEEK_DATE
+    FROM ${TABLE} A
+    JOIN ${WEEK_TABLE} S
+      ON A.FK_SEMANA = S.PK_SEMANA
+    WHERE FECHA >= (
+      SELECT 
+        COALESCE(
+        MIN(TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD')::INTEGER),
+        (SELECT MIN(FECHA) FROM ${TABLE})
+        )
+      FROM ${CONTROL_TABLE} C
+      JOIN ${WEEK_TABLE} S
+        ON C.FK_SEMANA = S.PK_SEMANA	
+      WHERE C.BAN_CERRADO = FALSE
+    )
+    GROUP BY
+      WEEK_CODE,
+      WEEK_DATE
+    ORDER BY
+      WEEK_DATE`,
   );
 
-  return rows.map(([x]: [number]) => x);
+  return rows.map(([code, date]: [number, number]) => ({
+    code,
+    date,
+  } as AvailableWeeks));
 };
 
+//TODO
+//Refactor for new table structure
+//Replace week date with week code
 class TableData {
   constructor(
     public id: number,
+    public id_week: number,
     public id_project: number,
     public person: string,
     public role: string,
     public date: string,
-    public week_date: number,
     public hours: number,
   ) {}
 }
@@ -210,18 +236,15 @@ export const getTableData = async (
   const base_query = (
     `SELECT
       PK_ASIGNACION AS ID,
+      S.PK_SEMANA AS ID_WEEK,
       (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = A.FK_PRESUPUESTO) AS ID_PROJECT,
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = A.FK_PERSONA) AS PERSON,
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = A.FK_ROL) AS ROLE,
       TO_CHAR(TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
-      TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD') AS WEEK_DATE,
       HORAS AS HOURS
     FROM ${TABLE} AS A
     JOIN ${WEEK_TABLE} AS S
-    ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
-    JOIN ${CONTROL_TABLE} AS C
-    ON S.PK_SEMANA = C.FK_SEMANA
-    WHERE C.BAN_ESTADO = FALSE`
+      ON A.FK_SEMANA = S.PK_SEMANA`
   );
 
   const { count, data } = await getTableModels(
@@ -235,10 +258,10 @@ export const getTableData = async (
   const models = data.map((x: [
     number,
     number,
-    string,
-    string,
-    string,
     number,
+    string,
+    string,
+    string,
     number,
   ]) => new TableData(...x));
 

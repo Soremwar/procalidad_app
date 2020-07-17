@@ -4,17 +4,17 @@ import {
   createNew,
   findById,
   getTableData,
-} from "../../api/models/ORGANIZACION/asignacion_solicitud.ts";
+} from "../../api/models/OPERACIONES/asignacion_solicitud.ts";
 import {
   createNew as createAssignation,
-} from "../../api/models/asignacion/asignacion.ts";
+} from "../../api/models/OPERACIONES/asignacion.ts";
 import {
-  WeekControl,
-  findByPersonAndDate as findWeekControl,
-} from "../../api/models/ORGANIZACION/control_cierre_semana.ts";
+  findById as findWeekControl,
+  findByPersonAndDate as findWeekControlByPersonAndDate,
+} from "../../api/models/OPERACIONES/control_semana.ts";
 import {
   createNew as createRegistry,
-} from "../../api/models/ORGANIZACION/registro_detalle.ts";
+} from "../../api/models/OPERACIONES/registro_detalle.ts";
 import {
   findByProject as findBudgetByProject,
 } from "../../api/models/OPERACIONES/PRESUPUESTO.ts";
@@ -98,11 +98,22 @@ export const createAssignationRequest = async (
     );
   }
 
-  response.body = await createNew(
+  const control = await findWeekControlByPersonAndDate(
     person,
+    Number(value.date),
+  );
+  if (!control) throw new NotFoundError("La semana solicitada no existe");
+  if (control.closed) {
+    throw new Error(
+      "La semana requerida para la solicitud se encuentra cerrada",
+    );
+  }
+
+  response.body = await createNew(
+    control.id,
     budget.pk_presupuesto,
     Number(value.role),
-    parseStandardNumber(Number(value.date)) as Date,
+    Number(value.date),
     Number(value.hours),
     value.description,
   );
@@ -126,35 +137,38 @@ export const updateAssignationRequest = async (
   const assignation_request = await findById(id);
   if (!assignation_request) throw new NotFoundError();
 
+  const control = await findWeekControl(assignation_request.control);
+  //Shouldn't happen cause of constraints
+  if (!control) throw new NotFoundError("La semana solicitada no existe");
+  if (control.closed) {
+    throw new Error(
+      "La semana especificada para la solicitud ya se encuentra cerrada",
+    );
+  }
+
   const approved = typeof value.approved === "string"
     ? castStringToBoolean(value.approved)
     : value.approved;
 
   if (approved) {
-    const request_date = parseDateToStandardNumber(assignation_request.date);
-    //Save assignation so in case registry fails we are able to revert it
+    //Save assignation so if registry fails we are able to revert it
     const assignation = await createAssignation(
-      assignation_request.person,
+      control.person,
       assignation_request.budget,
       assignation_request.role,
-      request_date,
+      assignation_request.date,
       assignation_request.hours,
     );
 
-    //Will always be a match cause assignation creation would fail otherwise
-    //@ts-ignore
-    const week: WeekControl = await findWeekControl(
-      assignation_request.person,
-      request_date,
-    )
-      .catch(async () => await assignation.delete());
-
     await createRegistry(
-      week.id,
+      control.id,
       assignation_request.budget,
       assignation_request.role,
       assignation_request.hours,
-    ).catch(async () => await assignation.delete());
+    ).catch(async (err) => {
+      await assignation.delete();
+      throw err;
+    });
   }
 
   await assignation_request.delete();

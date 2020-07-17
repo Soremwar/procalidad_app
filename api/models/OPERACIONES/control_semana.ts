@@ -7,12 +7,12 @@ import {
 } from "../MAESTRO/dim_semana.ts";
 import {
   TABLE as ASSIGNATION_TABLE,
-} from "../asignacion/asignacion.ts";
+} from "./asignacion.ts";
 import {
   TABLE as REGISTRY_TABLE,
 } from "./registro_detalle.ts";
 
-export const TABLE = "ORGANIZACION.CONTROL_CIERRE_SEMANA";
+export const TABLE = "OPERACIONES.CONTROL_SEMANA";
 
 export class WeekControl {
   constructor(
@@ -37,9 +37,9 @@ export class WeekControl {
 
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
-        BAN_ESTADO = TRUE,
+        BAN_CERRADO = TRUE,
         FECHA_CIERRE = NOW()
-      WHERE PK_CIERRE_SEMANA = $1
+      WHERE PK_CONTROL = $1
       RETURNING FECHA_CIERRE`,
       this.id,
     );
@@ -60,7 +60,7 @@ export const createNewControl = async (
     `INSERT INTO ${TABLE} (
       FK_PERSONA,
       FK_SEMANA,
-      BAN_ESTADO
+      BAN_CERRADO
     ) VALUES (
       $1,
       (
@@ -77,7 +77,7 @@ export const createNewControl = async (
         LIMIT 1
       ),
       FALSE
-    ) RETURNING PK_CIERRE_SEMANA, FK_SEMANA`,
+    ) RETURNING PK_CONTROL, FK_SEMANA`,
     person,
   );
 
@@ -100,7 +100,7 @@ export const createNewWeek = async (
     `INSERT INTO ${TABLE} (
       FK_PERSONA,
       FK_SEMANA,
-      BAN_ESTADO
+      BAN_CERRADO
     ) VALUES (
       $1,
       (
@@ -117,7 +117,7 @@ export const createNewWeek = async (
         LIMIT 1
       ),
       FALSE
-    ) RETURNING PK_CIERRE_SEMANA, FK_SEMANA`,
+    ) RETURNING PK_CONTROL, FK_SEMANA`,
     person,
     prev_week,
   );
@@ -136,10 +136,10 @@ export const createNewWeek = async (
 export const findAll = async (): Promise<WeekControl[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_CIERRE_SEMANA,
+      PK_CONTROL,
       FK_PERSONA,
       FK_SEMANA,
-      BAN_ESTADO,
+      BAN_CERRADO,
       FECHA_CIERRE
     FROM ${TABLE}`,
   );
@@ -156,13 +156,13 @@ export const findAll = async (): Promise<WeekControl[]> => {
 export const findById = async (id: number): Promise<WeekControl | null> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_CIERRE_SEMANA,
+      PK_CONTROL,
       FK_PERSONA,
       FK_SEMANA,
-      BAN_ESTADO,
+      BAN_CERRADO,
       FECHA_CIERRE
     FROM ${TABLE}
-    WHERE PK_PRESUPUESTO = $1`,
+    WHERE PK_CONTROL = $1`,
     id,
   );
 
@@ -179,16 +179,19 @@ export const findById = async (id: number): Promise<WeekControl | null> => {
   return new WeekControl(...result);
 };
 
+//TODO
+//This should run a check for a week, and if it were not to find it
+//It should create it calling the createNewWeek or createNewControl functions
 export const findByPersonAndDate = async (
   person: number,
   date: number,
 ): Promise<WeekControl | null> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_CIERRE_SEMANA,
+      PK_CONTROL,
       FK_PERSONA,
       FK_SEMANA,
-      BAN_ESTADO,
+      BAN_CERRADO,
       FECHA_CIERRE
     FROM ${TABLE}
     WHERE FK_SEMANA = (
@@ -214,12 +217,15 @@ export const findByPersonAndDate = async (
   return new WeekControl(...result);
 };
 
+//TODO
+//This should run a check for a week, and if it were not to find it
+//It should create it calling the createNewWeek or createNewControl functions
 export const findOpenWeek = async (
   person: number,
 ): Promise<WeekControl | null> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_CIERRE_SEMANA,
+      PK_CONTROL,
       FK_PERSONA,
       FK_SEMANA,
       BAN_ESTADO,
@@ -257,7 +263,7 @@ export const getOpenWeekAsDate = async (person: number): Promise<number> => {
         S.FECHA_INICIO
       FROM ${TABLE} AS C
       JOIN ${WEEK_TABLE} AS S ON C.FK_SEMANA = S.PK_SEMANA
-      WHERE C.BAN_ESTADO = FALSE
+      WHERE C.BAN_CERRADO = FALSE
       AND C.FK_PERSONA = $1
       UNION ALL
       SELECT FECHA_INICIO
@@ -280,7 +286,7 @@ export const getOpenWeekAsDate = async (person: number): Promise<number> => {
       WHERE NOT EXISTS (
         SELECT 1
         FROM ${TABLE}
-        WHERE BAN_ESTADO = FALSE
+        WHERE BAN_CERRADO = FALSE
         AND FK_PERSONA = $1
       )
       UNION ALL
@@ -325,7 +331,7 @@ export const validateWeek = async (
         R.HORAS AS EJECUTADO
       FROM ${ASSIGNATION_TABLE} A
       JOIN ${WEEK_TABLE} S
-      ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
+      ON A.FK_SEMANA = S.PK_SEMANA
       LEFT JOIN (
         SELECT
           FK_SEMANA,
@@ -335,16 +341,16 @@ export const validateWeek = async (
           HORAS
         FROM ${TABLE} AS CCS
         JOIN ${REGISTRY_TABLE} AS RD
-        ON CCS.PK_CIERRE_SEMANA = RD.FK_CIERRE_SEMANA
+        ON CCS.PK_CONTROL = RD.FK_CONTROL_SEMANA
       ) AS R
       ON S.PK_SEMANA = R.FK_SEMANA
       AND A.FK_PERSONA = R.FK_PERSONA
       AND A.FK_PRESUPUESTO = R.FK_PRESUPUESTO
       AND A.FK_ROL = R.FK_ROL
-      WHERE S.PK_SEMANA = $1
-      AND A.FK_PERSONA = $2
+      WHERE S.PK_SEMANA = $2
+      AND A.FK_PERSONA = $1
       GROUP BY
-      S.PK_SEMANA,
+        S.PK_SEMANA,
         A.FK_PRESUPUESTO,
         A.FK_ROL,
         R.HORAS
@@ -355,20 +361,23 @@ export const validateWeek = async (
         FROM ${TIME_TABLE} T
         JOIN ${WEEK_TABLE} S
         ON FECHA BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
-        WHERE S.PK_SEMANA = $1
+        WHERE S.PK_SEMANA = $2
         AND BAN_FESTIVO = FALSE
         AND EXTRACT(ISODOW FROM T.FECHA) NOT IN (6,7)
       ) THEN TRUE ELSE FALSE END AS META_ALCANZADA FROM DETALLE
     ), IRREGULARIDADES AS (
-        SELECT CASE WHEN COUNT(1) = 0 THEN TRUE ELSE FALSE END AS ASIGNACION_CUMPLIDA
+      SELECT
+        CASE WHEN COUNT(1) = 0 THEN TRUE ELSE FALSE END AS ASIGNACION_CUMPLIDA
       FROM DETALLE
       WHERE ESPERADO < EJECUTADO
     )
-    SELECT E.META_ALCANZADA, I.ASIGNACION_CUMPLIDA
+    SELECT
+      E.META_ALCANZADA,
+      I.ASIGNACION_CUMPLIDA
     FROM EJECUTADO E
     JOIN IRREGULARIDADES I ON 1 = 1`,
-    week,
     person,
+    week,
   );
 
   const [goal_reached, assignation_completed]: [boolean, boolean] = rows[0];

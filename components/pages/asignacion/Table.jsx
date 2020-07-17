@@ -21,7 +21,7 @@ import TableFooter from "./components/Footer.jsx";
 
 const columns = [
   { id: "person", label: "Recurso", orderable: true },
-  { id: "budget", label: "Presupuesto", orderable: true },
+  { id: "project", label: "Proyecto", orderable: true },
   { id: "role", label: "Rol", orderable: true },
   { id: "date", label: "Fecha", orderable: true },
   { id: "hours", label: "Horas solicitadas", orderable: true },
