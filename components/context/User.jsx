@@ -3,10 +3,6 @@ import React, {
   useReducer,
 } from "react";
 import {
-  username as dev_username,
-  password as dev_password,
-} from "../../config/app.js";
-import {
   fetchAuthApi,
 } from "../../lib/api/generator.js";
 import { useCookies, Cookies } from "react-cookie";
@@ -60,26 +56,6 @@ const loginReducer = (state, action) => {
     default: {
       throw new Error(`Unhandled action type: ${action.type}`);
     }
-  }
-};
-
-//TODO
-//Create session with server
-export const attemptManualLogin = (
-  dispatch,
-  username,
-  password,
-  history,
-  setLoginError,
-  setIsLoading,
-) => {
-  setIsLoading(true);
-  if (username === dev_username && password === dev_password) {
-    dispatch({ type: ACTIONS.LOGIN });
-    history.push("/home");
-  } else {
-    setLoginError("Credenciales incorrectas");
-    setIsLoading(false);
   }
 };
 
