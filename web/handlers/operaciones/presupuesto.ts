@@ -96,6 +96,9 @@ export const updateBudget = async (
 
   let budget = await findBudgetItem(id);
   if (!budget) throw new NotFoundError();
+  if (!budget.estado) {
+    throw new Error("No es posible editar un presupuesto cerrado");
+  }
 
   const {
     budget_type,
