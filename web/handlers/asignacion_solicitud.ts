@@ -102,7 +102,11 @@ export const createAssignationRequest = async (
     person,
     Number(value.date),
   );
-  if (!control) throw new NotFoundError("La semana solicitada no existe");
+  if (!control) {
+    throw new NotFoundError(
+      "La semana solicitada no se encuentra disponible para asignacion",
+    );
+  }
   if (control.closed) {
     throw new Error(
       "La semana requerida para la solicitud se encuentra cerrada",
