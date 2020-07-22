@@ -55,6 +55,7 @@ const useStyles = makeStyles((theme) => ({
 export default function ({
   data,
   onUpdateRequest,
+  search = {},
 }) {
   const classes = useStyles();
 
@@ -107,6 +108,18 @@ export default function ({
             />
             <TableBody>
               {data
+                .filter((row) => {
+                  for (const column in search) {
+                    if (row[column]) {
+                      if (search[column] == row[column]) {
+                        continue;
+                      } else {
+                        return false;
+                      }
+                    }
+                  }
+                  return true;
+                })
                 .filter((_r, index) => {
                   const start = rowsPerPage * page;
                   const end = start + rowsPerPage - 1;

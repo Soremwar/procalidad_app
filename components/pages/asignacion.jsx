@@ -800,6 +800,10 @@ export default () => {
               data={request_table_data}
               onUpdateRequest={(row_id, approved) =>
                 handleRequestUpdate(row_id, approved)}
+              search={{
+                id_project: selected_project,
+                id_week: selected_week,
+              }}
             />
           </TabPanel>
         </div>

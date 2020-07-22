@@ -120,7 +120,9 @@ export const deleteByWeekControl = async (control: number): Promise<void> => {
 class TableData {
   constructor(
     public readonly id: number,
+    public readonly id_week: number,
     public readonly person: string,
+    public readonly id_project: number,
     public readonly project: string,
     public readonly role: string,
     public readonly date: string,
@@ -134,7 +136,9 @@ export const getTableData = async () => {
   const { rows } = await postgres.query(
     `SELECT
       A.PK_SOLICITUD AS ID,
+      C.FK_SEMANA AS ID_WEEK,
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = C.FK_PERSONA) AS PERSON,
+      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = A.FK_PRESUPUESTO) AS ID_PROJECT,
       (SELECT NOMBRE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = A.FK_PRESUPUESTO)) AS PROJECT,
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = A.FK_ROL) AS ROLE,
       TO_CHAR(TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
@@ -142,12 +146,14 @@ export const getTableData = async () => {
       DESCRIPCION AS DESCRIPTION
     FROM ${TABLE} AS A
     JOIN ${CONTROL_TABLE} AS C
-    ON A.FK_CONTROL_SEMANA = C.PK_CONTROL`,
+      ON A.FK_CONTROL_SEMANA = C.PK_CONTROL`,
   );
 
   return rows.map((row: [
     number,
+    number,
     string,
+    number,
     string,
     string,
     string,
