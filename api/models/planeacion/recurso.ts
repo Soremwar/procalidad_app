@@ -44,9 +44,9 @@ class Recurso {
 
   async update(
     fk_persona: number = this.fk_persona,
-    fk_presupuesto: number = this.fk_presupuesto,
+    fk_presupuesto: number,
     fk_rol: number = this.fk_rol,
-    fecha_inicio: number = this.fecha_inicio,
+    fecha_inicio: number,
     fecha_fin: number = this.fecha_fin,
     porcentaje: number = this.porcentaje,
     horas: number = this.horas,
@@ -317,7 +317,7 @@ class TableData {
   ) {}
 }
 
-export const getTableData = async (
+export const getProjectTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
@@ -333,7 +333,8 @@ export const getTableData = async (
       TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
       PORCENTAJE||'%' AS ASSIGNATION,
       HORAS AS HOURS
-    FROM ${TABLE}`
+    FROM ${TABLE}
+    WHERE TO_CHAR(CURRENT_DATE + INTERVAL '1 DAY', 'YYYYMMDD')::INTEGER BETWEEN FECHA_INICIO AND FECHA_FIN`
   );
 
   const { count, data } = await getTableModels(
@@ -479,7 +480,7 @@ class ProjectGanttData {
 }
 
 export const getProjectGanttData = async (
-  project?: number,
+  project: number,
 ): Promise<ProjectGanttData[]> => {
   const { rows } = await postgres.query(
     `SELECT
@@ -490,14 +491,11 @@ export const getProjectGanttData = async (
       PORCENTAJE,
       HORAS
     FROM ${TABLE}
-    ${
-      project
-        ? `WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
-        : ""
-    }`,
+    WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}
+    AND TO_CHAR(CURRENT_DATE + INTERVAL '1 DAY', 'YYYYMMDD')::INTEGER BETWEEN FECHA_INICIO AND FECHA_FIN`,
   );
 
-  const data = rows.map((row: [
+  return rows.map((row: [
     string,
     string,
     number,
@@ -505,8 +503,6 @@ export const getProjectGanttData = async (
     number,
     number,
   ]) => new ProjectGanttData(...row));
-
-  return data;
 };
 
 class ResourceGanttData {

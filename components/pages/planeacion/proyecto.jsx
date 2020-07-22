@@ -669,15 +669,14 @@ export default () => {
   const [selected, setSelected] = useState([]);
   const [selected_resource, setSelectedResource] = useState({});
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [dataShouldUpdate, setDataShouldUpdate] = useState(false);
+  const [table_should_update, setTableShouldUpdate] = useState(false);
   const [tasks, setTasks] = useState([]);
 
-  const [value, setValue] = useState(0);
+  const [selected_tab, setSelectedTab] = useState(0);
   const classes = useStyles();
 
-  const handleTabChange = (newValue) => {
-    setValue(newValue);
-    setDataShouldUpdate(true);
+  const handleTabChange = (tab) => {
+    setSelectedTab(tab);
   };
 
   const handleEditModalOpen = async (id) => {
@@ -690,8 +689,9 @@ export default () => {
     setDeleteModalOpen(true);
   };
 
-  const updateData = () => {
-    setDataShouldUpdate(true);
+  const updateTable = () => setTableShouldUpdate(true);
+
+  const updateGantt = () => {
     getResourceGantt(selectedProyect).then((resources) => {
       const tasks = resources.map(({
         assignation,
@@ -732,36 +732,41 @@ export default () => {
   }, [selectedClient]);
 
   useEffect(() => {
-    if (!selectedProyect) {
-      setValue(0);
-    } else {
-      updateData();
+    if (selectedProyect) {
+      switch (selected_tab) {
+        case 0:
+          updateTable();
+          break;
+        case 1:
+          updateGantt();
+          break;
+      }
     }
-  }, [selectedProyect]);
+  }, [selectedProyect, selected_tab]);
 
   return (
     <Fragment>
       <Title title={"Planeacion por Proyecto"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
-          callback={updateData}
+          callback={updateTable}
           is_open={is_add_modal_open}
           project={selectedProyect}
           setModalOpen={setAddModalOpen}
         />
         <EditModal
-          callback={updateData}
+          callback={updateTable}
           data={selected_resource}
           is_open={is_edit_modal_open}
           project={selectedProyect}
           setModalOpen={setEditModalOpen}
         />
         <DeleteModal
+          callback={updateTable}
           is_open={is_delete_modal_open}
           project={selectedProyect}
           setModalOpen={setDeleteModalOpen}
           selected={selected}
-          callback={updateData}
         />
         <Grid container spacing={10}>
           <Grid item xs={6}>
@@ -798,11 +803,11 @@ export default () => {
         </Grid>
       </ParameterContext.Provider>
       <br />
-      {selectedClient && selectedProyect && (
+      {selectedProyect && (
         <div className={classes.bar}>
           <AppBar position="static">
             <Tabs
-              value={value}
+              value={selected_tab}
               onChange={(_e, tab) => handleTabChange(tab)}
               aria-label="simple tabs example"
             >
@@ -814,25 +819,25 @@ export default () => {
               />
             </Tabs>
           </AppBar>
-          <TabPanel value={value} index={0}>
+          <TabPanel value={selected_tab} index={0}>
             <Widget noBodyPadding>
               <AsyncTable
                 columns={headers}
                 onAddClick={() => setAddModalOpen(true)}
                 onEditClick={(id) => handleEditModalOpen(id)}
                 onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-                onTableUpdate={() => setDataShouldUpdate(false)}
+                onTableUpdate={() => setTableShouldUpdate(false)}
                 search={{
                   id_project: selectedProyect,
                 }}
-                update_table={dataShouldUpdate}
+                update_table={table_should_update}
                 url={"planeacion/recurso/table"}
               />
             </Widget>
           </TabPanel>
           <TabPanel
             index={1}
-            value={value}
+            value={selected_tab}
           >
             {tasks.length
               ? (

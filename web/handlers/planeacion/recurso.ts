@@ -1,4 +1,4 @@
-import { Body, RouterContext, Context } from "oak";
+import { Body, RouterContext } from "oak";
 import {
   createNew,
   findAll,
@@ -10,19 +10,22 @@ import {
   getResourceGanttData,
   getResourceHeatmapData,
   getResourceTableData,
-  getTableData,
+  getProjectTableData,
   HeatmapFormula,
 } from "../../../api/models/planeacion/recurso.ts";
 import { addLaboralDays } from "../../../api/models/MAESTRO/dim_tiempo.ts";
-
 import {
-  Order,
-  TableOrder,
+  findById as findBudget,
+} from "../../../api/models/OPERACIONES/budget.ts";
+import {
   parseOrderFromObject,
 } from "../../../api/common/table.ts";
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import { parseStandardNumber } from "../../../lib/date/mod.js";
+import {
+  parseDateToStandardNumber,
+  parseStandardNumber,
+} from "../../../lib/date/mod.js";
 
 enum ResourceViewType {
   project = "project",
@@ -62,7 +65,7 @@ export const getResourcesTable = async (
     : ResourceViewType.project;
 
   if (table_type === ResourceViewType.project) {
-    response.body = await getTableData(
+    response.body = await getProjectTableData(
       order_parameters,
       page || 0,
       rows || null,
@@ -111,6 +114,19 @@ export const createResource = async ({ request, response }: RouterContext) => {
     throw new RequestSyntaxError();
   }
 
+  const budget_data = await findBudget(Number(budget));
+  if (!budget_data) throw new Error("El presupuesto seleccionado no existe");
+  if (!budget_data.estado) {
+    throw new Error("El presupuesto seleccionado esta cerrado");
+  }
+
+  const today = parseDateToStandardNumber(new Date());
+  if (today >= Number(start_date)) {
+    throw new Error(
+      "La planeacion solo se puede crear hacia futuro",
+    );
+  }
+
   //TODO
   //Reemplazar 9 por calculo de horas laborales diarias
   const end_date = await addLaboralDays(
@@ -118,7 +134,7 @@ export const createResource = async ({ request, response }: RouterContext) => {
     Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
   );
 
-  const position = await createNew(
+  response.body = await createNew(
     Number(person),
     Number(budget),
     Number(role),
@@ -127,8 +143,6 @@ export const createResource = async ({ request, response }: RouterContext) => {
     Number(assignation),
     Number(hours),
   );
-
-  response.body = position;
 };
 
 export const getResource = async (
@@ -159,7 +173,7 @@ export const updateResource = async (
     person,
     budget,
     role,
-    start_date,
+    start_date: stard_date_string,
     assignation,
     hours,
   }: {
@@ -171,18 +185,38 @@ export const updateResource = async (
     hours?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
+  let start_date: number;
+  if (!parseStandardNumber(stard_date_string) || !Number(budget)) {
+    throw new RequestSyntaxError();
+  } else {
+    start_date = Number(stard_date_string);
+  }
+
+  const budget_data = await findBudget(Number(budget));
+  if (!budget_data) throw new Error("El presupuesto seleccionado no existe");
+  if (!budget_data.estado) {
+    throw new Error("El presupuesto seleccionado esta cerrado");
+  }
+
   //TODO
   //Reemplazar 9 por calculo de horas laborales diarias
   const end_date = await addLaboralDays(
-    Number(start_date),
+    start_date,
     Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
   );
 
+  const today = parseDateToStandardNumber(new Date());
+  if (today >= start_date) {
+    throw new Error(
+      "La planeacion solo se puede crear hacia futuro",
+    );
+  }
+
   resource = await resource.update(
     Number(person) || undefined,
-    Number(budget) || undefined,
+    Number(budget),
     Number(role) || undefined,
-    parseStandardNumber(start_date) ? Number(start_date) : undefined,
+    start_date,
     end_date,
     Number(assignation) >= 0 && Number(assignation) <= 100
       ? Number(assignation)
@@ -227,7 +261,7 @@ export const getResourcesGantt = async (
 
   if (gantt_type === ResourceViewType.project) {
     response.body = await getProjectGanttData(
-      Number(project) || undefined,
+      Number(project),
     );
   } else if (gantt_type === ResourceViewType.resource) {
     response.body = await getResourceGanttData();
