@@ -37,6 +37,11 @@ export class WeekControl {
     if (!validation.assignation_completed) {
       throw new Error("Las horas registradas exceden la asignacion aprobada");
     }
+    if (!validation.time_completed) {
+      throw new Error(
+        "La semana a cerrar aun se encuentra en curso",
+      );
+    }
 
     await deleteAssignationRequests(this.id);
 
@@ -346,7 +351,13 @@ export const isWeekOpen = async (
 export const validateWeek = async (
   person: number,
   week: number,
-): Promise<{ goal_reached: boolean; assignation_completed: boolean }> => {
+): Promise<
+  {
+    goal_reached: boolean;
+    assignation_completed: boolean;
+    time_completed: boolean;
+  }
+> => {
   const { rows } = await postgres.query(
     `WITH DETALLE AS (
       SELECT
@@ -396,17 +407,28 @@ export const validateWeek = async (
         CASE WHEN COUNT(1) = 0 THEN TRUE ELSE FALSE END AS ASIGNACION_CUMPLIDA
       FROM DETALLE
       WHERE ESPERADO < EJECUTADO
+    ), CALENDARIO AS (
+      SELECT
+        CASE WHEN FECHA_FIN + INTERVAL '1 DAY' < NOW() THEN TRUE ELSE FALSE END AS TIEMPO_COMPLETADO
+      FROM ${WEEK_TABLE}
+      WHERE PK_SEMANA = $2
     )
     SELECT
       E.META_ALCANZADA,
-      I.ASIGNACION_CUMPLIDA
+      I.ASIGNACION_CUMPLIDA,
+      C.TIEMPO_COMPLETADO
     FROM EJECUTADO E
-    JOIN IRREGULARIDADES I ON 1 = 1`,
+    JOIN IRREGULARIDADES I ON 1 = 1
+    JOIN CALENDARIO C ON 1 = 1`,
     person,
     week,
   );
 
-  const [goal_reached, assignation_completed]: [boolean, boolean] = rows[0];
+  const [goal_reached, assignation_completed, time_completed]: [
+    boolean,
+    boolean,
+    boolean,
+  ] = rows[0];
 
-  return { goal_reached, assignation_completed };
+  return { goal_reached, assignation_completed, time_completed };
 };
