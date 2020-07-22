@@ -231,9 +231,6 @@ export const getAvailableWeeks = async (): Promise<AvailableWeeks[]> => {
   } as AvailableWeeks));
 };
 
-//TODO
-//Refactor for new table structure
-//Replace week date with week code
 class TableData {
   constructor(
     public id: number,
@@ -243,6 +240,7 @@ class TableData {
     public role: string,
     public date: string,
     public hours: number,
+    public editable: string,
   ) {}
 }
 
@@ -260,10 +258,15 @@ export const getTableData = async (
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = A.FK_PERSONA) AS PERSON,
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = A.FK_ROL) AS ROLE,
       TO_CHAR(TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
-      HORAS AS HOURS
+      HORAS AS HOURS,
+      CASE WHEN C.BAN_CERRADO IS NULL THEN 'No modificable' ELSE 'Modificable' END AS EDITABLE
     FROM ${TABLE} AS A
     JOIN ${WEEK_TABLE} AS S
-      ON A.FK_SEMANA = S.PK_SEMANA`
+      ON A.FK_SEMANA = S.PK_SEMANA
+    LEFT JOIN ${CONTROL_TABLE} AS C
+      ON A.FK_SEMANA = C.FK_SEMANA
+      AND A.FK_PERSONA = C.FK_PERSONA
+      AND C.BAN_CERRADO = FALSE`
   );
 
   const { count, data } = await getTableModels(
@@ -282,6 +285,7 @@ export const getTableData = async (
     string,
     string,
     number,
+    string,
   ]) => new TableData(...x));
 
   return new TableResult(

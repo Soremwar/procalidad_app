@@ -139,6 +139,13 @@ const headers = [
     label: "Horas",
     searchable: true,
   },
+  {
+    id: "editable",
+    numeric: false,
+    disablePadding: false,
+    label: "Modificable",
+    searchable: true,
+  },
 ];
 
 const ParameterContext = createContext({
@@ -215,6 +222,8 @@ const AddModal = ({
         date: parseDateToStandardNumber(new Date()),
         hours: "",
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
@@ -355,6 +364,8 @@ const EditModal = ({
         date: data.date,
         hours: data.hours,
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
