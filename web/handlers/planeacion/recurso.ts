@@ -15,6 +15,9 @@ import {
 } from "../../../api/models/planeacion/recurso.ts";
 import { addLaboralDays } from "../../../api/models/MAESTRO/dim_tiempo.ts";
 import {
+  findByDate as findWeekByDate,
+} from "../../../api/models/MAESTRO/dim_semana.ts";
+import {
   findById as findBudget,
 } from "../../../api/models/OPERACIONES/budget.ts";
 import {
@@ -120,8 +123,14 @@ export const createResource = async ({ request, response }: RouterContext) => {
     throw new Error("El presupuesto seleccionado esta cerrado");
   }
 
-  const today = parseDateToStandardNumber(new Date());
-  if (today >= Number(start_date)) {
+  const start_date_week = await findWeekByDate(Number(start_date));
+  const today_week = await findWeekByDate(
+    parseDateToStandardNumber(new Date()),
+  );
+  if (!start_date_week || !today_week) {
+    throw new Error("Ocurrio un error al procesar las fechas de la planeacion");
+  }
+  if (today_week.start_date > start_date_week.start_date) {
     throw new Error(
       "La planeacion solo se puede crear hacia futuro",
     );
@@ -205,8 +214,14 @@ export const updateResource = async (
     Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
   );
 
-  const today = parseDateToStandardNumber(new Date());
-  if (today >= start_date) {
+  const start_date_week = await findWeekByDate(start_date);
+  const today_week = await findWeekByDate(
+    parseDateToStandardNumber(new Date()),
+  );
+  if (!start_date_week || !today_week) {
+    throw new Error("Ocurrio un error al procesar las fechas de la planeacion");
+  }
+  if (today_week.start_date > start_date_week.start_date) {
     throw new Error(
       "La planeacion solo se puede crear hacia futuro",
     );

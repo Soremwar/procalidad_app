@@ -148,7 +148,7 @@ export const findAll = async (): Promise<Recurso[]> => {
     FROM ${TABLE}`,
   );
 
-  const models = rows.map((row: [
+  return rows.map((row: [
     number,
     number,
     number,
@@ -160,8 +160,6 @@ export const findAll = async (): Promise<Recurso[]> => {
     number,
     number,
   ]) => new Recurso(...row));
-
-  return models;
 };
 
 export const findById = async (id: number): Promise<Recurso | null> => {
@@ -333,8 +331,7 @@ export const getProjectTableData = async (
       TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
       PORCENTAJE||'%' AS ASSIGNATION,
       HORAS AS HOURS
-    FROM ${TABLE}
-    WHERE TO_CHAR(CURRENT_DATE + INTERVAL '1 DAY', 'YYYYMMDD')::INTEGER BETWEEN FECHA_INICIO AND FECHA_FIN`
+    FROM ${TABLE}`
   );
 
   const { count, data } = await getTableModels(
@@ -491,8 +488,7 @@ export const getProjectGanttData = async (
       PORCENTAJE,
       HORAS
     FROM ${TABLE}
-    WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}
-    AND TO_CHAR(CURRENT_DATE + INTERVAL '1 DAY', 'YYYYMMDD')::INTEGER BETWEEN FECHA_INICIO AND FECHA_FIN`,
+    WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`,
   );
 
   return rows.map((row: [
@@ -525,14 +521,12 @@ export const getResourceGanttData = async (): Promise<ResourceGanttData[]> => {
     GROUP BY FK_PERSONA`,
   );
 
-  const data = rows.map((row: [
+  return rows.map((row: [
     string,
     string,
     string,
     number,
   ]) => new ResourceGanttData(...row));
-
-  return data;
 };
 
 class DetailGanttData {
@@ -568,7 +562,7 @@ export const getDetailGanttData = async (
     }`,
   );
 
-  const data = rows.map((row: [
+  return rows.map((row: [
     string,
     string,
     string,
@@ -577,8 +571,6 @@ export const getDetailGanttData = async (
     string,
     string,
   ]) => new DetailGanttData(...row));
-
-  return data;
 };
 
 //TODO
