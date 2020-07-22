@@ -92,7 +92,7 @@ export const createAssignationRequest = async (
   }
 
   const budget = await findBudgetByProject(Number(value.project));
-  if (!budget) {
+  if (!budget || !budget.estado) {
     throw new Error(
       "No existe un presupuesto abierto para el projecto seleccionado",
     );
