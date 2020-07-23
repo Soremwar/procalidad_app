@@ -31,6 +31,7 @@ export const errorHandler = async (
           Status.Forbidden,
           error.message || Message.Forbidden,
         );
+        break;
       case RequestSyntaxError:
         response = formatResponse(
           response,
