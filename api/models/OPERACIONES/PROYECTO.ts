@@ -34,6 +34,22 @@ class Proyecto {
     public estado: number,
   ) {}
 
+  /*
+  * Supervisors also include the area supervisor, this function returns both
+  * */
+  async getSupervisors(): Promise<number[]> {
+    const { rows } = await postgres.query(
+      `SELECT
+        ARRAY[P.FK_SUPERVISOR,SA.FK_SUPERVISOR]
+      FROM ${TABLE} P 
+      JOIN ${SUB_AREA_TABLE} SA ON P.FK_SUB_AREA = SA.PK_SUB_AREA 
+      WHERE PK_PROYECTO = $1`,
+      this.pk_proyecto,
+    );
+
+    return rows[0];
+  }
+
   async hasOpenBudget(): Promise<boolean> {
     const { rows } = await postgres.query(
       `SELECT
@@ -48,7 +64,6 @@ class Proyecto {
   }
 
   async update(
-    fk_tipo_proyecto: number = this.fk_tipo_proyecto,
     fk_cliente: number = this.fk_cliente,
     fk_sub_area: number = this.fk_sub_area,
     nombre: string = this.nombre,
@@ -59,7 +74,6 @@ class Proyecto {
     Proyecto
   > {
     Object.assign(this, {
-      fk_tipo_proyecto,
       fk_cliente,
       fk_sub_area,
       nombre,
@@ -69,16 +83,14 @@ class Proyecto {
     });
     await postgres.query(
       `UPDATE ${TABLE} SET
-        FK_TIPO_PROYECTO = $2,
-        FK_CLIENTE = $3,
-        FK_SUB_AREA = $4,
-        NOMBRE = $5,
-        FK_SUPERVISOR = $6,
-        DESCRIPCION = $7,
-        ESTADO = $8
+        FK_CLIENTE = $2,
+        FK_SUB_AREA = $3,
+        NOMBRE = $4,
+        FK_SUPERVISOR = $5,
+        DESCRIPCION = $6,
+        ESTADO = $7
       WHERE PK_PROYECTO = $1`,
       this.pk_proyecto,
-      this.fk_tipo_proyecto,
       this.fk_cliente,
       this.fk_sub_area,
       this.nombre,

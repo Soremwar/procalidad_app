@@ -1,4 +1,4 @@
-import { RouterContext, Body } from "oak";
+import { Body, RouterContext } from "oak";
 import {
   createNew,
   findAll,
@@ -6,8 +6,14 @@ import {
   getTableData,
   searchByNameAndClient,
 } from "../../../api/models/OPERACIONES/PROYECTO.ts";
+import {
+  findById as findProjectType,
+} from "../../../api/models/OPERACIONES/TIPO_PROYECTO.ts";
+import { encryption_key } from "../../../config/api_deno.js";
+import { Profiles } from "../../../api/common/profiles.ts";
+import { validateJwt } from "djwt/validate.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
+import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
 export const getProjects = async ({ response }: RouterContext) => {
@@ -20,7 +26,9 @@ export const getProjectsTable = async (context: RouterContext) =>
     getTableData,
   );
 
-export const createProject = async ({ request, response }: RouterContext) => {
+export const createProject = async (
+  { cookies, request, response }: RouterContext,
+) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -46,6 +54,34 @@ export const createProject = async ({ request, response }: RouterContext) => {
     )
   ) {
     throw new RequestSyntaxError();
+  }
+
+  const project_type = await findProjectType(Number(Number(type)));
+  if (!project_type) {
+    throw new Error("El tipo de proyecto seleccionado no fue encontrado");
+  }
+
+  //Ignore cause this is already validated but TypeScript is too dumb to notice
+  const session_cookie = cookies.get("PA_AUTH");
+  //@ts-ignore
+  const session = await validateJwt(session_cookie, encryption_key);
+  //@ts-ignore
+  const profiles = session.payload?.context?.user?.profiles;
+
+  if (project_type.ban_facturable) {
+    const can_create_facturable_project = profiles.some((profile: number) =>
+      [
+        Profiles.SALES,
+        Profiles.CONTROLLER,
+        Profiles.ADMINISTRATOR,
+      ].includes(profile)
+    );
+
+    if (!can_create_facturable_project) {
+      throw new Error(
+        "Su rol actual no le permite crear proyectos facturables",
+      );
+    }
   }
 
   response.body = await createNew(
@@ -89,7 +125,7 @@ export const searchProject = async ({ response, request }: RouterContext) => {
 };
 
 export const updateProject = async (
-  { params, request, response }: RouterContext<{ id: string }>,
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -101,7 +137,6 @@ export const updateProject = async (
     .then((x: Body) => Array.from(x.value));
 
   const {
-    type,
     client,
     sub_area,
     name,
@@ -109,7 +144,6 @@ export const updateProject = async (
     description,
     status,
   }: {
-    type?: string;
     client?: string;
     sub_area?: string;
     name?: string;
@@ -118,8 +152,29 @@ export const updateProject = async (
     status?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
+  //Ignore cause this is already validated but TypeScript is too dumb to notice
+  const session_cookie = cookies.get("PA_AUTH");
+  //@ts-ignore
+  const session = await validateJwt(session_cookie, encryption_key);
+  //@ts-ignore
+  const { profiles: user_profiles, id: user_id } = session.payload?.context
+    ?.user;
+
+  const allowed_editors = await project.getSupervisors();
+  if (!allowed_editors.includes(user_id)) {
+    if (
+      !user_profiles.some((profile: number) =>
+        [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ].includes(profile)
+      )
+    ) {
+      throw new Error("Su rol actual no le permite editar este proyecto");
+    }
+  }
+
   response.body = await project.update(
-    Number(type) || undefined,
     Number(client) || undefined,
     Number(sub_area) || undefined,
     name,

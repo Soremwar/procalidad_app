@@ -318,6 +318,7 @@ const EditModal = ({
       title={"Editar"}
     >
       <SelectField
+        disabled
         fullWidth
         label="Tipo de proyecto"
         name="type"
