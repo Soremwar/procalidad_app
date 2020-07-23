@@ -10,6 +10,12 @@ import {
   deleteByBudget as deleteBudgetDetail,
   findByBudget as findBudgetDetail,
 } from "../../../api/models/OPERACIONES/PRESUPUESTO_DETALLE.ts";
+import {
+  findById as findProject,
+} from "../../../api/models/OPERACIONES/PROYECTO.ts";
+import { Profiles } from "../../../api/common/profiles.ts";
+import { validateJwt } from "djwt/validate.ts";
+import { encryption_key } from "../../../config/api_deno.js";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
@@ -24,7 +30,9 @@ export const getBudgetTable = async (context: RouterContext) =>
     getBudgetItemTable,
   );
 
-export const createBudget = async ({ request, response }: RouterContext) => {
+export const createBudget = async (
+  { cookies, request, response }: RouterContext,
+) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -47,6 +55,31 @@ export const createBudget = async ({ request, response }: RouterContext) => {
     )
   ) {
     throw new RequestSyntaxError();
+  }
+
+  const project_model = findProject(Number(project));
+  if (!project_model) throw new Error("El proyecto seleccionado no existe");
+
+  //Ignore cause this is already validated but TypeScript is too dumb to notice
+  const session_cookie = cookies.get("PA_AUTH");
+  //@ts-ignore
+  const session = await validateJwt(session_cookie, encryption_key);
+  //@ts-ignore
+  const { profiles: user_profiles, id: user_id } = session.payload?.context
+    ?.user;
+
+  const allowed_editors = await project.getSupervisors();
+  if (!allowed_editors.includes(user_id)) {
+    if (
+      !user_profiles.some((profile: number) =>
+        [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ].includes(profile)
+      )
+    ) {
+      throw new Error("Su rol actual no le permite crear este presupuesto");
+    }
   }
 
   const budget_id = await createBudgetItem(
@@ -89,7 +122,7 @@ export const getBudget = async (
 };
 
 export const updateBudget = async (
-  { params, request, response }: RouterContext<{ id: string }>,
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -98,6 +131,31 @@ export const updateBudget = async (
   if (!budget) throw new NotFoundError();
   if (!budget.estado) {
     throw new Error("No es posible editar un presupuesto cerrado");
+  }
+
+  const project = await findProject(budget.fk_proyecto);
+  if (!project) throw new Error("El proyecto seleccionado no existe");
+
+  //Ignore cause this is already validated but TypeScript is too dumb to notice
+  const session_cookie = cookies.get("PA_AUTH");
+  //@ts-ignore
+  const session = await validateJwt(session_cookie, encryption_key);
+  //@ts-ignore
+  const { profiles: user_profiles, id: user_id } = session.payload?.context
+    ?.user;
+
+  const allowed_editors = await project.getSupervisors();
+  if (!allowed_editors.includes(user_id)) {
+    if (
+      !user_profiles.some((profile: number) =>
+        [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ].includes(profile)
+      )
+    ) {
+      throw new Error("Su rol actual no le permite editar este presupuesto");
+    }
   }
 
   const {
