@@ -784,13 +784,9 @@ const MAX_DATE_HEATMAP = (() => {
   return parseDateToStandardNumber(date);
 })();
 
-//TODO
-//This thing is a RAM eater
-//We really need to fix the fetch leaks we have
 export default () => {
   const classes = useStyles();
 
-  ParameterContext;
   const [parameters, setParameters] = useState({
     blacklisted_dates: [],
     budgets: [],
@@ -799,38 +795,30 @@ export default () => {
     projects: [],
     roles: [],
   });
-  const [selectedPerson, setSelectedPerson] = useState("");
-  const [is_add_modal_open, setAddModalOpen] = useState(false);
-  const [is_edit_modal_open, setEditModalOpen] = useState(false);
-  const [selected, setSelected] = useState([]);
-  const [selected_resource, setSelectedResource] = useState({});
-  const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [dataShouldUpdate, setDataShouldUpdate] = useState(false);
-  const [tasks, setTasks] = useState([]);
-  const [heatmap_formula, setHeatmapFormula] = useState("occupation");
   const [heatmap_data, setHeatmapData] = useState([]);
-  const [value, setValue] = useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-    setDataShouldUpdate(true);
-  };
+  const [heatmap_formula, setHeatmapFormula] = useState("occupation");
+  const [is_add_modal_open, setAddModalOpen] = useState(false);
+  const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
+  const [is_edit_modal_open, setEditModalOpen] = useState(false);
+  const [selected_person, setSelectedPerson] = useState("");
+  const [selected_resource, setSelectedResource] = useState({});
+  const [selected_tab, setSelectedTab] = useState(0);
+  const [table_items_selected, setTableItemsSelected] = useState([]);
+  const [table_should_update, setTableShouldUpdate] = useState(false);
+  const [tasks, setTasks] = useState([]);
 
   const handleEditModalOpen = async (id) => {
     setSelectedResource(await getResource(id));
     setEditModalOpen(true);
   };
 
-  const handleDeleteModalOpen = async (selected) => {
-    setSelected(selected);
+  const handleDeleteModalOpen = (selected) => {
+    setTableItemsSelected(selected);
     setDeleteModalOpen(true);
   };
 
-  //TODO
-  //Fix duplicate data fetch
-  const updateData = () => {
-    setDataShouldUpdate(true);
-    if (!selectedPerson) {
+  const updateGantt = () => {
+    if (!selected_person) {
       getResourceGantt("resource").then((resources) => {
         const tasks = resources
           .map(({
@@ -849,11 +837,8 @@ export default () => {
 
         setTasks(tasks);
       });
-      getResourceHeatmap("resource", undefined, heatmap_formula).then((data) =>
-        setHeatmapData(data)
-      );
     } else {
-      getResourceGantt("detail", selectedPerson).then((resources) => {
+      getResourceGantt("detail", selected_person).then((resources) => {
         const tasks = resources
           .map(({
             assignation,
@@ -872,10 +857,23 @@ export default () => {
 
         setTasks(tasks);
       });
-      getResourceHeatmap("detail", selectedPerson).then((data) =>
+    }
+  };
+
+  const updateHeatmap = () => {
+    if (!selected_person) {
+      getResourceHeatmap("resource", undefined, heatmap_formula).then((data) =>
+        setHeatmapData(data)
+      );
+    } else {
+      getResourceHeatmap("detail", selected_person).then((data) =>
         setHeatmapData(data)
       );
     }
+  };
+
+  const updateTable = () => {
+    setTableShouldUpdate(true);
   };
 
   useEffect(() => {
@@ -903,37 +901,52 @@ export default () => {
     getRoles().then((roles) =>
       setParameters((prev_state) => ({ ...prev_state, roles }))
     );
-    updateData();
   }, []);
 
   useEffect(() => {
-    updateData();
-  }, [selectedPerson, heatmap_formula]);
+    switch (selected_tab) {
+      case 0:
+        updateTable();
+        break;
+      case 1:
+        updateGantt();
+        break;
+      case 2:
+        updateHeatmap();
+        break;
+    }
+  }, [selected_person, selected_tab]);
+
+  useEffect(() => {
+    if (selected_tab === 2) {
+      updateHeatmap();
+    }
+  }, [heatmap_formula]);
 
   return (
     <Fragment>
       <Title title={"Planeacion por Recurso"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
-          callback={updateData}
+          callback={updateTable}
           is_open={is_add_modal_open}
           setModalOpen={setAddModalOpen}
-          person={selectedPerson}
+          person={selected_person}
         />
         <EditModal
-          callback={updateData}
+          callback={updateTable}
           data={selected_resource}
           is_open={is_edit_modal_open}
-          person={selectedPerson}
+          person={selected_person}
           setModalOpen={setEditModalOpen}
         />
       </ParameterContext.Provider>
       <DeleteModal
-        callback={updateData}
+        callback={updateTable}
         is_open={is_delete_modal_open}
-        person={selectedPerson}
+        person={selected_person}
         setModalOpen={setDeleteModalOpen}
-        selected={selected}
+        selected={table_items_selected}
       />
       <Grid container spacing={10}>
         <Grid item xs={6}>
@@ -942,7 +955,7 @@ export default () => {
             label="Recurso"
             onChange={(_event, value) => setSelectedPerson(value)}
             options={parameters.people}
-            value={selectedPerson}
+            value={selected_person}
           />
         </Grid>
       </Grid>
@@ -950,32 +963,31 @@ export default () => {
       <div className={classes.bar}>
         <AppBar position="static">
           <Tabs
-            value={value}
-            onChange={handleChange}
-            aria-label="simple tabs example"
+            value={selected_tab}
+            onChange={(_event, value) => setSelectedTab(value)}
           >
             <Tab label="Planeacion" {...a11yProps(0)} />
             <Tab label="Gantt" {...a11yProps(1)} />
             <Tab label="Disponibilidad" {...a11yProps(2)} />
           </Tabs>
         </AppBar>
-        <TabPanel value={value} index={0}>
+        <TabPanel value={selected_tab} index={0}>
           <Widget noBodyPadding>
-            {selectedPerson
+            {selected_person
               ? (
                 <AsyncTable
                   columns={detail_headers}
                   onAddClick={() => setAddModalOpen(true)}
                   onEditClick={(id) => handleEditModalOpen(id)}
                   onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-                  onTableUpdate={() => setDataShouldUpdate(false)}
+                  onTableUpdate={() => setTableShouldUpdate(false)}
                   search={{
-                    id_person: selectedPerson,
+                    id_person: selected_person,
                   }}
                   request_parameters={{
                     type: "detail",
                   }}
-                  update_table={dataShouldUpdate}
+                  update_table={table_should_update}
                   url={"planeacion/recurso/table"}
                 />
               )
@@ -985,11 +997,11 @@ export default () => {
                   onAddClick={() => setAddModalOpen(true)}
                   onEditClick={(id) => handleEditModalOpen(id)}
                   onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-                  onTableUpdate={() => setDataShouldUpdate(false)}
+                  onTableUpdate={() => setTableShouldUpdate(false)}
                   request_parameters={{
                     type: "resource",
                   }}
-                  update_table={dataShouldUpdate}
+                  update_table={table_should_update}
                   url={"planeacion/recurso/table"}
                 />
               )}
@@ -997,7 +1009,7 @@ export default () => {
         </TabPanel>
         <TabPanel
           index={1}
-          value={value}
+          value={selected_tab}
         >
           <Gantt
             tasks={tasks.length ? tasks : global_tasks}
@@ -1006,10 +1018,10 @@ export default () => {
         </TabPanel>
         <TabPanel
           index={2}
-          value={value}
+          value={selected_tab}
         >
           <ParameterContext.Provider value={parameters}>
-            {!selectedPerson
+            {!selected_person
               ? (
                 <Fragment>
                   <SelectField
