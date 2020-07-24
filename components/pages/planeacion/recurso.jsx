@@ -259,8 +259,6 @@ function a11yProps(index) {
   };
 }
 
-//TODO
-//Replace async select field with advanced select field
 const AddModal = ({
   callback,
   is_open,
@@ -268,7 +266,9 @@ const AddModal = ({
   setModalOpen,
 }) => {
   const {
+    budgets,
     clients,
+    projects,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
@@ -348,48 +348,43 @@ const AddModal = ({
                 <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
               ))}
             </SelectField>
-            <AsyncSelectField
+            <SelectField
               disabled={!fields.client}
               fullWidth
-              handleSource={async (source) => {
-                return Object.values(source)
-                  .filter(({ fk_cliente }) => fk_cliente == fields.client)
-                  .map(({
-                    pk_proyecto,
-                    nombre,
-                  }) => {
-                    return { value: String(pk_proyecto), text: nombre };
-                  });
-              }}
               label="Proyecto"
               margin="dense"
               name="project"
               onChange={handleChange}
               required
-              source={`operaciones/proyecto`}
               value={fields.client && fields.project}
-            />
-            <AsyncSelectField
+            >
+              {projects
+                .filter(({ fk_cliente }) => fk_cliente == fields.client)
+                .map(({ pk_proyecto, nombre }) => (
+                  <option key={pk_proyecto} value={pk_proyecto}>
+                    {nombre}
+                  </option>
+                ))}
+            </SelectField>
+            <SelectField
               disabled={!fields.client && !fields.project}
               fullWidth
-              handleSource={async (source) => {
-                return Object.values(source)
-                  .filter(({ fk_proyecto }) => fk_proyecto == fields.project)
-                  .map(({
-                    pk_presupuesto,
-                    nombre,
-                  }) => {
-                    return { value: String(pk_presupuesto), text: nombre };
-                  });
-              }}
               label="Presupuesto"
               margin="dense"
               name="budget"
               onChange={handleChange}
               required
-              source={`operaciones/presupuesto`}
               value={fields.client && fields.project && fields.budget}
-            />
+            >
+              {budgets
+                .filter(({ fk_proyecto, estado }) =>
+                  fk_proyecto == fields.project && estado
+                )
+                .map(({ pk_presupuesto, nombre }) => (
+                  <option key={pk_presupuesto} value={pk_presupuesto}>{nombre}
+                  </option>
+                ))}
+            </SelectField>
             <AsyncSelectField
               disabled={!fields.budget}
               fullWidth

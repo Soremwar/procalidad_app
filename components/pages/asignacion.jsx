@@ -24,11 +24,12 @@ import {
 import {
   UserContext,
 } from "../context/User.jsx";
-
 import {
   formatResponseJson,
 } from "../../lib/api/request.js";
 import {
+  formatStandardNumberToStandardString,
+  formatStandardStringToStandardNumber,
   parseDateToStandardNumber,
   parseStandardNumber,
 } from "../../lib/date/mod.js";
@@ -37,12 +38,13 @@ import {
 } from "../../lib/date/lang.js";
 import {
   fetchAssignationApi,
+  fetchAssignationRequestApi,
   fetchClientApi,
   fetchBudgetApi,
   fetchBudgetDetailApi,
   fetchPeopleApi,
   fetchProjectApi,
-  fetchAssignationRequestApi,
+  fetchRoleApi,
 } from "../../lib/api/generator.js";
 
 import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
@@ -61,22 +63,12 @@ const parseNumberAsWeek = (date) => {
   return `${day} de ${month}`;
 };
 
-const formatDateToInputDate = (date) => {
-  const year = date.getFullYear();
-  let month = date.getMonth() + 1;
-  let day = date.getDate();
-
-  if (month < 10) month = "0" + month;
-  if (day < 10) day = "0" + day;
-
-  return `${year}-${month}-${day}`;
-};
-
 const getBudgets = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
 const getProjects = () => fetchProjectApi().then((x) => x.json());
+const getRoles = () => fetchRoleApi().then((x) => x.json());
 const getWeeks = () => fetchAssignationApi("semanas").then((x) => x.json());
 
 const getAssignation = (id) => fetchAssignationApi(id).then((x) => x.json());
@@ -153,6 +145,7 @@ const ParameterContext = createContext({
   clients: [],
   people: [],
   projects: [],
+  roles: [],
 });
 
 const TabPanel = ({ children, index, value }) => (
@@ -301,16 +294,15 @@ const AddModal = ({
           margin="dense"
           name="date"
           onChange={(event) => {
-            const date = parseDateToStandardNumber(
-              new Date(event.target.value),
-            );
-            setFields((fields) => ({ ...fields, date: date }));
+            const { value } = event.target;
+            setFields((fields) => ({
+              ...fields,
+              date: formatStandardStringToStandardNumber(value),
+            }));
           }}
           required
           type="date"
-          value={formatDateToInputDate(
-            parseStandardNumber(fields.date) || new Date(),
-          )}
+          value={formatStandardNumberToStandardString(fields.date)}
         />
         <TextField
           fullWidth
@@ -343,6 +335,7 @@ const EditModal = ({
   const {
     budgets,
     people,
+    roles,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
@@ -354,6 +347,7 @@ const EditModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [available_roles, setAvailableRoles] = useState([]);
 
   useEffect(() => {
     if (is_open) {
@@ -391,6 +385,27 @@ const EditModal = ({
       .catch(() => setError("Ocurrio un error al procesar la operacion"))
       .finally(() => setLoading(false));
   };
+
+  useEffect(() => {
+    if (fields.budget) {
+      getBudgetDetails(fields.budget)
+        .then((details) =>
+          details.reduce((res, { fk_rol }) => {
+            res.push(fk_rol);
+            return res;
+          }, [])
+        )
+        .then((available_roles) =>
+          roles.filter(({ pk_rol }) => available_roles.includes(pk_rol))
+        )
+        .then((available_roles) => {
+          setAvailableRoles(available_roles);
+        });
+    } else {
+      setFields((fields) => ({ ...fields, role: "" }));
+      setAvailableRoles([]);
+    }
+  }, [fields.budget]);
 
   return (
     <Fragment>
@@ -433,38 +448,21 @@ const EditModal = ({
               </option>
             ))}
         </SelectField>
-        <AsyncSelectField
+        <SelectField
           disabled
           fullWidth
-          handleSource={async (source) => {
-            const available_roles = await getBudgetDetails(fields.budget)
-              .then((details) =>
-                details.reduce((res, { fk_rol }) => {
-                  res.push(fk_rol);
-                  return res;
-                }, [])
-              );
-
-            return Object.values(source)
-              .filter(({ pk_rol }) => {
-                if (!fields.budget) return true;
-                return available_roles.includes(pk_rol);
-              })
-              .map(({
-                pk_rol,
-                nombre,
-              }) => {
-                return { value: String(pk_rol), text: nombre };
-              });
-          }}
           label="Rol"
           margin="dense"
           name="role"
           onChange={handleChange}
           required
-          source={`operaciones/rol`}
           value={fields.budget && fields.role}
-        />
+        >
+          {available_roles
+            .map(({ pk_rol, nombre }) => (
+              <option key={pk_rol} value={pk_rol}>{nombre}</option>
+            ))}
+        </SelectField>
         <TextField
           disabled
           fullWidth
@@ -472,16 +470,15 @@ const EditModal = ({
           margin="dense"
           name="date"
           onChange={(event) => {
-            const date = parseDateToStandardNumber(
-              new Date(event.target.value),
-            );
-            setFields((fields) => ({ ...fields, date }));
+            const { value } = event.target;
+            setFields((fields) => ({
+              ...fields,
+              date: formatStandardStringToStandardNumber(value),
+            }));
           }}
           required
           type="date"
-          value={formatDateToInputDate(
-            parseStandardNumber(fields.date) || new Date(),
-          )}
+          value={formatStandardNumberToStandardString(fields.date)}
         />
         <TextField
           fullWidth
@@ -578,6 +575,7 @@ export default () => {
     clients: [],
     people: [],
     projects: [],
+    roles: [],
     weeks: [],
   });
   const [alert_open, setAlertOpen] = useState(false);
@@ -677,6 +675,9 @@ export default () => {
     });
     getProjects().then((projects) =>
       setParameters((prev_state) => ({ ...prev_state, projects }))
+    );
+    getRoles().then((roles) =>
+      setParameters((prev_state) => ({ ...prev_state, roles }))
     );
     getWeeks().then((weeks) =>
       setParameters((prev_state) => ({ ...prev_state, weeks }))

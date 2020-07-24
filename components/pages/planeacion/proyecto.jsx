@@ -42,6 +42,7 @@ import {
   fetchBudgetDetailApi,
   fetchPeopleApi,
   fetchResourceApi,
+  fetchRoleApi,
 } from "../../../lib/api/generator.js";
 
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
@@ -64,6 +65,7 @@ const getResourceGantt = (project) => {
   ].filter(([_index, value]) => value)));
   return fetchResourceApi(`gantt?${params.toString()}`).then((x) => x.json());
 };
+const getRoles = () => fetchRoleApi().then((x) => x.json());
 
 const createResource = async (form_data) => {
   return await fetchResourceApi("", {
@@ -134,6 +136,7 @@ const ParameterContext = createContext({
   budgets: [],
   clients: [],
   people: [],
+  roles: [],
 });
 
 const NotSelectedProjectDialog = ({
@@ -382,6 +385,7 @@ const EditModal = ({
   const {
     budgets,
     people,
+    roles,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
@@ -394,6 +398,7 @@ const EditModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [available_roles, setAvailableRoles] = useState([]);
 
   useEffect(() => {
     if (is_open) {
@@ -433,6 +438,27 @@ const EditModal = ({
       .finally(() => setLoading(false));
   };
 
+  useEffect(() => {
+    if (fields.budget) {
+      getBudgetDetails(fields.budget)
+        .then((details) =>
+          details.reduce((res, { fk_rol }) => {
+            res.push(fk_rol);
+            return res;
+          }, [])
+        )
+        .then((available_roles) =>
+          roles.filter(({ pk_rol }) => available_roles.includes(pk_rol))
+        )
+        .then((available_roles) => {
+          setAvailableRoles(available_roles);
+        });
+    } else {
+      setFields((fields) => ({ ...fields, role: "" }));
+      setAvailableRoles([]);
+    }
+  }, [fields.budget]);
+
   return (
     <Fragment>
       {project
@@ -470,38 +496,21 @@ const EditModal = ({
                 </option>
               ))}
             </SelectField>
-            <AsyncSelectField
+            <SelectField
               disabled={!fields.budget}
               fullWidth
-              handleSource={async (source) => {
-                const available_roles = await getBudgetDetails(fields.budget)
-                  .then((details) =>
-                    details.reduce((res, { fk_rol }) => {
-                      res.push(fk_rol);
-                      return res;
-                    }, [])
-                  );
-
-                return Object.values(source)
-                  .filter(({ pk_rol }) => {
-                    if (!fields.budget) return true;
-                    return available_roles.includes(pk_rol);
-                  })
-                  .map(({
-                    pk_rol,
-                    nombre,
-                  }) => {
-                    return { value: String(pk_rol), text: nombre };
-                  });
-              }}
               label="Rol"
               margin="dense"
               name="role"
               onChange={handleChange}
               required
-              source={`operaciones/rol`}
               value={fields.budget && fields.role}
-            />
+            >
+              {available_roles
+                .map(({ pk_rol, nombre }) => (
+                  <option key={pk_rol} value={pk_rol}>{nombre}</option>
+                ))}
+            </SelectField>
             <TextField
               fullWidth
               label="Fecha Inicio"
@@ -641,6 +650,7 @@ export default () => {
     budgets: [],
     clients: [],
     people: [],
+    roles: [],
   });
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedProyect, setSelectedProyect] = useState(null);
@@ -704,6 +714,9 @@ export default () => {
         { pk_persona, nombre },
       ) => [pk_persona, nombre]);
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
+    });
+    getRoles().then((roles) => {
+      setParameters((prev_state) => ({ ...prev_state, roles }));
     });
   }, []);
 
