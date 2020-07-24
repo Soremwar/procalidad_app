@@ -19,6 +19,7 @@ import {
 } from "../MAESTRO/dim_semana.ts";
 import {
   isWeekOpen as isControlOpen,
+  findByPersonAndWeek as findControl,
   TABLE as CONTROL_TABLE,
 } from "./control_semana.ts";
 
@@ -68,12 +69,14 @@ class Asignacion {
   //TODO
   //Should delete assignations on cascade
   async delete(): Promise<void> {
-    const is_control_open = await isControlOpen(this.person, this.week);
-    if (!is_control_open) {
+    const control = await findControl(this.person, this.week);
+    if (!control || control.closed) {
       throw new Error(
         "La semana asociada a esta asignacion se encuentra cerrada",
       );
     }
+
+    await control.clearRegistry(this.id);
 
     await postgres.query(
       `DELETE FROM ${TABLE} WHERE PK_ASIGNACION = $1`,

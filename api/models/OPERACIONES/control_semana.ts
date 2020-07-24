@@ -61,6 +61,27 @@ export class WeekControl {
 
     return this;
   }
+
+  /*
+  * This function recalculates the registry and deletes not matching records from the assignation
+  * If an assignation is provided, it will tell the registry to remove every record that follows that assignation
+  * as if it was already deleted
+  * */
+  async clearRegistry(assignation?: number): Promise<void> {
+    await postgres.query(
+      `DELETE FROM ${REGISTRY_TABLE}
+      WHERE FK_CONTROL_SEMANA||'_'||FK_PRESUPUESTO||'_'||FK_ROL NOT IN (
+        SELECT C.PK_CONTROL||'_'||A.FK_PRESUPUESTO||'_'||A.FK_ROL
+        FROM ${ASSIGNATION_TABLE} A
+        JOIN ${TABLE} C
+        ON A.FK_SEMANA = C.FK_SEMANA
+        AND A.FK_PERSONA = C.FK_PERSONA
+        WHERE A.FK_SEMANA = $1
+        ${assignation ? `AND A.PK_ASIGNACION <> ${assignation}` : ""}
+      )`,
+      this.id,
+    );
+  }
 }
 
 export const createNewControl = async (
@@ -225,6 +246,37 @@ export const findByPersonAndDate = async (
   ] = rows[0];
 
   return new WeekControl(...result);
+};
+
+export const findByPersonAndWeek = async (
+  person: number,
+  week: number,
+): Promise<WeekControl | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_CONTROL,
+      FK_PERSONA,
+      FK_SEMANA,
+      BAN_CERRADO,
+      FECHA_CIERRE
+    FROM ${TABLE}
+    WHERE FK_PERSONA = $1
+    AND FK_SEMANA = $2`,
+    person,
+    week,
+  );
+
+  if (!rows[0]) return null;
+
+  return new WeekControl(
+    ...rows[0] as [
+      number,
+      number,
+      number,
+      boolean,
+      Date | null,
+    ],
+  );
 };
 
 //TODO
