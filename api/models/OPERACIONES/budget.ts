@@ -145,7 +145,7 @@ export const findById = async (id: number): Promise<Budget | null> => {
 * for a given project. If that were to change this whole system would have
 * to be reformulated
 * */
-export const findByProject = async (
+export const findOpenBudgetByProject = async (
   project: number,
 ): Promise<Budget | null> => {
   const { rows } = await postgres.query(
@@ -158,23 +158,24 @@ export const findByProject = async (
       DESCRIPCION,
       ESTADO
     FROM ${TABLE}
-    WHERE FK_PROYECTO = $1`,
+    WHERE FK_PROYECTO = $1
+    AND ESTADO = TRUE`,
     project,
   );
 
   if (!rows[0]) return null;
 
-  const result: [
-    number,
-    number,
-    number,
-    number,
-    string,
-    string,
-    boolean,
-  ] = rows[0];
-
-  return new Budget(...result);
+  return new Budget(
+    ...rows[0] as [
+      number,
+      number,
+      number,
+      number,
+      string,
+      string,
+      boolean,
+    ],
+  );
 };
 
 export const createNew = async (

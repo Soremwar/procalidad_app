@@ -16,7 +16,7 @@ import {
   createNew as createRegistry,
 } from "../../api/models/OPERACIONES/registro.ts";
 import {
-  findByProject as findBudgetByProject,
+  findOpenBudgetByProject as findBudgetByProject,
 } from "../../api/models/OPERACIONES/budget.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
