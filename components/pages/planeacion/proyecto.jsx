@@ -23,19 +23,18 @@ import {
 import {
   makeStyles,
 } from "@material-ui/styles";
-
 import {
   FrappeGantt,
   Task,
   ViewMode,
 } from "frappe-gantt-react";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
+  formatStandardNumberToStandardString,
+  formatStandardStringToStandardNumber,
   parseDateToStandardNumber,
-  parseStandardNumber,
 } from "../../../lib/date/mod.js";
 import {
   fetchClientApi,
@@ -52,17 +51,6 @@ import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
-
-const formatDateToInputDate = (date) => {
-  const year = date.getFullYear();
-  let month = date.getMonth() + 1;
-  let day = date.getDate();
-
-  if (month < 10) month = "0" + month;
-  if (day < 10) day = "0" + day;
-
-  return `${year}-${month}-${day}`;
-};
 
 const getBudgets = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
@@ -220,12 +208,8 @@ const AddModal = ({
   const [error, setError] = useState(null);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -256,6 +240,8 @@ const AddModal = ({
         assignation: "",
         hours: "",
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
@@ -333,16 +319,15 @@ const AddModal = ({
               margin="dense"
               name="start_date"
               onChange={(event) => {
-                const date = parseDateToStandardNumber(
-                  new Date(event.target.value),
-                );
-                setFields((fields) => ({ ...fields, start_date: date }));
+                const { value } = event.target;
+                setFields((fields) => ({
+                  ...fields,
+                  start_date: formatStandardStringToStandardNumber(value),
+                }));
               }}
               required
               type="date"
-              value={formatDateToInputDate(
-                parseStandardNumber(fields.start_date) || new Date(),
-              )}
+              value={formatStandardNumberToStandardString(fields.start_date)}
             />
             <TextField
               fullWidth
@@ -420,25 +405,21 @@ const EditModal = ({
         assignation: data.porcentaje,
         hours: data.horas,
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const id = data.pk_recurso;
-
-    updateResource(id, new URLSearchParams(fields))
+    updateResource(data.pk_recurso, new URLSearchParams(fields))
       .then(async (request) => {
         if (request.ok) {
           setModalOpen(false);
@@ -527,16 +508,15 @@ const EditModal = ({
               margin="dense"
               name="start_date"
               onChange={(event) => {
-                const date = parseDateToStandardNumber(
-                  new Date(event.target.value),
-                );
-                setFields((fields) => ({ ...fields, start_date: date }));
+                const { value } = event.target;
+                setFields((fields) => ({
+                  ...fields,
+                  start_date: formatStandardStringToStandardNumber(value),
+                }));
               }}
               required
               type="date"
-              value={formatDateToInputDate(
-                parseStandardNumber(fields.start_date) || new Date(),
-              )}
+              value={formatStandardNumberToStandardString(fields.start_date)}
             />
             <TextField
               fullWidth
@@ -702,8 +682,8 @@ export default () => {
         new Task({
           id: index,
           name: `${person} - ${assignation}%`,
-          start: formatDateToInputDate(parseStandardNumber(start_date)),
-          end: formatDateToInputDate(parseStandardNumber(end_date)),
+          start: formatStandardNumberToStandardString(start_date),
+          end: formatStandardNumberToStandardString(end_date),
           progress: 100,
         })
       );
