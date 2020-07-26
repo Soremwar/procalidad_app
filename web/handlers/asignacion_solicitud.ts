@@ -1,4 +1,5 @@
 import Ajv from "ajv";
+import { validateJwt } from "djwt/validate.ts";
 import { RouterContext, Body } from "oak";
 import {
   createNew,
@@ -13,11 +14,14 @@ import {
   findByPersonAndDate as findWeekControlByPersonAndDate,
 } from "../../api/models/OPERACIONES/control_semana.ts";
 import {
-  createNew as createRegistry,
-} from "../../api/models/OPERACIONES/registro.ts";
-import {
+  findById as findBudget,
   findOpenBudgetByProject as findBudgetByProject,
 } from "../../api/models/OPERACIONES/budget.ts";
+import {
+  findById as findProject,
+} from "../../api/models/OPERACIONES/PROYECTO.ts";
+import { encryption_key } from "../../config/api_deno.js";
+import { Profiles } from "../../api/common/profiles.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
   BOOLEAN,
@@ -124,7 +128,7 @@ export const createAssignationRequest = async (
 };
 
 export const updateAssignationRequest = async (
-  { params, request, response }: RouterContext<{ id: string }>,
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id = Number(params.id);
   if (!id || !request.hasBody) throw new RequestSyntaxError();
@@ -141,20 +145,52 @@ export const updateAssignationRequest = async (
   const assignation_request = await findById(id);
   if (!assignation_request) throw new NotFoundError();
 
-  const control = await findWeekControl(assignation_request.control);
-  //Shouldn't happen cause of constraints
-  if (!control) throw new NotFoundError("La semana solicitada no existe");
-  if (control.closed) {
-    throw new Error(
-      "La semana especificada para la solicitud ya se encuentra cerrada",
-    );
-  }
-
   const approved = typeof value.approved === "string"
     ? castStringToBoolean(value.approved)
     : value.approved;
 
   if (approved) {
+    const budget_data = await findBudget(assignation_request.budget);
+    if (!budget_data) {
+      throw new NotFoundError("El presupuesto seleccionado no existe");
+    }
+
+    //Ignore cause this is already validated but TypeScript is too dumb to notice
+    const session_cookie = cookies.get("PA_AUTH");
+    //@ts-ignore
+    const session = await validateJwt(session_cookie, encryption_key);
+    //@ts-ignore
+    const { profiles: user_profiles, id: user_id } = session.payload?.context
+      ?.user;
+
+    const project_data = await findProject(budget_data.fk_proyecto);
+    if (!project_data) {
+      throw new NotFoundError("El proyecto seleccionado no existe");
+    }
+    const allowed_editors = await project_data.getSupervisors();
+    if (!allowed_editors.includes(user_id)) {
+      if (
+        !user_profiles.some((profile: number) =>
+          [
+            Profiles.ADMINISTRATOR,
+            Profiles.CONTROLLER,
+          ].includes(profile)
+        )
+      ) {
+        throw new Error(
+          "Usted no tiene permiso para asignar sobre este proyecto",
+        );
+      }
+    }
+
+    const control = await findWeekControl(assignation_request.control);
+    if (!control) throw new NotFoundError("La semana solicitada no existe");
+    if (control.closed) {
+      throw new Error(
+        "La semana especificada para la solicitud ya se encuentra cerrada",
+      );
+    }
+
     await createAssignation(
       control.person,
       assignation_request.budget,

@@ -618,11 +618,14 @@ export default () => {
     setAlertOpen(false);
     setError(null);
     updateAssignationRequest(id, approved)
-      .then((response) => {
+      .then(async (response) => {
         if (response.ok) {
           setAlertOpen(true);
         } else {
-          throw new Error();
+          const { message } = await response.json();
+          console.log(message);
+          setError(message);
+          setAlertOpen(true);
         }
       })
       .catch(() => {
