@@ -1,4 +1,5 @@
 import { Body, RouterContext } from "oak";
+import { validateJwt } from "djwt/validate.ts";
 import {
   createNew,
   findAll,
@@ -21,8 +22,13 @@ import {
   findById as findBudget,
 } from "../../../api/models/OPERACIONES/budget.ts";
 import {
+  findById as findProject,
+} from "../../../api/models/OPERACIONES/PROYECTO.ts";
+import {
   parseOrderFromObject,
 } from "../../../api/common/table.ts";
+import { encryption_key } from "../../../config/api_deno.js";
+import { Profiles } from "../../../api/common/profiles.ts";
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import {
@@ -91,7 +97,9 @@ export const getResourcesTable = async (
   }
 };
 
-export const createResource = async ({ request, response }: RouterContext) => {
+export const createResource = async (
+  { cookies, request, response }: RouterContext,
+) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
@@ -118,9 +126,39 @@ export const createResource = async ({ request, response }: RouterContext) => {
   }
 
   const budget_data = await findBudget(Number(budget));
-  if (!budget_data) throw new Error("El presupuesto seleccionado no existe");
+  if (!budget_data) {
+    throw new NotFoundError("El presupuesto seleccionado no existe");
+  }
   if (!budget_data.estado) {
     throw new Error("El presupuesto seleccionado esta cerrado");
+  }
+
+  //Ignore cause this is already validated but TypeScript is too dumb to notice
+  const session_cookie = cookies.get("PA_AUTH");
+  //@ts-ignore
+  const session = await validateJwt(session_cookie, encryption_key);
+  //@ts-ignore
+  const { profiles: user_profiles, id: user_id } = session.payload?.context
+    ?.user;
+
+  const project_data = await findProject(budget_data.fk_proyecto);
+  if (!project_data) {
+    throw new NotFoundError("El proyecto seleccionado no existe");
+  }
+  const allowed_editors = await project_data.getSupervisors();
+  if (!allowed_editors.includes(user_id)) {
+    if (
+      !user_profiles.some((profile: number) =>
+        [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ].includes(profile)
+      )
+    ) {
+      throw new Error(
+        "Usted no tiene permiso para planear sobre este proyecto",
+      );
+    }
   }
 
   const start_date_week = await findWeekByDate(Number(start_date));
@@ -167,7 +205,7 @@ export const getResource = async (
 };
 
 export const updateResource = async (
-  { params, request, response }: RouterContext<{ id: string }>,
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -205,6 +243,34 @@ export const updateResource = async (
   if (!budget_data) throw new Error("El presupuesto seleccionado no existe");
   if (!budget_data.estado) {
     throw new Error("El presupuesto seleccionado esta cerrado");
+  }
+
+  //Ignore cause this is already validated but TypeScript is too dumb to notice
+  const session_cookie = cookies.get("PA_AUTH");
+  //@ts-ignore
+  const session = await validateJwt(session_cookie, encryption_key);
+  //@ts-ignore
+  const { profiles: user_profiles, id: user_id } = session.payload?.context
+    ?.user;
+
+  const project_data = await findProject(budget_data.fk_proyecto);
+  if (!project_data) {
+    throw new NotFoundError("El proyecto seleccionado no existe");
+  }
+  const allowed_editors = await project_data.getSupervisors();
+  if (!allowed_editors.includes(user_id)) {
+    if (
+      !user_profiles.some((profile: number) =>
+        [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ].includes(profile)
+      )
+    ) {
+      throw new Error(
+        "Usted no tiene permiso para planear sobre este proyecto",
+      );
+    }
   }
 
   //TODO

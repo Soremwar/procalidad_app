@@ -381,7 +381,8 @@ const AddModal = ({
                   fk_proyecto == fields.project && estado
                 )
                 .map(({ pk_presupuesto, nombre }) => (
-                  <option key={pk_presupuesto} value={pk_presupuesto}>{nombre}
+                  <option key={pk_presupuesto} value={pk_presupuesto}>
+                    {nombre}
                   </option>
                 ))}
             </SelectField>
