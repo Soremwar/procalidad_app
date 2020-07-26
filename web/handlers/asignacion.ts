@@ -1,4 +1,5 @@
 import { Body, RouterContext } from "oak";
+import { validateJwt } from "djwt/validate.ts";
 import {
   createNew,
   findAll,
@@ -7,8 +8,16 @@ import {
   getTableData,
 } from "../../api/models/OPERACIONES/asignacion.ts";
 import {
+  findById as findBudget,
+} from "../../api/models/OPERACIONES/budget.ts";
+import {
+  findById as findProject,
+} from "../../api/models/OPERACIONES/PROYECTO.ts";
+import {
   tableRequestHandler,
 } from "../../api/common/table.ts";
+import { encryption_key } from "../../config/api_deno.js";
+import { Profiles } from "../../api/common/profiles.ts";
 import { formatResponse, Message, Status } from "../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import { parseStandardNumber } from "../../lib/date/mod.js";
@@ -24,7 +33,7 @@ export const getAssignationsTable = async (context: RouterContext) =>
   );
 
 export const createAssignation = async (
-  { request, response }: RouterContext,
+  { cookies, request, response }: RouterContext,
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
@@ -49,6 +58,39 @@ export const createAssignation = async (
     throw new RequestSyntaxError();
   }
 
+  const budget_data = await findBudget(Number(budget));
+  if (!budget_data) {
+    throw new NotFoundError("El presupuesto seleccionado no existe");
+  }
+
+  //Ignore cause this is already validated but TypeScript is too dumb to notice
+  const session_cookie = cookies.get("PA_AUTH");
+  //@ts-ignore
+  const session = await validateJwt(session_cookie, encryption_key);
+  //@ts-ignore
+  const { profiles: user_profiles, id: user_id } = session.payload?.context
+    ?.user;
+
+  const project_data = await findProject(budget_data.fk_proyecto);
+  if (!project_data) {
+    throw new NotFoundError("El proyecto seleccionado no existe");
+  }
+  const allowed_editors = await project_data.getSupervisors();
+  if (!allowed_editors.includes(user_id)) {
+    if (
+      !user_profiles.some((profile: number) =>
+        [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ].includes(profile)
+      )
+    ) {
+      throw new Error(
+        "Usted no tiene permiso para asignar sobre este proyecto",
+      );
+    }
+  }
+
   response.body = await createNew(
     Number(person),
     Number(budget),
@@ -59,13 +101,46 @@ export const createAssignation = async (
 };
 
 export const updateAssignation = async (
-  { params, request, response }: RouterContext<{ id: string }>,
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
   let resource = await findById(id);
   if (!resource) throw new NotFoundError();
+
+  const budget_data = await findBudget(resource.budget);
+  if (!budget_data) {
+    throw new NotFoundError("El presupuesto seleccionado no existe");
+  }
+
+  //Ignore cause this is already validated but TypeScript is too dumb to notice
+  const session_cookie = cookies.get("PA_AUTH");
+  //@ts-ignore
+  const session = await validateJwt(session_cookie, encryption_key);
+  //@ts-ignore
+  const { profiles: user_profiles, id: user_id } = session.payload?.context
+    ?.user;
+
+  const project_data = await findProject(budget_data.fk_proyecto);
+  if (!project_data) {
+    throw new NotFoundError("El proyecto seleccionado no existe");
+  }
+  const allowed_editors = await project_data.getSupervisors();
+  if (!allowed_editors.includes(user_id)) {
+    if (
+      !user_profiles.some((profile: number) =>
+        [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ].includes(profile)
+      )
+    ) {
+      throw new Error(
+        "Usted no tiene permiso para asignar sobre este proyecto",
+      );
+    }
+  }
 
   const raw_attributes: Array<[string, string]> = await request.body()
     .then((x: Body) => Array.from(x.value));

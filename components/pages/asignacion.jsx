@@ -569,7 +569,6 @@ const useStyles = makeStyles((theme) => ({
 export default () => {
   const classes = useStyles();
 
-  const [userState] = useContext(UserContext);
   const [parameters, setParameters] = useState({
     budgets: [],
     clients: [],
@@ -686,7 +685,7 @@ export default () => {
 
   useEffect(() => {
     setSelectedProject("");
-  }, [selected_client, userState.id]);
+  }, [selected_client]);
 
   useEffect(() => {
     updateAssignationTable();
@@ -739,8 +738,7 @@ export default () => {
             >
               {parameters.projects
                 .filter(({ fk_cliente, fk_supervisor }) =>
-                  fk_cliente == selected_client &&
-                  fk_supervisor == userState.id
+                  fk_cliente == selected_client
                 )
                 .map(({ pk_proyecto, nombre }) => (
                   <option key={pk_proyecto} value={pk_proyecto}>
