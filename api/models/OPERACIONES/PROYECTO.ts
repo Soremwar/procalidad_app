@@ -47,7 +47,7 @@ class Proyecto {
       this.pk_proyecto,
     );
 
-    return rows[0];
+    return rows[0][0];
   }
 
   async hasOpenBudget(): Promise<boolean> {
