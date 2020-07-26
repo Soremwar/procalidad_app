@@ -6,9 +6,7 @@ import {
   TableRow,
   Tooltip,
 } from "@material-ui/core";
-import {
-  getRandomColor,
-} from "../../../../lib/colors/mod.js";
+import getRandomColor from "randomcolor";
 import Heatmap, {
   CleanTableCell,
   DateParameters,
@@ -52,33 +50,47 @@ const DetailTableRow = ({ children, className = "", ...props }) => {
   );
 };
 
+const colors = [
+  "blue",
+  "green",
+  "orange",
+  "pink",
+  "purple",
+  "yellow",
+];
+
+const getRandomHue = () => {
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
 const HeatmapData = ({
   data,
 }) => {
   const { calendar_dates } = useContext(DateParameters);
-
-  return data.map(({ project_id, project, dates }) => {
-    const color = getRandomColor();
-
-    return (
-      <DetailTableRow key={project_id}>
-        <CleanTableCell>
-          {project}
-        </CleanTableCell>
-        {calendar_dates.map((calendar_date) => {
-          const activity = dates.find(({ date }) => calendar_date == date);
-          return (
-            <DetailCell
-              assignation={activity ? Number(activity.assignation) : 0}
-              color={activity ? color : null}
-              key={calendar_date}
-              value={activity ? Number(activity.hours) : 0}
-            />
-          );
-        })}
-      </DetailTableRow>
-    );
+  const color = getRandomColor({
+    format: "hex",
+    hue: getRandomHue(),
+    luminosity: "dark",
   });
+
+  return data.map(({ project_id, project, dates }) => (
+    <DetailTableRow key={project_id}>
+      <CleanTableCell>
+        {project}
+      </CleanTableCell>
+      {calendar_dates.map((calendar_date) => {
+        const activity = dates.find(({ date }) => calendar_date == date);
+        return (
+          <DetailCell
+            assignation={activity ? Number(activity.assignation) : 0}
+            color={activity ? color : null}
+            key={calendar_date}
+            value={activity ? Number(activity.hours) : 0}
+          />
+        );
+      })}
+    </DetailTableRow>
+  ));
 };
 
 export default ({
