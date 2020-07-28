@@ -62,6 +62,9 @@ export const createAssignation = async (
   if (!budget_data) {
     throw new NotFoundError("El presupuesto seleccionado no existe");
   }
+  if (!budget_data.estado) {
+    throw new Error("El presupuesto para esta asignacion se encuentra cerrado");
+  }
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
   const session_cookie = cookies.get("PA_AUTH");
@@ -112,6 +115,9 @@ export const updateAssignation = async (
   const budget_data = await findBudget(resource.budget);
   if (!budget_data) {
     throw new NotFoundError("El presupuesto seleccionado no existe");
+  }
+  if (!budget_data.estado) {
+    throw new Error("El presupuesto para esta asignacion se encuentra cerrado");
   }
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
@@ -164,6 +170,14 @@ export const deleteAssignation = async (
 
   let resource = await findById(id);
   if (!resource) throw new NotFoundError();
+
+  const budget_data = await findBudget(resource.budget);
+  if (!budget_data) {
+    throw new NotFoundError("El presupuesto seleccionado no existe");
+  }
+  if (!budget_data.estado) {
+    throw new Error("El presupuesto para esta asignacion se encuentra cerrado");
+  }
 
   await resource.delete();
   response = formatResponse(
