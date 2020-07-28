@@ -1,12 +1,11 @@
 import postgres from "../../services/postgres.js";
-import { PostgresError } from "deno_postgres";
 import {
   TableOrder,
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
 
-const TABLE = "ORGANIZACION.ASIGNACION_CARGO";
+export const TABLE = "ORGANIZACION.ASIGNACION_CARGO";
 
 class AsignacionCargo {
   constructor(

@@ -4,7 +4,6 @@ import {
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
-
 import {
   createNew as createDetail,
   deleteByResource as deleteDetails,
@@ -17,6 +16,9 @@ import {
   TABLE as BUDGET_TABLE,
 } from "../OPERACIONES/budget.ts";
 import {
+  TABLE as BUDGET_DETAIL_TABLE,
+} from "../OPERACIONES/PRESUPUESTO_DETALLE.ts";
+import {
   TABLE as PROJECT_TABLE,
 } from "../OPERACIONES/PROYECTO.ts";
 import {
@@ -25,6 +27,9 @@ import {
 import {
   TABLE as PERSON_TABLE,
 } from "../ORGANIZACION/PERSONA.ts";
+import {
+  TABLE as POSITION_ASSIGNATION_TABLE,
+} from "../ORGANIZACION/asignacion_cargo.ts";
 
 export const TABLE = "PLANEACION.RECURSO";
 
@@ -600,6 +605,8 @@ class DetailHeatmapData {
 
 export const getDetailHeatmapData = async (
   person: number,
+  sub_area?: number,
+  role?: number,
 ): Promise<DetailHeatmapData[]> => {
   const { rows: dates } = await postgres.query(
     `SELECT
@@ -619,6 +626,25 @@ export const getDetailHeatmapData = async (
       R.FK_PERSONA = $1
     AND
       TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 MONTHS'
+    ${
+      sub_area
+        ? `AND R.FK_PRESUPUESTO IN (
+      SELECT PK_PRESUPUESTO
+      FROM ${BUDGET_TABLE} PRE
+      JOIN ${PROJECT_TABLE} PRO
+        ON PRE.FK_PROYECTO = PRO.PK_PROYECTO
+      WHERE PRO.FK_SUB_AREA = ${sub_area})`
+        : ""
+    }
+    ${
+      role
+        ? `AND R.FK_PRESUPUESTO IN (
+      SELECT FK_PRESUPUESTO
+      FROM ${BUDGET_DETAIL_TABLE}
+      WHERE FK_ROL = ${role}
+    )`
+        : ""
+    }
     GROUP BY 
       PRE.FK_PROYECTO,
       RD.FECHA
@@ -648,6 +674,16 @@ export const getDetailHeatmapData = async (
       )
     AND
       R.FK_PERSONA = $1
+    ${sub_area ? `AND PRO.FK_SUB_AREA  = ${sub_area}` : ""}
+    ${
+      role
+        ? `AND R.FK_PRESUPUESTO IN (
+			SELECT FK_PRESUPUESTO
+			FROM ${BUDGET_DETAIL_TABLE}
+			WHERE FK_ROL = ${role}
+		)`
+        : ""
+    }
     GROUP BY
       PRO.PK_PROYECTO,
       PRO.NOMBRE`,
@@ -712,6 +748,9 @@ export enum HeatmapFormula {
 
 export const getResourceHeatmapData = async (
   formula: HeatmapFormula,
+  sub_area?: number,
+  position?: number,
+  role?: number,
 ): Promise<ResourceHeatmapData[]> => {
   const { rows: dates } = await postgres.query(
     `SELECT
@@ -732,6 +771,34 @@ export const getResourceHeatmapData = async (
       ON RD.FK_RECURSO = R.PK_RECURSO
     WHERE
       TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 months'
+    ${
+      sub_area
+        ? `AND R.FK_PRESUPUESTO IN (
+      SELECT PK_PRESUPUESTO
+      FROM ${BUDGET_TABLE} PRE
+      JOIN ${PROJECT_TABLE} PRO
+        ON PRE.FK_PROYECTO = PRO.PK_PROYECTO
+      WHERE PRO.FK_SUB_AREA = ${sub_area})`
+        : ""
+    }
+    ${
+      position
+        ? `AND R.FK_PERSONA IN (
+      SELECT FK_PERSONA
+      FROM ${POSITION_ASSIGNATION_TABLE}
+      WHERE FK_CARGO = ${position}
+    )`
+        : ""
+    }
+    ${
+      role
+        ? `AND R.FK_PRESUPUESTO IN (
+      SELECT FK_PRESUPUESTO
+      FROM ${BUDGET_DETAIL_TABLE}
+      WHERE FK_ROL = ${role}
+    )`
+        : ""
+    }
     GROUP BY
       R.FK_PERSONA,
       RD.FECHA
@@ -750,8 +817,38 @@ export const getResourceHeatmapData = async (
         WHERE
           TO_DATE(CAST(FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 months'
       )
+      ${
+      sub_area
+        ? `AND FK_PRESUPUESTO IN (
+      SELECT PK_PRESUPUESTO
+      FROM ${BUDGET_TABLE} PRE
+      JOIN ${PROJECT_TABLE} PRO
+        ON PRE.FK_PROYECTO = PRO.PK_PROYECTO
+      WHERE PRO.FK_SUB_AREA = ${sub_area})`
+        : ""
+    }
+    ${
+      position
+        ? `AND FK_PERSONA IN (
+      SELECT FK_PERSONA
+      FROM ${POSITION_ASSIGNATION_TABLE}
+      WHERE FK_CARGO = ${position}
+    )`
+        : ""
+    }
+    ${
+      role
+        ? `AND FK_PRESUPUESTO IN (
+      SELECT FK_PRESUPUESTO
+      FROM ${BUDGET_DETAIL_TABLE}
+      WHERE FK_ROL = ${role}
+    )`
+        : ""
+    }
     GROUP BY
       FK_PERSONA,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA)
+    ORDER BY
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA)`,
   );
 

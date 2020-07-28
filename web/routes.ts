@@ -1740,7 +1740,7 @@ main_router
     ]),
     getResourcesGantt,
   )
-  .get(
+  .post(
     "/api/planeacion/recurso/heatmap",
     checkProfileAccess([
       Profiles.ADMINISTRATOR,

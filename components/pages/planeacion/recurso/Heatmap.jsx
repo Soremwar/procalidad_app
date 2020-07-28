@@ -194,7 +194,7 @@ export default ({
                 return month_count;
               }, {}))
               .map(([month_id, count]) => (
-                <CleanTableCell align="center" colSpan={count}>
+                <CleanTableCell align="center" colSpan={count} key={month_id}>
                   {month_lang.get(month_id)}
                 </CleanTableCell>
               ))}

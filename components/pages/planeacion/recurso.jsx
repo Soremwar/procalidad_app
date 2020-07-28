@@ -40,9 +40,11 @@ import {
   fetchBudgetDetailApi,
   fetchClientApi,
   fetchPeopleApi,
+  fetchPositionApi,
   fetchProjectApi,
   fetchResourceApi,
   fetchRoleApi,
+  fetchSubAreaApi,
   fetchTimeApi,
 } from "../../../lib/api/generator.js";
 
@@ -67,13 +69,15 @@ const global_tasks = [
   },
 ].map((x) => new Task(x));
 
-const getClients = () => fetchClientApi().then((x) => x.json());
-const getProjects = () => fetchProjectApi().then((x) => x.json());
-const getPeople = () => fetchPeopleApi().then((x) => x.json());
 const getBudgets = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
+const getClients = () => fetchClientApi().then((x) => x.json());
+const getPositions = () => fetchPositionApi().then((x) => x.json());
+const getProjects = () => fetchProjectApi().then((x) => x.json());
+const getPeople = () => fetchPeopleApi().then((x) => x.json());
 const getRoles = () => fetchRoleApi().then((x) => x.json());
 const getResource = (id) => fetchResourceApi(id).then((x) => x.json());
+const getSubAreas = () => fetchSubAreaApi().then((x) => x.json());
 const getResourceGantt = (type, person, project) => {
   const params = new URLSearchParams(Object.fromEntries([
     ["person", person],
@@ -91,15 +95,31 @@ const getBlacklistedDates = (start_date, end_date) => {
 };
 const getResourceHeatmap = (
   type,
-  person,
-  formula,
+  sub_area,
+  position,
+  role,
 ) => {
-  const params = new URLSearchParams(Object.fromEntries([
-    ["person", person],
-    ["formula", formula],
-    ["type", type],
-  ].filter(([_index, value]) => value)));
-  return fetchResourceApi(`heatmap?${params.toString()}`).then((x) => x.json());
+  return fetchResourceApi(`heatmap?type=resource`, {
+    body: JSON.stringify({ type, sub_area, position, role }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  }).then((x) => x.json());
+};
+const getDetailHeatmap = (
+  person,
+  sub_area,
+  position,
+  role,
+) => {
+  return fetchResourceApi(`heatmap?type=detail`, {
+    body: JSON.stringify({ person, sub_area, position, role }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  }).then((x) => x.json());
 };
 
 const createResource = async (form_data) => {
@@ -191,13 +211,15 @@ const resource_headers = [
   },
 ];
 
-const ParameterContext = createContext({
+export const ParameterContext = createContext({
   blacklisted_dates: [],
   budgets: [],
   clients: [],
   people: [],
+  positions: [],
   projects: [],
   roles: [],
+  sub_areas: [],
 });
 
 const NotSelectedPersonDialog = ({
@@ -788,11 +810,12 @@ export default () => {
     budgets: [],
     clients: [],
     people: [],
+    positions: [],
     projects: [],
     roles: [],
+    sub_areas: [],
   });
-  const [heatmap_data, setHeatmapData] = useState([]);
-  const [heatmap_formula, setHeatmapFormula] = useState("occupation");
+  const [heatmap_should_update, setHeatmapShouldUpdate] = useState(false);
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
@@ -857,15 +880,7 @@ export default () => {
   };
 
   const updateHeatmap = () => {
-    if (!selected_person) {
-      getResourceHeatmap("resource", undefined, heatmap_formula).then((data) =>
-        setHeatmapData(data)
-      );
-    } else {
-      getResourceHeatmap("detail", selected_person).then((data) =>
-        setHeatmapData(data)
-      );
-    }
+    setHeatmapShouldUpdate(true);
   };
 
   const updateTable = () => {
@@ -891,11 +906,17 @@ export default () => {
       ) => [pk_persona, nombre]);
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
+    getPositions().then((positions) =>
+      setParameters((prev_state) => ({ ...prev_state, positions }))
+    );
     getProjects().then((projects) =>
       setParameters((prev_state) => ({ ...prev_state, projects }))
     );
     getRoles().then((roles) =>
       setParameters((prev_state) => ({ ...prev_state, roles }))
+    );
+    getSubAreas().then((sub_areas) =>
+      setParameters((prev_state) => ({ ...prev_state, sub_areas }))
     );
   }, []);
 
@@ -912,12 +933,6 @@ export default () => {
         break;
     }
   }, [selected_person, selected_tab]);
-
-  useEffect(() => {
-    if (selected_tab === 2) {
-      updateHeatmap();
-    }
-  }, [heatmap_formula]);
 
   return (
     <Fragment>
@@ -1019,28 +1034,24 @@ export default () => {
           <ParameterContext.Provider value={parameters}>
             {!selected_person
               ? (
-                <Fragment>
-                  <SelectField
-                    onChange={(event) => setHeatmapFormula(event.target.value)}
-                    value={heatmap_formula}
-                  >
-                    <option value="availability">Disponible</option>
-                    <option value="occupation">Ocupacion</option>
-                  </SelectField>
-                  <ResourceHeatmap
-                    blacklisted_dates={parameters.blacklisted_dates}
-                    data={heatmap_data}
-                    end_date={MAX_DATE_HEATMAP}
-                    start_date={TODAY}
-                    type={heatmap_formula}
-                  />
-                </Fragment>
+                <ResourceHeatmap
+                  blacklisted_dates={parameters.blacklisted_dates}
+                  end_date={MAX_DATE_HEATMAP}
+                  getSource={(type, sub_area, position, role) =>
+                    getResourceHeatmap(type, sub_area, position, role)}
+                  onUpdate={() => setHeatmapShouldUpdate(true)}
+                  should_update={heatmap_should_update}
+                  start_date={TODAY}
+                />
               )
               : (
                 <DetailHeatmap
                   blacklisted_dates={parameters.blacklisted_dates}
-                  data={heatmap_data}
                   end_date={MAX_DATE_HEATMAP}
+                  getSource={(sub_area, position, role) =>
+                    getDetailHeatmap(selected_person, sub_area, position, role)}
+                  onUpdate={() => setHeatmapShouldUpdate(true)}
+                  should_update={heatmap_should_update}
                   start_date={TODAY}
                 />
               )}

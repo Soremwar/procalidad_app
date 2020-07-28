@@ -1,3 +1,4 @@
+import Ajv from "ajv";
 import { Body, RouterContext } from "oak";
 import { validateJwt } from "djwt/validate.ts";
 import {
@@ -35,6 +36,53 @@ import {
   parseDateToStandardNumber,
   parseStandardNumber,
 } from "../../../lib/date/mod.js";
+import {
+  TRUTHY_INTEGER,
+  TRUTHY_INTEGER_OR_EMPTY,
+} from "../../../lib/ajv/types.js";
+
+const heatmap_resource_request = {
+  $id: "heatmap_resource",
+  properties: {
+    "type": {
+      pattern: `^(${Object.values(HeatmapFormula).join("|")})$`,
+      type: "string",
+    },
+    "sub_area": TRUTHY_INTEGER_OR_EMPTY,
+    "position": TRUTHY_INTEGER_OR_EMPTY,
+    "role": TRUTHY_INTEGER_OR_EMPTY,
+  },
+  required: [
+    "type",
+    "sub_area",
+    "position",
+    "role",
+  ],
+};
+
+const heatmap_detail_request = {
+  $id: "heatmap_detail",
+  properties: {
+    "person": TRUTHY_INTEGER,
+    "sub_area": TRUTHY_INTEGER_OR_EMPTY,
+    "position": TRUTHY_INTEGER_OR_EMPTY,
+    "role": TRUTHY_INTEGER_OR_EMPTY,
+  },
+  required: [
+    "person",
+    "sub_area",
+    "position",
+    "role",
+  ],
+};
+
+// @ts-ignore
+const request_validator = new Ajv({
+  schemas: [
+    heatmap_detail_request,
+    heatmap_resource_request,
+  ],
+});
 
 enum ResourceViewType {
   project = "project",
@@ -357,30 +405,45 @@ export const getResourcesHeatmap = async (
   { request, response }: RouterContext,
 ) => {
   const {
-    formula,
-    person,
-    type,
+    type: heatmap_type_string,
   }: { [x: string]: string } = Object.fromEntries(
     request.url.searchParams.entries(),
   );
+  if (!request.hasBody) throw new RequestSyntaxError();
 
-  const heatmap_type =
-    type == ResourceViewType.resource || type == ResourceViewType.detail
-      ? type as ResourceViewType
-      : ResourceViewType.resource;
+  const {
+    type: request_type,
+    value: request_value,
+  }: Body = await request.body();
+  if (request_type !== "json") throw new RequestSyntaxError();
 
-  const heatmap_formula = formula in HeatmapFormula
-    ? formula as HeatmapFormula
-    : HeatmapFormula.occupation;
+  const heatmap_type = heatmap_type_string == ResourceViewType.resource ||
+    heatmap_type_string == ResourceViewType.detail
+    ? heatmap_type_string as ResourceViewType
+    : ResourceViewType.resource;
+
   if (heatmap_type === ResourceViewType.resource) {
+    if (
+      !request_validator.validate("heatmap_resource", request_value)
+    ) {
+      throw new RequestSyntaxError();
+    }
     response.body = await getResourceHeatmapData(
-      heatmap_formula,
+      request_value.type as HeatmapFormula,
+      Number(request_value.sub_area) || undefined,
+      Number(request_value.position) || undefined,
+      Number(request_value.role) || undefined,
     );
   } else if (heatmap_type === ResourceViewType.detail) {
-    if (!Number(person)) throw new RequestSyntaxError();
-
+    if (
+      !request_validator.validate("heatmap_detail", request_value)
+    ) {
+      throw new RequestSyntaxError();
+    }
     response.body = await getDetailHeatmapData(
-      Number(person),
+      Number(request_value.person),
+      Number(request_value.sub_area) || undefined,
+      Number(request_value.role) || undefined,
     );
   }
 };

@@ -1,6 +1,6 @@
 import postgres from "../../services/postgres.js";
 
-const TABLE = "OPERACIONES.PRESUPUESTO_DETALLE";
+export const TABLE = "OPERACIONES.PRESUPUESTO_DETALLE";
 
 class PresupuestoDetalle {
   constructor(
