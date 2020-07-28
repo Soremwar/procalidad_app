@@ -154,6 +154,11 @@ export const updateAssignationRequest = async (
     if (!budget_data) {
       throw new NotFoundError("El presupuesto seleccionado no existe");
     }
+    if (!budget_data.estado) {
+      throw new Error(
+        "El presupuesto para esta asignacion se encuentra cerrado",
+      );
+    }
 
     //Ignore cause this is already validated but TypeScript is too dumb to notice
     const session_cookie = cookies.get("PA_AUTH");
