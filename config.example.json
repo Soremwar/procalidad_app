@@ -18,6 +18,12 @@
       "database": "postgres",
       "host": "127.0.0.1",
       "port": "5432"
+    },
+    "smtp": {
+      "host": "127.0.0.1",
+      "password": "password",
+      "port": "1000",
+      "username": "user@mail.com"
     }
   }
 }
