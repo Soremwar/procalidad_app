@@ -5,6 +5,9 @@ import {
   TableResult,
 } from "../../common/table.ts";
 import {
+  Profiles,
+} from "../../common/profiles.ts";
+import {
   TABLE as BUDGET_TABLE,
 } from "./budget.ts";
 import {
@@ -253,7 +256,7 @@ class TableData {
     public date: string,
     public hours: number,
     public editable: string,
-    public supervisor: number,
+    public id_supervisor: number,
   ) {}
 }
 
@@ -264,25 +267,12 @@ export const getTableData = async (
   search: { [key: string]: string },
 ): Promise<TableResult> => {
   const base_query = (
-    `WITH ALLOWED_USERS AS (
-      SELECT USERS
-      FROM (
-        SELECT
-          UNNEST(ARRAY[PRO.FK_SUPERVISOR, SA.FK_SUPERVISOR]) AS USERS
-        FROM ${TABLE} A
-        JOIN ${BUDGET_TABLE} PRE
-          ON PRE.PK_PRESUPUESTO = A.FK_PRESUPUESTO
-        JOIN ${PROJECT_TABLE} PRO
-          ON PRO.PK_PROYECTO = PRE.FK_PROYECTO
-        JOIN ${SUB_AREA_TABLE} SA
-          ON SA.PK_SUB_AREA = PRO.FK_SUB_AREA
-        UNION ALL
-        SELECT FK_PERSONA AS USERS
-        FROM ${ACCESS_TABLE} WHERE FK_PERMISO IN (
-          1,2
-        )
-      ) A
-      GROUP BY USERS
+    `WITH ADMIN_USERS AS (
+      SELECT FK_PERSONA AS USERS
+      FROM ${ACCESS_TABLE} WHERE FK_PERMISO IN (
+        ${Profiles.ADMINISTRATOR},
+        ${Profiles.CONTROLLER}
+      )
     )
     SELECT
       PK_ASIGNACION AS ID,
@@ -293,11 +283,25 @@ export const getTableData = async (
       TO_CHAR(TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
       TO_CHAR(HORAS, 'FM999999999.0') AS HOURS,
       CASE WHEN C.BAN_CERRADO IS NULL THEN 'No modificable' ELSE 'Modificable' END AS EDITABLE,
-      ALLOWED_USERS.USERS AS SUPERVISOR
+      ALLOWED_USERS.SUPERVISOR AS ID_SUPERVISOR
     FROM ${TABLE} AS A
     JOIN ${WEEK_TABLE} AS S
       ON A.FK_SEMANA = S.PK_SEMANA
-    JOIN ALLOWED_USERS ON 1 = 1
+    JOIN (
+      SELECT
+        PRE.PK_PRESUPUESTO,
+        UNNEST(ARRAY_CAT(
+          ARRAY[PRO.FK_SUPERVISOR, SA.FK_SUPERVISOR],
+          (SELECT ARRAY_AGG(USERS) FROM ADMIN_USERS)
+        )) AS SUPERVISOR
+      FROM ${BUDGET_TABLE} PRE
+      JOIN ${PROJECT_TABLE} PRO
+        ON PRO.PK_PROYECTO = PRE.FK_PROYECTO
+      JOIN ${SUB_AREA_TABLE} SA
+        ON SA.PK_SUB_AREA = PRO.FK_SUB_AREA
+      GROUP BY PK_PRESUPUESTO, SUPERVISOR
+    ) ALLOWED_USERS
+    ON ALLOWED_USERS.PK_PRESUPUESTO = A.FK_PRESUPUESTO
     LEFT JOIN ${CONTROL_TABLE} AS C
       ON A.FK_SEMANA = C.FK_SEMANA
       AND A.FK_PERSONA = C.FK_PERSONA

@@ -792,8 +792,8 @@ export default () => {
               onTableUpdate={setAssignationTableShouldUpdate}
               search={{
                 id_project: selected_project,
+                id_supervisor: user_id,
                 id_week: selected_week,
-                supervisor: user_id,
               }}
               update_table={assignation_table_should_update}
               url={"asignacion/asignacion/table"}
