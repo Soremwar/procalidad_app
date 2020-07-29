@@ -569,6 +569,7 @@ const useStyles = makeStyles((theme) => ({
 export default () => {
   const classes = useStyles();
 
+  const { id: user_id } = useContext(UserContext)[0];
   const [parameters, setParameters] = useState({
     budgets: [],
     clients: [],
@@ -638,7 +639,7 @@ export default () => {
   };
 
   const updateAssignationTable = () => {
-    if (selected_project && selected_week && (selected_tab === 0)) {
+    if (user_id && selected_project && selected_week && (selected_tab === 0)) {
       setAssignationTableShouldUpdate(true);
     }
   };
@@ -792,6 +793,7 @@ export default () => {
               search={{
                 id_project: selected_project,
                 id_week: selected_week,
+                supervisor: user_id,
               }}
               update_table={assignation_table_should_update}
               url={"asignacion/asignacion/table"}

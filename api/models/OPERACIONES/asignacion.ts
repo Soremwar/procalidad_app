@@ -8,15 +8,24 @@ import {
   TABLE as BUDGET_TABLE,
 } from "./budget.ts";
 import {
+  TABLE as PROJECT_TABLE,
+} from "./PROYECTO.ts";
+import {
   TABLE as ROLE_TABLE,
 } from "./ROL.ts";
 import {
   TABLE as PERSON_TABLE,
 } from "../ORGANIZACION/PERSONA.ts";
 import {
+  TABLE as SUB_AREA_TABLE,
+} from "../ORGANIZACION/sub_area.ts";
+import {
   findIdByDate as findIsWeekByDate,
   TABLE as WEEK_TABLE,
 } from "../MAESTRO/dim_semana.ts";
+import {
+  TABLE as ACCESS_TABLE,
+} from "../MAESTRO/access.ts";
 import {
   isWeekOpen as isControlOpen,
   findByPersonAndWeek as findControl,
@@ -244,6 +253,7 @@ class TableData {
     public date: string,
     public hours: number,
     public editable: string,
+    public supervisor: number,
   ) {}
 }
 
@@ -254,7 +264,27 @@ export const getTableData = async (
   search: { [key: string]: string },
 ): Promise<TableResult> => {
   const base_query = (
-    `SELECT
+    `WITH ALLOWED_USERS AS (
+      SELECT USERS
+      FROM (
+        SELECT
+          UNNEST(ARRAY[PRO.FK_SUPERVISOR, SA.FK_SUPERVISOR]) AS USERS
+        FROM ${TABLE} A
+        JOIN ${BUDGET_TABLE} PRE
+          ON PRE.PK_PRESUPUESTO = A.FK_PRESUPUESTO
+        JOIN ${PROJECT_TABLE} PRO
+          ON PRO.PK_PROYECTO = PRE.FK_PROYECTO
+        JOIN ${SUB_AREA_TABLE} SA
+          ON SA.PK_SUB_AREA = PRO.FK_SUB_AREA
+        UNION ALL
+        SELECT FK_PERSONA AS USERS
+        FROM ${ACCESS_TABLE} WHERE FK_PERMISO IN (
+          1,2
+        )
+      ) A
+      GROUP BY USERS
+    )
+    SELECT
       PK_ASIGNACION AS ID,
       S.PK_SEMANA AS ID_WEEK,
       (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = A.FK_PRESUPUESTO) AS ID_PROJECT,
@@ -262,10 +292,12 @@ export const getTableData = async (
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = A.FK_ROL) AS ROLE,
       TO_CHAR(TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
       TO_CHAR(HORAS, 'FM999999999.0') AS HOURS,
-      CASE WHEN C.BAN_CERRADO IS NULL THEN 'No modificable' ELSE 'Modificable' END AS EDITABLE
+      CASE WHEN C.BAN_CERRADO IS NULL THEN 'No modificable' ELSE 'Modificable' END AS EDITABLE,
+      ALLOWED_USERS.USERS AS SUPERVISOR
     FROM ${TABLE} AS A
     JOIN ${WEEK_TABLE} AS S
       ON A.FK_SEMANA = S.PK_SEMANA
+    JOIN ALLOWED_USERS ON 1 = 1
     LEFT JOIN ${CONTROL_TABLE} AS C
       ON A.FK_SEMANA = C.FK_SEMANA
       AND A.FK_PERSONA = C.FK_PERSONA
@@ -289,6 +321,7 @@ export const getTableData = async (
     string,
     number,
     string,
+    number,
   ]) => new TableData(...x));
 
   return new TableResult(
