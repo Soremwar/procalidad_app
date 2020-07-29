@@ -1,5 +1,7 @@
 import {
-  dispatchRegistryNotUpToDate as sendRegistryNotUpToDateEmail,
+  dispatchRegistryDelayedUsers as sendRegistryDelayedUsersEmail,
+  dispatchRegistryDelayedAreas as sendRegistryDelayedAreasEmail,
 } from "../api/email/dispatchers.js";
 
-await sendRegistryNotUpToDateEmail();
+await sendRegistryDelayedUsersEmail();
+await sendRegistryDelayedAreasEmail();

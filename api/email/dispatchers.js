@@ -24,6 +24,12 @@ import {
   TABLE as PERSON_TABLE,
 } from "../models/ORGANIZACION/PERSONA.ts";
 import {
+  TABLE as SUB_AREA_TABLE,
+} from "../models/ORGANIZACION/sub_area.ts";
+import {
+  TABLE as POSITION_ASSIGNATION_TABLE,
+} from "../models/ORGANIZACION/asignacion_cargo.ts";
+import {
   TABLE as WEEK_TABLE,
 } from "../models/MAESTRO/dim_semana.ts";
 
@@ -139,7 +145,7 @@ export const dispatchAssignationRequestReviewed = async (
   );
 };
 
-export const dispatchRegistryNotUpToDate = async () => {
+export const dispatchRegistryDelayedUsers = async () => {
   const { rows } = await postgres.query(
     `SELECT
       P.NOMBRE AS PERSON_NAME,
@@ -170,6 +176,67 @@ export const dispatchRegistryNotUpToDate = async () => {
     await sendNewEmail(
       person_email,
       `Notificacion de retraso de registro`,
+      await createGenericEmail(content),
+    );
+  });
+
+  await Promise.all(emails);
+};
+
+export const dispatchRegistryDelayedAreas = async () => {
+  const { rows: delayed_sub_areas } = await postgres.query(
+    `SELECT
+      P.CORREO AS SUPERVISOR_EMAIL,
+      SA.PK_SUB_AREA AS ID_SUB_AREA
+    FROM ${SUB_AREA_TABLE} SA
+    JOIN ${PERSON_TABLE} P
+      ON P.PK_PERSONA = SA.FK_SUPERVISOR
+    WHERE PK_SUB_AREA IN (
+      SELECT
+        AC.FK_SUB_AREA
+      FROM ${WEEK_CONTROL_TABLE} CS
+      JOIN ${WEEK_TABLE} DS
+        ON DS.PK_SEMANA = CS.FK_SEMANA
+      JOIN ${POSITION_ASSIGNATION_TABLE} AC
+        ON AC.FK_PERSONA = CS.FK_PERSONA
+      WHERE CS.BAN_CERRADO = FALSE
+      AND FECHA_FIN < CURRENT_DATE
+    )`,
+  );
+
+  const emails = delayed_sub_areas.map(async ([
+    supervisor_email,
+    id_sub_area,
+  ]) => {
+    const { rows: delayed_users } = await postgres.query(
+      `SELECT
+        (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = CS.FK_PERSONA) AS PERSON_NAME,
+        TO_CHAR(DS.FECHA_INICIO, 'YYYY-MM-DD') AS WEEK_DATE
+      FROM ${WEEK_CONTROL_TABLE} CS
+      JOIN ${WEEK_TABLE} DS
+        ON DS.PK_SEMANA = CS.FK_SEMANA
+      JOIN ${POSITION_ASSIGNATION_TABLE} AC
+        ON AC.FK_PERSONA = CS.FK_PERSONA
+      WHERE CS.BAN_CERRADO = FALSE
+      AND DS.FECHA_FIN < CURRENT_DATE
+      AND AC.FK_SUB_AREA = $1`,
+      id_sub_area,
+    );
+
+    const content = (
+      `A la fecha estas personas se encuentran atrasadas en el registro
+    
+    ${
+        delayed_users.map(([
+          person_name,
+          week_date,
+        ]) => `${person_name} Semana: ${week_date}`).join("\n")
+      }`
+    );
+
+    await sendNewEmail(
+      supervisor_email,
+      `Notificacion de retraso de area`,
       await createGenericEmail(content),
     );
   });
