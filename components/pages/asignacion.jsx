@@ -90,8 +90,8 @@ const deleteAssignation = async (id) =>
     method: "DELETE",
   });
 
-const getAssignationRequestTable = async () =>
-  fetchAssignationRequestApi("table");
+const getAssignationRequestTable = async (id) =>
+  fetchAssignationRequestApi(`table/${id}`);
 
 const updateAssignationRequest = async (id, approved) =>
   fetchAssignationRequestApi(id, {
@@ -648,7 +648,7 @@ export default () => {
     setAlertOpen(false);
     setError(null);
     if (selected_project && selected_week && (selected_tab === 1)) {
-      getAssignationRequestTable()
+      getAssignationRequestTable(user_id)
         .then(async (response) => {
           if (response.ok) {
             setRequestTableData(await response.json());

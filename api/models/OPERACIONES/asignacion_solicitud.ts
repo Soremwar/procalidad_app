@@ -1,7 +1,16 @@
 import postgres from "../../services/postgres.js";
 import {
+  Profiles,
+} from "../../common/profiles.ts";
+import {
+  TABLE as ACCESS_TABLE,
+} from "../MAESTRO/access.ts";
+import {
   TABLE as PERSON_TABLE,
 } from "../ORGANIZACION/PERSONA.ts";
+import {
+  TABLE as SUB_AREA_TABLE,
+} from "../ORGANIZACION/sub_area.ts";
 import {
   TABLE as BUDGET_TABLE,
 } from "./budget.ts";
@@ -132,9 +141,16 @@ class TableData {
   }
 }
 
-export const getTableData = async () => {
+export const getTableData = async (person: number) => {
   const { rows } = await postgres.query(
-    `SELECT
+    `WITH ADMIN_USERS AS (
+      SELECT FK_PERSONA AS USERS
+      FROM ${ACCESS_TABLE} WHERE FK_PERMISO IN (
+        ${Profiles.ADMINISTRATOR},
+        ${Profiles.CONTROLLER}
+      )
+    )
+    SELECT
       A.PK_SOLICITUD AS ID,
       C.FK_SEMANA AS ID_WEEK,
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = C.FK_PERSONA) AS PERSON,
@@ -146,7 +162,24 @@ export const getTableData = async () => {
       DESCRIPCION AS DESCRIPTION
     FROM ${TABLE} AS A
     JOIN ${CONTROL_TABLE} AS C
-      ON A.FK_CONTROL_SEMANA = C.PK_CONTROL`,
+      ON A.FK_CONTROL_SEMANA = C.PK_CONTROL
+    JOIN (
+      SELECT
+        PRE.PK_PRESUPUESTO,
+        UNNEST(ARRAY_CAT(
+          ARRAY[PRO.FK_SUPERVISOR, SA.FK_SUPERVISOR],
+          (SELECT ARRAY_AGG(USERS) FROM ADMIN_USERS)
+        )) AS SUPERVISOR
+      FROM ${BUDGET_TABLE} PRE
+      JOIN ${PROJECT_TABLE} PRO
+        ON PRO.PK_PROYECTO = PRE.FK_PROYECTO
+      JOIN ${SUB_AREA_TABLE} SA
+        ON SA.PK_SUB_AREA = PRO.FK_SUB_AREA
+      GROUP BY PK_PRESUPUESTO, SUPERVISOR
+    ) ALLOWED_USERS
+      ON ALLOWED_USERS.PK_PRESUPUESTO = A.FK_PRESUPUESTO
+    WHERE ALLOWED_USERS.SUPERVISOR = $1`,
+    person,
   );
 
   return rows.map((row: [

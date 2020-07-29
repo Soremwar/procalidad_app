@@ -225,7 +225,10 @@ export const updateAssignationRequest = async (
 };
 
 export const getAssignationRequestTable = async (
-  { response }: RouterContext,
+  { params, response }: RouterContext<{ person: string }>,
 ) => {
-  response.body = await getTableData();
+  const person = Number(params.person);
+  if (!person) throw new RequestSyntaxError();
+
+  response.body = await getTableData(person);
 };

@@ -1954,8 +1954,8 @@ main_router
   );
 
 main_router
-  .get(
-    "/api/asignacion_solicitud/table",
+  .get<{ person: string }>(
+    "/api/asignacion_solicitud/table/:person",
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
