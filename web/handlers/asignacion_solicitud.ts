@@ -20,6 +20,10 @@ import {
 import {
   findById as findProject,
 } from "../../api/models/OPERACIONES/PROYECTO.ts";
+import {
+  dispatchAssignationRequested as sendAssignationRequestEmail,
+  dispatchAssignationRequestReviewed as sendAssignationRequestReviewEmail,
+} from "../../api/email/dispatchers.js";
 import { encryption_key } from "../../config/api_deno.js";
 import { Profiles } from "../../api/common/profiles.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
@@ -30,7 +34,6 @@ import {
 } from "../../lib/ajv/types.js";
 import {
   parseStandardNumber,
-  parseDateToStandardNumber,
 } from "../../lib/date/mod.js";
 import {
   castStringToBoolean,
@@ -117,7 +120,7 @@ export const createAssignationRequest = async (
     );
   }
 
-  response.body = await createNew(
+  const assignation_request = await createNew(
     control.id,
     budget.pk_presupuesto,
     Number(value.role),
@@ -125,6 +128,13 @@ export const createAssignationRequest = async (
     Number(value.hours),
     value.description,
   );
+
+  await sendAssignationRequestEmail(assignation_request.id)
+    .catch(() => {
+      //This  should be removed after an email queue is created
+    });
+
+  response.body = assignation_request;
 };
 
 export const updateAssignationRequest = async (
@@ -148,6 +158,11 @@ export const updateAssignationRequest = async (
   const approved = typeof value.approved === "string"
     ? castStringToBoolean(value.approved)
     : value.approved;
+
+  //TODO
+  //Should queue here
+  //After the approval/rejection operation has been completed, it should be set to send
+  await sendAssignationRequestReviewEmail(assignation_request.id, approved);
 
   if (approved) {
     const budget_data = await findBudget(assignation_request.budget);
