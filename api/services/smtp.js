@@ -11,7 +11,9 @@ export const sendNewEmail = async (
   subject,
   content,
 ) => {
-  const client = new SmtpClient();
+  const client = new SmtpClient({
+    content_encoding: "7bit",
+  });
 
   await client.connectTLS({
     hostname: host,

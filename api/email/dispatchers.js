@@ -4,6 +4,7 @@ import {
 import postgres from "../services/postgres.js";
 import {
   createGenericEmail,
+  createAssignationRequestEmail,
 } from "./templates.js";
 import {
   TABLE as ASSIGNATION_REQUEST_TABLE,
@@ -69,21 +70,18 @@ export const dispatchAssignationRequested = async (assignation_request) => {
     description,
   ] = rows[0];
 
-  const content = (
-    `${requestant} ha solicitado una nueva asignacion para la fecha ${date}.
-    
-    "${description}"
-    
-    Proyecto: ${project}
-    Rol: ${role}
-    Horas: ${hours}`
+  const email_content = await createAssignationRequestEmail(
+    requestant,
+    description,
+    date,
+    project,
+    role,
+    hours,
   );
-
-  const email_content = await createGenericEmail(content);
 
   await sendNewEmail(
     supervisor_email,
-    "Nueva solicitud de asignacion",
+    "Solicitud de Asignación",
     email_content,
   );
 };
