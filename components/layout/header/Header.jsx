@@ -4,7 +4,6 @@ import {
   Toolbar,
   IconButton,
   Menu,
-  MenuItem,
 } from "@material-ui/core";
 import {
   Menu as MenuIcon,
@@ -94,39 +93,17 @@ export default function Header(props) {
               className={classes.profileMenuLink}
               component="a"
               color="primary"
-              href="https://flatlogic.com"
             >
               {userState.email}
             </Typography>
           </div>
-          <MenuItem
-            className={[classes.profileMenuItem, classes.headerMenuItem].join(
-              " ",
-            )}
-          >
-            <AccountIcon className={classes.profileMenuIcon} /> Profile
-          </MenuItem>
-          <MenuItem
-            className={[classes.profileMenuItem, classes.headerMenuItem].join(
-              " ",
-            )}
-          >
-            <AccountIcon className={classes.profileMenuIcon} /> Tasks
-          </MenuItem>
-          <MenuItem
-            className={[classes.profileMenuItem, classes.headerMenuItem].join(
-              " ",
-            )}
-          >
-            <AccountIcon className={classes.profileMenuIcon} /> Messages
-          </MenuItem>
           <div className={classes.profileMenuUser}>
             <Typography
               className={classes.profileMenuLink}
               color="primary"
               onClick={() => signOutUser(userDispatch, props.history)}
             >
-              Sign Out
+              Cerrar Sesion
             </Typography>
           </div>
         </Menu>
