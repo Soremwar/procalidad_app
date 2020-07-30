@@ -1,22 +1,20 @@
 import {
   address,
   port,
-} from "../../config/api_deno.js";
+  protocol,
+} from "../../config/app_deno.js";
 import HtmlEncoder from "html-entities";
 import Handlebars from "handlebars";
 
-//TODO
-//Url should read the protocol config
-
 Handlebars.registerHelper("AppUrl", function (app_route = "") {
   return new Handlebars.SafeString(
-    `http://${address}:${port}/${app_route}`,
+    `${protocol}://${address}:${port}/${app_route}`,
   );
 });
 
 Handlebars.registerHelper("AssetUrl", function (resource_route) {
   return new Handlebars.SafeString(
-    `http://${address}:${port}/resources/${resource_route}`,
+    `${protocol}://${address}:${port}/resources/${resource_route}`,
   );
 });
 
