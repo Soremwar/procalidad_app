@@ -3,9 +3,10 @@ import {
 } from "../services/smtp.js";
 import postgres from "../services/postgres.js";
 import {
-  createGenericEmail,
   createAssignationRequestEmail,
   createAssignationRequestReviewEmail,
+  createRegistryDelayedAreaEmail,
+  createRegistryDelayedUserEmail,
 } from "./templates.js";
 import {
   TABLE as ASSIGNATION_REQUEST_TABLE,
@@ -132,6 +133,7 @@ export const dispatchAssignationRequestReviewed = async (
     description,
     project,
     requestant_name,
+    role,
   );
 
   await sendNewEmail(
@@ -163,16 +165,14 @@ export const dispatchRegistryDelayedUsers = async () => {
     start_date,
     end_date,
   ]) => {
-    const content = (
-      `${person_name}, a la fecha se encuentra atrasado con su registro.
-    
-    La semana del ${start_date} al ${end_date} no ha sido cerrada`
-    );
-
     await sendNewEmail(
       person_email,
-      `Notificacion de retraso de registro`,
-      await createGenericEmail(content),
+      `Notificación demora en Registro`,
+      await createRegistryDelayedUserEmail(
+        person_name,
+        start_date,
+        end_date,
+      ),
     );
   });
 
@@ -204,7 +204,7 @@ export const dispatchRegistryDelayedAreas = async () => {
     supervisor_email,
     id_sub_area,
   ]) => {
-    const { rows: delayed_users } = await postgres.query(
+    const { rows } = await postgres.query(
       `SELECT
         (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = CS.FK_PERSONA) AS PERSON_NAME,
         TO_CHAR(DS.FECHA_INICIO, 'YYYY-MM-DD') AS WEEK_DATE
@@ -219,21 +219,19 @@ export const dispatchRegistryDelayedAreas = async () => {
       id_sub_area,
     );
 
-    const content = (
-      `A la fecha estas personas se encuentran atrasadas en el registro
-    
-    ${
-        delayed_users.map(([
-          person_name,
-          week_date,
-        ]) => `${person_name} Semana: ${week_date}`).join("\n")
-      }`
-    );
+    const delayed_users = rows.map(([
+      name,
+      week,
+    ]) => {
+      return { name, week };
+    });
 
     await sendNewEmail(
       supervisor_email,
       `Notificacion de retraso de area`,
-      await createGenericEmail(content),
+      await createRegistryDelayedAreaEmail(
+        delayed_users,
+      ),
     );
   });
 
