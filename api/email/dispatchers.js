@@ -5,6 +5,7 @@ import postgres from "../services/postgres.js";
 import {
   createGenericEmail,
   createAssignationRequestEmail,
+  createAssignationRequestReviewEmail,
 } from "./templates.js";
 import {
   TABLE as ASSIGNATION_REQUEST_TABLE,
@@ -94,6 +95,7 @@ export const dispatchAssignationRequestReviewed = async (
     `SELECT
       TO_CHAR(TO_DATE(ASO.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
       PER.CORREO AS REQUESTANT_EMAIL,
+      PER.NOMBRE AS REQUESTANT_NAME,
       PRO.NOMBRE AS PROJECT,
       ROL.NOMBRE AS ROLE,
       ASO.HORAS AS HOURS,
@@ -116,29 +118,25 @@ export const dispatchAssignationRequestReviewed = async (
   const [
     date,
     requestant_email,
+    requestant_name,
     project,
     role,
     hours,
     description,
   ] = rows[0];
 
-  const content = (
-    `Su solicitud para la fecha ${date} ha sido ${
-      approved ? "aprobada" : "rechazada"
-    }.
-    
-    "${description}"
-    
-    Proyecto: ${project}
-    Rol: ${role}
-    Horas: ${hours}`
+  const email_content = await createAssignationRequestReviewEmail(
+    approved,
+    date,
+    hours,
+    description,
+    project,
+    requestant_name,
   );
-
-  const email_content = await createGenericEmail(content);
 
   await sendNewEmail(
     requestant_email,
-    `Solicitud de asignacion ${approved ? "aprobada" : "rechazada"}`,
+    `Solicitud de asignación ${approved ? "Aprobada" : "Rechazada"}`,
     email_content,
   );
 };

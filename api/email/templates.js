@@ -59,3 +59,31 @@ export const createAssignationRequestEmail = async (
     role,
   });
 };
+
+export const createAssignationRequestReviewEmail = async (
+  approved,
+  date,
+  hours,
+  message,
+  project,
+  requestant,
+  role,
+) => {
+  const html = new HtmlEncoder.AllHtmlEntities();
+  const safe_message = html.encode(String(message));
+
+  const raw_template = await Deno.readTextFile(
+    new URL("./templates/assignation_request_review.html", import.meta.url),
+  );
+  const template = Handlebars.compile(raw_template);
+
+  return template({
+    approved,
+    date,
+    hours,
+    message: safe_message,
+    project,
+    requestant,
+    role,
+  });
+};
