@@ -1,13 +1,13 @@
 {
    "imports": {
       "ajv": "https://cdn.pika.dev/ajv@6.12.2",
-      "deno_postgres": "https://deno.land/x/postgres@ecad494a86a66f7a7b140b8b3091e3d5885ea491/mod.ts",
-      "deno_postgres/": "https://deno.land/x/postgres@ecad494a86a66f7a7b140b8b3091e3d5885ea491/",
-      "djwt/": "https://deno.land/x/djwt@9eae2530bb02574023198245b0af291d77667d0a/",
+      "deno_postgres": "https://raw.githubusercontent.com/deno-postgres/deno-postgres/ecad494a86a66f7a7b140b8b3091e3d5885ea491/mod.ts",
+      "deno_postgres/": "https://raw.githubusercontent.com/deno-postgres/deno-postgres/ecad494a86a66f7a7b140b8b3091e3d5885ea491/",
+      "djwt/": "https://raw.githubusercontent.com/timonson/djwt/9eae2530bb02574023198245b0af291d77667d0a/",
       "fs": "https://deno.land/std@0.59.0/fs/mod.ts",
       "handlebars": "https://cdn.skypack.dev/handlebars@4.7.6",
       "html-entities": "https://cdn.skypack.dev/html-entities@1.3.1",
-      "smtp": "https://raw.githubusercontent.com/Soremwar/deno_smtp/40e553d64052aa6e6980a882aa8addd3f4efbb6d/mod.ts",
-      "oak": "https://deno.land/x/oak@46cc54eb651e58bf5425413fa5b50022e881b56f/mod.ts"
+      "smtp": "https://raw.githubusercontent.com/manyuanrong/deno-smtp/7ab83c6a84cb4382974c48314ceda45c58426615/mod.ts",
+      "oak": "https://raw.githubusercontent.com/oakserver/oak/46cc54eb651e58bf5425413fa5b50022e881b56f/mod.ts"
    }
 }
