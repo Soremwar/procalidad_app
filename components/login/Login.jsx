@@ -23,11 +23,11 @@ const Login = ({ history }) => {
   return (
     <Grid container className={classes.container}>
       <div className={classes.logotypeContainer}>
-        {/*
-          TODO
-          Logo goes here
-          <img src={logo} alt="logo" className={classes.logotypeImage} />
-        */}
+        <img
+          src={"/resources/img/login_icon.png"}
+          alt="PROCALIDAD_APP_LOGO"
+          className={classes.logotypeImage}
+        />
         <Typography className={classes.logotypeText}>
           {/*
             TODO

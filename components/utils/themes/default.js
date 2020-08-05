@@ -14,9 +14,7 @@ export default {
   palette: {
     primary: {
       main: primary,
-      light: tinycolor(primary)
-        .lighten(lightenRate)
-        .toHexString(),
+      light: "#E21835",
       dark: tinycolor(primary)
         .darken(darkenRate)
         .toHexString(),
