@@ -64,15 +64,9 @@ const heatmap_detail_request = {
   $id: "heatmap_detail",
   properties: {
     "person": TRUTHY_INTEGER,
-    "sub_area": TRUTHY_INTEGER_OR_EMPTY,
-    "position": TRUTHY_INTEGER_OR_EMPTY,
-    "role": TRUTHY_INTEGER_OR_EMPTY,
   },
   required: [
     "person",
-    "sub_area",
-    "position",
-    "role",
   ],
 };
 
@@ -442,8 +436,6 @@ export const getResourcesHeatmap = async (
     }
     response.body = await getDetailHeatmapData(
       Number(request_value.person),
-      Number(request_value.sub_area) || undefined,
-      Number(request_value.role) || undefined,
     );
   }
 };

@@ -605,8 +605,6 @@ class DetailHeatmapData {
 
 export const getDetailHeatmapData = async (
   person: number,
-  sub_area?: number,
-  role?: number,
 ): Promise<DetailHeatmapData[]> => {
   const { rows: dates } = await postgres.query(
     `SELECT
@@ -626,25 +624,6 @@ export const getDetailHeatmapData = async (
       R.FK_PERSONA = $1
     AND
       TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 MONTHS'
-    ${
-      sub_area
-        ? `AND R.FK_PRESUPUESTO IN (
-      SELECT PK_PRESUPUESTO
-      FROM ${BUDGET_TABLE} PRE
-      JOIN ${PROJECT_TABLE} PRO
-        ON PRE.FK_PROYECTO = PRO.PK_PROYECTO
-      WHERE PRO.FK_SUB_AREA = ${sub_area})`
-        : ""
-    }
-    ${
-      role
-        ? `AND R.FK_PRESUPUESTO IN (
-      SELECT FK_PRESUPUESTO
-      FROM ${BUDGET_DETAIL_TABLE}
-      WHERE FK_ROL = ${role}
-    )`
-        : ""
-    }
     GROUP BY 
       PRE.FK_PROYECTO,
       RD.FECHA
@@ -674,16 +653,6 @@ export const getDetailHeatmapData = async (
       )
     AND
       R.FK_PERSONA = $1
-    ${sub_area ? `AND PRO.FK_SUB_AREA  = ${sub_area}` : ""}
-    ${
-      role
-        ? `AND R.FK_PRESUPUESTO IN (
-			SELECT FK_PRESUPUESTO
-			FROM ${BUDGET_DETAIL_TABLE}
-			WHERE FK_ROL = ${role}
-		)`
-        : ""
-    }
     GROUP BY
       PRO.PK_PROYECTO,
       PRO.NOMBRE`,

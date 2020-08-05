@@ -109,12 +109,9 @@ const getResourceHeatmap = (
 };
 const getDetailHeatmap = (
   person,
-  sub_area,
-  position,
-  role,
 ) => {
   return fetchResourceApi(`heatmap?type=detail`, {
-    body: JSON.stringify({ person, sub_area, position, role }),
+    body: JSON.stringify({ person }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -1048,8 +1045,7 @@ export default () => {
                 <DetailHeatmap
                   blacklisted_dates={parameters.blacklisted_dates}
                   end_date={MAX_DATE_HEATMAP}
-                  getSource={(sub_area, position, role) =>
-                    getDetailHeatmap(selected_person, sub_area, position, role)}
+                  getSource={() => getDetailHeatmap(selected_person)}
                   onUpdate={() => setHeatmapShouldUpdate(true)}
                   should_update={heatmap_should_update}
                   start_date={TODAY}
