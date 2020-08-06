@@ -143,9 +143,9 @@ export const getTableData = async (
 ): Promise<TableResult> => {
   const base_query = (
     `SELECT
-      A.FK_PERSONA,
-      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = A.FK_PERSONA),
-      ARRAY_TO_STRING(ARRAY_AGG(B.NOMBRE), ', ')
+      A.FK_PERSONA AS ID,
+      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = A.FK_PERSONA) AS PERSON,
+      ARRAY_TO_STRING(ARRAY_AGG(B.NOMBRE), ', ') AS PROFILES
     FROM
       ${TABLE} A
     INNER JOIN
