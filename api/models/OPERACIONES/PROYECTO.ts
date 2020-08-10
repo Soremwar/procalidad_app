@@ -222,7 +222,6 @@ export const createNew = async (
 ) => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
-      PK_PROYECTO,
       FK_TIPO_PROYECTO,
       FK_CLIENTE,
       FK_SUB_AREA,
@@ -236,7 +235,8 @@ export const createNew = async (
       $3,
       $4,
       $5,
-      $6
+      $6,
+      $7
     ) RETURNING PK_PROYECTO`,
     fk_tipo_proyecto,
     fk_cliente,
