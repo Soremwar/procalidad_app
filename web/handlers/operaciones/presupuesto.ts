@@ -57,7 +57,7 @@ export const createBudget = async (
     throw new RequestSyntaxError();
   }
 
-  const project_model = findProject(Number(project));
+  const project_model = await findProject(Number(project));
   if (!project_model) throw new Error("El proyecto seleccionado no existe");
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
@@ -68,7 +68,7 @@ export const createBudget = async (
   const { profiles: user_profiles, id: user_id } = session.payload?.context
     ?.user;
 
-  const allowed_editors = await project.getSupervisors();
+  const allowed_editors = await project_model.getSupervisors();
   if (!allowed_editors.includes(user_id)) {
     if (
       !user_profiles.some((profile: number) =>
