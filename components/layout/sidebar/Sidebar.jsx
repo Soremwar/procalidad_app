@@ -210,7 +210,6 @@ const structure = [
         allowed_profiles: [
           Profiles.ADMINISTRATOR,
           Profiles.AREA_MANAGER,
-          Profiles.CONSULTANT,
           Profiles.CONTROLLER,
           Profiles.HUMAN_RESOURCES,
           Profiles.PROYECT_MANAGER,

@@ -1316,7 +1316,6 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -1329,7 +1328,6 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
@@ -1341,7 +1339,6 @@ main_router
     checkProfileAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
