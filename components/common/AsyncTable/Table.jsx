@@ -198,14 +198,17 @@ export default function AsyncTable({
 
   useEffect(() => {
     updateSearchFilters();
+    setPage(0);
   }, [custom_search, search_bar]);
 
   useEffect(() => {
     updateURLSource(data_source);
+    setPage(0);
   }, [data_source]);
 
   useEffect(() => {
     updateSourceParams(request_parameters);
+    setPage(0);
   }, [request_parameters]);
 
   useEffect(() => {
