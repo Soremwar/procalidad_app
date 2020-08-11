@@ -26,7 +26,7 @@ import {
 } from "../OPERACIONES/ROL.ts";
 import {
   TABLE as PERSON_TABLE,
-} from "../ORGANIZACION/PERSONA.ts";
+} from "../ORGANIZACION/people.ts";
 import {
   TABLE as POSITION_ASSIGNATION_TABLE,
 } from "../ORGANIZACION/asignacion_cargo.ts";

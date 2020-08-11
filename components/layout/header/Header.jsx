@@ -4,12 +4,16 @@ import {
   Toolbar,
   IconButton,
   Menu,
+  MenuItem,
 } from "@material-ui/core";
 import {
   Menu as MenuIcon,
   Person as AccountIcon,
   ArrowBack as ArrowBackIcon,
 } from "@material-ui/icons";
+import {
+  Link,
+} from "react-router-dom";
 
 import useStyles from "./styles.js";
 import { Typography } from "../../common/Wrappers.jsx";
@@ -97,6 +101,16 @@ export default function Header(props) {
               {userState.email}
             </Typography>
           </div>
+          <MenuItem
+            className={[classes.profileMenuItem, classes.headerMenuItem].join(
+              " ",
+            )}
+            component={Link}
+            to="/perfil"
+          >
+            <AccountIcon className={classes.profileMenuIcon} />
+            Perfil
+          </MenuItem>
           <div className={classes.profileMenuUser}>
             <Typography
               className={classes.profileMenuLink}

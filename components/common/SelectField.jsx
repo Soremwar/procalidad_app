@@ -18,6 +18,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default ({
+  blank_value = true,
   children,
   id = false,
   fullWidth = false,
@@ -54,7 +55,7 @@ export default ({
         value={value}
         {...props}
       >
-        <option aria-label="None" value="" />
+        {blank_value && <option aria-label="None" value="" />}
         {children}
       </NativeSelect>
     </FormControl>

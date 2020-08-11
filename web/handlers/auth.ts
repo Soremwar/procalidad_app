@@ -10,7 +10,7 @@ import {
 } from "../../api/models/MAESTRO/access.ts";
 import {
   findById,
-} from "../../api/models/ORGANIZACION/PERSONA.ts";
+} from "../../api/models/ORGANIZACION/people.ts";
 import {
   AuthenticationRejectedError,
   NotFoundError,

@@ -1,7 +1,9 @@
-import { Router } from "oak";
-import { checkProfileAccess } from "./middleware.ts";
+import { composeMiddleware, Router } from "oak";
+import { upload } from "oak_upload";
+import { checkUserAccess } from "./middleware.ts";
 import { Profiles } from "../api/common/profiles.ts";
 import { createSession } from "./handlers/auth.ts";
+import * as usuario from "./handlers/usuario.ts";
 import {
   createContact,
   deleteContact,
@@ -25,6 +27,9 @@ import {
 } from "./handlers/maestro/pais.ts";
 import { getState, getStates, searchState } from "./handlers/maestro/estado.ts";
 import { getCities, getCity, searchCity } from "./handlers/maestro/ciudad.ts";
+import * as language from "./handlers/maestro/idioma.ts";
+import * as gender from "./handlers/maestro/genero.ts";
+import * as marital_status from "./handlers/maestro/estado_civil.ts";
 import {
   createClient,
   deleteClient,
@@ -218,9 +223,88 @@ main_router
   .post("/api/auth", createSession);
 
 main_router
+  .get("/api/usuario/contacto", checkUserAccess(), usuario.getContacts)
+  .get(
+    "/api/usuario/contacto/table",
+    checkUserAccess(),
+    usuario.getContactsTable,
+  )
+  .post(
+    "/api/usuario/contacto",
+    checkUserAccess(),
+    usuario.createContact,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/contacto/:id",
+    checkUserAccess(),
+    usuario.updateContact,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/contacto/:id",
+    checkUserAccess(),
+    usuario.deleteContact,
+  )
+  .get("/api/usuario/idiomas", checkUserAccess(), usuario.getLanguageExperience)
+  .get(
+    "/api/usuario/idiomas/table",
+    checkUserAccess(),
+    usuario.getLanguageExperienceTable,
+  )
+  .post(
+    "/api/usuario/idiomas",
+    checkUserAccess(),
+    usuario.createLanguageExperience,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/idiomas/:id",
+    checkUserAccess(),
+    usuario.updateLanguageExperience,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/idiomas/:id",
+    checkUserAccess(),
+    usuario.deleteLanguageExperience,
+  )
+  .get("/api/usuario/hijos", checkUserAccess(), usuario.getChildren)
+  .get(
+    "/api/usuario/hijos/table",
+    checkUserAccess(),
+    usuario.getChildrenTable,
+  )
+  .post(
+    "/api/usuario/hijos",
+    checkUserAccess(),
+    usuario.createChildren,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/hijos/:id",
+    checkUserAccess(),
+    usuario.updateChildren,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/hijos/:id",
+    checkUserAccess(),
+    usuario.deleteChildren,
+  )
+  .get("/api/usuario/residencia", checkUserAccess(), usuario.getResidence)
+  .put("/api/usuario/residencia", checkUserAccess(), usuario.updateResidence)
+  .get("/api/usuario/soportes", checkUserAccess(), usuario.getSupportFiles)
+  .put("/api/usuario/soportes", checkUserAccess(), usuario.updateSupportFiles)
+  .get(
+    "/api/usuario",
+    checkUserAccess(),
+    usuario.getUserInformation,
+  )
+  .put(
+    "/api/usuario",
+    checkUserAccess(),
+    usuario.updateUserInformation,
+  );
+
+main_router
   .get(
     "/api/maestro/parametro",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -230,7 +314,7 @@ main_router
   )
   .post(
     "/api/maestro/parametro/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -240,7 +324,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/parametro/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -250,7 +334,7 @@ main_router
   )
   .post(
     "/api/maestro/parametro",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -258,7 +342,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/maestro/parametro/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -266,7 +350,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/maestro/parametro/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -276,7 +360,7 @@ main_router
 main_router
   .get(
     "/api/maestro/parametro_definicion",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -286,7 +370,7 @@ main_router
   )
   .get(
     "/api/maestro/parametro_definicion/search",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -296,7 +380,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -306,7 +390,7 @@ main_router
   )
   .post<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -314,7 +398,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -322,7 +406,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -332,7 +416,7 @@ main_router
 main_router
   .get(
     "/api/maestro/tiempo/blacklist",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -347,7 +431,7 @@ main_router
 main_router
   .get(
     "/api/maestro/permiso",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -360,7 +444,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/permiso/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -375,42 +459,42 @@ main_router
 main_router
   .get(
     "/api/maestro/acceso",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
     ]),
     getAccesses,
   )
   .post(
     "/api/maestro/acceso/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
     ]),
     getAccessesTable,
   )
   .get<{ id: string }>(
     "/api/maestro/acceso/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
     ]),
     getAccess,
   )
   .post(
     "/api/maestro/acceso",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
     ]),
     createAccess,
   )
   .put<{ id: string }>(
     "/api/maestro/acceso/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
     ]),
     updateAccess,
   )
   .delete<{ id: string }>(
     "/api/maestro/acceso/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
     ]),
     deleteAccess,
@@ -419,7 +503,7 @@ main_router
 main_router
   .get(
     "/api/maestro/pais",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -432,7 +516,7 @@ main_router
   )
   .get(
     "/api/maestro/pais/search",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -445,7 +529,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/pais/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -460,7 +544,7 @@ main_router
 main_router
   .get(
     "/api/maestro/estado",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -473,7 +557,7 @@ main_router
   )
   .get(
     "/api/maestro/estado/search",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -486,7 +570,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/estado/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -501,7 +585,7 @@ main_router
 main_router
   .get(
     "/api/maestro/ciudad",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -514,7 +598,7 @@ main_router
   )
   .get(
     "/api/maestro/ciudad/search",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -527,7 +611,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/ciudad/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -541,8 +625,81 @@ main_router
 
 main_router
   .get(
+<<<<<<< HEAD
+=======
+    "/api/maestro/formato",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    getFormats,
+  )
+  .post(
+    "/api/maestro/formato/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    getFormatsTable,
+  )
+  .get<{ id: string }>(
+    "/api/maestro/formato/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    getFormat,
+  )
+  .post(
+    "/api/maestro/formato",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    createFormat,
+  )
+  .put<{ id: string }>(
+    "/api/maestro/formato/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    updateFormat,
+  )
+  .delete<{ id: string }>(
+    "/api/maestro/formato/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    deleteFormat,
+  );
+
+main_router
+  .get("/api/maestro/idioma", checkUserAccess(), language.getLanguages);
+
+main_router
+  .get("/api/maestro/genero", checkUserAccess(), gender.getGenders);
+
+main_router
+  .get(
+    "/api/maestro/estado_civil",
+    checkUserAccess(),
+    marital_status.getMaritalStatuses,
+  )
+  .get<{ id: string }>(
+    "/api/maestro/estado_civil/:id",
+    checkUserAccess(),
+    marital_status.getMaritalStatus,
+  );
+
+main_router
+  .get(
+>>>>>>> 52341ee... Formularios secundarios
     "/api/clientes/cliente",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -555,7 +712,7 @@ main_router
   )
   .post(
     "/api/clientes/cliente/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -567,7 +724,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/clientes/cliente/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -580,7 +737,7 @@ main_router
   )
   .post(
     "/api/clientes/cliente",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.SALES,
@@ -589,7 +746,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/clientes/cliente/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.SALES,
@@ -598,7 +755,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/clientes/cliente/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.SALES,
@@ -609,7 +766,7 @@ main_router
 main_router
   .get(
     "/api/clientes/contacto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -622,7 +779,7 @@ main_router
   )
   .post(
     "/api/clientes/contacto/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -634,7 +791,7 @@ main_router
   )
   .post(
     "/api/clientes/contacto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -647,7 +804,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/clientes/contacto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -659,7 +816,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/clientes/contacto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -671,7 +828,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/clientes/contacto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -685,7 +842,7 @@ main_router
 main_router
   .get(
     "/api/clientes/sector",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -698,7 +855,7 @@ main_router
   )
   .post(
     "/api/clientes/sector/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -710,7 +867,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/clientes/sector/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -723,7 +880,7 @@ main_router
   )
   .post(
     "/api/clientes/sector",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.SALES,
@@ -732,7 +889,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/clientes/sector/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.SALES,
@@ -741,7 +898,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/clientes/sector/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.SALES,
@@ -752,7 +909,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/tipo_proyecto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -765,7 +922,7 @@ main_router
   )
   .post(
     "/api/operaciones/tipo_proyecto/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -774,7 +931,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/operaciones/tipo_proyecto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -787,7 +944,7 @@ main_router
   )
   .post(
     "/api/operaciones/tipo_proyecto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -795,7 +952,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/operaciones/tipo_proyecto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -803,7 +960,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/operaciones/tipo_proyecto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -813,7 +970,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/proyecto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -826,7 +983,7 @@ main_router
   )
   .post(
     "/api/operaciones/proyecto/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -838,7 +995,7 @@ main_router
   )
   .get(
     "/api/operaciones/proyecto/search",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -851,7 +1008,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/operaciones/proyecto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -863,7 +1020,7 @@ main_router
   )
   .post(
     "/api/operaciones/proyecto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -874,7 +1031,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/operaciones/proyecto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -885,7 +1042,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/operaciones/proyecto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -898,7 +1055,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/tipo_presupuesto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -911,7 +1068,7 @@ main_router
   )
   .post(
     "/api/operaciones/tipo_presupuesto/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -923,7 +1080,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/operaciones/tipo_presupuesto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -936,7 +1093,7 @@ main_router
   )
   .post(
     "/api/operaciones/tipo_presupuesto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -944,7 +1101,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/operaciones/tipo_presupuesto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -952,7 +1109,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/operaciones/tipo_presupuesto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -962,7 +1119,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/rol",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -975,7 +1132,7 @@ main_router
   )
   .post(
     "/api/operaciones/rol/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -987,7 +1144,7 @@ main_router
   )
   .get(
     "/api/operaciones/rol/search",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1000,7 +1157,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/operaciones/rol/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1013,7 +1170,7 @@ main_router
   )
   .post(
     "/api/operaciones/rol",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1021,7 +1178,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/operaciones/rol/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1029,7 +1186,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/operaciones/rol/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1039,7 +1196,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/presupuesto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1052,7 +1209,7 @@ main_router
   )
   .post(
     "/api/operaciones/presupuesto/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1064,7 +1221,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/operaciones/presupuesto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1077,7 +1234,7 @@ main_router
   )
   .post(
     "/api/operaciones/presupuesto",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1088,7 +1245,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/operaciones/presupuesto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1099,7 +1256,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/operaciones/presupuesto/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1112,7 +1269,7 @@ main_router
 main_router
   .get<{ id: string }>(
     "/api/operaciones/presupuesto_detalle/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1127,7 +1284,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/tipo_area",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1140,7 +1297,7 @@ main_router
   )
   .post(
     "/api/organizacion/tipo_area/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1150,7 +1307,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/tipo_area/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1163,7 +1320,7 @@ main_router
   )
   .post(
     "/api/organizacion/tipo_area",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1171,7 +1328,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/organizacion/tipo_area/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1179,7 +1336,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/organizacion/tipo_area/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1189,7 +1346,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/area",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1202,7 +1359,7 @@ main_router
   )
   .post(
     "/api/organizacion/area/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1212,7 +1369,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/area/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1225,7 +1382,7 @@ main_router
   )
   .post(
     "/api/organizacion/area",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1233,7 +1390,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/organizacion/area/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1241,7 +1398,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/organizacion/area/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1251,7 +1408,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/sub_area",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1264,7 +1421,7 @@ main_router
   )
   .post(
     "/api/organizacion/sub_area/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1274,7 +1431,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/sub_area/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1287,7 +1444,7 @@ main_router
   )
   .post(
     "/api/organizacion/sub_area",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1295,7 +1452,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/organizacion/sub_area/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1303,7 +1460,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/organizacion/sub_area/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
@@ -1313,7 +1470,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/persona",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1325,7 +1482,7 @@ main_router
   )
   .post(
     "/api/organizacion/persona/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1336,7 +1493,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/persona/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1348,7 +1505,7 @@ main_router
   )
   .post(
     "/api/organizacion/persona",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1357,7 +1514,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/organizacion/persona/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1366,7 +1523,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/organizacion/persona/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1377,7 +1534,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/cargo",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1390,7 +1547,7 @@ main_router
   )
   .post(
     "/api/organizacion/cargo/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1401,7 +1558,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/cargo/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1414,7 +1571,7 @@ main_router
   )
   .post(
     "/api/organizacion/cargo",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1423,7 +1580,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/organizacion/cargo/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1432,7 +1589,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/organizacion/cargo/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1443,7 +1600,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/asignacion_cargo",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1456,7 +1613,7 @@ main_router
   )
   .post(
     "/api/organizacion/asignacion_cargo/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1467,7 +1624,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/asignacion_cargo/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1480,7 +1637,7 @@ main_router
   )
   .post(
     "/api/organizacion/asignacion_cargo",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1489,7 +1646,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/organizacion/asignacion_cargo/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1498,7 +1655,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/organizacion/asignacion_cargo/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1509,7 +1666,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/computador",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1522,7 +1679,7 @@ main_router
   )
   .post(
     "/api/organizacion/computador/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1532,7 +1689,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/computador/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1545,7 +1702,7 @@ main_router
   )
   .post(
     "/api/organizacion/computador",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1554,7 +1711,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/organizacion/computador/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1563,7 +1720,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/organizacion/computador/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1574,7 +1731,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/licencia",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1587,7 +1744,7 @@ main_router
   )
   .post(
     "/api/organizacion/licencia/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1597,7 +1754,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/licencia/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1610,7 +1767,7 @@ main_router
   )
   .post(
     "/api/organizacion/licencia",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1619,7 +1776,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/organizacion/licencia/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1628,7 +1785,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/organizacion/licencia/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1639,7 +1796,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/salario",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1652,7 +1809,7 @@ main_router
   )
   .post(
     "/api/organizacion/salario/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1662,7 +1819,7 @@ main_router
   )
   .post(
     "/api/organizacion/salario/calculo",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1672,7 +1829,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/salario/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1685,7 +1842,7 @@ main_router
   )
   .post(
     "/api/organizacion/salario",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1694,7 +1851,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/organizacion/salario/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1703,7 +1860,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/organizacion/salario/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
@@ -1714,7 +1871,7 @@ main_router
 main_router
   .get(
     "/api/planeacion/recurso",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1727,7 +1884,7 @@ main_router
   )
   .get(
     "/api/planeacion/recurso/gantt",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1739,7 +1896,7 @@ main_router
   )
   .post(
     "/api/planeacion/recurso/heatmap",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1751,7 +1908,7 @@ main_router
   )
   .post(
     "/api/planeacion/recurso/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1763,7 +1920,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/planeacion/recurso/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1776,7 +1933,7 @@ main_router
   )
   .post(
     "/api/planeacion/recurso",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1788,7 +1945,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/planeacion/recurso/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1800,7 +1957,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/planeacion/recurso/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1814,7 +1971,7 @@ main_router
 main_router
   .get(
     "/api/asignacion/asignacion",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1827,7 +1984,7 @@ main_router
   )
   .get(
     "/api/asignacion/asignacion/semanas",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1839,7 +1996,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/asignacion/asignacion/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONSULTANT,
@@ -1852,7 +2009,7 @@ main_router
   )
   .post(
     "/api/asignacion/asignacion/table",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1864,7 +2021,7 @@ main_router
   )
   .post(
     "/api/asignacion/asignacion",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1876,7 +2033,7 @@ main_router
   )
   .put<{ id: string }>(
     "/api/asignacion/asignacion/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1888,7 +2045,7 @@ main_router
   )
   .delete<{ id: string }>(
     "/api/asignacion/asignacion/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1902,49 +2059,49 @@ main_router
 main_router
   .get(
     "/api/registro",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.CONSULTANT,
     ]),
     getWeeksDetail,
   )
   .get<{ person: string }>(
     "/api/registro/semana/:person",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.CONSULTANT,
     ]),
     getPersonOpenWeek,
   )
   .put<{ person: string }>(
     "/api/registro/semana/:person",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.CONSULTANT,
     ]),
     closePersonWeek,
   )
   .get<{ id: string }>(
     "/api/registro/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.CONSULTANT,
     ]),
     getWeekDetail,
   )
   .get<{ id: string }>(
     "/api/registro/table/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.CONSULTANT,
     ]),
     getWeekDetailTable,
   )
   .post<{ person: string }>(
     "/api/registro/:person",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.CONSULTANT,
     ]),
     createWeekDetail,
   )
   .put<{ id: string }>(
     "/api/registro/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.CONSULTANT,
     ]),
     updateWeekDetail,
@@ -1953,7 +2110,7 @@ main_router
 main_router
   .get<{ person: string }>(
     "/api/asignacion_solicitud/table/:person",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
@@ -1965,14 +2122,14 @@ main_router
   )
   .post<{ person: string }>(
     "/api/asignacion_solicitud/:person",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.CONSULTANT,
     ]),
     createAssignationRequest,
   )
   .put<{ id: string }>(
     "/api/asignacion_solicitud/:id",
-    checkProfileAccess([
+    checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,

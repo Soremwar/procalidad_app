@@ -117,7 +117,7 @@ export default makeStyles((theme) => ({
     padding: theme.spacing(2),
   },
   profileMenuItem: {
-    color: theme.palette.text.hint,
+    color: theme.palette.text.primary,
   },
   profileMenuIcon: {
     marginRight: theme.spacing(2),

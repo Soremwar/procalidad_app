@@ -7,7 +7,7 @@ import {
 } from "../MAESTRO/access.ts";
 import {
   TABLE as PERSON_TABLE,
-} from "../ORGANIZACION/PERSONA.ts";
+} from "../ORGANIZACION/people.ts";
 import {
   TABLE as SUB_AREA_TABLE,
 } from "../ORGANIZACION/sub_area.ts";

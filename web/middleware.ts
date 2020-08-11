@@ -85,7 +85,7 @@ const token_structure = {
   },
 };
 
-export const checkProfileAccess = (required_profiles: Profiles[]) => {
+export const checkUserAccess = (required_profiles?: Profiles[]) => {
   return async (
     { cookies }: Context,
     next: () => Promise<void>,
@@ -102,13 +102,15 @@ export const checkProfileAccess = (required_profiles: Profiles[]) => {
       );
     }
 
-    const user_profiles: number[] = session_data.profiles;
+    if (required_profiles) {
+      const user_profiles: number[] = session_data.profiles;
 
-    const has_required_profiles = user_profiles.some((profile) =>
-      required_profiles.includes(profile)
-    );
-    if (!has_required_profiles) {
-      throw new ForbiddenAccessError("No tiene acceso a este contenido");
+      const has_required_profiles = user_profiles.some((profile) =>
+        required_profiles.includes(profile)
+      );
+      if (!has_required_profiles) {
+        throw new ForbiddenAccessError("No tiene acceso a este contenido");
+      }
     }
 
     await next();

@@ -1,12 +1,12 @@
-import { RouterContext, Body } from "oak";
+import { RouterContext } from "oak";
 import {
   createNew,
   findAll,
   findById,
   getTableData,
   TipoIdentificacion,
-} from "../../../api/models/ORGANIZACION/PERSONA.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
+} from "../../../api/models/ORGANIZACION/people.ts";
+import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
 
@@ -88,6 +88,8 @@ export const updatePerson = async (
       ? type as TipoIdentificacion
       : TipoIdentificacion.CC,
     identification,
+    undefined,
+    undefined,
     name,
     phone,
     email,
@@ -106,9 +108,5 @@ export const deletePerson = async (
   if (!person) throw new NotFoundError();
 
   await person.delete();
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
+  response.body = Message.OK;
 };

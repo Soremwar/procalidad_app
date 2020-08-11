@@ -39,6 +39,8 @@ import PlaneacionProyecto from "../pages/planeacion/proyecto.jsx";
 import PlaneacionRecurso from "../pages/planeacion/recurso.jsx";
 import Asignacion from "../pages/asignacion.jsx";
 import Registro from "../pages/registro.jsx";
+import Formato from "../pages/maestro/formato.jsx";
+import Perfil from "../pages/usuario/perfil.jsx";
 
 //TODO
 //Make profiles constant (shared?)
@@ -92,6 +94,7 @@ const Layout = (props) => {
             Find a way to encapsulate routes over section
           */}
           <Switch>
+            <Route component={Perfil} path="/perfil" />
             <ProfiledRoute
               allowed_profiles={[
                 Profiles.ADMINISTRATOR,

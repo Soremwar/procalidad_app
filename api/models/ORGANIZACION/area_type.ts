@@ -5,7 +5,7 @@ import {
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
-import { TABLE as PEOPLE_TABLE } from "./PERSONA.ts";
+import { TABLE as PEOPLE_TABLE } from "./people.ts";
 
 export const TABLE = "ORGANIZACION.TIPO_AREA";
 

@@ -28,7 +28,7 @@ import {
 } from "../models/OPERACIONES/ROL.ts";
 import {
   TABLE as PERSON_TABLE,
-} from "../models/ORGANIZACION/PERSONA.ts";
+} from "../models/ORGANIZACION/people.ts";
 import {
   TABLE as AREA_TYPE_TABLE,
 } from "../models/ORGANIZACION/area_type.ts";
