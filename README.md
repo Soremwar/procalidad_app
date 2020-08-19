@@ -21,3 +21,6 @@ Asegurese de permitir el acceso de Deno a la red como servicio
 
 #### En un servidor Linux:
 `setcap cap_net_bind_service=ep /ruta/a/deno`
+
+### Procedimientos de sistema
+Los procedimientos adjuntos al sistema se encuentran dentro de la carpeta scripts
