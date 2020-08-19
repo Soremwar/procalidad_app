@@ -41,6 +41,7 @@ import {
   fetchBudgetApi,
   fetchBudgetDetailApi,
   fetchPeopleApi,
+  fetchProjectApi,
   fetchResourceApi,
   fetchRoleApi,
 } from "../../../lib/api/generator.js";
@@ -57,6 +58,7 @@ const getBudgets = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
+const getProjects = () => fetchProjectApi().then((x) => x.json());
 const getResource = (id) => fetchResourceApi(id).then((x) => x.json());
 const getResourceGantt = (project) => {
   const params = new URLSearchParams(Object.fromEntries([
@@ -136,6 +138,7 @@ const ParameterContext = createContext({
   budgets: [],
   clients: [],
   people: [],
+  projects: [],
   roles: [],
 });
 
@@ -650,6 +653,7 @@ export default () => {
     budgets: [],
     clients: [],
     people: [],
+    projects: [],
     roles: [],
   });
   const [selectedClient, setSelectedClient] = useState("");
@@ -706,14 +710,25 @@ export default () => {
     getBudgets().then((budgets) =>
       setParameters((prev_state) => ({ ...prev_state, budgets }))
     );
-    getClients().then((clients) =>
-      setParameters((prev_state) => ({ ...prev_state, clients }))
-    );
+    getClients().then((clients) => {
+      const entries = clients
+        .map(({ pk_cliente, nombre }) => [pk_cliente, nombre])
+        .sort((x, y) => (x[1]).localeCompare(y[1]));
+      setParameters((prev_state) => ({ ...prev_state, clients: entries }));
+    });
     getPeople().then((people) => {
       const entries = people.map((
         { pk_persona, nombre },
       ) => [pk_persona, nombre]);
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
+    });
+    getProjects().then((projects) => {
+      const entries = projects
+        .map((
+          { pk_proyecto, nombre, fk_cliente },
+        ) => [pk_proyecto, nombre, fk_cliente])
+        .sort((x, y) => (x[1]).localeCompare(y[1]));
+      setParameters((prev_state) => ({ ...prev_state, projects: entries }));
     });
     getRoles().then((roles) => {
       setParameters((prev_state) => ({ ...prev_state, roles }));
@@ -763,34 +778,26 @@ export default () => {
         />
         <Grid container spacing={10}>
           <Grid item xs={6}>
-            <SelectField
+            <AdvancedSelectField
               fullWidth
               label="Cliente"
-              onChange={(event) => setSelectedClient(event.target.value)}
+              onChange={(_event, value) => setSelectedClient(value)}
+              options={parameters.clients}
+              required
               value={selectedClient}
-            >
-              {parameters.clients.map(({ pk_cliente, nombre }) => (
-                <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
-              ))}
-            </SelectField>
+            />
           </Grid>
           <Grid item xs={6}>
-            <AsyncSelectField
+            <AdvancedSelectField
               disabled={!selectedClient}
               fullWidth
-              handleSource={async (source) => {
-                return Object.values(source)
-                  .map(({
-                    pk_proyecto,
-                    nombre,
-                  }) => {
-                    return { value: String(pk_proyecto), text: nombre };
-                  });
-              }}
               label="Proyecto"
-              onChange={(event) => setSelectedProyect(event.target.value)}
-              source={`operaciones/proyecto/search?client=${selectedClient}`}
-              value={selectedClient && selectedProyect}
+              onChange={(_event, value) => setSelectedProyect(value)}
+              options={parameters.projects.filter(([_x, _y, client]) =>
+                client == selectedClient
+              )}
+              required
+              value={selectedProyect}
             />
           </Grid>
         </Grid>
