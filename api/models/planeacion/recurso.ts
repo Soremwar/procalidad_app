@@ -776,14 +776,14 @@ export const getResourceHeatmapData = async (
   );
 
   const people: ResourceHeatmapData[] = raw_people.map((person: [
-      number,
-      string,
-    ]) =>
-      new ResourceHeatmapData(
-        person[0],
-        person[1],
-        [],
-      )
+    number,
+    string,
+  ]) =>
+    new ResourceHeatmapData(
+      person[0],
+      person[1],
+      [],
+    )
   );
 
   dates

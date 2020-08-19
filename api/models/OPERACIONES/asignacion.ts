@@ -216,23 +216,25 @@ interface AvailableWeeks {
 * */
 export const getAvailableWeeks = async (): Promise<AvailableWeeks[]> => {
   const { rows } = await postgres.query(
-    `SELECT
-      FK_SEMANA AS WEEK_CODE,
-      TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER AS WEEK_DATE
-    FROM ${TABLE} A
-    JOIN ${WEEK_TABLE} S
-      ON A.FK_SEMANA = S.PK_SEMANA
-    WHERE FECHA >= (
-      SELECT 
+    `WITH SEMANAS AS (
+      SELECT
         COALESCE(
-        MIN(TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD')::INTEGER),
-        (SELECT MIN(FECHA) FROM ${TABLE})
-        )
+          MIN(TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD')::INTEGER),
+            (SELECT MIN(FECHA) FROM ${TABLE})
+        ) AS MIN,
+        COALESCE(
+          MAX(TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD')::INTEGER),
+            (SELECT MAX(FECHA) FROM ${TABLE})
+        ) AS MAX
       FROM ${CONTROL_TABLE} C
-      JOIN ${WEEK_TABLE} S
-        ON C.FK_SEMANA = S.PK_SEMANA	
+      JOIN ${WEEK_TABLE} S ON C.FK_SEMANA = S.PK_SEMANA	
       WHERE C.BAN_CERRADO = FALSE
     )
+    SELECT
+      PK_SEMANA AS WEEK_CODE,
+      TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER AS WEEK_DATE
+    FROM ${WEEK_TABLE}
+    WHERE TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER BETWEEN (SELECT MIN FROM SEMANAS) AND (SELECT MAX FROM SEMANAS)
     GROUP BY
       WEEK_CODE,
       WEEK_DATE
