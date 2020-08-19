@@ -31,7 +31,6 @@ import {
   formatStandardNumberToStandardString,
   formatStandardStringToStandardNumber,
   parseDateToStandardNumber,
-  parseStandardNumber,
 } from "../../lib/date/mod.js";
 import {
   months,
@@ -667,18 +666,26 @@ export default () => {
     getBudgets().then((budgets) =>
       setParameters((prev_state) => ({ ...prev_state, budgets }))
     );
-    getClients().then((clients) =>
-      setParameters((prev_state) => ({ ...prev_state, clients }))
-    );
+    getClients().then((clients) => {
+      const entries = clients
+        .map(({ pk_cliente, nombre }) => [pk_cliente, nombre])
+        .filter((x, y) => x[1].localeCompare(y[1]));
+      setParameters((prev_state) => ({ ...prev_state, clients: entries }));
+    });
     getPeople().then((people) => {
       const entries = people.map((
         { pk_persona, nombre },
       ) => [pk_persona, nombre]);
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
-    getProjects().then((projects) =>
-      setParameters((prev_state) => ({ ...prev_state, projects }))
-    );
+    getProjects().then((projects) => {
+      const entries = projects
+        .map((
+          { pk_proyecto, nombre, fk_cliente },
+        ) => [pk_proyecto, nombre, fk_cliente])
+        .filter((x, y) => x[1].localeCompare(y[1]));
+      setParameters((prev_state) => ({ ...prev_state, projects: entries }));
+    });
     getRoles().then((roles) =>
       setParameters((prev_state) => ({ ...prev_state, roles }))
     );
@@ -721,35 +728,27 @@ export default () => {
         />
         <Grid container spacing={10}>
           <Grid item xs={4}>
-            <SelectField
+            <AdvancedSelectField
               fullWidth
               label="Cliente"
-              onChange={(event) => setSelectedClient(event.target.value)}
+              onChange={(_event, value) => setSelectedClient(value)}
+              options={parameters.clients}
+              required
               value={selected_client}
-            >
-              {parameters.clients.map(({ pk_cliente, nombre }) => (
-                <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
-              ))}
-            </SelectField>
+            />
           </Grid>
           <Grid item xs={4}>
-            <SelectField
+            <AdvancedSelectField
               disabled={!selected_client}
               fullWidth
               label="Proyecto"
-              onChange={(event) => setSelectedProject(event.target.value)}
+              onChange={(_event, value) => setSelectedProject(value)}
+              options={parameters.projects.filter(([_x, _y, client]) =>
+                client == selected_client
+              )}
+              required
               value={selected_project}
-            >
-              {parameters.projects
-                .filter(({ fk_cliente, fk_supervisor }) =>
-                  fk_cliente == selected_client
-                )
-                .map(({ pk_proyecto, nombre }) => (
-                  <option key={pk_proyecto} value={pk_proyecto}>
-                    {nombre}
-                  </option>
-                ))}
-            </SelectField>
+            />
           </Grid>
           <Grid item xs={4}>
             <SelectField
