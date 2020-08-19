@@ -123,32 +123,41 @@ export const createNewControl = async (
   );
 };
 
+/*
+* Will skip and close weeks that don't contain any laboral day
+* */
 export const createNewWeek = async (
   person: number,
   prev_week: number,
 ): Promise<WeekControl> => {
   const { rows } = await postgres.query(
-    `INSERT INTO ${TABLE} (
+    `WITH FECHA AS (
+      SELECT MIN(FECHA) AS MIN, MAX(FECHA) AS MAX
+      FROM MAESTRO.DIM_TIEMPO DT
+      WHERE FECHA > (SELECT FECHA_FIN FROM MAESTRO.DIM_SEMANA DS WHERE PK_SEMANA = $2)
+      AND FECHA <= (
+        SELECT FECHA
+        FROM MAESTRO.DIM_TIEMPO DT
+        WHERE FECHA > (SELECT FECHA_FIN FROM MAESTRO.DIM_SEMANA DS WHERE PK_SEMANA = $2)
+        AND EXTRACT(ISODOW FROM FECHA) NOT IN (6,7)
+        AND BAN_FESTIVO = FALSE
+        ORDER BY COD_FECHA ASC
+        LIMIT 1
+      )
+    )
+    INSERT INTO ${TABLE} (
       FK_PERSONA,
       FK_SEMANA,
-      BAN_CERRADO
-    ) VALUES (
+      BAN_CERRADO,
+      FECHA_CIERRE
+    )
+    SELECT
       $1,
-      (
-        SELECT
-          PK_SEMANA
-        FROM ${WEEK_TABLE}
-        WHERE COD_SEMANA > (
-          SELECT
-            COD_SEMANA
-          FROM ${WEEK_TABLE}
-          WHERE PK_SEMANA = $2
-        )
-        ORDER BY COD_SEMANA ASC
-        LIMIT 1
-      ),
-      FALSE
-    ) RETURNING PK_CONTROL, FK_SEMANA`,
+      PK_SEMANA,
+      CASE WHEN ROW_NUMBER() OVER (ORDER BY FECHA_INICIO DESC) = 2 THEN TRUE ELSE FALSE END AS CLOSED,
+      CASE WHEN ROW_NUMBER() OVER (ORDER BY FECHA_INICIO DESC) = 2 THEN NOW() ELSE NULL END AS CLOSE_DATE
+    FROM MAESTRO.DIM_SEMANA WHERE FECHA_INICIO BETWEEN (SELECT MIN FROM FECHA) AND (SELECT MAX FROM FECHA)
+    RETURNING PK_CONTROL, FK_SEMANA`,
     person,
     prev_week,
   );
