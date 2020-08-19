@@ -131,6 +131,7 @@ export default function AsyncTable({
     );
     if (!objectsAreEqual(filters, search)) {
       setSearch(filters);
+      setPage(0);
       setShouldFetchData(true);
     }
   };
@@ -138,6 +139,7 @@ export default function AsyncTable({
   const updateURLSource = (new_source) => {
     if (new_source !== source_url) {
       setSourceURL(new_source);
+      setPage(0);
       setShouldFetchData(true);
     }
   };
@@ -146,6 +148,7 @@ export default function AsyncTable({
   const updateSourceParams = (params) => {
     if (!objectsAreEqual(params, source_params)) {
       setSourceParams(params);
+      setPage(0);
       setShouldFetchData(true);
     }
   };
@@ -198,17 +201,14 @@ export default function AsyncTable({
 
   useEffect(() => {
     updateSearchFilters();
-    setPage(0);
   }, [custom_search, search_bar]);
 
   useEffect(() => {
     updateURLSource(data_source);
-    setPage(0);
   }, [data_source]);
 
   useEffect(() => {
     updateSourceParams(request_parameters);
-    setPage(0);
   }, [request_parameters]);
 
   useEffect(() => {
