@@ -453,9 +453,9 @@ export const validateWeek = async (
         A.FK_ROL,
         R.HORAS
     ), EJECUTADO AS (
-      SELECT CASE WHEN SUM(EJECUTADO) = (
+      SELECT CASE WHEN COALESCE(SUM(EJECUTADO), 0) = (
         SELECT
-          SUM(1) * 9
+          COALESCE(SUM(1) * 9, 0)
         FROM ${TIME_TABLE} T
         JOIN ${WEEK_TABLE} S
         ON FECHA BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
