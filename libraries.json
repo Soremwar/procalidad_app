@@ -7,7 +7,7 @@
       "fs": "https://deno.land/std@0.59.0/fs/mod.ts",
       "handlebars": "https://cdn.skypack.dev/handlebars@4.7.6",
       "html-entities": "https://cdn.skypack.dev/html-entities@1.3.1",
-      "smtp": "https://raw.githubusercontent.com/manyuanrong/deno-smtp/7ab83c6a84cb4382974c48314ceda45c58426615/mod.ts",
+      "smtp": "https://raw.githubusercontent.com/manyuanrong/deno-smtp/7bed1d2cd1763d7f1915c7777521c224649a386b/mod.ts",
       "oak": "https://raw.githubusercontent.com/oakserver/oak/46cc54eb651e58bf5425413fa5b50022e881b56f/mod.ts"
    }
 }
