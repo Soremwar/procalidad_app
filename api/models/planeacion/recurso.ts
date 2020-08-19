@@ -730,7 +730,7 @@ export const getResourceHeatmapData = async (
         ? `SUM(RD.HORAS)`
         : `ABS(SUM(RD.HORAS) - ${LABORAL_HOURS})`
     }::NUMERIC,
-       ${
+      ${
       formula === "occupation"
         ? `TO_CHAR(SUM(RD.HORAS) / ${LABORAL_HOURS} * 100, '000.99')`
         : `TO_CHAR(ABS(SUM(RD.HORAS) - ${LABORAL_HOURS}) / ${LABORAL_HOURS} * 100, '000.99')`
@@ -738,36 +738,13 @@ export const getResourceHeatmapData = async (
     FROM ${DETAIL_TABLE} AS RD
     JOIN ${TABLE} AS R
       ON RD.FK_RECURSO = R.PK_RECURSO
+    JOIN ${POSITION_ASSIGNATION_TABLE} AS AC
+      ON AC.FK_PERSONA = R.FK_PERSONA
     WHERE
       TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 months'
-    ${
-      sub_area
-        ? `AND R.FK_PRESUPUESTO IN (
-      SELECT PK_PRESUPUESTO
-      FROM ${BUDGET_TABLE} PRE
-      JOIN ${PROJECT_TABLE} PRO
-        ON PRE.FK_PROYECTO = PRO.PK_PROYECTO
-      WHERE PRO.FK_SUB_AREA = ${sub_area})`
-        : ""
-    }
-    ${
-      position
-        ? `AND R.FK_PERSONA IN (
-      SELECT FK_PERSONA
-      FROM ${POSITION_ASSIGNATION_TABLE}
-      WHERE FK_CARGO = ${position}
-    )`
-        : ""
-    }
-    ${
-      role
-        ? `AND R.FK_PRESUPUESTO IN (
-      SELECT FK_PRESUPUESTO
-      FROM ${BUDGET_DETAIL_TABLE}
-      WHERE FK_ROL = ${role}
-    )`
-        : ""
-    }
+    ${sub_area ? `AND AC.FK_SUB_AREA = ${sub_area}` : ""}
+    ${position ? `AND AC.FK_CARGO = ${position}` : ""}
+    ${role ? `AND ${role} = ANY(AC.FK_ROLES)` : ""}
     GROUP BY
       R.FK_PERSONA,
       RD.FECHA
@@ -776,60 +753,37 @@ export const getResourceHeatmapData = async (
 
   const { rows: raw_people } = await postgres.query(
     `SELECT
-      FK_PERSONA,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA)
-    FROM ${TABLE}
+      R.FK_PERSONA,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = R.FK_PERSONA)
+    FROM ${TABLE} AS R
+    JOIN ${POSITION_ASSIGNATION_TABLE} AS AC
+      ON AC.FK_PERSONA = R.FK_PERSONA
     WHERE
-      PK_RECURSO IN (
+      R.PK_RECURSO IN (
         SELECT DISTINCT FK_RECURSO
         FROM ${DETAIL_TABLE}
         WHERE
           TO_DATE(CAST(FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 months'
       )
-      ${
-      sub_area
-        ? `AND FK_PRESUPUESTO IN (
-      SELECT PK_PRESUPUESTO
-      FROM ${BUDGET_TABLE} PRE
-      JOIN ${PROJECT_TABLE} PRO
-        ON PRE.FK_PROYECTO = PRO.PK_PROYECTO
-      WHERE PRO.FK_SUB_AREA = ${sub_area})`
-        : ""
-    }
-    ${
-      position
-        ? `AND FK_PERSONA IN (
-      SELECT FK_PERSONA
-      FROM ${POSITION_ASSIGNATION_TABLE}
-      WHERE FK_CARGO = ${position}
-    )`
-        : ""
-    }
-    ${
-      role
-        ? `AND FK_PRESUPUESTO IN (
-      SELECT FK_PRESUPUESTO
-      FROM ${BUDGET_DETAIL_TABLE}
-      WHERE FK_ROL = ${role}
-    )`
-        : ""
-    }
+    ${sub_area ? `AND AC.FK_SUB_AREA = ${sub_area}` : ""}
+    ${position ? `AND AC.FK_CARGO = ${position}` : ""}
+    ${role ? `AND ${role} = ANY(AC.FK_ROLES)` : ""}
     GROUP BY
-      FK_PERSONA,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA)
+      R.FK_PERSONA,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = R.FK_PERSONA)
     ORDER BY
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA)`,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = R.FK_PERSONA)`,
   );
 
   const people: ResourceHeatmapData[] = raw_people.map((person: [
-    number,
-    string,
-  ]) =>
-    new ResourceHeatmapData(
-      person[0],
-      person[1],
-      [],
-    )
+      number,
+      string,
+    ]) =>
+      new ResourceHeatmapData(
+        person[0],
+        person[1],
+        [],
+      )
   );
 
   dates
