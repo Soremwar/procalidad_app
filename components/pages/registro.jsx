@@ -28,9 +28,9 @@ import {
   formatStandardStringToStandardNumber,
 } from "../../lib/date/mod.js";
 
+import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
 import AsyncSelectField from "../common/AsyncSelectField.jsx";
 import DialogForm from "../common/DialogForm.jsx";
-import SelectField from "../common/SelectField.jsx";
 import Title from "../common/Title.jsx";
 import Table from "./registro/Table.jsx";
 
@@ -158,33 +158,27 @@ const AddModal = ({
       setIsOpen={setModalOpen}
       title={"Formato de solicitud de horas"}
     >
-      <SelectField
+      <AdvancedSelectField
         label="Cliente"
         fullWidth
         name="client"
-        onChange={handleChange}
+        onChange={(_e, value) =>
+          setFields((prev_state) => ({ ...prev_state, client: value }))}
+        options={clients}
         required
         value={fields.client}
-      >
-        {clients.map(({ pk_cliente, nombre }) => (
-          <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
-        ))}
-      </SelectField>
-      <SelectField
+      />
+      <AdvancedSelectField
         disabled={!fields.client}
         label="Proyecto"
         fullWidth
         name="project"
-        onChange={handleChange}
+        onChange={(_e, value) =>
+          setFields((prev_state) => ({ ...prev_state, project: value }))}
+        options={projects.filter(([_x, _y, client]) => client == fields.client)}
         required
         value={fields.project}
-      >
-        {projects
-          .filter(({ fk_cliente }) => fk_cliente == fields.client)
-          .map(({ pk_proyecto, nombre }) => (
-            <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
-          ))}
-      </SelectField>
+      />
       <AsyncSelectField
         disabled={!fields.project}
         fullWidth
@@ -386,12 +380,20 @@ export default () => {
 
   useEffect(() => {
     updateCurrentWeek();
-    getClients().then((clients) =>
-      setParameters((prev_state) => ({ ...prev_state, clients }))
-    );
-    getProjects().then((projects) =>
-      setParameters((prev_state) => ({ ...prev_state, projects }))
-    );
+    getClients().then((clients) => {
+      const entries = clients
+        .map(({ pk_cliente, nombre }) => [pk_cliente, nombre])
+        .sort((x, y) => x[1].localeCompare(y[1]));
+      setParameters((prev_state) => ({ ...prev_state, clients: entries }));
+    });
+    getProjects().then((projects) => {
+      const entries = projects
+        .map((
+          { pk_proyecto, nombre, fk_cliente },
+        ) => [pk_proyecto, nombre, fk_cliente])
+        .sort((x, y) => x[1].localeCompare(y[1]));
+      setParameters((prev_state) => ({ ...prev_state, projects: entries }));
+    });
     updateTable();
   }, []);
 
