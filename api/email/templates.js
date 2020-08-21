@@ -27,20 +27,20 @@ export const createAssignationRequestEmail = async (
   hours,
 ) => {
   const html = new HtmlEncoder.AllHtmlEntities();
-  const safe_message = html.encode(String(message));
-
   const raw_template = await Deno.readTextFile(
     new URL("./templates/assignation_request.html", import.meta.url),
   );
-  const template = Handlebars.compile(raw_template);
+  const template = Handlebars.compile(raw_template, {
+    noEscape: true,
+  });
 
   return template({
-    date,
+    date: html.encode(date),
     hours,
-    message: safe_message,
-    project,
-    requestant,
-    role,
+    message: html.encode(message),
+    project: html.encode(project),
+    requestant: html.encode(requestant),
+    role: html.encode(requestant),
   });
 };
 
@@ -54,21 +54,21 @@ export const createAssignationRequestReviewEmail = async (
   role,
 ) => {
   const html = new HtmlEncoder.AllHtmlEntities();
-  const safe_message = html.encode(String(message));
-
   const raw_template = await Deno.readTextFile(
     new URL("./templates/assignation_request_review.html", import.meta.url),
   );
-  const template = Handlebars.compile(raw_template);
+  const template = Handlebars.compile(raw_template, {
+    noEscape: true,
+  });
 
   return template({
     approved,
-    date,
+    date: html.encode(date),
     hours,
-    message: safe_message,
-    project,
-    requestant,
-    role,
+    message: html.encode(message),
+    project: html.encode(project),
+    requestant: html.encode(requestant),
+    role: html.encode(role),
   });
 };
 
@@ -77,15 +77,18 @@ export const createRegistryDelayedUserEmail = async (
   week_start,
   week_end,
 ) => {
+  const html = new HtmlEncoder.AllHtmlEntities();
   const raw_template = await Deno.readTextFile(
     new URL("./templates/registry_delayed_user.html", import.meta.url),
   );
-  const template = Handlebars.compile(raw_template);
+  const template = Handlebars.compile(raw_template, {
+    noEscape: true,
+  });
 
   return template({
-    name,
-    week_start,
-    week_end,
+    name: html.encode(name),
+    week_start: html.encode(week_start),
+    week_end: html.encode(week_end),
   });
 };
 
@@ -95,7 +98,9 @@ export const createRegistryDelayedAreaEmail = async (
   const raw_template = await Deno.readTextFile(
     new URL("./templates/registry_delayed_area.html", import.meta.url),
   );
-  const template = Handlebars.compile(raw_template);
+  const template = Handlebars.compile(raw_template, {
+    noEscape: true,
+  });
 
   return template({
     people_data,
