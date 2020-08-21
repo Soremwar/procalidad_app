@@ -1,368 +1,77 @@
-<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
-      xmlns:o="urn:schemas-microsoft-com:office:office">
-
-<head>
-    <meta charset="utf-8"> <!-- utf-8 works for most cases -->
-    <meta name="viewport" content="width=device-width"> <!-- Forcing initial-scale shouldn't be necessary -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!-- Use the latest (edge) version of IE rendering engine -->
-    <meta name="x-apple-disable-message-reformatting"> <!-- Disable auto-scale in iOS 10 Mail entirely -->
-    <title>Procalidad App - Notificacion</title> <!-- The title tag shows in email notifications, like Android 4.4. -->
-    <link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,400i,700,700i" rel="stylesheet">
-
-    <!-- CSS Reset : BEGIN -->
+{{#> layout}}
+  {{#*inline "styles"}}
     <style>
-        html,
-        body {
-            margin: 0 auto !important;
-            padding: 0 !important;
-            height: 100% !important;
-            width: 100% !important;
-            background: #f1f1f1;
-        }
+      .text-services {
+        padding: 10px 10px 0;
+        text-align: center;
+      }
 
-        /* What it does: Stops email clients resizing small text. */
-        * {
-            -ms-text-size-adjust: 100%;
-            -webkit-text-size-adjust: 100%;
-        }
+      .text-services h3 {
+        font-size: 20px;
+      }
 
-        /* What it does: Centers email on Android 4.4 */
-        div[style*="margin: 16px 0"] {
-            margin: 0 !important;
-        }
-
-        /* What it does: Stops Outlook from adding extra spacing to tables. */
-        table,
-        td {
-            mso-table-lspace: 0pt !important;
-            mso-table-rspace: 0pt !important;
-        }
-
-        /* What it does: Fixes webkit padding issue. */
-        table {
-            border-spacing: 0 !important;
-            border-collapse: collapse !important;
-            table-layout: fixed !important;
-            margin: 0 auto !important;
-        }
-
-        /* What it does: Uses a better rendering method when resizing images in IE. */
-        img {
-            -ms-interpolation-mode: bicubic;
-        }
-
-        /* What it does: Prevents Windows 10 Mail from underlining links despite inline CSS. Styles for underlined links should be inline. */
-        a {
-            text-decoration: none;
-        }
-
-        /* If the above doesn't work, add a .g-img class to any image in question. */
-        img.g-img+div {
-            display: none !important;
-        }
-
-        /* iPhone 4, 4S, 5, 5S, 5C, and 5SE */
-        @media only screen and (min-device-width: 320px) and (max-device-width: 374px) {
-            u~div .email-container {
-                min-width: 320px !important;
-            }
-        }
-
-        /* iPhone 6, 6S, 7, 8, and X */
-        @media only screen and (min-device-width: 375px) and (max-device-width: 413px) {
-            u~div .email-container {
-                min-width: 375px !important;
-            }
-        }
-
-        /* iPhone 6+, 7+, and 8+ */
-        @media only screen and (min-device-width: 414px) {
-            u~div .email-container {
-                min-width: 414px !important;
-            }
-        }
-    </style>
-
-    <!-- CSS Reset : END -->
-
-    <!-- Progressive Enhancements : BEGIN -->
-    <style>
-        .bg_white {
-            background: #ffffff;
-        }
-
-        .email-section {
-            padding: 2.5em;
-        }
-
-        /*BUTTON*/
-        .btn {
-            padding: 10px 15px;
-        }
-
-        .btn.btn-primary {
-            border-radius: 30px;
-            background: #f3a333;
-            color: #ffffff;
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            font-family: 'Montserrat', sans-serif;
-            margin-top: 0;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 400;
-            font-size: 15px;
-            line-height: 1.8;
-            color: rgba(0, 0, 0, .4);
-        }
-
-        a [href] {
-            color: #fbee82 !important;
-        }
-
-        /*LOGO*/
-        .logo h1 {
-            margin: 0;
-        }
-
-        .logo h1 a {
-            color: #000;
-            font-size: 20px;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        /*HERO*/
-        .hero {
-            position: relative;
-        }
-
-        .hero .text {
-            color: rgba(255, 255, 255, .8);
-        }
-
-        .hero .text h2 {
-            color: #ffffff;
-            font-size: 30px;
-            margin-bottom: 0;
-        }
-
-        /*HEADING SECTION*/
-        .heading-section h2 {
-            color: #000000;
-            font-size: 28px;
-            margin-top: 0;
-            line-height: 1.4;
-        }
-
-        .heading-section .subheading {
-            margin-bottom: 20px !important;
-            display: inline-block;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: rgba(0, 0, 0, .4);
-            position: relative;
-        }
-
-        .heading-section .subheading::after {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: -10px;
-            content: '';
-            width: 100%;
-            height: 2px;
-            background: #f3a333;
-            margin: 0 auto;
-        }
-
-        /*SERVICES*/
+      @media screen and (max-width: 500px) {
         .text-services {
-            padding: 10px 10px 0;
-            text-align: center;
+          padding-left: 0;
+          padding-right: 20px;
+          text-align: left;
         }
-
-        .text-services h3 {
-            font-size: 20px;
-        }
-
-        /*BLOG*/
-        .text-services .meta {
-            text-transform: uppercase;
-            font-size: 14px;
-        }
-
-        /*TESTIMONY*/
-        .text-testimony .name {
-            margin: 0;
-        }
-
-        .text-testimony .position {
-            color: rgba(0, 0, 0, .3);
-        }
-
-        ul {
-            text-align: left;
-            padding: 0 0 0 10px;
-        }
-
-        @media screen and (max-width: 500px) {
-            .text-services {
-                padding-left: 0;
-                padding-right: 20px;
-                text-align: left;
-            }
-        }
+      }
     </style>
-</head>
-
-<body width="100%" style="margin: 0; padding: 0 !important; mso-line-height-rule: exactly; background-color: #222222;">
-<center style="width: 100%; background-color: #f1f1f1;">
-    <div style="max-width: 600px; margin: 0 auto;" class="email-container">
-        <!-- BEGIN BODY -->
-        <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
-               style="margin: auto;">
+  {{/inline}}
+  {{#*inline "title"}}
+    Solicitud de Asignaci&oacute;n
+    {{#if approved}}
+      Aprobada
+    {{/if}}
+    {{#unless approved}}
+      Rechazada
+    {{/unless}}
+  {{/inline}}
+  {{#*inline "subtitle"}}
+    {{ requestant }} ha realizado una solicitud de {{ hours }} horas para la fecha {{ date }}.
+  {{/inline}}
+  {{#*inline "content"}}
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td valign="top" width="50%" style="padding-top: 20px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
             <tr>
-                <td valign="middle" class="hero"
-                    style="background-image: url({{ AssetUrl 'img/email/header.png' }}); background-size: cover; height: 400px;">
-                    <table width="100%">
-                        <tr>
-                            <td>
-                                <div class="text" style="padding: 0 3em; text-align: center;">
-                                    <h1 style="color: white">Procalidad App</h1>
-                                    <p>
-                                        Estamos trabajando para traerte una herramienta
-                                        que facilite tu trabajo
-                                    </p>
-                                    <p><a href="{{ AppUrl '' }}" class="btn btn-primary">Conoce mas aqui!</a></p>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr><!-- end tr -->
-            <tr>
-                <td class="bg_white">
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                        <tr>
-                            <td style="background: #fff;">
-                                <div class="heading-section" style="text-align: center; padding: 0 30px;">
-                                    <h2>Solicitud de Asignaci&oacute;n
-                                    {{#if approved}}
-                                        Aprobada
-                                    {{/if}}
-                                    {{#unless approved}}
-                                        Rechazada
-                                    {{/unless}}
-                                    </h2>
-                                    <p>{{ requestant }} ha realizado una solicitud de {{ hours }} horas para la fecha {{ date }}.</p>
-                                </div>
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                                    <tr>
-                                        <td valign="top" width="50%" style="padding-top: 20px;">
-                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                                <tr>
-                                                    <td class="text-services">
-                                                        <h3>Justificaci&oacute;n</h3>
-                                                        <p>{{{ message }}}</p>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                        <td valign="top" width="50%" style="padding-top: 20px;">
-                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                                <tr>
-                                                    <td class="text-services">
-                                                        <h3>Detalles</h3>
-                                                        <ul>
-                                                            <li>Cliente: {{client}}</li>
-                                                            <li>Proyecto: {{project}}</li>
-                                                            <li>Rol: {{role}}</li>
-                                                            <li>Horas: {{hours}}</li>
-                                                        </ul>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr><!-- end: tr -->
-                    </table>
-                </td>
-            </tr><!-- end:tr -->
-            <!-- 1 Column Text + Button : END -->
-        </table>
-        <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
-               style="margin: auto;">
-            <tr>
-                <td valign="middle" style="background: #e21835; color: white; text-align: center; padding: 10px 10px 0;">
-                    <table>
-                        <tr>
-                            <td valign="top" width="66.666%" style="padding-top: 20px;">
-                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                    <tr>
-                                        <td style="text-align: left; padding: 0 10px 0 15px;">
-                                            <h3 class="heading">Informacion</h3>
-                                            <p>
-                                                Ingrese a la <a href="{{ AppUrl '' }}">aplicacion Procalidad</a>
-                                                {{#if approved}}
-                                                    y llene su registro
-                                                {{/if}}
-                                                {{#unless approved}}
-                                                    y revise su solicitud
-                                                {{/unless}}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                            <td valign="top" width="33.333%" style="padding-top: 20px;">
-                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                    <tr>
-                                        <td style="text-align: left; padding-left: 10px;">
-                                            <h3 class="heading">Links</h3>
-                                            <ul>
-                                                <li><a href="{{ AppUrl 'registro'}}">Registro</a></li>
-                                            </ul>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr><!-- end: tr -->
-            <tr>
-                <td valign="middle" style="background: #000000; color: rgba(255, 255, 255, .5); padding: 1.5em;">
-                    <table>
-                        <tr>
-                            <td valign="top">
-                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                    <tr>
-                                        <td style="text-align: left; padding-right: 10px;">
-                                            <p>&copy; 2020 Procalidad. Todos los derechos reservados</p>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
+              <td class="text-services">
+                <h3>Justificaci&oacute;n</h3>
+                <p>{{{ message }}}</p>
+              </td>
             </tr>
-        </table>
-    </div>
-</center>
-</body>
-</html>
+          </table>
+        </td>
+        <td valign="top" width="50%" style="padding-top: 20px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td class="text-services">
+                <h3>Detalles</h3>
+                <ul>
+                  <li>Cliente: {{client}}</li>
+                  <li>Proyecto: {{project}}</li>
+                  <li>Rol: {{role}}</li>
+                  <li>Horas: {{hours}}</li>
+                </ul>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  {{/inline}}
+  {{#*inline "information"}}
+    Ingrese a la <a href="{{ AppUrl '' }}">aplicacion Procalidad</a>
+    {{#if approved}}
+      y llene su registro
+    {{/if}}
+    {{#unless approved}}
+      y revise su solicitud
+    {{/unless}}
+  {{/inline}}
+  {{#*inline "links"}}
+    {{ Link 'Registro' 'registro'}}
+  {{/inline}}
+{{/layout}}

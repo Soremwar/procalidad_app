@@ -6,17 +6,28 @@ import {
 import HtmlEncoder from "html-entities";
 import Handlebars from "handlebars";
 
+const getAppRoute = (route) => `${protocol}://${address}:${port}/${route}`;
+
 Handlebars.registerHelper("AppUrl", function (app_route = "") {
-  return new Handlebars.SafeString(
-    `${protocol}://${address}:${port}/${app_route}`,
-  );
+  return new Handlebars.SafeString(getAppRoute(app_route));
 });
 
 Handlebars.registerHelper("AssetUrl", function (resource_route) {
   return new Handlebars.SafeString(
-    `${protocol}://${address}:${port}/resources/${resource_route}`,
+    getAppRoute(`resources/${resource_route}`),
   );
 });
+
+Handlebars.registerHelper("Link", function (title, route) {
+  return new Handlebars.SafeString(
+    `<li><a href="${getAppRoute(route)}">${title}</a></li>`,
+  );
+});
+
+const layout = await Deno.readTextFile(
+  new URL("./templates/layout.html", import.meta.url),
+);
+Handlebars.registerPartial("layout", layout);
 
 export const createAssignationRequestEmail = async (
   requestant,
