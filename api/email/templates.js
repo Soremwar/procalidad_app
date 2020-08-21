@@ -92,11 +92,11 @@ export const createRegistryDelayedUserEmail = async (
   });
 };
 
-export const createRegistryDelayedAreaEmail = async (
+export const createRegistryDelayedSubAreaEmail = async (
   people_data,
 ) => {
   const raw_template = await Deno.readTextFile(
-    new URL("./templates/registry_delayed_area.html", import.meta.url),
+    new URL("./templates/registry_delayed_sub_area.html", import.meta.url),
   );
   const template = Handlebars.compile(raw_template, {
     noEscape: true,

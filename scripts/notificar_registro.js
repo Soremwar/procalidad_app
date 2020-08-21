@@ -1,6 +1,6 @@
 import {
   dispatchRegistryDelayedUsers as sendRegistryDelayedUsersEmail,
-  dispatchRegistryDelayedAreas as sendRegistryDelayedAreasEmail,
+  dispatchRegistryDelayedSubAreas as sendRegistryDelayedAreasEmail,
 } from "../api/email/dispatchers.js";
 
 await sendRegistryDelayedUsersEmail();

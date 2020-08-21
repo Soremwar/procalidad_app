@@ -5,7 +5,7 @@ import postgres from "../services/postgres.js";
 import {
   createAssignationRequestEmail,
   createAssignationRequestReviewEmail,
-  createRegistryDelayedAreaEmail,
+  createRegistryDelayedSubAreaEmail,
   createRegistryDelayedUserEmail,
 } from "./templates.js";
 import {
@@ -179,11 +179,12 @@ export const dispatchRegistryDelayedUsers = async () => {
   await Promise.all(emails);
 };
 
-export const dispatchRegistryDelayedAreas = async () => {
+export const dispatchRegistryDelayedSubAreas = async () => {
   const { rows: delayed_sub_areas } = await postgres.query(
     `SELECT
       P.CORREO AS SUPERVISOR_EMAIL,
-      SA.PK_SUB_AREA AS ID_SUB_AREA
+      SA.PK_SUB_AREA AS ID_SUB_AREA,
+      SA.NOMBRE AS SUB_AREA
     FROM ${SUB_AREA_TABLE} SA
     JOIN ${PERSON_TABLE} P
       ON P.PK_PERSONA = SA.FK_SUPERVISOR
@@ -203,6 +204,7 @@ export const dispatchRegistryDelayedAreas = async () => {
   const emails = delayed_sub_areas.map(async ([
     supervisor_email,
     id_sub_area,
+    sub_area,
   ]) => {
     const { rows } = await postgres.query(
       `SELECT
@@ -228,8 +230,8 @@ export const dispatchRegistryDelayedAreas = async () => {
 
     await sendNewEmail(
       supervisor_email,
-      `Notificacion de retraso de area`,
-      await createRegistryDelayedAreaEmail(
+      `Notificacion de retraso en Subarea: ${sub_area}`,
+      await createRegistryDelayedSubAreaEmail(
         delayed_users,
       ),
     );
