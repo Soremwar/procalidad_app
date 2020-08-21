@@ -80,7 +80,6 @@ export const updatePerson = async (
     identification,
     name,
     phone,
-    email,
   } = await request.body({ type: "json" }).value;
 
   person = await person.update(
@@ -92,7 +91,6 @@ export const updatePerson = async (
     undefined,
     name,
     phone,
-    email,
   );
 
   response.body = person;

@@ -249,12 +249,8 @@ const EditModal = ({
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -331,12 +327,11 @@ const EditModal = ({
         value={fields.phone}
       />
       <TextField
+        disabled
         fullWidth
         label="Correo"
         margin="dense"
         name="email"
-        onChange={(event) => handleChange(event)}
-        required
         value={fields.email}
       />
     </DialogForm>

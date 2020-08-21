@@ -13,7 +13,6 @@ import * as contact_model from "../../api/models/users/contact.ts";
 import * as language_model from "../../api/models/users/language_experience.ts";
 import {
   findById as findPerson,
-  TipoIdentificacion,
   TipoSangre,
 } from "../../api/models/ORGANIZACION/people.ts";
 
@@ -316,7 +315,6 @@ export const updateUserInformation = async (
     undefined,
     value.document_expedition_date,
     value.document_expedition_city,
-    undefined,
     undefined,
     undefined,
     value.birth_date,
