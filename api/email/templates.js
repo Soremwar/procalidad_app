@@ -22,6 +22,7 @@ export const createAssignationRequestEmail = async (
   requestant,
   message,
   date,
+  client,
   project,
   role,
   hours,
@@ -35,6 +36,7 @@ export const createAssignationRequestEmail = async (
   });
 
   return template({
+    client: html.encode(client),
     date: html.encode(date),
     hours,
     message: html.encode(message),
@@ -49,6 +51,7 @@ export const createAssignationRequestReviewEmail = async (
   date,
   hours,
   message,
+  client,
   project,
   requestant,
   role,
@@ -63,6 +66,7 @@ export const createAssignationRequestReviewEmail = async (
 
   return template({
     approved,
+    client: html.encode(client),
     date: html.encode(date),
     hours,
     message: html.encode(message),

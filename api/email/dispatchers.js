@@ -21,6 +21,9 @@ import {
   TABLE as PROJECT_TABLE,
 } from "../models/OPERACIONES/PROYECTO.ts";
 import {
+  TABLE as CLIENT_TABLE,
+} from "../models/CLIENTES/CLIENTE.ts";
+import {
   TABLE as ROLE_TABLE,
 } from "../models/OPERACIONES/ROL.ts";
 import {
@@ -44,6 +47,7 @@ export const dispatchAssignationRequested = async (assignation_request) => {
     `SELECT
       TO_CHAR(TO_DATE(ASO.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = CS.FK_PERSONA) AS REQUESTANT,
+      (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE = PRO.FK_CLIENTE) AS CLIENT,
       PRO.NOMBRE AS PROJECT,
       (SELECT CORREO FROM ${PERSON_TABLE} WHERE PK_PERSONA = PRO.FK_SUPERVISOR) AS SUPERVISOR_EMAIL,
       ROL.NOMBRE AS ROLE,
@@ -65,6 +69,7 @@ export const dispatchAssignationRequested = async (assignation_request) => {
   const [
     date,
     requestant,
+    client,
     project,
     supervisor_email,
     role,
@@ -76,6 +81,7 @@ export const dispatchAssignationRequested = async (assignation_request) => {
     requestant,
     description,
     date,
+    client,
     project,
     role,
     hours,
@@ -97,6 +103,7 @@ export const dispatchAssignationRequestReviewed = async (
       TO_CHAR(TO_DATE(ASO.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
       PER.CORREO AS REQUESTANT_EMAIL,
       PER.NOMBRE AS REQUESTANT_NAME,
+      (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE = PRO.FK_CLIENTE) AS CLIENT,
       PRO.NOMBRE AS PROJECT,
       ROL.NOMBRE AS ROLE,
       ASO.HORAS AS HOURS,
@@ -120,6 +127,7 @@ export const dispatchAssignationRequestReviewed = async (
     date,
     requestant_email,
     requestant_name,
+    client,
     project,
     role,
     hours,
@@ -131,6 +139,7 @@ export const dispatchAssignationRequestReviewed = async (
     date,
     hours,
     description,
+    client,
     project,
     requestant_name,
     role,
