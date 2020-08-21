@@ -4,29 +4,43 @@ import {
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
-import { TABLE as PROFILE_TABLE } from "./profile.ts";
-import { TABLE as PEOPLE_TABLE } from "../ORGANIZACION/people.ts";
 
-export const TABLE = "MAESTRO.ACCESO";
+export const TABLE = "ARCHIVOS.FORMATO";
 
-class Access {
+class Format {
   constructor(
-    public readonly person: number,
-    public profiles: number[],
+    public readonly id: number,
+    public name: string,
+    public path: string,
+    public size: string,
+    public extensions: string[],
   ) {}
 
   async update(
-    person: number = this.person,
-    profiles: number[] = this.profiles,
-  ): Promise<
-    Access
-  > {
+    name: string = this.name,
+    path: string = this.path,
+    size: string = this.size,
+    extensions: string[] = this.extensions,
+  ): Promise<Format> {
     Object.assign(this, {
-      profiles,
+      name,
+      path,
+      size,
+      extensions,
     });
 
-    await this.delete();
-    await createNew(person, profiles);
+    await postgres.query(
+      `UPDATE ${TABLE} SET
+        NOMBRE = $2,
+        RUTA = $3,
+        MAX_TAMANO = $4,
+        EXTENSIONES = '{${this.extensions.join(",")}}'
+      WHERE PK_FORMATO = $1`,
+      this.id,
+      this.name,
+      this.path,
+      this.size,
+    );
 
     return this;
   }
@@ -34,104 +48,99 @@ class Access {
   async delete(): Promise<void> {
     await postgres.query(
       `DELETE FROM ${TABLE}
-      WHERE FK_PERSONA = $1`,
-      this.person,
+      WHERE PK_FORMATO = $1`,
+      this.id,
     );
   }
 }
 
-export const hasAccessDefined = async (person: number): Promise<boolean> => {
+export const createNew = async (
+  name: string,
+  path: string,
+  size: string,
+  extensions: string[],
+): Promise<Format> => {
   const { rows } = await postgres.query(
-    `SELECT 1
-    FROM ${TABLE}
-    WHERE FK_PERSONA = $1`,
-    person,
+    `INSERT INTO ${TABLE} (
+      NOMBRE,
+      RUTA,
+      MAX_TAMANO,
+      EXTENSIONES
+    ) VALUES (
+      $1,
+      $2,
+      $3,
+      '{${extensions.join(",")}}'
+    ) RETURNING PK_FORMATO`,
+    name,
+    path,
+    size,
   );
 
-  return !!rows.length;
+  const id: number = rows[0][0];
+
+  return new Format(
+    id,
+    name,
+    path,
+    size,
+    extensions,
+  );
 };
 
-export const findAll = async (): Promise<Access[]> => {
+export const findAll = async (): Promise<Format[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      FK_PERSONA,
-      ARRAY_AGG( FK_PERMISO)
-    FROM ${TABLE}
-    GROUP BY FK_PERSONA`,
+      PK_FORMATO,
+      NOMBRE,
+      RUTA,
+      MAX_TAMANO,
+      EXTENSIONES
+    FROM ${TABLE}`,
   );
 
-  const models = rows.map((row: [
+  return rows.map((row: [
     number,
-    number[],
-  ]) => new Access(...row));
-
-  return models;
+    string,
+    string,
+    string,
+    string[],
+  ]) => new Format(...row));
 };
 
-export const findById = async (id: number): Promise<Access | null> => {
+export const findById = async (id: number): Promise<Format | null> => {
   const { rows } = await postgres.query(
     `SELECT
-      FK_PERSONA,
-      ARRAY_AGG( FK_PERMISO)
+      PK_FORMATO,
+      NOMBRE,
+      RUTA,
+      MAX_TAMANO,
+      EXTENSIONES
     FROM ${TABLE}
-    WHERE FK_PERSONA = $1
-    GROUP BY FK_PERSONA`,
+    WHERE PK_FORMATO = $1`,
     id,
   );
 
-  if (!rows[0]) return null;
+  if (!rows.length) return null;
 
-  const result: [
-    number,
-    number[],
-  ] = rows[0];
-
-  return new Access(...result);
-};
-
-export const findByEmail = async (email: string): Promise<Access | null> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      FK_PERSONA,
-      ARRAY_AGG(FK_PERMISO)
-    FROM ${TABLE} 
-    WHERE FK_PERSONA = (SELECT PK_PERSONA FROM ${PEOPLE_TABLE} WHERE CORREO ILIKE $1)
-    GROUP BY FK_PERSONA`,
-    email,
-  );
-
-  if (!rows[0]) return null;
-
-  const result: [
-    number,
-    number[],
-  ] = rows[0];
-
-  return new Access(...result);
-};
-
-export const createNew = async (
-  person: number,
-  profiles: number[],
-): Promise<Access> => {
-  await postgres.query(
-    `INSERT INTO ${TABLE} (
-      FK_PERSONA,
-      FK_PERMISO
-    ) VALUES ${profiles.map((profile) => `(${person}, ${profile})`).join(",")}`,
-  );
-
-  return new Access(
-    person,
-    profiles,
+  return new Format(
+    ...rows[0] as [
+      number,
+      string,
+      string,
+      string,
+      string[],
+    ],
   );
 };
 
 class TableData {
   constructor(
     public id: number,
-    public person: string,
-    public profiles: string,
+    public name: string,
+    public path: string,
+    public size: string,
+    public extensions: string,
   ) {}
 }
 
@@ -143,15 +152,12 @@ export const getTableData = async (
 ): Promise<TableResult> => {
   const base_query = (
     `SELECT
-      A.FK_PERSONA AS ID,
-      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = A.FK_PERSONA) AS PERSON,
-      ARRAY_TO_STRING(ARRAY_AGG(B.NOMBRE), ', ') AS PROFILES
-    FROM
-      ${TABLE} A
-    INNER JOIN
-      ${PROFILE_TABLE} B
-      ON B.COD_PERMISO = A.FK_PERMISO
-    GROUP BY A.FK_PERSONA`
+      PK_FORMATO AS ID,
+      NOMBRE AS NAME,
+      RUTA AS PATH,
+      MAX_TAMANO AS SIZE,
+      ARRAY_TO_STRING(EXTENSIONES, ', ') AS EXTENSIONS
+    FROM ${TABLE}`
   );
 
   const { count, data } = await getTableModels(
@@ -164,6 +170,8 @@ export const getTableData = async (
 
   const models = data.map((x: [
     number,
+    string,
+    string,
     string,
     string,
   ]) => new TableData(...x));
