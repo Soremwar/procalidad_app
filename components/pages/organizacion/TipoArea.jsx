@@ -22,6 +22,7 @@ import {
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
+import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
 
@@ -80,8 +81,9 @@ const AddModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    supervisor: "",
     name: "",
+    supervisor: "",
+    time_records: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -112,6 +114,7 @@ const AddModal = ({
       setFields({
         supervisor: "",
         name: "",
+        time_records: "",
       });
       setLoading(false);
       setError(null);
@@ -146,6 +149,23 @@ const AddModal = ({
         required
         value={fields.supervisor}
       />
+      <SelectField
+        fullWidth
+        label="Registra horas"
+        name="time_records"
+        onChange={(event) => {
+          const { value } = event.target;
+          setFields((prev_state) => ({
+            ...prev_state,
+            time_records: value === "true",
+          }));
+        }}
+        required
+        value={String(fields.time_records)}
+      >
+        <option value="false">No</option>
+        <option value="true">Si</option>
+      </SelectField>
     </DialogForm>
   );
 };
@@ -163,6 +183,7 @@ const EditModal = ({
   const [fields, setFields] = useState({
     name: "",
     supervisor: "",
+    time_records: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -170,8 +191,9 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        name: data.nombre,
-        supervisor: data.fk_supervisor,
+        name: data.name,
+        supervisor: data.supervisor,
+        time_records: data.time_records,
       });
       setLoading(false);
       setError(null);
@@ -188,7 +210,7 @@ const EditModal = ({
     setError(null);
 
     const request = await updateProjectType(
-      data.pk_tipo,
+      data.id,
       new URLSearchParams(fields),
     );
 
@@ -230,6 +252,23 @@ const EditModal = ({
         required
         value={fields.supervisor}
       />
+      <SelectField
+        fullWidth
+        label="Registra horas"
+        name="time_records"
+        onChange={(event) => {
+          const { value } = event.target;
+          setFields((prev_state) => ({
+            ...prev_state,
+            time_records: value === "true",
+          }));
+        }}
+        required
+        value={String(fields.time_records)}
+      >
+        <option value="false">No</option>
+        <option value="true">Si</option>
+      </SelectField>
     </DialogForm>
   );
 };

@@ -4,10 +4,13 @@ import {
   findAll,
   findById,
   getTableData,
-} from "../../../api/models/ORGANIZACION/TIPO_AREA.ts";
+} from "../../../api/models/ORGANIZACION/area_type.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
+import {
+  castStringToBoolean,
+} from "../../../lib/utils/boolean.js";
 
 export const getAreaTypes = async ({ response }: RouterContext) => {
   response.body = await findAll();
@@ -25,14 +28,31 @@ export const createAreaType = async ({ request, response }: RouterContext) => {
   const {
     name,
     supervisor,
+    time_records,
   }: { [x: string]: string } = await request.body()
     .then((x: Body) => Object.fromEntries(x.value));
 
-  if (!(name && Number(supervisor))) throw new RequestSyntaxError();
+  if (
+    !(
+      name &&
+      Number(supervisor)
+    )
+  ) {
+    throw new RequestSyntaxError();
+  }
+
+  let parsed_time_records: boolean;
+
+  try {
+    parsed_time_records = castStringToBoolean(time_records);
+  } catch (e) {
+    throw new RequestSyntaxError();
+  }
 
   await createNew(
     name,
     Number(supervisor),
+    parsed_time_records,
   );
 
   response = formatResponse(
@@ -69,17 +89,26 @@ export const updateAreaType = async (
   const {
     name,
     supervisor,
+    time_records,
   }: {
     name?: string;
     supervisor?: string;
+    time_records?: string;
   } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
 
-  area_type = await area_type.update(
+  let parsed_time_records: boolean;
+
+  try {
+    parsed_time_records = castStringToBoolean(time_records);
+  } catch (e) {
+    throw new RequestSyntaxError();
+  }
+
+  response.body = await area_type.update(
     name,
     Number(supervisor) || undefined,
+    parsed_time_records,
   );
-
-  response.body = area_type;
 };
 
 export const deleteAreaType = async (
