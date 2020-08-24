@@ -110,7 +110,7 @@ export default function ({
               {data
                 .filter((row) => {
                   for (const column in search) {
-                    if (row[column]) {
+                    if (row[column] && search[column]) {
                       if (search[column] == row[column]) {
                         continue;
                       } else {

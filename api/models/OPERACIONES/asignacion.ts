@@ -252,6 +252,7 @@ class TableData {
   constructor(
     public id: number,
     public id_week: number,
+    public id_client: number,
     public id_project: number,
     public person: string,
     public role: string,
@@ -279,7 +280,8 @@ export const getTableData = async (
     SELECT
       PK_ASIGNACION AS ID,
       S.PK_SEMANA AS ID_WEEK,
-      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = A.FK_PRESUPUESTO) AS ID_PROJECT,
+      (SELECT FK_CLIENTE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = B.FK_PROYECTO) AS ID_CLIENT,
+      B.FK_PROYECTO AS ID_PROJECT,
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = A.FK_PERSONA) AS PERSON,
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = A.FK_ROL) AS ROLE,
       TO_CHAR(TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
@@ -289,6 +291,8 @@ export const getTableData = async (
     FROM ${TABLE} AS A
     JOIN ${WEEK_TABLE} AS S
       ON A.FK_SEMANA = S.PK_SEMANA
+    JOIN ${BUDGET_TABLE} AS B
+      ON A.FK_PRESUPUESTO = B.PK_PRESUPUESTO
     JOIN (
       SELECT
         PRE.PK_PRESUPUESTO,
@@ -319,6 +323,7 @@ export const getTableData = async (
   );
 
   const models = data.map((x: [
+    number,
     number,
     number,
     number,

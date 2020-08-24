@@ -638,7 +638,7 @@ export default () => {
   };
 
   const updateAssignationTable = () => {
-    if (user_id && selected_project && selected_week && (selected_tab === 0)) {
+    if (user_id && selected_week && (selected_tab === 0)) {
       setAssignationTableShouldUpdate(true);
     }
   };
@@ -646,7 +646,12 @@ export default () => {
   const updateRequestTable = () => {
     setAlertOpen(false);
     setError(null);
-    if (selected_project && selected_week && (selected_tab === 1)) {
+    if (selected_week && (selected_tab === 1)) {
+      console.log({
+        selected_client,
+        selected_project,
+        selected_week,
+      });
       getAssignationRequestTable(user_id)
         .then(async (response) => {
           if (response.ok) {
@@ -701,7 +706,7 @@ export default () => {
   useEffect(() => {
     updateAssignationTable();
     updateRequestTable();
-  }, [selected_project, selected_week, selected_tab]);
+  }, [selected_client, selected_project, selected_week, selected_tab]);
 
   return (
     <Fragment>
@@ -768,7 +773,7 @@ export default () => {
         </Grid>
       </ParameterContext.Provider>
       <br />
-      {selected_project && selected_week && (
+      {selected_week && (
         <div className={classes.bar}>
           <AppBar position="static">
             <Tabs
@@ -790,6 +795,7 @@ export default () => {
               onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
               onTableUpdate={setAssignationTableShouldUpdate}
               search={{
+                id_client: selected_client,
                 id_project: selected_project,
                 id_supervisor: user_id,
                 id_week: selected_week,
@@ -804,6 +810,7 @@ export default () => {
               onUpdateRequest={(row_id, approved) =>
                 handleRequestUpdate(row_id, approved)}
               search={{
+                id_client: selected_client,
                 id_project: selected_project,
                 id_week: selected_week,
               }}

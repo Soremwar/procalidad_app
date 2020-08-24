@@ -131,6 +131,7 @@ class TableData {
     public readonly id: number,
     public readonly id_week: number,
     public readonly person: string,
+    public readonly id_client: number,
     public readonly id_project: number,
     public readonly project: string,
     public readonly role: string,
@@ -154,15 +155,20 @@ export const getTableData = async (person: number) => {
       A.PK_SOLICITUD AS ID,
       C.FK_SEMANA AS ID_WEEK,
       (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = C.FK_PERSONA) AS PERSON,
-      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = A.FK_PRESUPUESTO) AS ID_PROJECT,
-      (SELECT NOMBRE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = A.FK_PRESUPUESTO)) AS PROJECT,
+      P.FK_CLIENTE AS ID_CLIENT,
+      P.PK_PROYECTO AS ID_PROJECT,
+      P.NOMBRE AS PROJECT,
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = A.FK_ROL) AS ROLE,
       TO_CHAR(TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
-      TO_CHAR(HORAS, 'FM999999999.0') AS HOURS,
-      DESCRIPCION AS DESCRIPTION
+      TO_CHAR(A.HORAS, 'FM999999999.0') AS HOURS,
+      A.DESCRIPCION AS DESCRIPTION
     FROM ${TABLE} AS A
     JOIN ${CONTROL_TABLE} AS C
       ON A.FK_CONTROL_SEMANA = C.PK_CONTROL
+    JOIN ${BUDGET_TABLE} AS B
+      ON A.FK_PRESUPUESTO = B.PK_PRESUPUESTO
+    JOIN ${PROJECT_TABLE} AS P
+      ON B.FK_PROYECTO = P.PK_PROYECTO
     JOIN (
       SELECT
         PRE.PK_PRESUPUESTO,
@@ -186,6 +192,7 @@ export const getTableData = async (person: number) => {
     number,
     number,
     string,
+    number,
     number,
     string,
     string,
