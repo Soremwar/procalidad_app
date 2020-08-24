@@ -30,6 +30,12 @@ import {
   TABLE as PERSON_TABLE,
 } from "../models/ORGANIZACION/PERSONA.ts";
 import {
+  TABLE as AREA_TYPE_TABLE,
+} from "../models/ORGANIZACION/area_type.ts";
+import {
+  TABLE as AREA_TABLE,
+} from "../models/ORGANIZACION/AREA.ts";
+import {
   TABLE as SUB_AREA_TABLE,
 } from "../models/ORGANIZACION/sub_area.ts";
 import {
@@ -165,7 +171,20 @@ export const dispatchRegistryDelayedUsers = async () => {
     JOIN ${PERSON_TABLE} P
       ON P.PK_PERSONA = CS.FK_PERSONA
     WHERE CS.BAN_CERRADO = FALSE
-    AND FECHA_FIN < CURRENT_DATE`,
+    AND FECHA_FIN < CURRENT_DATE
+    AND P.PK_PERSONA IN (
+      SELECT FK_PERSONA
+      FROM ${POSITION_ASSIGNATION_TABLE} AC
+      WHERE FK_SUB_AREA IN (
+        SELECT SA.PK_SUB_AREA
+        FROM ${AREA_TYPE_TABLE} TA
+        JOIN ${AREA_TABLE} A
+          ON TA.PK_TIPO = A.FK_TIPO_AREA 
+        JOIN ${SUB_AREA_TABLE} SA 
+          ON A.PK_AREA = SA.FK_AREA
+        WHERE TA.BAN_REGISTRABLE = TRUE
+      )
+    )`,
   );
 
   const emails = rows.map(async ([
@@ -205,8 +224,15 @@ export const dispatchRegistryDelayedSubAreas = async () => {
         ON DS.PK_SEMANA = CS.FK_SEMANA
       JOIN ${POSITION_ASSIGNATION_TABLE} AC
         ON AC.FK_PERSONA = CS.FK_PERSONA
+      JOIN ${SUB_AREA_TABLE} SA 
+        ON SA.PK_SUB_AREA = AC.FK_SUB_AREA
+      JOIN ${AREA_TABLE} A
+        ON A.PK_AREA = SA.FK_AREA
+      JOIN ${AREA_TYPE_TABLE} AT
+        ON AT.PK_TIPO = A.FK_TIPO_AREA
       WHERE CS.BAN_CERRADO = FALSE
       AND FECHA_FIN < CURRENT_DATE
+      AND AT.BAN_REGISTRABLE = TRUE
     )`,
   );
 

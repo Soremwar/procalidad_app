@@ -7,7 +7,7 @@ import {
 } from "../../common/table.ts";
 import { TABLE as PEOPLE_TABLE } from "./PERSONA.ts";
 
-const TABLE = "ORGANIZACION.TIPO_AREA";
+export const TABLE = "ORGANIZACION.TIPO_AREA";
 
 const ERROR_CONSTRAINT =
   "El supervisor ingresado para el tipo de area no existe";
