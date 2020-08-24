@@ -5,6 +5,7 @@ import {
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
+import { TABLE as PARAMETER_VALUE_TABLE } from "./parametro_definicion.ts";
 
 const TABLE = "MAESTRO.PARAMETRO";
 const ERROR_DEPENDENCY =
@@ -61,6 +62,21 @@ class Parametro {
       throw e;
     });
   }
+
+  async getValue(): Promise<string> {
+    const { rows } = await postgres.query(
+      `SELECT
+        VALOR
+      FROM ${PARAMETER_VALUE_TABLE} 
+      WHERE NOW() BETWEEN FEC_INICIO AND FEC_FIN
+      AND FK_PARAMETRO = $1`,
+      this.pk_parametro,
+    );
+
+    const value: string = rows?.[0]?.[0] || "";
+
+    return value;
+  }
 }
 
 export const findAll = async (): Promise<Parametro[]> => {
@@ -96,6 +112,31 @@ export const findById = async (id: number): Promise<Parametro | null> => {
     FROM ${TABLE}
     WHERE PK_PARAMETRO = $1`,
     id,
+  );
+
+  if (!rows[0]) return null;
+
+  const result: [
+    number,
+    string,
+    string,
+    TipoParametro,
+  ] = rows[0];
+  result[3] = result[3] in TipoParametro ? result[3] : TipoParametro.string;
+
+  return new Parametro(...result);
+};
+
+export const findByCode = async (code: string): Promise<Parametro | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_PARAMETRO,
+      NOMBRE,
+      DESCRIPCION,
+      TIPO_PARAMETRO
+    FROM ${TABLE}
+    WHERE NOMBRE ILIKE $1`,
+    code,
   );
 
   if (!rows[0]) return null;

@@ -37,6 +37,9 @@ export default function Perfil() {
       <br />
       <br />
       <LanguageForm />
+      <br />
+      <br />
+      <FileForm />
     </Fragment>
   );
 }

@@ -187,12 +187,14 @@ export const dispatchRegistryDelayedUsers = async () => {
     )`,
   );
 
-  for(const [
-    person_name,
-    person_email,
-    start_date,
-    end_date,
-  ] of rows){
+  for (
+    const [
+      person_name,
+      person_email,
+      start_date,
+      end_date,
+    ] of rows
+  ) {
     const email_content = await createRegistryDelayedUserEmail(
       person_name,
       start_date,
@@ -236,11 +238,13 @@ export const dispatchRegistryDelayedSubAreas = async () => {
     )`,
   );
 
-  for(const [
-    supervisor_email,
-    id_sub_area,
-    sub_area,
-  ] of delayed_sub_areas){
+  for (
+    const [
+      supervisor_email,
+      id_sub_area,
+      sub_area,
+    ] of delayed_sub_areas
+  ) {
     const { rows } = await postgres.query(
       `SELECT
         (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = CS.FK_PERSONA) AS PERSON_NAME,

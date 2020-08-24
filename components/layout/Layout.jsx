@@ -41,6 +41,7 @@ import Asignacion from "../pages/asignacion.jsx";
 import Registro from "../pages/registro.jsx";
 import Formato from "../pages/maestro/formato.jsx";
 import Perfil from "../pages/usuario/perfil.jsx";
+import ArchivosSoporte from "../pages/humanos/soporte.jsx";
 
 //TODO
 //Make profiles constant (shared?)
@@ -340,6 +341,15 @@ const Layout = (props) => {
               ]}
               component={Registro}
               path="/registro"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={ArchivosSoporte}
+              path="/humanos/soporte"
             />
           </Switch>
         </div>

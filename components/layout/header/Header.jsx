@@ -31,6 +31,7 @@ export default function Header(props) {
   const layoutDispatch = useLayoutDispatch();
   const [userState, userDispatch] = useContext(UserContext);
   const [profileMenu, setProfileMenu] = useState(null);
+  const [profile_source, setProfileSource] = useState("/api/usuario/foto");
 
   return (
     <AppBar position="fixed" className={classes.appBar}>
@@ -78,7 +79,15 @@ export default function Header(props) {
           aria-controls="profile-menu"
           onClick={(e) => setProfileMenu(e.currentTarget)}
         >
-          <AccountIcon classes={{ root: classes.headerIcon }} />
+          <img
+            style={{
+              height: "60px",
+              width: "60px",
+              borderRadius: "30%",
+            }}
+            onError={() => setProfileSource("/resources/img/icon.png")}
+            src={profile_source}
+          />
         </IconButton>
         <Menu
           id="profile-menu"

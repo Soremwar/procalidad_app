@@ -56,29 +56,91 @@ const setUserInformation = (
     method: "PUT",
   });
 
-//TODO
-//Find a way to display a good ratio
-const useFormStyles = makeStyles(() => ({
-  file_card: {
+const setUserPicture = async (
+  name,
+  picture,
+) => {
+  const data = new FormData();
+  data.append(name, picture);
+  return fetchUserApi("foto", {
+    body: data,
+    method: "PUT",
+  });
+};
+
+const useProfilePictureStyles = makeStyles(() => ({
+  card: {
     display: "flex",
   },
-  file_card_content: {
+  card_content: {
     flex: "1 0 auto",
   },
-  file_card_details: {
+  card_details: {
+    alignItems: "center",
     display: "flex",
     flexDirection: "column",
+    width: "60%",
   },
-  file_input: {
+  input: {
     display: "none",
   },
   image: {
+    backgroundSize: "200px",
+    height: "200px",
     width: "200px",
   },
 }));
 
+const ProfilePicture = () => {
+  const classes = useProfilePictureStyles();
+  const [picture_key, setPictureKey] = useState(0);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    setUserPicture(file.name, file)
+      .then((response) => {
+        if (response.ok) {
+          setPictureKey((prev) => prev + 1);
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("Picture couldn't be uploaded"));
+  };
+
+  return (
+    <Card className={classes.card} variant="outlined">
+      <div className={classes.card_details}>
+        <CardMedia
+          className={classes.image}
+          image={`/api/usuario/foto#${picture_key}`}
+        />
+      </div>
+      <CardActions className={classes.card_content}>
+        <input
+          accept="image/*"
+          id="upload_image"
+          className={classes.input}
+          onChange={handleImageChange}
+          type="file"
+        />
+        <label htmlFor="upload_image">
+          <Button
+            color="primary"
+            component="span"
+            className={classes.button}
+            endIcon={<UploadIcon />}
+            variant="contained"
+          >
+            Cambiar foto
+          </Button>
+        </label>
+      </CardActions>
+    </Card>
+  );
+};
+
 export default function MainForm() {
-  const classes = useFormStyles();
   const [fields, setFields] = useState({
     birth_city: "",
     birth_date: "",
@@ -89,7 +151,6 @@ export default function MainForm() {
     military_passbook: "",
     personal_email: "",
     phone: "",
-    picture: "",
   });
   const [city_query, setCityQuery] = useState("");
   const [genders, setGenders] = useState([]);
@@ -163,16 +224,6 @@ export default function MainForm() {
       .catch(() => {
         console.error("uncatched error");
       });
-  };
-
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onloadend = function () {
-      const encoded_base64 = reader.result.replace(/^data:.+;base64,/, "");
-      setFields((prev_state) => ({ ...prev_state, picture: encoded_base64 }));
-    };
-    reader.readAsDataURL(file);
   };
 
   return (
@@ -272,37 +323,8 @@ export default function MainForm() {
           />
         </Grid>
         <Grid item md={6} xs={12}>
-          <Card className={classes.file_card}>
-            <div className={classes.file_card_details}>
-              <CardMedia
-                component="img"
-                className={classes.image}
-                src={fields.picture
-                  ? `data:image/png;base64,${fields.picture}`
-                  : "/resources/img/logo.png"}
-              />
-            </div>
-            <CardActions className={classes.file_card_content}>
-              <input
-                accept="image/*"
-                id="upload_image"
-                className={classes.file_input}
-                onChange={handleImageChange}
-                type="file"
-              />
-              <label htmlFor="upload_image">
-                <Button
-                  color="primary"
-                  component="span"
-                  className={classes.file_button}
-                  endIcon={<UploadIcon />}
-                  variant="contained"
-                >
-                  Cambiar foto
-                </Button>
-              </label>
-            </CardActions>
-          </Card>
+          <ProfilePicture />
+          <br />
           <TextField
             fullWidth
             label="Libreta militar"

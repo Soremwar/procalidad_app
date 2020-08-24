@@ -213,6 +213,7 @@ import {
   getAssignationRequestTable,
   updateAssignationRequest,
 } from "./handlers/asignacion_solicitud.ts";
+import * as people_supports from "./handlers/humanos/soporte.ts";
 
 const main_router = new Router();
 
@@ -286,10 +287,14 @@ main_router
     checkUserAccess(),
     usuario.deleteChildren,
   )
-  .get("/api/usuario/residencia", checkUserAccess(), usuario.getResidence)
-  .put("/api/usuario/residencia", checkUserAccess(), usuario.updateResidence)
   .get("/api/usuario/soportes", checkUserAccess(), usuario.getSupportFiles)
-  .put("/api/usuario/soportes", checkUserAccess(), usuario.updateSupportFiles)
+  .put<{ id: string }>(
+    "/api/usuario/soportes/:id",
+    checkUserAccess(),
+    usuario.loadSupportFile,
+  )
+  .get("/api/usuario/foto", checkUserAccess(), usuario.getPicture)
+  .put("/api/usuario/foto", checkUserAccess(), usuario.updatePicture)
   .get(
     "/api/usuario",
     checkUserAccess(),
@@ -301,6 +306,23 @@ main_router
     usuario.updateUserInformation,
   );
 
+/*
+.post(
+  "/api/usuario/soportes",
+  checkUserAccess(),
+  usuario.createChildren,
+)
+.put<{ id: string }>(
+  "/api/usuario/soportes/:id",
+  checkUserAccess(),
+  usuario.updateChildren,
+)
+.delete<{ id: string }>(
+  "/api/usuario/soportes/:id",
+  checkUserAccess(),
+  usuario.deleteChildren,
+)
+*/
 main_router
   .get(
     "/api/maestro/parametro",
@@ -625,8 +647,6 @@ main_router
 
 main_router
   .get(
-<<<<<<< HEAD
-=======
     "/api/maestro/formato",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
@@ -697,7 +717,6 @@ main_router
 
 main_router
   .get(
->>>>>>> 52341ee... Formularios secundarios
     "/api/clientes/cliente",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
@@ -2138,6 +2157,64 @@ main_router
       Profiles.SALES,
     ]),
     updateAssignationRequest,
+  );
+
+main_router
+  .get(
+    "/api/humanos/soporte",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.getSupportFormats,
+  )
+  .post(
+    "/api/humanos/soporte/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.getSupportFormatsTable,
+  )
+  .get<{ id: string }>(
+    "/api/humanos/soporte/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.getSupportFormat,
+  )
+  .post(
+    "/api/humanos/soporte",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.createSupportFormat,
+  )
+  .put<{ id: string }>(
+    "/api/humanos/soporte/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.updateSupportFormat,
+  )
+  .delete<{ id: string }>(
+    "/api/humanos/soporte/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.deleteSupportFormat,
   );
 
 export const routes = main_router.routes();

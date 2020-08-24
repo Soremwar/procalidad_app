@@ -1,6 +1,27 @@
 import { RouterContext } from "oak";
 import Ajv from "ajv";
 import { decodeToken } from "../../lib/jwt.ts";
+import * as children_model from "../../api/models/users/children.ts";
+import * as contact_model from "../../api/models/users/contact.ts";
+import * as file_model from "../../api/models/files/file.ts";
+import * as language_model from "../../api/models/users/language_experience.ts";
+import {
+  findById as findPerson,
+  TipoSangre,
+} from "../../api/models/ORGANIZACION/people.ts";
+import {
+  findByCode as findParameter,
+} from "../../api/models/MAESTRO/parametro.ts";
+import {
+  getActiveDefinition as findParameterValue,
+} from "../../api/models/MAESTRO/parametro_definicion.ts";
+import {
+  getFileFormatCode,
+} from "../../api/parameters.ts";
+import {
+  getFile,
+  writeFile,
+} from "../../api/storage/uploads.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
   CELLPHONE,
@@ -8,13 +29,6 @@ import {
   TRUTHY_INTEGER,
 } from "../../lib/ajv/types.js";
 import { Message } from "../http_utils.ts";
-import * as children_model from "../../api/models/users/children.ts";
-import * as contact_model from "../../api/models/users/contact.ts";
-import * as language_model from "../../api/models/users/language_experience.ts";
-import {
-  findById as findPerson,
-  TipoSangre,
-} from "../../api/models/ORGANIZACION/people.ts";
 
 const children_request = {
   $id: "children",
@@ -397,8 +411,8 @@ export const deleteLanguageExperience = async (
   { cookies, params, response }: RouterContext<{ id: string }>,
 ) => {
   const id = Number(params.id);
-  const { id: person } = await decodeToken(cookies.get("PA_AUTH") || "");
   if (!id) throw new RequestSyntaxError();
+  const { id: person } = await decodeToken(cookies.get("PA_AUTH") || "");
 
   const language_experience = await language_model.findById(person, id);
   if (!language_experience) throw new NotFoundError();
@@ -408,16 +422,130 @@ export const deleteLanguageExperience = async (
   response.body = Message.OK;
 };
 
-export const getResidence = async ({ cookies }: RouterContext) => {
-  const { id } = await decodeToken(cookies.get("PA_AUTH") || "");
-  console.log(id);
+export const getSupportFiles = async (
+  { cookies, response }: RouterContext,
+) => {
+  const { id: user_id } = await decodeToken(cookies.get("PA_AUTH") || "");
+
+  const support_file_format = await getFileFormatCode();
+
+  response.body = await file_model.getFileHistory(support_file_format, user_id);
 };
 
-export const updateResidence = () => {};
+export const loadSupportFile = async (
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
+) => {
+  const template_id = Number(params.id);
+  if (!template_id) throw new RequestSyntaxError();
+  const { id: user_id } = await decodeToken(cookies.get("PA_AUTH") || "");
 
-export const getSupportFiles = async ({ cookies }: RouterContext) => {
-  const { id } = await decodeToken(cookies.get("PA_AUTH") || "");
-  console.log(id);
+  const support_file_format = await getFileFormatCode();
+
+  const form = await request.body({ type: "form-data" }).value.read({
+    maxSize: 10000000,
+  });
+  if (!form.files || !form.files.length) {
+    throw new RequestSyntaxError();
+  }
+
+  const {
+    content,
+    originalName,
+  } = form.files[0];
+  if (!content) {
+    throw new RequestSyntaxError("Tamaño maximo de archivo excedido");
+  }
+
+  //TODO
+  //VALIDATE EXTENSION
+  //VALIDATE SIZE
+
+  response.body = await writeFile(
+    template_id,
+    user_id,
+    content,
+    originalName,
+  );
 };
 
-export const updateSupportFiles = () => {};
+export const getPicture = async (
+  { cookies, response }: RouterContext,
+) => {
+  const { id: user } = await decodeToken(cookies.get("PA_AUTH") || "");
+
+  //TODO
+  //The parameter code should be a constant
+  const picture_parameter = await findParameter("PLANTILLA_FOTO_PERFIL");
+  if (!picture_parameter) throw new NotFoundError();
+
+  const picture_parameter_value = await findParameterValue(
+    picture_parameter.pk_parametro,
+  );
+  if (!picture_parameter_value) throw new NotFoundError();
+
+  const file = await getFile(
+    picture_parameter_value.valor as number,
+    user,
+  )
+    .catch((e) => {
+      if (e.name === "NotFound") {
+        //404
+        throw new NotFoundError();
+      } else {
+        //500
+        throw new Error();
+      }
+    });
+
+  response.headers.append("Content-Type", file.type);
+  response.headers.append(
+    "Content-disposition",
+    `attachment;filename=${file.name}`,
+  );
+  response.headers.append("Content-Length", String(file.content.length));
+
+  response.body = file.content;
+};
+
+export const updatePicture = async (
+  { cookies, request, response }: RouterContext,
+) => {
+  if (!request.hasBody) throw new RequestSyntaxError();
+  const { id: user_id } = await decodeToken(cookies.get("PA_AUTH") || "");
+
+  //TODO
+  //The parameter code should be a constant
+  const picture_parameter = await findParameter("PLANTILLA_FOTO_PERFIL");
+  if (!picture_parameter) throw new NotFoundError();
+
+  const picture_parameter_value = await findParameterValue(
+    picture_parameter.pk_parametro,
+  );
+  if (!picture_parameter_value) throw new NotFoundError();
+
+  const form = await request.body({ type: "form-data" }).value.read({
+    maxSize: 10000000,
+  });
+  if (!form.files || !form.files.length) {
+    throw new RequestSyntaxError();
+  }
+
+  const {
+    content,
+    originalName,
+  } = form.files[0];
+  if (!content) {
+    throw new RequestSyntaxError("Tamaño maximo de archivo excedido");
+  }
+
+  //TODO
+  //VALIDATE EXTENSION
+  //VALIDATE SIZE
+
+  response.body = await writeFile(
+    Number(picture_parameter_value.valor),
+    user_id,
+    content,
+    originalName,
+  );
+};

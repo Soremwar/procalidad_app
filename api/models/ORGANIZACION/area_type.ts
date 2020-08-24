@@ -25,7 +25,7 @@ class AreaType {
   async update(
     name: string = this.name,
     supervisor: number = this.supervisor,
-    time_records: boolean = this.time_records
+    time_records: boolean = this.time_records,
   ): Promise<AreaType> {
     Object.assign(this, {
       name,
@@ -101,12 +101,14 @@ export const findById = async (id: number): Promise<AreaType | null> => {
 
   if (!rows[0]) return null;
 
-  return new AreaType(...rows[0] as [
-    number,
-    string,
-    number,
-    boolean,
-  ]);
+  return new AreaType(
+    ...rows[0] as [
+      number,
+      string,
+      number,
+      boolean,
+    ],
+  );
 };
 
 export const createNew = async (
@@ -114,7 +116,7 @@ export const createNew = async (
   supervisor: number,
   time_records: boolean,
 ): Promise<AreaType> => {
-  const {rows} = await postgres.query(
+  const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       NOMBRE,
       FK_SUPERVISOR,

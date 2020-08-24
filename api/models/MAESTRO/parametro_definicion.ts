@@ -1,9 +1,13 @@
 import postgres from "../../services/postgres.js";
-import { findById as findParameterById } from "./parametro.ts";
 
-const TABLE = "MAESTRO.PARAMETRO_DEFINICION";
+//TODO
+//Change queries so value is parsed to default value
+//Take into account no definitions might exist but a value must exist still
+//Move getParameterValue to model Parametro for such defaults to take place
 
-export type ValorParametro = string | number | boolean;
+export const TABLE = "MAESTRO.PARAMETRO_DEFINICION";
+
+export type ValorParametro = string | number;
 
 class ParametroDefinicion {
   constructor(
@@ -24,9 +28,6 @@ class ParametroDefinicion {
       fec_fin,
       valor,
     });
-
-    const parameter = await findParameterById(this.fk_parametro);
-    console.log(parameter);
 
     await postgres.query(
       `UPDATE ${TABLE} SET
@@ -71,6 +72,35 @@ export const findAll = async (): Promise<ParametroDefinicion[]> => {
   ]) => new ParametroDefinicion(...row));
 
   return models;
+};
+
+export const getActiveDefinition = async (
+  parameter: number,
+): Promise<ParametroDefinicion | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_DEFINICION,
+      FK_PARAMETRO,
+      FEC_INICIO,
+      FEC_FIN,
+      VALOR
+    FROM ${TABLE}
+    WHERE FK_PARAMETRO = $1
+    AND NOW() BETWEEN FEC_INICIO AND FEC_FIN`,
+    parameter,
+  );
+
+  if (!rows.length) return null;
+
+  return new ParametroDefinicion(
+    ...rows[0] as [
+      number,
+      number,
+      Date,
+      Date,
+      ValorParametro,
+    ],
+  );
 };
 
 export const findById = async (

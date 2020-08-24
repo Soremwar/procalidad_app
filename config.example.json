@@ -24,6 +24,9 @@
       "password": "password",
       "port": "1000",
       "username": "user@mail.com"
+    },
+    "storage": {
+      "upload_folder": "storage/uploads"
     }
   }
 }

@@ -5,7 +5,7 @@ import {
   findAll,
   findById,
   getTableData,
-} from "../../../api/models/MAESTRO/asset.ts";
+} from "../../../api/models/files/asset.ts";
 import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
@@ -13,14 +13,8 @@ import {
   TRUTHY_INTEGER,
 } from "../../../lib/ajv/types.js";
 
-const post_request = {
-  $id: "post",
-  required: [
-    "name",
-    "path",
-    "size",
-    "extensions",
-  ],
+const put_request = {
+  $id: "put",
   properties: {
     "name": {
       maxLength: 50,
@@ -28,6 +22,7 @@ const post_request = {
     },
     "path": {
       maxLength: 100,
+      pattern: "^\\w+$",
       type: "string",
     },
     "size": TRUTHY_INTEGER,
@@ -42,24 +37,15 @@ const post_request = {
   },
 };
 
-const put_request = {
-  $id: "put",
-  properties: {
-    "path": {
-      maxLength: 100,
-      type: "string",
-    },
-    "size": TRUTHY_INTEGER,
-    "extensions": {
-      items: {
-        maxLength: 10,
-        type: "string",
-      },
-      minItems: 1,
-      uniqueItems: true,
-    },
-  },
-};
+const post_request = Object.assign({}, put_request, {
+  $id: "post",
+  required: [
+    "name",
+    "path",
+    "size",
+    "extensions",
+  ],
+});
 
 // @ts-ignore
 const request_validator = new Ajv({
@@ -104,7 +90,7 @@ export const createFormat = async ({ request, response }: RouterContext) => {
 
   response.body = await createNew(
     value.name,
-    value.path,
+    value.path.toUpperCase(),
     value.size,
     value.extensions,
   );
@@ -129,7 +115,6 @@ export const updateFormat = async (
 
   response.body = await format.update(
     value.name,
-    value.path,
     value.size,
     value.extensions,
   );

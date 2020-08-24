@@ -5,6 +5,10 @@ import {
   errorHandler,
 } from "./web/middleware.ts";
 
+//TODO
+//Add a check for database parameters before startup
+//Fail and notify on error if active definition doesn't exist either
+
 const app = new Application();
 
 app.use(errorHandler);

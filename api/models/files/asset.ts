@@ -18,13 +18,11 @@ class Format {
 
   async update(
     name: string = this.name,
-    path: string = this.path,
     size: string = this.size,
     extensions: string[] = this.extensions,
   ): Promise<Format> {
     Object.assign(this, {
       name,
-      path,
       size,
       extensions,
     });
@@ -32,13 +30,11 @@ class Format {
     await postgres.query(
       `UPDATE ${TABLE} SET
         NOMBRE = $2,
-        RUTA = $3,
-        MAX_TAMANO = $4,
+        MAX_TAMANO = $3,
         EXTENSIONES = '{${this.extensions.join(",")}}'
       WHERE PK_FORMATO = $1`,
       this.id,
       this.name,
-      this.path,
       this.size,
     );
 

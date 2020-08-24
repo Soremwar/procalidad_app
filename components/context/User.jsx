@@ -34,8 +34,6 @@ export const ACTIONS = {
 const loginReducer = (state, action) => {
   switch (action.type) {
     case ACTIONS.LOGIN:
-      //TODO
-      //Set user name and email
       return {
         email: action.value.email,
         id: action.value.id,
@@ -79,7 +77,7 @@ export const attemptGoogleLogin = (
         value: {
           email: api_data.profileObj.email,
           id,
-          image: api_data.profileObj.imageUrl,
+          image: "/api/usuario/foto",
           name: api_data.profileObj.name,
           profiles,
         },

@@ -2,6 +2,7 @@
 .idea/
 .cache/
 node_modules/
+storage
 config.json
 *.bat
 *.sh
