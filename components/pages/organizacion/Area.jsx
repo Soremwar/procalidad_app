@@ -153,8 +153,8 @@ const AddModal = ({
         required
         value={fields.area_type}
       >
-        {area_types.map(({ pk_tipo, nombre }) => (
-          <option key={pk_tipo} value={pk_tipo}>{nombre}</option>
+        {area_types.map(({ id, name }) => (
+          <option key={id} value={id}>{name}</option>
         ))}
       </SelectField>
       <TextField
@@ -253,8 +253,8 @@ const EditModal = ({
         required
         value={fields.area_type}
       >
-        {area_types.map(({ pk_tipo, nombre }) => (
-          <option key={pk_tipo} value={pk_tipo}>{nombre}</option>
+        {area_types.map(({ id, name }) => (
+          <option key={id} value={id}>{name}</option>
         ))}
       </SelectField>
       <TextField
