@@ -137,6 +137,7 @@ const AddModal = ({
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     const request = await createAssignationRequest(person_id, fields);
 
     if (request.ok) {
