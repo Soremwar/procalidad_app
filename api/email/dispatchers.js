@@ -187,24 +187,24 @@ export const dispatchRegistryDelayedUsers = async () => {
     )`,
   );
 
-  const emails = rows.map(async ([
+  for(const [
     person_name,
     person_email,
     start_date,
     end_date,
-  ]) => {
+  ] of rows){
+    const email_content = await createRegistryDelayedUserEmail(
+      person_name,
+      start_date,
+      end_date,
+    );
+
     await sendNewEmail(
       person_email,
       `Notificación demora en Registro`,
-      await createRegistryDelayedUserEmail(
-        person_name,
-        start_date,
-        end_date,
-      ),
+      email_content,
     );
-  });
-
-  await Promise.all(emails);
+  }
 };
 
 export const dispatchRegistryDelayedSubAreas = async () => {
@@ -236,11 +236,11 @@ export const dispatchRegistryDelayedSubAreas = async () => {
     )`,
   );
 
-  const emails = delayed_sub_areas.map(async ([
+  for(const [
     supervisor_email,
     id_sub_area,
     sub_area,
-  ]) => {
+  ] of delayed_sub_areas){
     const { rows } = await postgres.query(
       `SELECT
         (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = CS.FK_PERSONA) AS PERSON_NAME,
@@ -270,7 +270,5 @@ export const dispatchRegistryDelayedSubAreas = async () => {
         delayed_users,
       ),
     );
-  });
-
-  await Promise.all(emails);
+  }
 };
