@@ -29,8 +29,7 @@ export const createPerson = async ({ request, response }: RouterContext) => {
     name,
     phone,
     email,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -44,7 +43,7 @@ export const createPerson = async ({ request, response }: RouterContext) => {
     throw new RequestSyntaxError();
   }
 
-  await createNew(
+  response.body = await createNew(
     type in TipoIdentificacion
       ? type as TipoIdentificacion
       : TipoIdentificacion.CC,
@@ -52,12 +51,6 @@ export const createPerson = async ({ request, response }: RouterContext) => {
     name,
     phone,
     email,
-  );
-
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
   );
 };
 
@@ -82,22 +75,13 @@ export const updatePerson = async (
   let person = await findById(id);
   if (!person) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     type,
     identification,
     name,
     phone,
     email,
-  }: {
-    type?: string;
-    identification?: string;
-    name?: string;
-    phone?: string;
-    email?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   person = await person.update(
     type in TipoIdentificacion

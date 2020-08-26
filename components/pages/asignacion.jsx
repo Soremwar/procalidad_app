@@ -45,7 +45,6 @@ import {
   fetchProjectApi,
   fetchRoleApi,
 } from "../../lib/api/generator.js";
-
 import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
 import AsyncSelectField from "../common/AsyncSelectField.jsx";
 import AsyncTable from "../common/AsyncTable/Table.jsx";
@@ -72,16 +71,47 @@ const getWeeks = () => fetchAssignationApi("semanas").then((x) => x.json());
 
 const getAssignation = (id) => fetchAssignationApi(id).then((x) => x.json());
 
-const createAssignation = async (form_data) =>
+const createAssignation = async (
+  budget,
+  date,
+  hours,
+  person,
+  role,
+) =>
   fetchAssignationApi("", {
+    body: JSON.stringify({
+      budget,
+      date,
+      hours,
+      person,
+      role,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
 
-const updateAssignation = async (id, form_data) =>
+const updateAssignation = async (
+  id,
+  budget,
+  date,
+  hours,
+  person,
+  role,
+) =>
   fetchAssignationApi(id, {
+    body: JSON.stringify({
+      budget,
+      date,
+      hours,
+      person,
+      role,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
 
 const deleteAssignation = async (id) =>
@@ -173,11 +203,11 @@ const AddModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    person: "",
     budget: "",
-    role: "",
     date: parseDateToStandardNumber(new Date()),
     hours: "",
+    person: "",
+    role: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -191,7 +221,13 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    createAssignation(new URLSearchParams(fields))
+    createAssignation(
+      fields.budget,
+      fields.date,
+      fields.hours,
+      fields.person,
+      fields.role,
+    )
       .then(async (request) => {
         if (request.ok) {
           setModalOpen(false);
@@ -208,11 +244,11 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        person: "",
         budget: "",
-        role: "",
         date: parseDateToStandardNumber(new Date()),
         hours: "",
+        person: "",
+        role: "",
       });
       setError(null);
       setLoading(false);
@@ -338,11 +374,11 @@ const EditModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    person: "",
     budget: "",
-    role: "",
     date: "",
     hours: "",
+    person: "",
+    role: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -351,11 +387,11 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        person: data.person,
         budget: data.budget,
-        role: data.role,
         date: data.date,
         hours: data.hours,
+        person: data.person,
+        role: data.role,
       });
       setError(null);
       setLoading(false);
@@ -371,7 +407,14 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    updateAssignation(data.id, new URLSearchParams(fields))
+    updateAssignation(
+      data.id,
+      fields.budget,
+      fields.date,
+      fields.hours,
+      fields.person,
+      fields.role,
+    )
       .then(async (request) => {
         if (request.ok) {
           setModalOpen(false);

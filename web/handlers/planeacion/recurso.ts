@@ -1,6 +1,6 @@
 import Ajv from "ajv";
-import { Body, RouterContext } from "oak";
-import { validateJwt } from "djwt/validate.ts";
+import { RouterContext } from "oak";
+import { decodeToken } from "../../../lib/jwt.ts";
 import {
   createNew,
   findAll,
@@ -28,7 +28,6 @@ import {
 import {
   parseOrderFromObject,
 } from "../../../api/common/table.ts";
-import { encryption_key } from "../../../config/api_deno.js";
 import { Profiles } from "../../../api/common/profiles.ts";
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
@@ -99,7 +98,7 @@ export const getResourcesTable = async (
     rows,
     search = {},
     type,
-  } = await request.body().then((x: Body) => x.value);
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -151,8 +150,7 @@ export const createResource = async (
     start_date,
     assignation,
     hours,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -176,12 +174,11 @@ export const createResource = async (
   }
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH");
-  //@ts-ignore
-  const session = await validateJwt(session_cookie, encryption_key);
-  //@ts-ignore
-  const { profiles: user_profiles, id: user_id } = session.payload?.context
-    ?.user;
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: user_id,
+    profiles: user_profiles,
+  } = await decodeToken(session_cookie);
 
   const project_data = await findProject(budget_data.fk_proyecto);
   if (!project_data) {
@@ -255,9 +252,6 @@ export const updateResource = async (
   let resource = await findById(id);
   if (!resource) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     person,
     budget,
@@ -265,14 +259,7 @@ export const updateResource = async (
     start_date: stard_date_string,
     assignation,
     hours,
-  }: {
-    person?: string;
-    budget?: string;
-    role?: string;
-    start_date?: string;
-    assignation?: string;
-    hours?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   let start_date: number;
   if (!parseStandardNumber(stard_date_string) || !Number(budget)) {
@@ -288,12 +275,11 @@ export const updateResource = async (
   }
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH");
-  //@ts-ignore
-  const session = await validateJwt(session_cookie, encryption_key);
-  //@ts-ignore
-  const { profiles: user_profiles, id: user_id } = session.payload?.context
-    ?.user;
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: user_id,
+    profiles: user_profiles,
+  } = await decodeToken(session_cookie);
 
   const project_data = await findProject(budget_data.fk_proyecto);
   if (!project_data) {
@@ -405,14 +391,10 @@ export const getResourcesHeatmap = async (
   );
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    type: request_type,
-    value: request_value,
-  }: Body = await request.body();
-  if (request_type !== "json") throw new RequestSyntaxError();
+  const request_value = await request.body({ type: "json" }).value;
 
   const heatmap_type = heatmap_type_string == ResourceViewType.resource ||
-    heatmap_type_string == ResourceViewType.detail
+      heatmap_type_string == ResourceViewType.detail
     ? heatmap_type_string as ResourceViewType
     : ResourceViewType.resource;
 

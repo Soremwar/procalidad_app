@@ -1,5 +1,4 @@
 import {
-  Body,
   RouterContext,
 } from "oak";
 import {
@@ -20,8 +19,7 @@ export const createProfile = async ({ request, response }: RouterContext) => {
   const {
     name,
     description,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (!(name && description)) {
     throw new RequestSyntaxError();
@@ -54,16 +52,10 @@ export const updateProfile = async (
   let licencia = await findById(id);
   if (!licencia) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     name,
     description,
-  }: {
-    name?: string;
-    description?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   response.body = await licencia.update(
     name,

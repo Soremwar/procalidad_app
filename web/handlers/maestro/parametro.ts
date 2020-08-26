@@ -1,4 +1,4 @@
-import { RouterContext, Body } from "oak";
+import { RouterContext } from "oak";
 import {
   createNew,
   findAll,
@@ -27,8 +27,7 @@ export const createParameter = async ({ request, response }: RouterContext) => {
     name,
     description,
     type,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -40,16 +39,10 @@ export const createParameter = async ({ request, response }: RouterContext) => {
     throw new RequestSyntaxError();
   }
 
-  await createNew(
+  response.body = await createNew(
     name,
     description,
     type in TipoParametro ? type as TipoParametro : TipoParametro.string,
-  );
-
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
   );
 };
 
@@ -74,26 +67,17 @@ export const updateParameter = async (
   let parameter = await findById(id);
   if (!parameter) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     name,
     description,
     type,
-  }: {
-    name?: string;
-    description?: string;
-    type?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
-  parameter = await parameter.update(
+  response.body = await parameter.update(
     name,
     description,
     type in TipoParametro ? type as TipoParametro : TipoParametro.string,
   );
-
-  response.body = parameter;
 };
 
 export const deleteParameter = async (

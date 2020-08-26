@@ -5,44 +5,68 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
   fetchPeopleApi,
 } from "../../../lib/api/generator.js";
-
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const getPerson = (id) => fetchPeopleApi(id).then((x) => x.json());
 
-const createPerson = async (form_data) => {
-  return await fetchPeopleApi("", {
+const createPerson = async (
+  email,
+  identification,
+  name,
+  phone,
+  type,
+) =>
+  fetchPeopleApi("", {
+    body: JSON.stringify({
+      email,
+      identification,
+      name,
+      phone,
+      type,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updatePerson = async (id, form_data) => {
-  return await fetchPeopleApi(id, {
+const updatePerson = async (
+  id,
+  email,
+  identification,
+  name,
+  phone,
+  type,
+) =>
+  fetchPeopleApi(id, {
+    body: JSON.stringify({
+      email,
+      identification,
+      name,
+      phone,
+      type,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deletePerson = async (id) => {
-  return await fetchPeopleApi(id, {
+const deletePerson = async (id) =>
+  fetchPeopleApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -80,15 +104,46 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [fields, setFields] = useState({
+    email: "",
+    identification: "",
+    name: "",
+    phone: "",
+    type: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        email: "",
+        identification: "",
+        name: "",
+        phone: "",
+        type: "",
+      });
+      setError(null);
+      setLoading(false);
+    }
+  }, [is_open]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createPerson(new URLSearchParams(form_data));
+    const request = await createPerson(
+      fields.email,
+      fields.identification,
+      fields.name,
+      fields.phone,
+      fields.type,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -113,7 +168,9 @@ const AddModal = ({
         label="Tipo de Identificacion"
         fullWidth
         name="type"
+        onChange={handleChange}
         required
+        value={fields.type}
       >
         <option value="CC">Cedula de Ciudadania</option>
         <option value="CE">Cedula de Extranjeria</option>
@@ -126,28 +183,36 @@ const AddModal = ({
         label="Identificacion"
         margin="dense"
         name="identification"
+        onChange={handleChange}
         required
+        value={fields.identification}
       />
       <TextField
         fullWidth
         label="Nombre"
         margin="dense"
         name="name"
+        onChange={handleChange}
         required
+        value={fields.name}
       />
       <TextField
         fullWidth
         label="Telefono"
         margin="dense"
         name="phone"
+        onChange={handleChange}
         required
+        value={fields.phone}
       />
       <TextField
         fullWidth
         label="Correo"
         margin="dense"
         name="email"
+        onChange={handleChange}
         required
+        value={fields.email}
       />
     </DialogForm>
   );
@@ -160,11 +225,11 @@ const EditModal = ({
   updateTable,
 }) => {
   const [fields, setFields] = useState({
-    type: "",
+    email: "",
     identification: "",
     name: "",
     phone: "",
-    email: "",
+    type: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -178,6 +243,8 @@ const EditModal = ({
         phone: data.telefono,
         email: data.correo,
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
@@ -190,13 +257,18 @@ const EditModal = ({
     });
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_persona;
-    const request = await updatePerson(id, new URLSearchParams(form_data));
+    const request = await updatePerson(
+      data.pk_persona,
+      fields.email,
+      fields.identification,
+      fields.name,
+      fields.phone,
+      fields.type,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -221,7 +293,7 @@ const EditModal = ({
         label="Tipo de Identificacion"
         fullWidth
         name="type"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.type}
       >
@@ -236,7 +308,7 @@ const EditModal = ({
         label="Identificacion"
         margin="dense"
         name="identification"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.identification}
       />
@@ -245,7 +317,7 @@ const EditModal = ({
         label="Nombre"
         margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
@@ -254,7 +326,7 @@ const EditModal = ({
         label="Telefono"
         margin="dense"
         name="phone"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.phone}
       />
@@ -374,21 +446,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"organizacion/persona/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"organizacion/persona/table"}
+      />
     </Fragment>
   );
 };

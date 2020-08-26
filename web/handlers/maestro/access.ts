@@ -63,13 +63,10 @@ export const getAccessesTable = async (context: RouterContext) =>
 export const createAccess = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    type,
-    value,
-  }: Body = await request.body();
+  const value = await request.body({ type: "json" }).value;
 
   if (
-    type !== "json" || !request_validator.validate("post", value)
+    !request_validator.validate("post", value)
   ) {
     throw new RequestSyntaxError();
   }
@@ -105,13 +102,10 @@ export const updateAccess = async (
   let acceso = await findById(id);
   if (!acceso) throw new NotFoundError();
 
-  const {
-    type,
-    value,
-  }: Body = await request.body();
+  const value = await request.body({ type: "json" }).value;
 
   if (
-    type !== "json" || !request_validator.validate("put", value)
+    !request_validator.validate("put", value)
   ) {
     throw new RequestSyntaxError();
   }

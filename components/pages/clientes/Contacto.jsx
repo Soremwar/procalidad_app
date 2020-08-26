@@ -8,7 +8,6 @@ import {
   Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -27,25 +26,61 @@ const getClients = () => fetchClientApi().then((x) => x.json());
 
 const getContact = (id) => fetchContactApi(id).then((x) => x.json());
 
-const createContact = async (form_data) => {
-  return await fetchContactApi("", {
+const createContact = async (
+  name,
+  area,
+  position,
+  client,
+  phone,
+  phone_2,
+  email,
+) =>
+  fetchContactApi("", {
+    body: JSON.stringify({
+      name,
+      area,
+      position,
+      client,
+      phone,
+      phone_2,
+      email,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateContact = async (id, form_data) => {
-  return await fetchContactApi(id, {
+const updateContact = async (
+  id,
+  name,
+  area,
+  position,
+  client,
+  phone,
+  phone_2,
+  email,
+) =>
+  fetchContactApi(id, {
+    body: JSON.stringify({
+      name,
+      area,
+      position,
+      client,
+      phone,
+      phone_2,
+      email,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteContact = async (id) => {
-  return await fetchContactApi(id, {
+const deleteContact = async (id) =>
+  fetchContactApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -84,15 +119,36 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [fields, setFields] = useState({
+    name: "",
+    area: "",
+    position: "",
+    client: "",
+    phone: "",
+    phone_2: "",
+    email: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createContact(new URLSearchParams(form_data));
+    const request = await createContact(
+      fields.name,
+      fields.area,
+      fields.position,
+      fields.client,
+      fields.phone,
+      fields.phone_2,
+      fields.email,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -103,6 +159,22 @@ const AddModal = ({
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        name: "",
+        area: "",
+        position: "",
+        client: "",
+        phone: "",
+        phone_2: "",
+        email: "",
+      });
+      setError(null);
+      setLoading(false);
+    }
+  }, [is_open]);
 
   return (
     <DialogForm
@@ -119,7 +191,9 @@ const AddModal = ({
         name="name"
         label="Nombre Completo"
         fullWidth
+        onChange={handleChange}
         required
+        value={fields.name}
       />
       <TextField
         autoFocus
@@ -127,6 +201,8 @@ const AddModal = ({
         name="area"
         label="Area"
         fullWidth
+        onChange={handleChange}
+        value={fields.area}
       />
       <TextField
         autoFocus
@@ -134,12 +210,16 @@ const AddModal = ({
         name="position"
         label="Cargo"
         fullWidth
+        onChange={handleChange}
+        value={fields.position}
       />
       <SelectField
         fullWidth
         label="Cliente"
         name="client"
+        onChange={handleChange}
         required
+        value={fields.client}
       >
         {clients.map(({ pk_cliente, nombre }) => (
           <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
@@ -151,7 +231,9 @@ const AddModal = ({
         name="phone"
         label="Telefono"
         fullWidth
+        onChange={handleChange}
         required
+        value={fields.phone}
       />
       <TextField
         autoFocus
@@ -159,6 +241,8 @@ const AddModal = ({
         name="phone_2"
         label="Telefono 2"
         fullWidth
+        onChange={handleChange}
+        value={fields.phone_2}
       />
       <TextField
         autoFocus
@@ -166,7 +250,9 @@ const AddModal = ({
         name="email"
         label="Email"
         fullWidth
+        onChange={handleChange}
         required
+        value={fields.email}
       />
     </DialogForm>
   );
@@ -179,7 +265,15 @@ const EditModal = ({
   setModalOpen,
   updateTable,
 }) => {
-  const [fields, setFields] = useState({});
+  const [fields, setFields] = useState({
+    name: "",
+    area: "",
+    position: "",
+    client: "",
+    phone: "",
+    phone_2: "",
+    email: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -194,25 +288,30 @@ const EditModal = ({
         phone_2: data.telefono_2 || "",
         email: data.correo,
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_contacto;
-    const request = await updateContact(id, new URLSearchParams(form_data));
+    const request = await updateContact(
+      data.pk_contacto,
+      fields.name,
+      fields.area,
+      fields.position,
+      fields.client,
+      fields.phone,
+      fields.phone_2,
+      fields.email,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -239,7 +338,7 @@ const EditModal = ({
         label="Nombre Completo"
         margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
@@ -249,7 +348,7 @@ const EditModal = ({
         label="Area"
         margin="dense"
         name="area"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         value={fields.area}
       />
       <TextField
@@ -258,13 +357,14 @@ const EditModal = ({
         label="Cargo"
         margin="dense"
         name="position"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         value={fields.position}
       />
       <SelectField
         fullWidth
         label="Cliente"
         name="client"
+        onChange={handleChange}
         required
         value={fields.client}
       >
@@ -278,7 +378,7 @@ const EditModal = ({
         label="Telefono"
         margin="dense"
         name="phone"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.phone}
       />
@@ -288,7 +388,7 @@ const EditModal = ({
         label="Telefono 2"
         margin="dense"
         name="phone_2"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         value={fields.phone_2}
       />
       <TextField
@@ -297,7 +397,7 @@ const EditModal = ({
         label="Email"
         margin="dense"
         name="email"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.email}
       />

@@ -1,6 +1,6 @@
 import Ajv from "ajv";
-import { validateJwt } from "djwt/validate.ts";
-import { RouterContext, Body } from "oak";
+import { decodeToken } from "../../lib/jwt.ts";
+import { RouterContext } from "oak";
 import {
   createNew,
   findById,
@@ -24,7 +24,6 @@ import {
   dispatchAssignationRequested as sendAssignationRequestEmail,
   dispatchAssignationRequestReviewed as sendAssignationRequestReviewEmail,
 } from "../../api/email/dispatchers.js";
-import { encryption_key } from "../../config/api_deno.js";
 import { Profiles } from "../../api/common/profiles.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
@@ -86,13 +85,10 @@ export const createAssignationRequest = async (
   const person = Number(params.person);
   if (!person || !request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    type,
-    value,
-  }: Body = await request.body();
+  const value = await request.body({ type: "json" }).value;
 
   if (
-    type !== "json" || !request_validator.validate("post", value) ||
+    !request_validator.validate("post", value) ||
     !parseStandardNumber(Number(value.date))
   ) {
     throw new RequestSyntaxError();
@@ -143,12 +139,9 @@ export const updateAssignationRequest = async (
   const id = Number(params.id);
   if (!id || !request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    type,
-    value,
-  }: Body = await request.body();
+  const value = await request.body({ type: "json" }).value;
 
-  if (type !== "json" || !request_validator.validate("put", value)) {
+  if (!request_validator.validate("put", value)) {
     throw new RequestSyntaxError();
   }
 
@@ -176,12 +169,11 @@ export const updateAssignationRequest = async (
     }
 
     //Ignore cause this is already validated but TypeScript is too dumb to notice
-    const session_cookie = cookies.get("PA_AUTH");
-    //@ts-ignore
-    const session = await validateJwt(session_cookie, encryption_key);
-    //@ts-ignore
-    const { profiles: user_profiles, id: user_id } = session.payload?.context
-      ?.user;
+    const session_cookie = cookies.get("PA_AUTH") || "";
+    const {
+      id: user_id,
+      profiles: user_profiles,
+    } = await decodeToken(session_cookie);
 
     const project_data = await findProject(budget_data.fk_proyecto);
     if (!project_data) {

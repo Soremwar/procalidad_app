@@ -5,34 +5,53 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
   fetchLicenseApi,
 } from "../../../lib/api/generator.js";
-
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const getLicense = (id) => fetchLicenseApi(id).then((x) => x.json());
 
-const createLicense = async (form_data) =>
+const createLicense = async (
+  cost,
+  description,
+  name,
+) =>
   fetchLicenseApi("", {
-    body: form_data,
+    body: JSON.stringify({
+      cost,
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
   });
 
-const updateLicense = async (id, form_data) =>
+const updateLicense = async (
+  id,
+  cost,
+  description,
+  name,
+) =>
   fetchLicenseApi(id, {
-    body: form_data,
+    body: JSON.stringify({
+      cost,
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
   });
 
@@ -64,9 +83,9 @@ const AddModal = ({
   updateTable,
 }) => {
   const [fields, setFields] = useState({
-    name: "",
-    description: "",
     cost: 0,
+    description: "",
+    name: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -80,7 +99,11 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createLicense(new URLSearchParams(fields));
+    const request = await createLicense(
+      fields.cost,
+      fields.description,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -95,9 +118,9 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        name: "",
-        description: "",
         cost: 0,
+        description: "",
+        name: "",
       });
       setLoading(false);
       setError(null);
@@ -154,9 +177,9 @@ const EditModal = ({
   updateTable,
 }) => {
   const [fields, setFields] = useState({
-    name: "",
-    description: "",
     cost: 0,
+    description: "",
+    name: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -166,13 +189,15 @@ const EditModal = ({
     setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
     const request = await updateLicense(
       data.pk_licencia,
-      new URLSearchParams(fields),
+      fields.cost,
+      fields.description,
+      fields.name,
     );
 
     if (request.ok) {
@@ -188,9 +213,9 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        name: data.nombre,
-        description: data.descripcion,
         cost: Number(data.costo),
+        description: data.descripcion,
+        name: data.nombre,
       });
       setLoading(false);
       setError(null);
@@ -299,14 +324,13 @@ const DeleteModal = ({
 export default () => {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_project_type, setSelectedArea] = useState({});
+  const [selected_license, setSelectedLicense] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getLicense(id);
-    setSelectedArea(data);
+    setSelectedLicense(await getLicense(id));
     setEditModalOpen(true);
   };
 
@@ -332,7 +356,7 @@ export default () => {
         updateTable={updateTable}
       />
       <EditModal
-        data={selected_project_type}
+        data={selected_license}
         is_open={is_edit_modal_open}
         setModalOpen={setEditModalOpen}
         updateTable={updateTable}
@@ -343,21 +367,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"organizacion/licencia/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"organizacion/licencia/table"}
+      />
     </Fragment>
   );
 };

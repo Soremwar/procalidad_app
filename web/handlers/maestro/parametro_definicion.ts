@@ -1,4 +1,4 @@
-import { Body, RouterContext } from "oak";
+import { RouterContext } from "oak";
 import {
   createNew,
   findAll,
@@ -31,8 +31,7 @@ export const createParameterDefinition = async (
     start_date,
     end_date,
     value,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (parameter.tipo_parametro === TipoParametro.percentage) {
     if (Number(value) < 0 || Number(value) > 100) {
@@ -51,14 +50,12 @@ export const createParameterDefinition = async (
     throw new RequestSyntaxError();
   }
 
-  const definition = await createNew(
+  response.body = await createNew(
     Number(id),
     new Date(start_date),
     new Date(end_date),
     value,
   );
-
-  response.body = definition;
 };
 
 export const getParameterDefinition = async (
@@ -105,18 +102,11 @@ export const updateParameterDefinition = async (
   const parameter = await findParameterById(definition.fk_parametro);
   if (!parameter) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     start_date,
     end_date,
     value,
-  }: {
-    start_date?: string;
-    end_date?: string;
-    value?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   let cleaned_value: string | undefined = value;
 
@@ -126,13 +116,11 @@ export const updateParameterDefinition = async (
     }
   }
 
-  definition = await definition.update(
+  response.body = await definition.update(
     new Date(start_date),
     new Date(end_date),
     cleaned_value,
   );
-
-  response.body = definition;
 };
 
 export const deleteParameterDefinition = async (

@@ -9,7 +9,6 @@ import {
   DialogContentText,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -20,7 +19,6 @@ import {
   fetchProjectApi,
   fetchProjectTypeApi,
 } from "../../../lib/api/generator.js";
-
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
@@ -34,16 +32,55 @@ const getProjectTypes = () => fetchProjectTypeApi().then((x) => x.json());
 
 const getProject = (id) => fetchProjectApi(id).then((x) => x.json());
 
-const createProject = async (form_data) =>
+const createProject = async (
+  client,
+  description,
+  name,
+  status,
+  sub_area,
+  supervisor,
+  type,
+) =>
   fetchProjectApi("", {
+    body: JSON.stringify({
+      client,
+      description,
+      name,
+      status,
+      sub_area,
+      supervisor,
+      type,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
 
-const updateProject = async (id, form_data) =>
+const updateProject = async (
+  id,
+  client,
+  description,
+  name,
+  status,
+  sub_area,
+  supervisor,
+  type,
+) =>
   fetchProjectApi(id, {
+    body: JSON.stringify({
+      client,
+      description,
+      name,
+      status,
+      sub_area,
+      supervisor,
+      type,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
 
 const deleteProject = async (id) =>
@@ -102,13 +139,13 @@ const AddModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    type: "",
     client: "",
-    sub_area: "",
-    name: "",
-    supervisor: "",
     description: "",
+    name: "",
     status: "",
+    sub_area: "",
+    supervisor: "",
+    type: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -116,13 +153,13 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        type: "",
         client: "",
-        sub_area: "",
-        name: "",
-        supervisor: "",
         description: "",
+        name: "",
         status: "",
+        sub_area: "",
+        supervisor: "",
+        type: "",
       });
       setLoading(false);
       setError(null);
@@ -138,7 +175,15 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createProject(new URLSearchParams(fields));
+    const request = await createProject(
+      fields.client,
+      fields.description,
+      fields.name,
+      fields.status,
+      fields.sub_area,
+      fields.supervisor,
+      fields.type,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -257,13 +302,13 @@ const EditModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    type: "",
     client: "",
-    sub_area: "",
-    name: "",
-    supervisor: "",
     description: "",
+    name: "",
     status: "",
+    sub_area: "",
+    supervisor: "",
+    type: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -271,13 +316,13 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        type: data.fk_tipo_proyecto,
         client: data.fk_cliente,
-        sub_area: data.fk_sub_area,
-        name: data.nombre,
-        supervisor: data.fk_supervisor,
         description: data.descripcion,
+        name: data.nombre,
         status: data.estado,
+        sub_area: data.fk_sub_area,
+        supervisor: data.fk_supervisor,
+        type: data.fk_tipo_proyecto,
       });
       setLoading(false);
       setError(null);
@@ -295,7 +340,13 @@ const EditModal = ({
 
     const request = await updateProject(
       data.pk_proyecto,
-      new URLSearchParams(fields),
+      fields.client,
+      fields.description,
+      fields.name,
+      fields.status,
+      fields.sub_area,
+      fields.supervisor,
+      fields.type,
     );
 
     if (request.ok) {
@@ -458,8 +509,6 @@ const DeleteModal = ({
   );
 };
 
-//TODO
-//Switch to context
 export default () => {
   const [parameters, setParameters] = useState({
     sub_areas: [],
@@ -475,8 +524,7 @@ export default () => {
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getProject(id);
-    setSelectedProject(data);
+    setSelectedProject(await getProject(id));
     setEditModalOpen(true);
   };
 

@@ -5,43 +5,55 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
   fetchPositionApi,
 } from "../../../lib/api/generator.js";
-
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const getPosition = (id) => fetchPositionApi(id).then((x) => x.json());
 
-const createPosition = async (form_data) => {
-  return await fetchPositionApi("", {
+const createPosition = async (
+  description,
+  name,
+) =>
+  fetchPositionApi("", {
+    body: JSON.stringify({
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updatePosition = async (id, form_data) => {
-  return await fetchPositionApi(id, {
+const updatePosition = async (
+  id,
+  description,
+  name,
+) =>
+  fetchPositionApi(id, {
+    body: JSON.stringify({
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deletePosition = async (id) => {
-  return await fetchPositionApi(id, {
+const deletePosition = async (id) =>
+  fetchPositionApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -65,15 +77,37 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [fields, setFields] = useState({
+    description: "",
+    name: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        name: "",
+        description: "",
+      });
+      setError(null);
+      setLoading(false);
+    }
+  }, [is_open]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createPosition(new URLSearchParams(form_data));
+    const request = await createPosition(
+      fields.description,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -99,14 +133,18 @@ const AddModal = ({
         label="Cargo"
         margin="dense"
         name="name"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.name}
       />
       <TextField
         fullWidth
         label="Descripcion"
         margin="dense"
         name="description"
+        onChange={(event) => handleChange(event)}
         required
+        value={fields.description}
       />
     </DialogForm>
   );
@@ -119,8 +157,8 @@ const EditModal = ({
   updateTable,
 }) => {
   const [fields, setFields] = useState({
-    name: null,
-    description: null,
+    description: "",
+    name: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -131,25 +169,25 @@ const EditModal = ({
         name: data.nombre,
         description: data.descripcion,
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_cargo;
-    const request = await updatePosition(id, new URLSearchParams(form_data));
+    const request = await updatePosition(
+      data.pk_cargo,
+      fields.description,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -251,14 +289,13 @@ const DeleteModal = ({
 export default () => {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_project_type, setSelectedArea] = useState({});
+  const [selected_position, setSelectedPosition] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getPosition(id);
-    setSelectedArea(data);
+    setSelectedPosition(await getPosition(id));
     setEditModalOpen(true);
   };
 
@@ -284,7 +321,7 @@ export default () => {
         updateTable={updateTable}
       />
       <EditModal
-        data={selected_project_type}
+        data={selected_position}
         is_open={is_edit_modal_open}
         setModalOpen={setEditModalOpen}
         updateTable={updateTable}
@@ -295,21 +332,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"organizacion/cargo/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"organizacion/cargo/table"}
+      />
     </Fragment>
   );
 };

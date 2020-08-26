@@ -5,46 +5,56 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
   requestGenerator,
 } from "../../../lib/api/request.js";
-
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
 
-//TODO
-//Add primary key as constant
-
 const fetchBudgetTypeApi = requestGenerator("operaciones/tipo_presupuesto");
 
 const getBudgetType = (id) => fetchBudgetTypeApi(id).then((x) => x.json());
 
-const createBudgetType = async (form_data) => {
-  return await fetchBudgetTypeApi("", {
+const createBudgetType = async (
+  description,
+  name,
+) =>
+  fetchBudgetTypeApi("", {
+    body: JSON.stringify({
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateBudgetType = async (id, form_data) => {
-  return await fetchBudgetTypeApi(id, {
+const updateBudgetType = async (
+  id,
+  description,
+  name,
+) =>
+  fetchBudgetTypeApi(id, {
+    body: JSON.stringify({
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteBudgetType = async (id) => {
-  return await fetchBudgetTypeApi(id, {
+const deleteBudgetType = async (id) =>
+  fetchBudgetTypeApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -68,15 +78,37 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [fields, setFields] = useState({
+    description: "",
+    name: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        description: "",
+        name: "",
+      });
+      setError(null);
+      setLoading(false);
+    }
+  }, [is_open]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createBudgetType(new URLSearchParams(form_data));
+    const request = await createBudgetType(
+      fields.description,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -98,20 +130,22 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <TextField
-        autoFocus
+        fullWidth
+        label="Nombre"
         margin="dense"
         name="name"
-        label="Nombre"
-        fullWidth
+        onChange={handleChange}
         required
+        value={fields.name}
       />
       <TextField
-        autoFocus
+        fullWidth
+        label="Descripcion"
         margin="dense"
         name="description"
-        label="Descripcion"
-        fullWidth
+        onChange={handleChange}
         required
+        value={fields.description}
       />
     </DialogForm>
   );
@@ -124,8 +158,8 @@ const EditModal = ({
   updateTable,
 }) => {
   const [fields, setFields] = useState({
-    name: "",
     description: "",
+    name: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -133,28 +167,28 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        name: data.nombre,
         description: data.descripcion,
+        name: data.nombre,
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_tipo;
-    const request = await updateBudgetType(id, new URLSearchParams(form_data));
+    const request = await updateBudgetType(
+      data.pk_tipo,
+      fields.description,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -176,22 +210,20 @@ const EditModal = ({
       title={"Editar"}
     >
       <TextField
-        autoFocus
         fullWidth
         label="Nombre"
         margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
       <TextField
-        autoFocus
         fullWidth
         label="Descripcion"
         margin="dense"
         name="description"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.description}
       />
@@ -264,8 +296,7 @@ export default () => {
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getBudgetType(id);
-    setSelectedBudgetType(data);
+    setSelectedBudgetType(await getBudgetType(id));
     setEditModalOpen(true);
   };
 
@@ -302,21 +333,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"operaciones/tipo_presupuesto/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"operaciones/tipo_presupuesto/table"}
+      />
     </Fragment>
   );
 };

@@ -153,7 +153,7 @@ export default function ({
                       )
                       .sort(([a], [b]) =>
                         columns.findIndex(({ id }) => id === a) <
-                          columns.findIndex(({ id }) => id === b)
+                            columns.findIndex(({ id }) => id === b)
                           ? -1
                           : 1
                       )

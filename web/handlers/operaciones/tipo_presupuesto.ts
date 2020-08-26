@@ -27,8 +27,7 @@ export const createBudgetType = async (
   const {
     name,
     description,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (!name) throw new RequestSyntaxError();
 
@@ -65,16 +64,10 @@ export const updateBudgetType = async (
   let budget = await findById(id);
   if (!budget) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     name,
     description,
-  }: {
-    name?: string;
-    description?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   budget = await budget.update(
     name,

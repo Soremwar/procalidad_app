@@ -1,12 +1,10 @@
 import {
-  Body,
   RouterContext,
 } from "oak";
 import Ajv from "ajv";
-import { makeJwt, setExpiration, Jose, Payload } from "djwt/create.ts";
 import {
-  encryption_key,
-} from "../../config/api_deno.js";
+  createNewToken,
+} from "../../lib/jwt.ts";
 import {
   findByEmail,
 } from "../../api/models/MAESTRO/access.ts";
@@ -18,12 +16,6 @@ import {
   NotFoundError,
   RequestSyntaxError,
 } from "../exceptions.ts";
-import { user } from "../../config/services/postgresql.ts";
-
-const jwt_header: Jose = {
-  alg: "HS256",
-  typ: "JWT",
-};
 
 const request_structure = {
   $id: "auth",
@@ -48,14 +40,9 @@ export const createSession = async (
   { cookies, request, response }: RouterContext,
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
-  const {
-    type,
-    value,
-  }: Body = await request.body();
+  const value = await request.body({ type: "json" }).value;
 
-  if (
-    type !== "json" || !request_validator.validate("auth", value)
-  ) {
+  if (!request_validator.validate("auth", value)) {
     throw new RequestSyntaxError();
   }
 
@@ -72,18 +59,8 @@ export const createSession = async (
     profiles: access.profiles,
   };
 
-  //TODO
-  //Change issuer to use config name
-  const payload: Payload = {
-    context: {
-      user: user_data,
-    },
-    exp: setExpiration(new Date().getTime() + 30 * 24 * 60 * 60 * 1000),
-    iss: "PROCALIDAD_APP",
-  };
-
-  const session_key = makeJwt(
-    { header: jwt_header, key: encryption_key, payload },
+  const session_key = await createNewToken(
+    user_data,
   );
 
   cookies.set("PA_AUTH", session_key, {

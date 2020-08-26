@@ -26,8 +26,7 @@ export const createLicence = async ({ request, response }: RouterContext) => {
     name,
     description,
     cost,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (!(name && description && !isNaN(Number(cost)))) {
     throw new RequestSyntaxError();
@@ -63,18 +62,11 @@ export const updateLicence = async (
   let licencia = await findById(id);
   if (!licencia) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     name,
     description,
     cost,
-  }: {
-    name?: string;
-    description?: string;
-    cost?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   licencia = await licencia.update(
     name,

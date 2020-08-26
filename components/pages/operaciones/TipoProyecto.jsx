@@ -5,44 +5,56 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
   fetchProjectTypeApi,
 } from "../../../lib/api/generator.js";
-
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const getProjectType = (id) => fetchProjectTypeApi(id).then((x) => x.json());
 
-const createProjectType = async (form_data) => {
-  return await fetchProjectTypeApi("", {
+const createProjectType = async (
+  billable,
+  name,
+) =>
+  fetchProjectTypeApi("", {
+    body: JSON.stringify({
+      billable,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateProjectType = async (id, form_data) => {
-  return await fetchProjectTypeApi(id, {
+const updateProjectType = async (
+  id,
+  billable,
+  name,
+) =>
+  fetchProjectTypeApi(id, {
+    body: JSON.stringify({
+      billable,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteProjectType = async (id) => {
-  return await fetchProjectTypeApi(id, {
+const deleteProjectType = async (id) =>
+  fetchProjectTypeApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -66,15 +78,37 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [fields, setFields] = useState({
+    billable: "",
+    name: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        billable: "",
+        name: "",
+      });
+      setError(null);
+      setLoading(false);
+    }
+  }, [is_open]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createProjectType(new URLSearchParams(form_data));
+    const request = await createProjectType(
+      fields.billable,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -96,18 +130,22 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <TextField
+        fullWidth
+        label="Tipo de Proyecto"
         margin="dense"
         name="name"
-        label="Tipo de Proyecto"
-        fullWidth
+        onChange={handleChange}
         required
+        value={fields.name}
       />
       <SelectField
+        fullWidth
+        label="Facturable"
         margin="dense"
         name="billable"
-        label="Facturable"
-        fullWidth
+        onChange={handleChange}
         required
+        value={fields.billable}
       >
         <option value="0">No Facturable</option>
         <option value="1">Facturable</option>
@@ -135,25 +173,25 @@ const EditModal = ({
         name: data.nombre,
         billable: Number(data.ban_facturable),
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_tipo;
-    const request = await updateProjectType(id, new URLSearchParams(form_data));
+    const request = await updateProjectType(
+      data.pk_tipo,
+      fields.billable,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -179,16 +217,16 @@ const EditModal = ({
         label="Nombre Completo"
         margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
       <SelectField
+        fullWidth
+        label="Facturable"
         margin="dense"
         name="billable"
-        label="Facturable"
-        fullWidth
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.billable}
       >
@@ -264,8 +302,7 @@ export default () => {
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getProjectType(id);
-    setSelectedProjectType(data);
+    setSelectedProjectType(await getProjectType(id));
     setEditModalOpen(true);
   };
 
@@ -302,21 +339,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"operaciones/tipo_proyecto/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"operaciones/tipo_proyecto/table"}
+      />
     </Fragment>
   );
 };

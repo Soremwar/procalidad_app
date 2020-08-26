@@ -7,10 +7,8 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -19,38 +17,56 @@ import {
   fetchAreaTypesApi,
   fetchPeopleApi,
 } from "../../../lib/api/generator.js";
-
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const getAreaTypes = () => fetchAreaTypesApi().then((x) => x.json());
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
 
 const getArea = (id) => fetchAreaApi(id).then((x) => x.json());
 
-const createArea = async (form_data) => {
-  return await fetchAreaApi("", {
+const createArea = async (
+  area_type,
+  name,
+  supervisor,
+) =>
+  fetchAreaApi("", {
+    body: JSON.stringify({
+      area_type,
+      name,
+      supervisor,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateArea = async (id, form_data) => {
-  return await fetchAreaApi(id, {
+const updateArea = async (
+  id,
+  area_type,
+  name,
+  supervisor,
+) =>
+  fetchAreaApi(id, {
+    body: JSON.stringify({
+      area_type,
+      name,
+      supervisor,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteArea = async (id) => {
-  return await fetchAreaApi(id, {
+const deleteArea = async (id) =>
+  fetchAreaApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -112,19 +128,19 @@ const AddModal = ({
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const request = await createArea(new URLSearchParams(fields));
+    const request = await createArea(
+      fields.area_type,
+      fields.name,
+      fields.supervisor,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -212,19 +228,20 @@ const EditModal = ({
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const request = await updateArea(data.pk_area, new URLSearchParams(fields));
+    const request = await updateArea(
+      data.pk_area,
+      fields.area_type,
+      fields.name,
+      fields.supervisor,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -343,14 +360,13 @@ export default () => {
   });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_project_type, setSelectedArea] = useState({});
+  const [selected_area, setSelectedArea] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getArea(id);
-    setSelectedArea(data);
+    setSelectedArea(await getArea(id));
     setEditModalOpen(true);
   };
 
@@ -388,7 +404,7 @@ export default () => {
           updateTable={updateTable}
         />
         <EditModal
-          data={selected_project_type}
+          data={selected_area}
           is_open={is_edit_modal_open}
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
@@ -400,21 +416,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"organizacion/area/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"organizacion/area/table"}
+      />
     </Fragment>
   );
 };

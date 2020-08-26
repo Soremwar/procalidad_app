@@ -8,7 +8,6 @@ import {
   Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -23,25 +22,28 @@ import Widget from "../../common/Widget.jsx";
 
 const getSector = (id) => fetchSectorApi(id).then((x) => x.json());
 
-const createSector = async (form_data) => {
-  return await fetchSectorApi("", {
+const createSector = async (name) =>
+  fetchSectorApi("", {
+    body: JSON.stringify({ name }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateSector = async (id, form_data) => {
-  return await fetchSectorApi(id, {
+const updateSector = async (id, name) =>
+  fetchSectorApi(id, {
+    body: JSON.stringify({ name }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteSector = async (id) => {
-  return await fetchSectorApi(id, {
+const deleteSector = async (id) =>
+  fetchSectorApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -58,15 +60,22 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [fields, setFields] = useState({
+    name: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createSector(new URLSearchParams(form_data));
+    const request = await createSector(fields.name);
 
     if (request.ok) {
       setModalOpen(false);
@@ -77,6 +86,16 @@ const AddModal = ({
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        name: "",
+      });
+      setError(null);
+      setLoading(false);
+    }
+  }, [is_open]);
 
   return (
     <DialogForm
@@ -93,7 +112,9 @@ const AddModal = ({
         name="name"
         label="Nombre del Sector"
         fullWidth
+        onChange={handleChange}
         required
+        value={fields.name}
       />
     </DialogForm>
   );
@@ -105,7 +126,9 @@ const EditModal = ({
   setModalOpen,
   updateTable,
 }) => {
-  const [fields, setFields] = useState({});
+  const [fields, setFields] = useState({
+    name: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -114,25 +137,21 @@ const EditModal = ({
       setFields({
         name: data.nombre,
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_sector;
-    const request = await updateSector(id, new URLSearchParams(form_data));
+    const request = await updateSector(data.pk_sector, fields.name);
 
     if (request.ok) {
       setModalOpen(false);

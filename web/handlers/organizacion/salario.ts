@@ -34,7 +34,7 @@ export const createSalary = async ({ request, response }: RouterContext) => {
     other,
     salary_type,
     validity,
-  } = await request.body().then((x: Body) => x.value);
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -81,7 +81,7 @@ export const getCalculatedSalary = async (
     other,
     salary_type,
     computer,
-  } = await request.body().then((x: Body) => x.value);
+  } = await request.body({ type: "json" }).value;
 
   if (!(salary_type && Number(computer))) throw new RequestSyntaxError();
 
@@ -124,7 +124,7 @@ export const updateSalary = async (
     other,
     salary_type,
     validity,
-  } = await request.body().then((x: Body) => x.value);
+  } = await request.body({ type: "json" }).value;
 
   salary = await salary.update(
     isNaN(Number(computer)) ? undefined : Number(computer),

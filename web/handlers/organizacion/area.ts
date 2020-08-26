@@ -26,8 +26,7 @@ export const createArea = async ({ request, response }: RouterContext) => {
     area_type,
     name,
     supervisor,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (!(Number(area_type) && name && Number(supervisor))) {
     throw new RequestSyntaxError();
@@ -67,9 +66,6 @@ export const updateArea = async (
   let area = await findById(id);
   if (!area) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     area_type,
     name,
@@ -78,7 +74,7 @@ export const updateArea = async (
     area_type?: string;
     name?: string;
     supervisor?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   area = await area.update(
     Number(area_type) || undefined,

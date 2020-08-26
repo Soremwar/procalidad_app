@@ -118,17 +118,17 @@ const decodeSessionCookie = (session_token) => {
 
   try {
     const {
-      context,
+      user,
       exp,
     } = decodeJwt(session_token);
-    if (Date.now() > exp) throw new Error();
+    if (Date.now() > exp * 1000) throw new Error();
 
     Object.assign(session, {
-      email: context.user.email,
-      id: context.user.id,
+      email: user.email,
+      id: user.id,
       is_authenticated: true,
-      name: context.user.name,
-      profiles: context.user.profiles,
+      name: user.name,
+      profiles: user.profiles,
     });
   } finally {
     return session;

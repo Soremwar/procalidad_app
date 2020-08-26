@@ -34,25 +34,69 @@ const getSectors = () => {
 
 const getClient = (id) => fetchClientApi(id).then((x) => x.json());
 
-const createClient = async (form_data) => {
-  return fetchClientApi("", {
+const createClient = async (
+  sector,
+  name,
+  nit,
+  verification_digit,
+  business,
+  country,
+  state,
+  city,
+  address,
+) =>
+  fetchClientApi("", {
+    body: JSON.stringify({
+      sector,
+      name,
+      nit,
+      verification_digit,
+      business,
+      country,
+      state,
+      city,
+      address,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateClient = async (id, form_data) => {
-  return fetchClientApi(id, {
+const updateClient = async (
+  id,
+  sector,
+  name,
+  nit,
+  verification_digit,
+  business,
+  country,
+  state,
+  city,
+  address,
+) =>
+  fetchClientApi(id, {
+    body: JSON.stringify({
+      sector,
+      name,
+      nit,
+      verification_digit,
+      business,
+      country,
+      state,
+      city,
+      address,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteClient = async (id) => {
-  return fetchClientApi(id, {
+const deleteClient = async (id) =>
+  fetchClientApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -124,7 +168,17 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createClient(new URLSearchParams(fields));
+    const request = await createClient(
+      fields.sector,
+      fields.name,
+      fields.nit,
+      fields.verification_digit,
+      fields.business,
+      fields.country,
+      fields.state,
+      fields.city,
+      fields.address,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -365,7 +419,15 @@ const EditModal = ({
 
     const request = await updateClient(
       data.pk_cliente,
-      new URLSearchParams(fields),
+      fields.sector,
+      fields.name,
+      fields.nit,
+      fields.verification_digit,
+      fields.business,
+      fields.country,
+      fields.state,
+      fields.city,
+      fields.address,
     );
 
     if (request.ok) {

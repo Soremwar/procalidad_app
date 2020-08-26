@@ -7,10 +7,8 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -24,14 +22,12 @@ import {
 import {
   formatDateToStandardString,
 } from "../../../lib/date/mod.js";
-
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import MultipleSelectField from "../../common/MultipleSelectField.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const getPositions = () => fetchPositionApi().then((x) => x.json());
 const getSubAreas = () => fetchSubAreaApi().then((x) => x.json());
@@ -40,18 +36,43 @@ const getRoles = () => fetchRoleApi().then((x) => x.json());
 
 const getAssignation = (id) => fetchAssignationApi(id).then((x) => x.json());
 
-const createAssignation = async (form_data) =>
+const createAssignation = async (
+  person,
+  position,
+  roles,
+  sub_area,
+  validity,
+) =>
   fetchAssignationApi("", {
-    body: form_data,
+    body: JSON.stringify({
+      person,
+      position,
+      roles,
+      sub_area,
+      validity,
+    }),
     headers: {
       "Content-Type": "application/json",
     },
     method: "POST",
   });
 
-const updateAssignation = async (id, form_data) =>
+const updateAssignation = async (
+  id,
+  person,
+  position,
+  roles,
+  sub_area,
+  validity,
+) =>
   fetchAssignationApi(id, {
-    body: form_data,
+    body: JSON.stringify({
+      person,
+      position,
+      roles,
+      sub_area,
+      validity,
+    }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -109,8 +130,8 @@ const AddModal = ({
   const [fields, setFields] = useState({
     person: "",
     position: "",
-    sub_area: "",
     roles: [],
+    sub_area: "",
     validity: "",
   });
   const [is_loading, setLoading] = useState(false);
@@ -126,8 +147,8 @@ const AddModal = ({
       setFields({
         person: "",
         position: "",
-        sub_area: "",
         roles: [],
+        sub_area: "",
         validity: [],
       });
       setLoading(false);
@@ -138,7 +159,13 @@ const AddModal = ({
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
-    const request = await createAssignation(JSON.stringify(fields));
+    const request = await createAssignation(
+      fields.person,
+      fields.position,
+      fields.roles,
+      fields.sub_area,
+      fields.validity,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -237,8 +264,8 @@ const EditModal = ({
   const [fields, setFields] = useState({
     person: "",
     position: "",
-    sub_area: "",
     roles: [],
+    sub_area: "",
     validity: "",
   });
   const [is_loading, setLoading] = useState(false);
@@ -249,8 +276,8 @@ const EditModal = ({
       setFields({
         person: data.fk_persona,
         position: data.fk_cargo,
-        sub_area: data.fk_sub_area,
         roles: data.fk_roles,
+        sub_area: data.fk_sub_area,
         validity: formatDateToStandardString(new Date(data.fec_vigencia)),
       });
       setLoading(false);
@@ -269,7 +296,11 @@ const EditModal = ({
 
     const request = await updateAssignation(
       data.pk_asignacion,
-      JSON.stringify(fields),
+      fields.person,
+      fields.position,
+      fields.roles,
+      fields.sub_area,
+      fields.validity,
     );
 
     if (request.ok) {
@@ -419,14 +450,14 @@ export default () => {
   });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_project_type, setSelectedArea] = useState({});
+  const [selected_position_assignation, setSelectedPositionAssignation] =
+    useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getAssignation(id);
-    setSelectedArea(data);
+    setSelectedPositionAssignation(await getAssignation(id));
     setEditModalOpen(true);
   };
 
@@ -471,7 +502,7 @@ export default () => {
           updateTable={updateTable}
         />
         <EditModal
-          data={selected_project_type}
+          data={selected_position_assignation}
           is_open={is_edit_modal_open}
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
@@ -483,21 +514,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"organizacion/asignacion_cargo/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"organizacion/asignacion_cargo/table"}
+      />
     </Fragment>
   );
 };

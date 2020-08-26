@@ -20,7 +20,6 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -31,8 +30,6 @@ import {
   fetchProjectApi,
   fetchRoleApi,
 } from "../../../lib/api/generator.js";
-
-import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";

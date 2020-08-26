@@ -9,9 +9,8 @@ import {
 import {
   findById as findProjectType,
 } from "../../../api/models/OPERACIONES/TIPO_PROYECTO.ts";
-import { encryption_key } from "../../../config/api_deno.js";
 import { Profiles } from "../../../api/common/profiles.ts";
-import { validateJwt } from "djwt/validate.ts";
+import { decodeToken } from "../../../lib/jwt.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
@@ -39,8 +38,7 @@ export const createProject = async (
     supervisor,
     description,
     status,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -62,11 +60,8 @@ export const createProject = async (
   }
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH");
-  //@ts-ignore
-  const session = await validateJwt(session_cookie, encryption_key);
-  //@ts-ignore
-  const profiles = session.payload?.context?.user?.profiles;
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { profiles } = await decodeToken(session_cookie);
 
   if (project_type.ban_facturable) {
     const can_create_facturable_project = profiles.some((profile: number) =>
@@ -133,9 +128,6 @@ export const updateProject = async (
   let project = await findById(id);
   if (!project) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     client,
     sub_area,
@@ -143,22 +135,14 @@ export const updateProject = async (
     supervisor,
     description,
     status,
-  }: {
-    client?: string;
-    sub_area?: string;
-    name?: string;
-    supervisor?: string;
-    description?: string;
-    status?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH");
-  //@ts-ignore
-  const session = await validateJwt(session_cookie, encryption_key);
-  //@ts-ignore
-  const { profiles: user_profiles, id: user_id } = session.payload?.context
-    ?.user;
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: user_id,
+    profiles: user_profiles,
+  } = await decodeToken(session_cookie);
 
   const allowed_editors = await project.getSupervisors();
   if (!allowed_editors.includes(user_id)) {

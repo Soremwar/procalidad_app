@@ -10,7 +10,6 @@ import {
   Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -18,7 +17,6 @@ import {
   fetchAreaTypesApi,
   fetchPeopleApi,
 } from "../../../lib/api/generator.js";
-
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
@@ -30,25 +28,45 @@ const getPeople = () => fetchPeopleApi().then((x) => x.json());
 
 const getProjectType = (id) => fetchAreaTypesApi(id).then((x) => x.json());
 
-const createProjectType = async (form_data) => {
-  return await fetchAreaTypesApi("", {
+const createProjectType = async (
+  name,
+  supervisor,
+  time_records,
+) =>
+  fetchAreaTypesApi("", {
+    body: JSON.stringify({
+      name,
+      supervisor,
+      time_records,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateProjectType = async (id, form_data) => {
-  return await fetchAreaTypesApi(id, {
+const updateProjectType = async (
+  id,
+  name,
+  supervisor,
+  time_records,
+) =>
+  fetchAreaTypesApi(id, {
+    body: JSON.stringify({
+      name,
+      supervisor,
+      time_records,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteProjectType = async (id) => {
-  return await fetchAreaTypesApi(id, {
+const deleteProjectType = async (id) =>
+  fetchAreaTypesApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -97,7 +115,11 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createProjectType(new URLSearchParams(fields));
+    const request = await createProjectType(
+      fields.name,
+      fields.supervisor,
+      fields.time_records,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -132,6 +154,11 @@ const AddModal = ({
     >
       <TextField
         fullWidth
+        InputProps={{
+          inputProps: {
+            maxLength: 100,
+          },
+        }}
         label="Tipo de Area"
         margin="dense"
         name="name"
@@ -210,8 +237,10 @@ const EditModal = ({
     setError(null);
 
     const request = await updateProjectType(
-      data.id,
-      new URLSearchParams(fields),
+      data.pk_tipo,
+      fields.name,
+      fields.supervisor,
+      fields.time_records,
     );
 
     if (request.ok) {
@@ -235,6 +264,11 @@ const EditModal = ({
     >
       <TextField
         fullWidth
+        InputProps={{
+          inputProps: {
+            maxLength: 100,
+          },
+        }}
         label="Tipo de Area"
         margin="dense"
         name="name"
@@ -282,7 +316,7 @@ const DeleteModal = ({
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
@@ -341,8 +375,7 @@ export default () => {
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getProjectType(id);
-    setSelectedProjectType(data);
+    setSelectedProjectType(await getProjectType(id));
     setEditModalOpen(true);
   };
 
@@ -357,9 +390,8 @@ export default () => {
 
   useEffect(() => {
     getPeople().then((people) => {
-      const entries = people.map((
-        { pk_persona, nombre },
-      ) => [pk_persona, nombre]);
+      const entries = people
+        .map(({ pk_persona, nombre }) => [pk_persona, nombre]);
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
     updateTable();

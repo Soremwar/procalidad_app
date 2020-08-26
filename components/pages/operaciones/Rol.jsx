@@ -5,43 +5,55 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
   fetchRoleApi,
 } from "../../../lib/api/generator.js";
-
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const getRole = (id) => fetchRoleApi(id).then((x) => x.json());
 
-const createRole = async (form_data) => {
-  return await fetchRoleApi("", {
+const createRole = async (
+  description,
+  name,
+) =>
+  fetchRoleApi("", {
+    body: JSON.stringify({
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateRole = async (id, form_data) => {
-  return await fetchRoleApi(id, {
+const updateRole = async (
+  id,
+  description,
+  name,
+) =>
+  fetchRoleApi(id, {
+    body: JSON.stringify({
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteRole = async (id) => {
-  return await fetchRoleApi(id, {
+const deleteRole = async (id) =>
+  fetchRoleApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -65,15 +77,37 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [fields, setFields] = useState({
+    description: "",
+    name: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        description: "",
+        name: "",
+      });
+      setError(null);
+      setLoading(false);
+    }
+  }, [is_open]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createRole(new URLSearchParams(form_data));
+    const request = await createRole(
+      fields.description,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -95,20 +129,22 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <TextField
-        autoFocus
+        fullWidth
+        label="Nombre"
         margin="dense"
         name="name"
-        label="Nombre"
-        fullWidth
+        onChange={handleChange}
         required
+        value={fields.name}
       />
       <TextField
-        autoFocus
+        fullWidth
+        label="Descripcion"
         margin="dense"
         name="description"
-        label="Descripcion"
-        fullWidth
+        onChange={handleChange}
         required
+        value={fields.description}
       />
     </DialogForm>
   );
@@ -133,25 +169,25 @@ const EditModal = ({
         name: data.nombre,
         description: data.descripcion,
       });
+      setError(null);
+      setLoading(false);
     }
   }, [is_open]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const id = data.pk_rol;
-    const request = await updateRole(id, new URLSearchParams(form_data));
+    const request = await updateRole(
+      data.pk_rol,
+      fields.description,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -173,22 +209,20 @@ const EditModal = ({
       title={"Editar"}
     >
       <TextField
-        autoFocus
         fullWidth
         label="Nombre"
         margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
       <TextField
-        autoFocus
         fullWidth
         label="Descripcion"
         margin="dense"
         name="description"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.description}
       />
@@ -261,8 +295,7 @@ export default () => {
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getRole(id);
-    setSelectedRole(data);
+    setSelectedRole(await getRole(id));
     setEditModalOpen(true);
   };
 
@@ -299,21 +332,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"operaciones/rol/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"operaciones/rol/table"}
+      />
     </Fragment>
   );
 };

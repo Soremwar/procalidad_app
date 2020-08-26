@@ -1,4 +1,4 @@
-import { RouterContext, Body } from "oak";
+import { RouterContext } from "oak";
 import { RequestSyntaxError } from "../../web/exceptions.ts";
 import postgres from "../services/postgres.js";
 import { QueryResult } from "deno_postgres/query.ts";
@@ -40,7 +40,7 @@ export const tableRequestHandler = async (
     page,
     rows,
     search = {},
-  } = await request.body().then((x: Body) => x.value);
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -53,14 +53,12 @@ export const tableRequestHandler = async (
 
   const order_parameters = parseOrderFromObject(order);
 
-  const data = await fetchDataSource(
+  response.body = await fetchDataSource(
     order_parameters,
     page || 0,
     rows || null,
     search,
   );
-
-  response.body = data;
 };
 
 export const generateTableSql = (

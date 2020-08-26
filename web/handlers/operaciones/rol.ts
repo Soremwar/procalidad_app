@@ -27,8 +27,7 @@ export const createRole = async ({ request, response }: RouterContext) => {
   const {
     name,
     description,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (!name) throw new RequestSyntaxError();
 
@@ -59,16 +58,10 @@ export const updateRole = async (
   let role = await findById(id);
   if (!role) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     name,
     description,
-  }: {
-    name?: string;
-    description?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   response.body = await role.update(
     name,

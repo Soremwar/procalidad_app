@@ -1,5 +1,9 @@
 import { Context, Status } from "oak";
-import { validateJwt } from "djwt/validate.ts";
+import { decodeToken } from "../lib/jwt.ts";
+import Ajv from "ajv";
+import {
+  TRUTHY_INTEGER,
+} from "../lib/ajv/types.js";
 import { formatResponse, Message } from "./http_utils.ts";
 import {
   AuthenticationRejectedError,
@@ -8,7 +12,6 @@ import {
   RequestSyntaxError,
 } from "./exceptions.ts";
 import { Profiles } from "../api/common/profiles.ts";
-import { encryption_key } from "../config/api_deno.js";
 
 export const errorHandler = async (
   { response }: Context,
@@ -56,6 +59,32 @@ export const errorHandler = async (
   }
 };
 
+//@ts-ignore
+const token_validator = new Ajv();
+const token_structure = {
+  required: [
+    "id",
+    "name",
+    "email",
+    "profiles",
+  ],
+  properties: {
+    "id": TRUTHY_INTEGER,
+    "name": {
+      type: "string",
+    },
+    "email": {
+      type: "string",
+    },
+    "profiles": {
+      items: [
+        TRUTHY_INTEGER,
+      ],
+      type: "array",
+    },
+  },
+};
+
 export const checkProfileAccess = (required_profiles: Profiles[]) => {
   return async (
     { cookies }: Context,
@@ -66,15 +95,14 @@ export const checkProfileAccess = (required_profiles: Profiles[]) => {
       throw new AuthenticationRejectedError("El usuario no esta autenticado");
     }
 
-    const session_data = await validateJwt(session_cookie, encryption_key);
-    if (!session_data.isValid) {
-      throw new AuthenticationRejectedError("La sesion es invalida");
+    const session_data = await decodeToken(session_cookie);
+    if (!token_validator.validate(token_structure, session_data)) {
+      throw new RequestSyntaxError(
+        "La estructura de la sesion no es la esperada",
+      );
     }
 
-    const context = session_data.payload?.context as any;
-    const user_profiles: Profiles[] = Array.isArray(context?.user?.profiles)
-      ? context?.user?.profiles
-      : [];
+    const user_profiles: number[] = session_data.profiles;
 
     const has_required_profiles = user_profiles.some((profile) =>
       required_profiles.includes(profile)

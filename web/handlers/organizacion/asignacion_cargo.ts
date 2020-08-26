@@ -31,13 +31,7 @@ export const createAssignation = async (
     position,
     roles,
     validity,
-  }: {
-    person: string;
-    sub_area: string;
-    position: string;
-    roles: string[];
-    validity: string;
-  } = await request.body().then((x: Body) => x.value);
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -90,7 +84,7 @@ export const updateAssignation = async (
     position,
     roles,
     validity,
-  } = await request.body().then((x: Body) => x.value);
+  } = await request.body({ type: "json" }).value;
 
   assignation = await assignation.update(
     Number(sub_area) ? Number(sub_area) : undefined,

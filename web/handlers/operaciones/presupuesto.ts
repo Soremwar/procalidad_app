@@ -1,4 +1,4 @@
-import { RouterContext, Body } from "oak";
+import { RouterContext } from "oak";
 import {
   createNew as createBudgetItem,
   findAll as findBudgetItems,
@@ -14,8 +14,7 @@ import {
   findById as findProject,
 } from "../../../api/models/OPERACIONES/PROYECTO.ts";
 import { Profiles } from "../../../api/common/profiles.ts";
-import { validateJwt } from "djwt/validate.ts";
-import { encryption_key } from "../../../config/api_deno.js";
+import { decodeToken } from "../../../lib/jwt.ts";
 import { Status, Message, formatResponse } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
@@ -42,7 +41,7 @@ export const createBudget = async (
     description,
     status,
     roles,
-  } = await request.body().then((x: Body) => x.value);
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -61,12 +60,11 @@ export const createBudget = async (
   if (!project_model) throw new Error("El proyecto seleccionado no existe");
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH");
-  //@ts-ignore
-  const session = await validateJwt(session_cookie, encryption_key);
-  //@ts-ignore
-  const { profiles: user_profiles, id: user_id } = session.payload?.context
-    ?.user;
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: user_id,
+    profiles: user_profiles,
+  } = await decodeToken(session_cookie);
 
   const allowed_editors = await project_model.getSupervisors();
   if (!allowed_editors.includes(user_id)) {
@@ -137,12 +135,11 @@ export const updateBudget = async (
   if (!project) throw new Error("El proyecto seleccionado no existe");
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH");
-  //@ts-ignore
-  const session = await validateJwt(session_cookie, encryption_key);
-  //@ts-ignore
-  const { profiles: user_profiles, id: user_id } = session.payload?.context
-    ?.user;
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: user_id,
+    profiles: user_profiles,
+  } = await decodeToken(session_cookie);
 
   const allowed_editors = await project.getSupervisors();
   if (!allowed_editors.includes(user_id)) {
@@ -164,7 +161,7 @@ export const updateBudget = async (
     description,
     status,
     roles,
-  } = await request.body().then((x: Body) => x.value);
+  } = await request.body({ type: "json" }).value;
 
   budget = await budget.update(
     Number(budget_type) || undefined,

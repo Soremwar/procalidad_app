@@ -22,31 +22,19 @@ import {
   Typography,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-
 import {
   formatResponseJson,
   requestGenerator,
 } from "../../../lib/api/request.js";
+import {
+  formatDateToStandardString,
+} from "../../../lib/date/mod.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
-
-//TODO
-//Add primary key as constant
-
-const formatDateToInternational = (date) => {
-  const year = date.getFullYear();
-  let month = date.getMonth() + 1;
-  let day = date.getDate();
-
-  if (month < 10) month = "0" + month;
-  if (day < 10) day = "0" + day;
-
-  return `${year}-${month}-${day}`;
-};
 
 const fetchParameterApi = requestGenerator("maestro/parametro");
 const fetchParameterDefinitionApi = requestGenerator(
@@ -60,45 +48,86 @@ const getDefinition = (id) =>
 const getDefinitions = (parameter) =>
   fetchParameterDefinitionApi(`search?parameter=${parameter}`);
 
-const createParameter = async (form_data) => {
-  return await fetchParameterApi("", {
+const createParameter = async (
+  name,
+  description,
+  type,
+) =>
+  fetchParameterApi("", {
+    body: JSON.stringify({
+      name,
+      description,
+      type,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const createDefinition = async (id, form_data) => {
-  return await fetchParameterDefinitionApi(id, {
+const createDefinition = async (
+  parameter_id,
+  start_date,
+  end_date,
+  value,
+) =>
+  fetchParameterDefinitionApi(parameter_id, {
+    body: JSON.stringify({
+      start_date,
+      end_date,
+      value,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateParameter = async (id, form_data) => {
-  return await fetchParameterApi(id, {
+const updateParameter = async (
+  id,
+  name,
+  description,
+  type,
+) =>
+  fetchParameterApi(id, {
+    body: JSON.stringify({
+      name,
+      description,
+      type,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const updateDefinition = async (id, form_data) => {
-  return await fetchParameterDefinitionApi(id, {
+const updateDefinition = async (
+  id,
+  start_date,
+  end_date,
+  value,
+) =>
+  fetchParameterDefinitionApi(id, {
+    body: JSON.stringify({
+      start_date,
+      end_date,
+      value,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteParameter = async (id) => {
-  return await fetchParameterApi(id, {
+const deleteParameter = async (id) =>
+  fetchParameterApi(id, {
     method: "DELETE",
   });
-};
 
-const deleteDefinition = async (id) => {
-  return await fetchParameterDefinitionApi(id, {
+const deleteDefinition = async (id) =>
+  fetchParameterDefinitionApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -128,15 +157,28 @@ const AddModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [fields, setFields] = useState({
+    name: "",
+    description: "",
+    type: "",
+  });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
-    const form_data = new FormData(event.target);
-    const request = await createParameter(new URLSearchParams(form_data));
+    const request = await createParameter(
+      fields.name,
+      fields.description,
+      fields.type,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -147,6 +189,18 @@ const AddModal = ({
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        name: "",
+        description: "",
+        type: "",
+      });
+      setError(null);
+      setLoading(false);
+    }
+  }, [is_open]);
 
   return (
     <DialogForm
@@ -162,21 +216,27 @@ const AddModal = ({
         name="name"
         label="Nombre"
         fullWidth
+        onChange={handleChange}
         required
+        value={fields.name}
       />
       <TextField
         margin="dense"
         name="description"
         label="Descripcion"
         fullWidth
+        onChange={handleChange}
         required
+        value={fields.description}
       />
       <SelectField
         margin="dense"
         name="type"
         label="Tipo de Parametro"
         fullWidth
+        onChange={handleChange}
         required
+        value={fields.type}
       >
         <option value="string">Texto</option>
         <option value="number">Numero</option>
@@ -239,8 +299,8 @@ const EditModal = ({
           getDefinition(selected_definition).then(
             ({ fec_inicio, fec_fin, valor }) => {
               setDefinitionFields({
-                start_date: formatDateToInternational(new Date(fec_inicio)),
-                end_date: formatDateToInternational(new Date(fec_fin)),
+                start_date: formatDateToStandardString(new Date(fec_inicio)),
+                end_date: formatDateToStandardString(new Date(fec_fin)),
                 value: valor,
               });
             },
@@ -271,22 +331,14 @@ const EditModal = ({
 
   const handleParameterChange = (event) => {
     setFormularyChanged(true);
-    const name = event.target.name;
-    const value = event.target.value;
-    setParameterFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setParameterFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleDefinitionChange = (event) => {
     setFormularyChanged(true);
-    const name = event.target.name;
-    const value = event.target.value;
-    setDefinitionFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const { name, value } = event.target;
+    setDefinitionFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const setFocusToParameter = () => {
@@ -314,7 +366,9 @@ const EditModal = ({
 
     const request = await updateParameter(
       id,
-      new URLSearchParams(parameter_fields),
+      parameter_fields.name,
+      parameter_fields.description,
+      parameter_fields.type,
     );
 
     if (request.ok) {
@@ -335,11 +389,18 @@ const EditModal = ({
     let request;
 
     if (selected_definition === 0) {
-      request = createDefinition(id, new URLSearchParams(definition_fields));
+      request = createDefinition(
+        id,
+        definition_fields.start_date,
+        definition_fields.end_date,
+        definition_fields.value,
+      );
     } else {
       request = updateDefinition(
         selected_definition,
-        new URLSearchParams(definition_fields),
+        definition_fields.start_date,
+        definition_fields.end_date,
+        definition_fields.value,
       );
     }
 
@@ -348,7 +409,7 @@ const EditModal = ({
         if (!response.ok) throw new Error();
         return response.json();
       })
-      .then((definition) => {
+      .then(() => {
         setFormularyChanged(false);
         setModalOpen(false);
       })

@@ -562,8 +562,8 @@ export const getDetailGanttData = async (
     FROM ${TABLE}
     ${
       person ? `WHERE FK_PERSONA = ${person}` : project
-      ? `WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
-      : ""
+        ? `WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`
+        : ""
     }`,
   );
 

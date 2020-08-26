@@ -1,5 +1,5 @@
-import { Body, RouterContext } from "oak";
-import { validateJwt } from "djwt/validate.ts";
+import { RouterContext } from "oak";
+import { decodeToken } from "../../lib/jwt.ts";
 import {
   createNew,
   findAll,
@@ -16,7 +16,6 @@ import {
 import {
   tableRequestHandler,
 } from "../../api/common/table.ts";
-import { encryption_key } from "../../config/api_deno.js";
 import { Profiles } from "../../api/common/profiles.ts";
 import { formatResponse, Message, Status } from "../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
@@ -43,8 +42,7 @@ export const createAssignation = async (
     role,
     date,
     hours,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(
@@ -67,12 +65,11 @@ export const createAssignation = async (
   }
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH");
-  //@ts-ignore
-  const session = await validateJwt(session_cookie, encryption_key);
-  //@ts-ignore
-  const { profiles: user_profiles, id: user_id } = session.payload?.context
-    ?.user;
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: user_id,
+    profiles: user_profiles,
+  } = await decodeToken(session_cookie);
 
   const project_data = await findProject(budget_data.fk_proyecto);
   if (!project_data) {
@@ -121,12 +118,11 @@ export const updateAssignation = async (
   }
 
   //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH");
-  //@ts-ignore
-  const session = await validateJwt(session_cookie, encryption_key);
-  //@ts-ignore
-  const { profiles: user_profiles, id: user_id } = session.payload?.context
-    ?.user;
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: user_id,
+    profiles: user_profiles,
+  } = await decodeToken(session_cookie);
 
   const project_data = await findProject(budget_data.fk_proyecto);
   if (!project_data) {
@@ -148,14 +144,9 @@ export const updateAssignation = async (
     }
   }
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     hours,
-  }: {
-    hours?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   response.body = await resource.update(
     Number(hours) || undefined,

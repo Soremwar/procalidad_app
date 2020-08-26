@@ -26,23 +26,16 @@ export const createSubArea = async ({ request, response }: RouterContext) => {
     area,
     name,
     supervisor,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (!(Number(area) && name && Number(supervisor))) {
     throw new RequestSyntaxError();
   }
 
-  await createNew(
+  response.body = await createNew(
     Number(area),
     name,
     Number(supervisor),
-  );
-
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
   );
 };
 
@@ -67,18 +60,11 @@ export const updateSubArea = async (
   let sub_area = await findById(id);
   if (!sub_area) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     area,
     name,
     supervisor,
-  }: {
-    area?: string;
-    name?: string;
-    supervisor?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   sub_area = await sub_area.update(
     Number(area) || undefined,

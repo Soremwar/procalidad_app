@@ -27,8 +27,7 @@ export const createProjectType = async (
   const {
     name,
     billable,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (!(name && !isNaN(Number(billable)))) throw new RequestSyntaxError();
 
@@ -65,16 +64,10 @@ export const updateProjectType = async (
   let project_type = await findById(id);
   if (!project_type) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     name,
     billable,
-  }: {
-    name?: string;
-    billable?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   project_type = await project_type.update(
     name,

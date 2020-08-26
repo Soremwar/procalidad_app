@@ -30,8 +30,7 @@ export const createContact = async ({ request, response }: RouterContext) => {
     phone,
     phone_2,
     email,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  }: { [x: string]: string } = await request.body({ type: "json" }).value;
 
   if (
     !(name && Number(client) && phone && email)
@@ -77,9 +76,6 @@ export const updateContact = async (
   let contact = await findById(id);
   if (!contact) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     name,
     area,
@@ -96,7 +92,7 @@ export const updateContact = async (
     phone?: string;
     phone_2?: string;
     email?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   contact = await contact.update(
     name,

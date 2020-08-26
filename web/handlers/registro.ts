@@ -96,13 +96,10 @@ export const createWeekDetail = async (
   if (!person) throw new RequestSyntaxError();
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    type,
-    value,
-  }: Body = await request.body();
+  const value = await request.body({ type: "json" }).value;
 
   if (
-    type !== "json" || !request_validator.validate("post", value)
+    !request_validator.validate("post", value)
   ) {
     throw new RequestSyntaxError();
   }
@@ -130,13 +127,10 @@ export const updateWeekDetail = async (
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  const {
-    type,
-    value,
-  }: Body = await request.body();
+  const value = await request.body({ type: "json" }).value;
 
   if (
-    type !== "json" || !request_validator.validate("put", value)
+    !request_validator.validate("put", value)
   ) {
     throw new RequestSyntaxError();
   }

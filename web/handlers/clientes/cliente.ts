@@ -30,8 +30,7 @@ export const createClient = async ({ request, response }: RouterContext) => {
     business,
     city,
     address,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (
     !(Number(sector) && name && nit && Number(verification_digit) && business &&
@@ -78,9 +77,6 @@ export const updateClient = async (
   let client = await findById(id);
   if (!client) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     sector,
     name,
@@ -89,17 +85,9 @@ export const updateClient = async (
     business,
     city,
     address,
-  }: {
-    sector?: string;
-    name?: string;
-    nit?: string;
-    verification_digit?: string;
-    business?: string;
-    city?: string;
-    address?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
-  client = await client.update(
+  response.body = await client.update(
     Number(sector) || undefined,
     name,
     nit,
@@ -108,8 +96,6 @@ export const updateClient = async (
     Number(city) || undefined,
     address,
   );
-
-  response.body = client;
 };
 
 export const deleteClient = async (

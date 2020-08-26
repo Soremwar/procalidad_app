@@ -69,25 +69,57 @@ const getResourceGantt = (project) => {
 };
 const getRoles = () => fetchRoleApi().then((x) => x.json());
 
-const createResource = async (form_data) => {
-  return await fetchResourceApi("", {
+const createResource = async (
+  assignation,
+  budget,
+  hours,
+  person,
+  role,
+  start_date,
+) =>
+  fetchResourceApi("", {
+    body: JSON.stringify({
+      assignation,
+      budget,
+      hours,
+      person,
+      role,
+      start_date,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateResource = async (id, form_data) => {
-  return await fetchResourceApi(id, {
+const updateResource = async (
+  id,
+  assignation,
+  budget,
+  hours,
+  person,
+  role,
+  start_date,
+) =>
+  fetchResourceApi(id, {
+    body: JSON.stringify({
+      assignation,
+      budget,
+      hours,
+      person,
+      role,
+      start_date,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteResource = async (id) => {
-  return await fetchResourceApi(id, {
+const deleteResource = async (id) =>
+  fetchResourceApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -203,12 +235,12 @@ const AddModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    person: "",
+    assignation: "",
     budget: "",
+    hours: "",
+    person: "",
     role: "",
     start_date: parseDateToStandardNumber(new Date()),
-    assignation: "",
-    hours: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -222,7 +254,14 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    createResource(new URLSearchParams(fields))
+    createResource(
+      fields.assignation,
+      fields.budget,
+      fields.hours,
+      fields.person,
+      fields.role,
+      fields.start_date,
+    )
       .then(async (request) => {
         if (request.ok) {
           setModalOpen(false);
@@ -239,12 +278,12 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        person: "",
+        assignation: "",
         budget: "",
+        hours: "",
+        person: "",
         role: "",
         start_date: parseDateToStandardNumber(new Date()),
-        assignation: "",
-        hours: "",
       });
       setError(null);
       setLoading(false);
@@ -392,12 +431,12 @@ const EditModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    person: "",
+    assignation: "",
     budget: "",
+    hours: "",
+    person: "",
     role: "",
     start_date: "",
-    assignation: "",
-    hours: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -406,12 +445,12 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        person: data.fk_persona,
+        assignation: data.porcentaje,
         budget: data.fk_presupuesto,
+        hours: data.horas,
+        person: data.fk_persona,
         role: data.fk_rol,
         start_date: data.fecha_inicio,
-        assignation: data.porcentaje,
-        hours: data.horas,
       });
       setError(null);
       setLoading(false);
@@ -427,7 +466,15 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    updateResource(data.pk_recurso, new URLSearchParams(fields))
+    updateResource(
+      data.pk_recurso,
+      fields.assignation,
+      fields.budget,
+      fields.hours,
+      fields.person,
+      fields.role,
+      fields.start_date,
+    )
       .then(async (request) => {
         if (request.ok) {
           setModalOpen(false);

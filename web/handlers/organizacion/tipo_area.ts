@@ -1,16 +1,44 @@
-import { RouterContext, Body } from "oak";
+import Ajv from "ajv";
+import { RouterContext } from "oak";
 import {
   createNew,
   findAll,
   findById,
   getTableData,
 } from "../../../api/models/ORGANIZACION/area_type.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
+import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
-import {
-  castStringToBoolean,
-} from "../../../lib/utils/boolean.js";
+import { BOOLEAN, TRUTHY_INTEGER } from "../../../lib/ajv/types.js";
+
+const update_request = {
+  $id: "update",
+  properties: {
+    "name": {
+      maxLength: 100,
+      type: "string",
+    },
+    "supervisor": TRUTHY_INTEGER,
+    "time_records": BOOLEAN,
+  },
+};
+
+const create_request = Object.assign({}, update_request, {
+  $id: "create",
+  required: [
+    "name",
+    "supervisor",
+    "time_records",
+  ],
+});
+
+//@ts-ignore
+const request_validator = new Ajv({
+  schemas: [
+    create_request,
+    update_request,
+  ],
+});
 
 export const getAreaTypes = async ({ response }: RouterContext) => {
   response.body = await findAll();
@@ -25,41 +53,21 @@ export const getAreaTypesTable = async (context: RouterContext) =>
 export const createAreaType = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    name,
-    supervisor,
-    time_records,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  const value = await request.body({ type: "json" }).value;
 
   if (
-    !(
-      name &&
-      Number(supervisor)
-    )
+    !request_validator.validate("create", value)
   ) {
     throw new RequestSyntaxError();
   }
 
-  let parsed_time_records: boolean;
-
-  try {
-    parsed_time_records = castStringToBoolean(time_records);
-  } catch (e) {
-    throw new RequestSyntaxError();
-  }
-
   await createNew(
-    name,
-    Number(supervisor),
-    parsed_time_records,
+    value.name,
+    value.supervisor,
+    value.time_records,
   );
 
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
+  response.body = Message.OK;
 };
 
 export const getAreaType = async (
@@ -83,31 +91,18 @@ export const updateAreaType = async (
   let area_type = await findById(id);
   if (!area_type) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
+  const value = await request.body({ type: "json" }).value;
 
-  const {
-    name,
-    supervisor,
-    time_records,
-  }: {
-    name?: string;
-    supervisor?: string;
-    time_records?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
-
-  let parsed_time_records: boolean;
-
-  try {
-    parsed_time_records = castStringToBoolean(time_records);
-  } catch (e) {
+  if (
+    !request_validator.validate("update", value)
+  ) {
     throw new RequestSyntaxError();
   }
 
   response.body = await area_type.update(
-    name,
-    Number(supervisor) || undefined,
-    parsed_time_records,
+    value.name,
+    value.supervisor,
+    value.time_records,
   );
 };
 
@@ -121,9 +116,6 @@ export const deleteAreaType = async (
   if (!area_type) throw new NotFoundError();
 
   await area_type.delete();
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
+
+  response.body = Message.OK;
 };

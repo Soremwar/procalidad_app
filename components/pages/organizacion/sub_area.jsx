@@ -7,10 +7,8 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -19,38 +17,56 @@ import {
   fetchPeopleApi,
   fetchSubAreaApi,
 } from "../../../lib/api/generator.js";
-
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
 const getAreas = () => fetchAreaApi().then((x) => x.json());
 
 const getSubArea = (id) => fetchSubAreaApi(id).then((x) => x.json());
 
-const createSubArea = async (form_data) => {
-  return await fetchSubAreaApi("", {
+const createSubArea = async (
+  area,
+  name,
+  supervisor,
+) =>
+  fetchSubAreaApi("", {
+    body: JSON.stringify({
+      area,
+      name,
+      supervisor,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateSubArea = async (id, form_data) => {
-  return await fetchSubAreaApi(id, {
+const updateSubArea = async (
+  id,
+  area,
+  name,
+  supervisor,
+) =>
+  fetchSubAreaApi(id, {
+    body: JSON.stringify({
+      area,
+      name,
+      supervisor,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteSubArea = async (id) => {
-  return await fetchSubAreaApi(id, {
+const deleteSubArea = async (id) =>
+  fetchSubAreaApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -108,7 +124,11 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createSubArea(new URLSearchParams(fields));
+    const request = await createSubArea(
+      fields.area,
+      fields.name,
+      fields.supervisor,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -142,7 +162,7 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <SelectField
-        label="Tipo de Area"
+        label="Area"
         fullWidth
         name="area"
         onChange={handleChange}
@@ -218,7 +238,9 @@ const EditModal = ({
 
     const request = await updateSubArea(
       data.pk_sub_area,
-      new URLSearchParams(fields),
+      fields.area,
+      fields.name,
+      fields.supervisor,
     );
 
     if (request.ok) {
@@ -241,7 +263,7 @@ const EditModal = ({
       title={"Editar"}
     >
       <SelectField
-        label="Tipo de Area"
+        label="Area"
         fullWidth
         name="area"
         onChange={handleChange}
@@ -338,14 +360,13 @@ export default () => {
   });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_project_type, setSelectedArea] = useState({});
+  const [selected_sub_area, setSelectedSubArea] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getSubArea(id);
-    setSelectedArea(data);
+    setSelectedSubArea(await getSubArea(id));
     setEditModalOpen(true);
   };
 
@@ -384,7 +405,7 @@ export default () => {
           updateTable={updateTable}
         />
         <EditModal
-          data={selected_project_type}
+          data={selected_sub_area}
           is_open={is_edit_modal_open}
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
@@ -396,21 +417,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"organizacion/sub_area/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"organizacion/sub_area/table"}
+      />
     </Fragment>
   );
 };

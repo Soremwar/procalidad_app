@@ -5,44 +5,60 @@ import React, {
 } from "react";
 import {
   DialogContentText,
-  Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
   fetchComputerApi,
 } from "../../../lib/api/generator.js";
-
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const getComputer = (id) => fetchComputerApi(id).then((x) => x.json());
 
-const createComputer = async (form_data) => {
-  return await fetchComputerApi("", {
+const createComputer = async (
+  cost,
+  description,
+  name,
+) =>
+  fetchComputerApi("", {
+    body: JSON.stringify({
+      cost,
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "POST",
-    body: form_data,
   });
-};
 
-const updateComputer = async (id, form_data) => {
-  return await fetchComputerApi(id, {
+const updateComputer = async (
+  id,
+  cost,
+  description,
+  name,
+) =>
+  fetchComputerApi(id, {
+    body: JSON.stringify({
+      cost,
+      description,
+      name,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
-    body: form_data,
   });
-};
 
-const deleteComputer = async (id) => {
-  return await fetchComputerApi(id, {
+const deleteComputer = async (id) =>
+  fetchComputerApi(id, {
     method: "DELETE",
   });
-};
 
 const headers = [
   {
@@ -67,9 +83,9 @@ const AddModal = ({
   updateTable,
 }) => {
   const [fields, setFields] = useState({
-    name: "",
+    cost: 0,
     description: "",
-    cost: "",
+    name: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -77,9 +93,9 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        name: "",
+        cost: 0,
         description: "",
-        cost: "",
+        name: "",
       });
       setLoading(false);
       setError(null);
@@ -95,7 +111,11 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createComputer(new URLSearchParams(fields));
+    const request = await createComputer(
+      fields.cost,
+      fields.description,
+      fields.name,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -155,9 +175,9 @@ const EditModal = ({
   updateTable,
 }) => {
   const [fields, setFields] = useState({
-    name: "",
-    description: "",
     cost: 0,
+    description: "",
+    name: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -165,9 +185,9 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        name: data.nombre,
-        description: data.descripcion,
         cost: Number(data.costo),
+        description: data.descripcion,
+        name: data.nombre,
       });
       setLoading(false);
       setError(null);
@@ -185,7 +205,9 @@ const EditModal = ({
 
     const request = await updateComputer(
       data.pk_computador,
-      new URLSearchParams(fields),
+      fields.cost,
+      fields.description,
+      fields.name,
     );
 
     if (request.ok) {
@@ -298,14 +320,13 @@ const DeleteModal = ({
 export default () => {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_project_type, setSelectedArea] = useState({});
+  const [selected_computer, setSelectedComputer] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const data = await getComputer(id);
-    setSelectedArea(data);
+    setSelectedComputer(await getComputer(id));
     setEditModalOpen(true);
   };
 
@@ -331,7 +352,7 @@ export default () => {
         updateTable={updateTable}
       />
       <EditModal
-        data={selected_project_type}
+        data={selected_computer}
         is_open={is_edit_modal_open}
         setModalOpen={setEditModalOpen}
         updateTable={updateTable}
@@ -342,21 +363,15 @@ export default () => {
         selected={selected}
         updateTable={updateTable}
       />
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Widget noBodyPadding>
-            <AsyncTable
-              columns={headers}
-              onAddClick={() => setAddModalOpen(true)}
-              onEditClick={(id) => handleEditModalOpen(id)}
-              onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-              onTableUpdate={() => setTableShouldUpdate(false)}
-              update_table={tableShouldUpdate}
-              url={"organizacion/computador/table"}
-            />
-          </Widget>
-        </Grid>
-      </Grid>
+      <AsyncTable
+        columns={headers}
+        onAddClick={() => setAddModalOpen(true)}
+        onEditClick={(id) => handleEditModalOpen(id)}
+        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        update_table={tableShouldUpdate}
+        url={"organizacion/computador/table"}
+      />
     </Fragment>
   );
 };

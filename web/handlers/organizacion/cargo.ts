@@ -25,8 +25,7 @@ export const createPosition = async ({ request, response }: RouterContext) => {
   const {
     name,
     description,
-  }: { [x: string]: string } = await request.body()
-    .then((x: Body) => Object.fromEntries(x.value));
+  } = await request.body({ type: "json" }).value;
 
   if (!(name && description)) {
     throw new RequestSyntaxError();
@@ -61,16 +60,10 @@ export const updatePosition = async (
   let position = await findById(id);
   if (!position) throw new NotFoundError();
 
-  const raw_attributes: Array<[string, string]> = await request.body()
-    .then((x: Body) => Array.from(x.value));
-
   const {
     name,
     description,
-  }: {
-    name?: string;
-    description?: string;
-  } = Object.fromEntries(raw_attributes.filter(([_, value]) => value));
+  } = await request.body({ type: "json" }).value;
 
   position = await position.update(
     name,
