@@ -96,7 +96,7 @@ const ChildrenEditableRow = ({
   useEffect(() => {
     //Weird defaults, but needed to post
     setFields({
-      gender: gender || genders[0].id,
+      gender: gender || genders?.[0]?.id || "",
       name,
       born_date,
     });
@@ -168,11 +168,15 @@ const ChildrenEditableRow = ({
           onChange={handleFieldChange}
           value={fields.gender}
         >
-          {genders.map(({ id, name }, index) => (
-            <option key={id} value={id} defaultValue={index === 0}>
-              {name}
-            </option>
-          ))}
+          {genders.length
+            ? (
+              genders.map(({ id, name }, index) => (
+                <option key={id} value={id} defaultValue={index === 0}>
+                  {name}
+                </option>
+              ))
+            )
+            : <option disabled>No hay generos configurados</option>}
         </SelectField>
       </TableCell>
       <TableCell align="center">

@@ -127,7 +127,7 @@ const LanguageEditableRow = ({
   useEffect(() => {
     //Weird defaults, but needed to post
     setFields({
-      language: language || languages[0].id,
+      language: language || languages?.[0]?.id || "",
       listen_skill: listen_skill || Array.from(LanguageSkill)[0][0],
       read_skill: read_skill || Array.from(LanguageSkill)[0][0],
       talk_skill: talk_skill || Array.from(LanguageSkill)[0][0],
@@ -194,13 +194,18 @@ const LanguageEditableRow = ({
       <TableCell component="th" scope="row">
         <SelectField
           blank_value={false}
+          fullWidth
           name="language"
           onChange={handleFieldChange}
           value={fields.language}
         >
-          {languages.map(({ id, name }) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
+          {languages.length
+            ? (
+              languages.map(({ id, name }) => (
+                <option key={id} value={id}>{name}</option>
+              ))
+            )
+            : <option disabled>No hay idiomas configurados</option>}
         </SelectField>
       </TableCell>
       <TableCell align="center">
