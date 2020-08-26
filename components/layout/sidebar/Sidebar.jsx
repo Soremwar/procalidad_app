@@ -65,6 +65,14 @@ const structure = [
         label: "Acceso",
         link: "/maestro/acceso",
       },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ],
+        label: "Formato",
+        link: "/maestro/formato",
+      },
     ],
   },
   {

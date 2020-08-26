@@ -116,6 +116,14 @@ const Layout = (props) => {
             <ProfiledRoute
               allowed_profiles={[
                 Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+              ]}
+              component={Formato}
+              path="/maestro/formato"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
                 Profiles.AREA_MANAGER,
                 Profiles.CONTROLLER,
                 Profiles.HUMAN_RESOURCES,

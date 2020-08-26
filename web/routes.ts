@@ -1,5 +1,4 @@
-import { composeMiddleware, Router } from "oak";
-import { upload } from "oak_upload";
+import { Router } from "oak";
 import { checkUserAccess } from "./middleware.ts";
 import { Profiles } from "../api/common/profiles.ts";
 import { createSession } from "./handlers/auth.ts";
@@ -30,6 +29,7 @@ import { getCities, getCity, searchCity } from "./handlers/maestro/ciudad.ts";
 import * as language from "./handlers/maestro/idioma.ts";
 import * as gender from "./handlers/maestro/genero.ts";
 import * as marital_status from "./handlers/maestro/estado_civil.ts";
+import * as file_formats from "./handlers/maestro/formato.ts";
 import {
   createClient,
   deleteClient,
@@ -653,7 +653,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getFormats,
+    file_formats.getFormats,
   )
   .post(
     "/api/maestro/formato/table",
@@ -661,7 +661,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    getFormatsTable,
+    file_formats.getFormatsTable,
   )
   .get<{ id: string }>(
     "/api/maestro/formato/:id",
@@ -670,7 +670,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getFormat,
+    file_formats.getFormat,
   )
   .post(
     "/api/maestro/formato",
@@ -678,7 +678,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    createFormat,
+    file_formats.createFormat,
   )
   .put<{ id: string }>(
     "/api/maestro/formato/:id",
@@ -686,7 +686,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    updateFormat,
+    file_formats.updateFormat,
   )
   .delete<{ id: string }>(
     "/api/maestro/formato/:id",
@@ -694,7 +694,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    deleteFormat,
+    file_formats.deleteFormat,
   );
 
 main_router
