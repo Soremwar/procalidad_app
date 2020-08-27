@@ -207,7 +207,7 @@ const AddModal = ({
     date: parseDateToStandardNumber(new Date()),
     hours: "",
     person: "",
-    role: "",
+    role: null,
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -226,7 +226,7 @@ const AddModal = ({
       fields.date,
       fields.hours,
       fields.person,
-      fields.role,
+      fields.role?.value,
     )
       .then(async (request) => {
         if (request.ok) {
@@ -248,7 +248,7 @@ const AddModal = ({
         date: parseDateToStandardNumber(new Date()),
         hours: "",
         person: "",
-        role: "",
+        role: null,
       });
       setError(null);
       setLoading(false);
@@ -297,7 +297,15 @@ const AddModal = ({
         <AsyncSelectField
           disabled={!fields.budget}
           fullWidth
-          handleSource={async (source) => {
+          fetchOptions={async () => {
+            const roles = await fetchRoleApi()
+              .then(async (response) => {
+                if (response.ok) {
+                  return await response.json();
+                }
+                throw new Error();
+              });
+
             const available_roles = await getBudgetDetails(fields.budget)
               .then((details) =>
                 details.reduce((res, { fk_rol }) => {
@@ -306,22 +314,18 @@ const AddModal = ({
                 }, [])
               );
 
-            return Object.values(source)
+            return roles
               .filter(({ pk_rol }) => available_roles.includes(pk_rol))
               .map(({
                 pk_rol,
                 nombre,
-              }) => {
-                return { value: String(pk_rol), text: nombre };
-              });
+              }) => ({ text: nombre, value: String(pk_rol) }));
           }}
           label="Rol"
-          margin="dense"
-          name="role"
-          onChange={handleChange}
           required
-          source={`operaciones/rol`}
-          value={fields.budget && fields.role}
+          setValue={(value) =>
+            setFields((prev_state) => ({ ...prev_state, role: value }))}
+          value={fields.role}
         />
         <TextField
           fullWidth
@@ -364,7 +368,6 @@ const EditModal = ({
   callback,
   data,
   is_open,
-  project,
   setModalOpen,
 }) => {
   const {
@@ -481,9 +484,6 @@ const EditModal = ({
           value={fields.budget}
         >
           {budgets
-            .filter(({ fk_proyecto, estado }) =>
-              fk_proyecto == project && estado
-            )
             .map(({ pk_presupuesto, nombre }) => (
               <option key={pk_presupuesto} value={pk_presupuesto}>
                 {nombre}

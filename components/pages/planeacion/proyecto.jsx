@@ -239,7 +239,7 @@ const AddModal = ({
     budget: "",
     hours: "",
     person: "",
-    role: "",
+    role: null,
     start_date: parseDateToStandardNumber(new Date()),
   });
   const [is_loading, setLoading] = useState(false);
@@ -259,7 +259,7 @@ const AddModal = ({
       fields.budget,
       fields.hours,
       fields.person,
-      fields.role,
+      fields.role?.value,
       fields.start_date,
     )
       .then(async (request) => {
@@ -282,7 +282,7 @@ const AddModal = ({
         budget: "",
         hours: "",
         person: "",
-        role: "",
+        role: null,
         start_date: parseDateToStandardNumber(new Date()),
       });
       setError(null);
@@ -332,7 +332,15 @@ const AddModal = ({
             <AsyncSelectField
               disabled={!fields.budget}
               fullWidth
-              handleSource={async (source) => {
+              fetchOptions={async () => {
+                const roles = await fetchRoleApi()
+                  .then(async (response) => {
+                    if (response.ok) {
+                      return await response.json();
+                    }
+                    throw new Error();
+                  });
+
                 const available_roles = await getBudgetDetails(fields.budget)
                   .then((details) =>
                     details.reduce((res, { fk_rol }) => {
@@ -341,22 +349,18 @@ const AddModal = ({
                     }, [])
                   );
 
-                return Object.values(source)
+                return roles
                   .filter(({ pk_rol }) => available_roles.includes(pk_rol))
                   .map(({
                     pk_rol,
                     nombre,
-                  }) => {
-                    return { value: String(pk_rol), text: nombre };
-                  });
+                  }) => ({ text: nombre, value: String(pk_rol) }));
               }}
               label="Rol"
-              margin="dense"
-              name="role"
-              onChange={handleChange}
               required
-              source={`operaciones/rol`}
-              value={fields.budget && fields.role}
+              setValue={(value) =>
+                setFields((prev_state) => ({ ...prev_state, role: value }))}
+              value={fields.role}
             />
             <TextField
               fullWidth

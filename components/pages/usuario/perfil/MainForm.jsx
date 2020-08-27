@@ -21,7 +21,6 @@ import {
   fetchGenderApi,
   fetchUserApi,
 } from "../../../../lib/api/generator.js";
-import AsyncSelectField from "../../../common/AsyncSelectField.jsx";
 import CardForm from "./components/CardForm.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import SelectField from "../../../common/SelectField.jsx";

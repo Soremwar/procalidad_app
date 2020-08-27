@@ -16,6 +16,7 @@ import {
   fetchAssignationRequestApi,
   fetchClientApi,
   fetchProjectApi,
+  fetchRoleApi,
   fetchWeekDetailApi,
 } from "../../lib/api/generator.js";
 import {
@@ -65,9 +66,24 @@ const closeWeek = async (person) =>
     method: "PUT",
   });
 
-const createAssignationRequest = async (person, parameters) =>
+const createAssignationRequest = async (
+  person,
+  client,
+  date,
+  description,
+  hours,
+  project,
+  role,
+) =>
   fetchAssignationRequestApi(person, {
-    body: JSON.stringify(parameters),
+    body: JSON.stringify({
+      client,
+      date,
+      description,
+      hours,
+      project,
+      role,
+    }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -103,11 +119,11 @@ const AddModal = ({
 
   const [fields, setFields] = useState({
     client: "",
-    project: "",
-    role: "",
     date: parseDateToStandardNumber(new Date()),
-    hours: "",
     description: "",
+    hours: "",
+    project: "",
+    role: null,
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -116,11 +132,11 @@ const AddModal = ({
     if (is_open) {
       setFields({
         client: "",
-        project: "",
-        role: "",
         date: parseDateToStandardNumber(new Date()),
-        hours: "",
         description: "",
+        hours: "",
+        project: "",
+        role: null,
       });
       setLoading(false);
       setError(null);
@@ -138,7 +154,15 @@ const AddModal = ({
 
   const handleSubmit = async () => {
     setLoading(true);
-    const request = await createAssignationRequest(person_id, fields);
+    const request = await createAssignationRequest(
+      person_id,
+      fields.client,
+      fields.date,
+      fields.description,
+      fields.hours,
+      fields.project,
+      fields.role?.value,
+    );
 
     if (request.ok) {
       setModalOpen(false);
@@ -183,18 +207,25 @@ const AddModal = ({
       <AsyncSelectField
         disabled={!fields.project}
         fullWidth
-        handleSource={async (source) =>
-          source.map(({ pk_rol, nombre }) => ({
-            value: String(pk_rol),
-            text: nombre,
-          }))}
+        fetchOptions={async () => {
+          const roles = await fetchRoleApi(`search?proyecto=${fields.project}`)
+            .then(async (response) => {
+              if (response.ok) {
+                return await response.json();
+              }
+              throw new Error();
+            });
+
+          return roles.map(({
+            pk_rol,
+            nombre,
+          }) => ({ text: nombre, value: pk_rol }));
+        }}
         label="Rol"
-        margin="dense"
-        name="role"
-        onChange={handleChange}
         required
-        source={`operaciones/rol/search?proyecto=${fields.project}`}
-        value={fields.project && fields.role}
+        setValue={(value) =>
+          setFields((prev_state) => ({ ...prev_state, role: String(value) }))}
+        value={fields.role}
       />
       <TextField
         fullWidth

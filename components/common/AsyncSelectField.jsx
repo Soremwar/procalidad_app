@@ -10,150 +10,118 @@ import {
 import {
   Autocomplete,
 } from "@material-ui/lab";
-import { createFilterOptions } from "@material-ui/lab/Autocomplete";
 
-import { requestGenerator } from "../../lib/api/request.js";
-import hashGenerator from "../../lib/hash_generator/mod.js";
-import { NetworkError } from "../../lib/errors/mod.js";
-
-const DEFAULT_ERROR_TEXT = "No fue posible cargar la informacion";
-
-const fetchApi = requestGenerator();
-
-/**
- * Returns the values needed to render the options
- * @param {{ [value: string; text: string]; }} response
- * @returns {{ [value: string; text: string]; }}
- */
-const defaultSourceHandler = (response) => {
-  return response;
-};
-
-export default ({
-  clientFilter = false,
-  customFilter = false,
+export default function AsyncSelectField({
+  componentClassName = "",
   disabled = false,
-  error_text = DEFAULT_ERROR_TEXT,
-  fullWidth = false,
-  id: default_id = false,
-  inputValue = false,
+  /* This function should be a promise that returns the expected value */
+  fetchOptions,
+  inputClassName = "",
   label,
-  handleSource = defaultSourceHandler,
-  name,
-  onChange = false,
-  onType = () => {},
-  preload = false,
+  onInputChange = () => {},
   required = false,
-  source,
-  variant = "standard",
-  value: default_value = null,
-  ...props
-}) => {
-  const [error, setError] = useState(null);
-  const [input_text, setInput] = useState("");
+  setValue,
+  value,
+}) {
+  const [error, setError] = useState(false);
+  //If no options have been loaded, the internal value must wait
+  //until the default options (preloaded value) is set
+  const [internal_value, setInternalValue] = useState(null);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState([]);
-  const [value, setValue] = useState(default_value ?? null);
+  const [should_fetch, setShouldFetch] = useState(false);
 
-  const id = default_id || hashGenerator(10);
+  const reloadOptions = () => {
+    setShouldFetch(true);
+  };
 
-  const defaultHandler = (event) => setValue(event.target.value);
-
-  const getOption = (value) => {
-    return options.find((option) => {
-      return option.value === value;
-    }) ?? null;
+  const handleInputChange = (event, input, reason) => {
+    onInputChange(
+      event,
+      input,
+      reason,
+      reloadOptions,
+    );
   };
 
   useEffect(() => {
-    if ((open || preload) && !disabled) {
-      setError(null);
-      setLoading(true);
-      fetchApi(source)
-        .then(async (request) => {
-          const result = await request.json();
-          if (request.ok) {
-            return result;
-          } else {
-            throw new NetworkError(result.message || DEFAULT_ERROR_TEXT);
-          }
-        })
-        .then((response) => handleSource(response))
-        .catch((error) => {
-          if (error instanceof NetworkError) {
-            setError(error.message);
-          } else {
-            setError(error_text);
-          }
-          setOpen(false);
-          return [];
-        })
-        .then((result) => setOptions(result))
-        .finally(() => {
-          setLoading(false);
-        });
-    } else if (disabled) {
-      setOptions([]);
+    if (value) {
+      setOptions([value]);
     }
-  }, [open, source, disabled]);
+    setInternalValue(value);
+  }, [value]);
 
   useEffect(() => {
-    setValue(default_value);
-  }, [default_value]);
+    let active = true;
+
+    if (!disabled) {
+      setError(false);
+      setLoading(true);
+
+      fetchOptions()
+        .then((result) => {
+          if (active) {
+            setOptions(result);
+          }
+        })
+        .catch(() => {
+          setError(true);
+          setOpen(false);
+          setValue(null);
+        })
+        .finally(() => {
+          setLoading(false);
+          setShouldFetch(false);
+        });
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [should_fetch]);
+
+  useEffect(() => {
+    if (open) {
+      reloadOptions();
+    }
+  }, [open]);
 
   return (
     <Autocomplete
+      className={componentClassName}
       disabled={disabled}
-      filterOptions={clientFilter
-        ? (customFilter || createFilterOptions())
-        : (options) => (options)}
-      getOptionLabel={(option) => option.text}
-      getOptionSelected={(option, selected) => option.value === selected.value}
-      id={id}
-      inputValue={value ? getOption(value)?.text || ""
-      : inputValue || input_text}
-      loading={loading}
-      onChange={(event, new_value) => {
-        event.target = document.querySelector(`[id="${id}"]`).cloneNode();
-        event.target.value = new_value?.value || null;
-        return onChange ? onChange(event) : defaultHandler(event);
-      }}
-      onClose={() => setOpen(false)}
-      onInputChange={(event, new_value) => {
-        if (event) {
-          event.target = document.querySelector(`[id="${id}"]`).cloneNode();
-          event.target.value = new_value;
-          setInput(new_value);
-          return onType(event);
-        }
-      }}
-      onOpen={() => setOpen(true)}
       open={open}
+      onOpen={() => setOpen(true)}
+      onClose={() => setOpen(false)}
+      getOptionSelected={(option, value) => option.value === value.value}
+      getOptionLabel={(option) => option.text}
+      onChange={(_e, value) => setValue(value)}
+      onInputChange={handleInputChange}
       options={options}
+      loading={loading}
       renderInput={(params) => (
         <TextField
           {...params}
+          className={inputClassName}
           error={error}
-          fullWidth={fullWidth}
-          helperText={error}
+          helperText={error ? "Error al cargar la informacion" : ""}
           InputProps={{
             ...params.InputProps,
             endAdornment: (
               <Fragment>
-                {loading && <CircularProgress color="inherit" size={20} />}
+                {loading
+                  ? <CircularProgress color="inherit" size={20} />
+                  : null}
                 {params.InputProps.endAdornment}
               </Fragment>
             ),
           }}
           label={label}
-          name={name}
           required={required}
-          variant={variant}
-          {...props}
         />
       )}
-      value={value ? getOption(value) : null}
+      value={internal_value}
     />
   );
-};
+}

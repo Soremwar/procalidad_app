@@ -4,164 +4,68 @@ import React, {
   useState,
 } from "react";
 import {
-  CircularProgress,
-  TextField,
   Typography,
 } from "@material-ui/core";
 import {
   makeStyles,
 } from "@material-ui/styles";
 import {
-  Autocomplete,
-} from "@material-ui/lab";
-import {
   fetchCityApi,
   fetchCountryApi,
   fetchStateApi,
 } from "../../lib/api/generator.js";
-
-const AsyncSelector = ({
-  componentClassName = "",
-  disabled = false,
-  /* This function should be a promise that returns the expected value */
-  fetchOptions,
-  /* This should return an array of objects with props `text` and `value` */
-  handleFetchResult,
-  inputClassName = "",
-  label,
-  onInputChange = () => {},
-  setValue,
-  value,
-}) => {
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [options, setOptions] = useState([]);
-  const [should_fetch, setShouldFetch] = useState(false);
-
-  const reloadOptions = () => {
-    setShouldFetch(true);
-  };
-
-  const handleInputChange = (event, input, reason) => {
-    onInputChange(
-      event,
-      input,
-      reason,
-      reloadOptions,
-    );
-  };
-
-  useEffect(() => {
-    if (value) {
-      setOptions([value]);
-    }
-  }, [value]);
-
-  useEffect(() => {
-    let active = true;
-
-    setError(false);
-    setLoading(true);
-
-    fetchOptions()
-      .then((result) => {
-        if (active) {
-          setOptions(
-            handleFetchResult(result),
-          );
-        }
-      })
-      .catch(() => {
-        setError(true);
-        setOpen(false);
-        setValue(null);
-      })
-      .finally(() => {
-        setLoading(false);
-        setShouldFetch(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [should_fetch]);
-
-  useEffect(() => {
-    if (open) {
-      reloadOptions();
-    }
-  }, [open]);
-
-  return (
-    <Autocomplete
-      className={componentClassName}
-      disabled={disabled}
-      open={open}
-      onOpen={() => setOpen(true)}
-      onClose={() => setOpen(false)}
-      getOptionSelected={(option, value) => option.value === value.value}
-      getOptionLabel={(option) => option.text}
-      onChange={(_e, value) => setValue(value)}
-      onInputChange={handleInputChange}
-      options={options}
-      loading={loading}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          className={inputClassName}
-          error={error}
-          helperText={error ? "Error al cargar la informacion" : ""}
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <Fragment>
-                {loading
-                  ? <CircularProgress color="inherit" size={20} />
-                  : null}
-                {params.InputProps.endAdornment}
-              </Fragment>
-            ),
-          }}
-          label={label}
-        />
-      )}
-      value={value}
-    />
-  );
-};
+import AsyncSelectField from "./AsyncSelectField.jsx";
 
 const generateCountrySearch = (input) => {
-  return async () =>
-    await fetchCountryApi(`search?limit=10&query=${input}`)
+  return async () => {
+    const country = await fetchCountryApi(`search?limit=10&query=${input}`)
       .then(async (response) => {
         if (response.ok) {
           return await response.json();
         }
         throw new Error();
       });
+
+    return Object.values(country).map(({ pk_pais, nombre }) => {
+      return { text: nombre, value: String(pk_pais) };
+    });
+  };
 };
 
 const generateStateSearch = (country, input) => {
-  return async () =>
-    await fetchStateApi(`search?country=${country}&limit=10&query=${input}`)
+  return async () => {
+    const state = await fetchStateApi(
+      `search?country=${country}&limit=10&query=${input}`,
+    )
       .then(async (response) => {
         if (response.ok) {
           return await response.json();
         }
         throw new Error();
       });
+
+    return Object.values(state).map(({ pk_estado, nombre }) => {
+      return { text: nombre, value: String(pk_estado) };
+    });
+  };
 };
 
 const generateCitySearch = (state, input) => {
-  return async () =>
-    await fetchCityApi(`search?limit=10&query=${input}&state=${state}`)
+  return async () => {
+    const city = await fetchCityApi(
+      `search?limit=10&query=${input}&state=${state}`,
+    )
       .then(async (response) => {
         if (response.ok) {
           return await response.json();
         }
         throw new Error();
       });
+
+    return Object.values(city).map(({ pk_ciudad, nombre }) => {
+      return { text: nombre, value: String(pk_ciudad) };
+    });
+  };
 };
 
 const useStyles = makeStyles(() => ({
@@ -291,47 +195,32 @@ export default function CitySelector({
         {label}
       </Typography>
       <div className={classes.container}>
-        <AsyncSelector
+        <AsyncSelectField
           componentClassName={classes.select}
           disabled={country_disabled}
           fetchOptions={generateCountrySearch(country_search)}
-          handleFetchResult={(result) => {
-            return Object.values(result).map(({ pk_pais, nombre }) => {
-              return { text: nombre, value: pk_pais };
-            });
-          }}
           label="Pais"
           onInputChange={handleCountrySearch}
           setValue={handleCountryChange}
-          value={country}
+          value={country || null}
         />
-        <AsyncSelector
+        <AsyncSelectField
           componentClassName={classes.select}
           disabled={!country}
           fetchOptions={generateStateSearch(country?.value, state_search)}
-          handleFetchResult={(result) => {
-            return Object.values(result).map(({ pk_estado, nombre }) => {
-              return { text: nombre, value: pk_estado };
-            });
-          }}
           label="Estado"
           onInputChange={handleStateSearch}
           setValue={handleStateChange}
-          value={state}
+          value={state || null}
         />
-        <AsyncSelector
+        <AsyncSelectField
           componentClassName={classes.select}
           disabled={!(country && state)}
           fetchOptions={generateCitySearch(state?.value, city_search)}
-          handleFetchResult={(result) => {
-            return Object.values(result).map(({ pk_ciudad, nombre }) => {
-              return { text: nombre, value: pk_ciudad };
-            });
-          }}
           label="Ciudad"
           onInputChange={handleCitySearch}
           setValue={handleCityChange}
-          value={city}
+          value={city || null}
         />
       </div>
     </Fragment>

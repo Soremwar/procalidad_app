@@ -10,7 +10,6 @@ import {
   Grid,
   TextField,
 } from "@material-ui/core";
-
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -18,8 +17,7 @@ import {
   fetchClientApi,
   fetchSectorApi,
 } from "../../../lib/api/generator.js";
-
-import AsyncSelectField from "../../common/AsyncSelectField.jsx";
+import CitySelector from "../../common/CitySelector.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
@@ -35,27 +33,23 @@ const getSectors = () => {
 const getClient = (id) => fetchClientApi(id).then((x) => x.json());
 
 const createClient = async (
-  sector,
+  address,
+  business,
+  city,
   name,
   nit,
+  sector,
   verification_digit,
-  business,
-  country,
-  state,
-  city,
-  address,
 ) =>
   fetchClientApi("", {
     body: JSON.stringify({
-      sector,
+      address,
+      business,
+      city,
       name,
       nit,
+      sector,
       verification_digit,
-      business,
-      country,
-      state,
-      city,
-      address,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -65,27 +59,23 @@ const createClient = async (
 
 const updateClient = async (
   id,
-  sector,
+  address,
+  business,
+  city,
   name,
   nit,
+  sector,
   verification_digit,
-  business,
-  country,
-  state,
-  city,
-  address,
 ) =>
   fetchClientApi(id, {
     body: JSON.stringify({
       sector,
+      address,
+      business,
+      city,
       name,
       nit,
       verification_digit,
-      business,
-      country,
-      state,
-      city,
-      address,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -144,20 +134,15 @@ const AddModal = ({
 
   const [error, setError] = useState(null);
   const [fields, setFields] = useState({
-    sector: "",
+    address: "",
+    business: "",
+    city: "",
     name: "",
     nit: "",
+    sector: "",
     verification_digit: "",
-    business: "",
-    country: "",
-    state: "",
-    city: "",
-    address: "",
   });
-  const [city_query, setCityQuery] = useState("");
-  const [country_query, setCountryQuery] = useState("");
   const [is_loading, setLoading] = useState(false);
-  const [state_query, setStateQuery] = useState("");
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -169,15 +154,13 @@ const AddModal = ({
     setError(null);
 
     const request = await createClient(
-      fields.sector,
+      fields.address,
+      fields.business,
+      fields.city,
       fields.name,
       fields.nit,
+      fields.sector,
       fields.verification_digit,
-      fields.business,
-      fields.country,
-      fields.state,
-      fields.city,
-      fields.address,
     );
 
     if (request.ok) {
@@ -194,15 +177,13 @@ const AddModal = ({
     if (is_open) {
       setError(null);
       setFields({
-        sector: "",
+        address: "",
+        business: "",
+        city: "",
         name: "",
         nit: "",
+        sector: "",
         verification_digit: "",
-        business: "",
-        country: "",
-        state: "",
-        city: "",
-        address: "",
       });
       setLoading(false);
     }
@@ -265,100 +246,10 @@ const AddModal = ({
         required
         value={fields.business}
       />
-      <AsyncSelectField
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_pais,
-            nombre,
-          }) => {
-            return { value: String(pk_pais), text: nombre };
-          })
-        )}
-        label="Pais"
-        margin="dense"
-        name="country"
-        onChange={handleChange}
-        onType={(event) => {
-          if (fields.country) {
-            setFields((old_state) => ({ ...old_state, country: "" }));
-          }
-          const value = event.target.value;
-          setCountryQuery(value);
-        }}
-        required
-        source={`maestro/pais/search?query=${
-          encodeURI(
-            fields.country
-              ? ""
-              : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }&limit=10`}
-        value={fields.country}
-      />
-      <AsyncSelectField
-        disabled={!fields.country}
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_estado,
-            nombre,
-          }) => {
-            return { value: String(pk_estado), text: nombre };
-          })
-        )}
-        label="Departamento"
-        margin="dense"
-        name="state"
-        onChange={handleChange}
-        onType={(event) => {
-          if (fields.state) {
-            setFields((old_state) => ({ ...old_state, state: "" }));
-          }
-          const value = event.target.value;
-          setStateQuery(value);
-        }}
-        required
-        source={`maestro/estado/search?country=${fields.country}&query=${
-          encodeURI(
-            fields.state
-              ? ""
-              : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }`}
-        value={fields.country && fields.state}
-      />
-      <AsyncSelectField
-        disabled={!(fields.country && fields.state)}
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_ciudad,
-            nombre,
-          }) => {
-            return { value: String(pk_ciudad), text: nombre };
-          })
-        )}
-        label="Ciudad"
-        margin="dense"
-        name="city"
-        onChange={handleChange}
-        onType={(event) => {
-          if (!fields.city) {
-            setFields((old_state) => ({ ...old_state, city: "" }));
-          }
-          const value = event.target.value;
-          setCityQuery(value);
-        }}
-        required
-        source={`maestro/ciudad/search?state=${fields.state}&query=${
-          encodeURI(
-            fields.city
-              ? ""
-              : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }`}
-        value={fields.country && fields.state && fields.city}
+      <CitySelector
+        setValue={(value) =>
+          setFields((prev_state) => ({ ...prev_state, city: value }))}
+        value={fields.city}
       />
       <TextField
         fullWidth
@@ -383,25 +274,28 @@ const EditModal = ({
     sectors,
   } = useContext(ParameterContext);
 
-  const [city_query, setCityQuery] = useState("");
-  const [country_query, setCountryQuery] = useState("");
   const [error, setError] = useState(null);
-  const [fields, setFields] = useState({});
+  const [fields, setFields] = useState({
+    address: "",
+    business: "",
+    city: null,
+    name: "",
+    nit: "",
+    sector: "",
+    verification_digit: "",
+  });
   const [is_loading, setLoading] = useState(false);
-  const [state_query, setStateQuery] = useState("");
 
   useEffect(() => {
     if (is_open) {
       setFields({
-        sector: data.fk_sector,
+        address: data.direccion,
+        business: data.razon_social,
+        city: data.fk_ciudad,
         name: data.nombre,
         nit: data.nit,
+        sector: data.fk_sector,
         verification_digit: data.d_verificacion,
-        business: data.razon_social,
-        country: String(data.fk_pais),
-        state: String(data.fk_estado),
-        city: String(data.fk_ciudad),
-        address: data.direccion,
       });
       setLoading(false);
       setError(null);
@@ -419,15 +313,13 @@ const EditModal = ({
 
     const request = await updateClient(
       data.pk_cliente,
-      fields.sector,
+      fields.address,
+      fields.business,
+      fields.city,
       fields.name,
       fields.nit,
+      fields.sector,
       fields.verification_digit,
-      fields.business,
-      fields.country,
-      fields.state,
-      fields.city,
-      fields.address,
     );
 
     if (request.ok) {
@@ -497,103 +389,10 @@ const EditModal = ({
         required
         value={fields.business}
       />
-      <AsyncSelectField
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_pais,
-            nombre,
-          }) => {
-            return { value: String(pk_pais), text: nombre };
-          })
-        )}
-        label="Pais"
-        margin="dense"
-        name="country"
-        onChange={handleChange}
-        onType={(event) => {
-          if (fields.country) {
-            setFields((old_state) => ({ ...old_state, country: "" }));
-          }
-          const value = event.target.value;
-          setCountryQuery(value);
-        }}
-        preload
-        required
-        source={`maestro/pais/search?query=${
-          encodeURI(
-            fields.country
-              ? ""
-              : country_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }`}
-        value={fields.country}
-      />
-      <AsyncSelectField
-        disabled={!fields.country}
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_estado,
-            nombre,
-          }) => {
-            return { value: String(pk_estado), text: nombre };
-          })
-        )}
-        label="Departamento"
-        margin="dense"
-        name="state"
-        onChange={handleChange}
-        onType={(event) => {
-          if (fields.state) {
-            setFields((old_state) => ({ ...old_state, state: "" }));
-          }
-          const value = event.target.value;
-          setStateQuery(value);
-        }}
-        preload
-        required
-        source={`maestro/estado/search?country=${fields.country}&query=${
-          encodeURI(
-            fields.state
-              ? ""
-              : state_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }`}
-        value={fields.country && fields.state}
-      />
-      <AsyncSelectField
-        disabled={!(fields.country && fields.state)}
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_ciudad,
-            nombre,
-          }) => {
-            return { value: String(pk_ciudad), text: nombre };
-          })
-        )}
-        label="Ciudad"
-        margin="dense"
-        name="city"
-        onChange={handleChange}
-        onType={(event) => {
-          if (fields.city) {
-            setFields((old_state) => ({ ...old_state, city: "" }));
-          }
-          const value = event.target.value;
-          setCityQuery(value);
-        }}
-        preload
-        required
-        source={`maestro/ciudad/search?state=${fields.state}&query=${
-          encodeURI(
-            fields.city
-              ? ""
-              : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }`}
-        value={fields.country && fields.state && fields.city}
+      <CitySelector
+        setValue={(value) =>
+          setFields((prev_state) => ({ ...prev_state, city: value }))}
+        value={fields.city}
       />
       <TextField
         margin="dense"
