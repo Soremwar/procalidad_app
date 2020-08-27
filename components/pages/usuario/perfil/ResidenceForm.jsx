@@ -8,7 +8,7 @@ import {
 import {
   fetchUserApi,
 } from "../../../../lib/api/generator.js";
-import AsyncSelectField from "../../../common/AsyncSelectField.jsx";
+import CitySelector from "../../../common/CitySelector.jsx";
 import CardForm from "./components/CardForm.jsx";
 
 const getUserResidence = () => fetchUserApi();
@@ -31,10 +31,7 @@ export default function ResidenceForm() {
   const [fields, setFields] = useState({
     address: "",
     city: "",
-    country: "",
-    state: "",
   });
-  const [city_query, setCityQuery] = useState("");
 
   useEffect(() => {
     getUserResidence()
@@ -80,32 +77,10 @@ export default function ResidenceForm() {
       title="Residencia"
       variant="outlined"
     >
-      <AsyncSelectField
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_ciudad,
-            nombre,
-          }) => ({ value: String(pk_ciudad), text: nombre }))
-        )}
-        label="Ciudad"
-        margin="dense"
-        name="city"
-        onChange={handleChange}
-        onType={(event) => {
-          if (!fields.city) {
-            setFields((prev_state) => ({ ...prev_state, city: "" }));
-          }
-          setCityQuery(event.target.value);
-        }}
-        required
-        source={`maestro/ciudad/search?limit=10&query=${
-          encodeURI(
-            fields.city
-              ? ""
-              : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }`}
+      <CitySelector
+        label="Ciudad de residencia"
+        setValue={(value) =>
+          setFields((prev_state) => ({ ...prev_state, city: value }))}
         value={fields.city}
       />
       <TextField

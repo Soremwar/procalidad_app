@@ -23,6 +23,7 @@ import {
 } from "../../../../lib/api/generator.js";
 import AsyncSelectField from "../../../common/AsyncSelectField.jsx";
 import CardForm from "./components/CardForm.jsx";
+import CitySelector from "../../../common/CitySelector.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 
 const getGenders = () => fetchGenderApi();
@@ -152,7 +153,6 @@ export default function MainForm() {
     personal_email: "",
     phone: "",
   });
-  const [city_query, setCityQuery] = useState("");
   const [genders, setGenders] = useState([]);
   const [marital_statuses, setMaritalStatuses] = useState([]);
 
@@ -234,31 +234,10 @@ export default function MainForm() {
     >
       <Grid container spacing={10}>
         <Grid item md={6} xs={12}>
-          <AsyncSelectField
-            fullWidth
-            handleSource={(source) => (
-              Object.values(source).map(({
-                pk_ciudad,
-                nombre,
-              }) => ({ value: String(pk_ciudad), text: nombre }))
-            )}
+          <CitySelector
             label="Ciudad de nacimiento"
-            margin="dense"
-            name="birth_city"
-            onChange={handleChange}
-            onType={(event) => {
-              if (!fields.birth_city) {
-                setFields((prev_state) => ({ ...prev_state, birth_city: "" }));
-              }
-              setCityQuery(event.target.value);
-            }}
-            source={`maestro/ciudad/search?limit=10&query=${
-              encodeURI(
-                fields.birth_city
-                  ? ""
-                  : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-              )
-            }`}
+            setValue={(value) =>
+              setFields((prev_state) => ({ ...prev_state, birth_city: value }))}
             value={fields.birth_city}
           />
           <TextField

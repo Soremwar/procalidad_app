@@ -8,8 +8,8 @@ import {
 import {
   fetchUserApi,
 } from "../../../../lib/api/generator.js";
-import AsyncSelectField from "../../../common/AsyncSelectField.jsx";
 import CardForm from "./components/CardForm.jsx";
+import CitySelector from "../../../common/CitySelector.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 
 const getUserDocument = () => fetchUserApi();
@@ -35,13 +35,10 @@ const setUserDocument = (
 export default function DocumentForm() {
   const [fields, setFields] = useState({
     city: "",
-    country: "",
     date: "",
     number: "",
-    state: "",
     type: "",
   });
-  const [city_query, setCityQuery] = useState("");
 
   useEffect(() => {
     getUserDocument()
@@ -102,11 +99,11 @@ export default function DocumentForm() {
         value={fields.number}
       />
       <SelectField
+        disabled
         label="Tipo de Identificacion"
         fullWidth
         name="type"
         onChange={handleChange}
-        //readOnly
         required
         value={fields.type}
       >
@@ -116,32 +113,10 @@ export default function DocumentForm() {
         <option value="RC">Registro Civil</option>
         <option value="TI">Tarjeta de Identidad</option>
       </SelectField>
-      <AsyncSelectField
-        fullWidth
-        handleSource={(source) => (
-          Object.values(source).map(({
-            pk_ciudad,
-            nombre,
-          }) => ({ value: String(pk_ciudad), text: nombre }))
-        )}
+      <CitySelector
         label="Ciudad de expedicion"
-        margin="dense"
-        name="city"
-        onChange={handleChange}
-        onType={(event) => {
-          if (!fields.city) {
-            setFields((prev_state) => ({ ...prev_state, city: "" }));
-          }
-          setCityQuery(event.target.value);
-        }}
-        required
-        source={`maestro/ciudad/search?limit=10&query=${
-          encodeURI(
-            fields.city
-              ? ""
-              : city_query.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
-          )
-        }`}
+        setValue={(value) =>
+          setFields((prev_state) => ({ ...prev_state, city: value }))}
         value={fields.city}
       />
       <TextField
