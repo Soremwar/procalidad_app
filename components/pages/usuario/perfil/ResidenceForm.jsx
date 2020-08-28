@@ -58,8 +58,8 @@ export default function ResidenceForm() {
 
   const handleSubmit = () => {
     setUserResidence(
-      fields.city,
-      fields.address,
+      fields.city || null,
+      fields.address || null,
     )
       .then((request) => {
         if (!request.ok) {
@@ -88,7 +88,6 @@ export default function ResidenceForm() {
         label="Direccion"
         name="address"
         onChange={handleChange}
-        required
         value={fields.address}
       />
     </CardForm>

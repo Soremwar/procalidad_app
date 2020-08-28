@@ -5,6 +5,8 @@ import React, {
   useState,
 } from "react";
 import {
+  Card,
+  CardContent,
   IconButton,
   Paper,
   Table,
@@ -97,8 +99,8 @@ const ChildrenEditableRow = ({
     //Weird defaults, but needed to post
     setFields({
       gender: gender || genders?.[0]?.id || "",
-      name,
-      born_date,
+      name: name || "",
+      born_date: born_date || "",
     });
   }, []);
 
@@ -301,83 +303,93 @@ export default function ChildrenForm() {
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Typography
-        component="h2"
-        variant="h5"
-      >
-        Hijos
-      </Typography>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell align="center">
-              <IconButton
-                color="primary"
-                component="span"
-                onClick={createRow}
-              >
-                <AddIcon />
-              </IconButton>
-            </TableCell>
-            <TableCell>Nombre</TableCell>
-            <TableCell align="center">Genero</TableCell>
-            <TableCell align="center">Edad</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <ParameterContext.Provider value={context_parameters}>
-            {children.map(({
-              born_date,
-              id,
-              edit_mode,
-              gender,
-              gender_id,
-              name,
-            }, index) =>
-              edit_mode
-                ? (
-                  <ChildrenEditableRow
-                    born_date={born_date}
-                    id={id}
-                    key={id || `_${index}`}
-                    gender={gender_id}
-                    name={name}
-                    onCancel={onRowCancel}
-                    onSubmit={(id) => onRowSubmit(id)}
-                  />
-                )
-                : (
-                  <TableRow key={id}>
-                    <TableCell align="center">
-                      <IconButton
-                        color="primary"
-                        onClick={() => setUpdateMode(id)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="primary"
-                        onClick={() => deleteRow(id)}
-                      >
-                        <RemoveIcon />
-                      </IconButton>
-                    </TableCell>
-                    <TableCell component="th" scope="row">
-                      {name}
-                    </TableCell>
-                    <TableCell align="center">
-                      {gender}
-                    </TableCell>
-                    <TableCell align="center">
-                      {getAgeFromBirthDate(parseStandardString(born_date))}
-                    </TableCell>
-                  </TableRow>
-                )
-            )}
-          </ParameterContext.Provider>
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Card
+      variant="outlined"
+    >
+      <CardContent>
+        <TableContainer component={Paper}>
+          <Typography
+            component="h2"
+            variant="h5"
+          >
+            Hijos
+          </Typography>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell align="center">
+                  <IconButton
+                    color="primary"
+                    component="span"
+                    onClick={createRow}
+                  >
+                    <AddIcon />
+                  </IconButton>
+                </TableCell>
+                <TableCell>Nombre</TableCell>
+                <TableCell align="center">Genero</TableCell>
+                <TableCell align="center">Edad</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <ParameterContext.Provider value={context_parameters}>
+                {children.map(({
+                  born_date,
+                  id,
+                  edit_mode,
+                  gender,
+                  gender_id,
+                  name,
+                }, index) =>
+                  edit_mode
+                    ? (
+                      <ChildrenEditableRow
+                        born_date={born_date}
+                        id={id}
+                        key={index}
+                        gender={gender_id}
+                        name={name}
+                        onCancel={onRowCancel}
+                        onSubmit={(id) => onRowSubmit(id)}
+                      />
+                    )
+                    : (
+                      <TableRow key={index}>
+                        <TableCell align="center">
+                          <IconButton
+                            color="primary"
+                            onClick={() => setUpdateMode(id)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            color="primary"
+                            onClick={() => deleteRow(id)}
+                          >
+                            <RemoveIcon />
+                          </IconButton>
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {name}
+                        </TableCell>
+                        <TableCell align="center">
+                          {gender}
+                        </TableCell>
+                        <TableCell align="center">
+                          {born_date
+                            ? getAgeFromBirthDate(
+                              parseStandardString(born_date),
+                            )
+                            : ""}
+                        </TableCell>
+                      </TableRow>
+                    )
+                )}
+              </ParameterContext.Provider>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
   );
 }

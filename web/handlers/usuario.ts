@@ -26,7 +26,9 @@ import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
   CELLPHONE,
   STANDARD_DATE_STRING,
+  STANDARD_DATE_STRING_OR_NULL,
   TRUTHY_INTEGER,
+  TRUTHY_INTEGER_OR_NULL,
 } from "../../lib/ajv/types.js";
 import { Message } from "../http_utils.ts";
 
@@ -75,8 +77,8 @@ const contact_request = {
 const information_request = {
   $id: "information",
   properties: {
-    "birth_date": STANDARD_DATE_STRING,
-    "birth_city": TRUTHY_INTEGER,
+    "birth_date": STANDARD_DATE_STRING_OR_NULL,
+    "birth_city": TRUTHY_INTEGER_OR_NULL,
     "blood_type": {
       pattern: `^(${
         Object
@@ -84,23 +86,23 @@ const information_request = {
           .map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
           .join("|")
       })$`,
-      type: "string",
+      type: ["string", "null"],
     },
-    "document_expedition_date": STANDARD_DATE_STRING,
-    "document_expedition_city": TRUTHY_INTEGER,
-    "gender": TRUTHY_INTEGER,
-    "marital_status": TRUTHY_INTEGER,
-    "military_passbook": TRUTHY_INTEGER,
+    "document_expedition_date": STANDARD_DATE_STRING_OR_NULL,
+    "document_expedition_city": TRUTHY_INTEGER_OR_NULL,
+    "gender": TRUTHY_INTEGER_OR_NULL,
+    "marital_status": TRUTHY_INTEGER_OR_NULL,
+    "military_passbook": TRUTHY_INTEGER_OR_NULL,
     "personal_email": {
       maxLength: 320,
-      type: "string",
+      type: ["string", "null"],
     },
-    "phone": TRUTHY_INTEGER,
+    "phone": TRUTHY_INTEGER_OR_NULL,
     "residence_address": {
       maxLength: 95,
-      type: "string",
+      type: ["string", "null"],
     },
-    "residence_city": TRUTHY_INTEGER,
+    "residence_city": TRUTHY_INTEGER_OR_NULL,
   },
 };
 
@@ -430,6 +432,37 @@ export const getSupportFiles = async (
   const support_file_format = await getFileFormatCode();
 
   response.body = await file_model.getFileHistory(support_file_format, user_id);
+};
+
+export const getSupportFile = async (
+  { cookies, params, response }: RouterContext<{ id: string }>,
+) => {
+  const template_id = Number(params.id);
+  if (!template_id) throw new RequestSyntaxError();
+  const { id: user_id } = await decodeToken(cookies.get("PA_AUTH") || "");
+
+  const file = await getFile(
+    template_id as number,
+    user_id,
+  )
+    .catch((e) => {
+      if (e.name === "NotFound") {
+        //404
+        throw new NotFoundError();
+      } else {
+        //500
+        throw new Error();
+      }
+    });
+
+  response.headers.append("Content-Type", file.type);
+  response.headers.append(
+    "Content-disposition",
+    `attachment;filename=${file.name}`,
+  );
+  response.headers.append("Content-Length", String(file.content.length));
+
+  response.body = file.content;
 };
 
 export const loadSupportFile = async (

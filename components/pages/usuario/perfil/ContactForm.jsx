@@ -1,10 +1,10 @@
 import React, {
-  createContext,
-  useContext,
   useEffect,
   useState,
 } from "react";
 import {
+  Card,
+  CardContent,
   IconButton,
   Paper,
   Table,
@@ -292,80 +292,86 @@ export default function ContactForm() {
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Typography
-        component="h2"
-        variant="h5"
-      >
-        Contactos
-      </Typography>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell align="center">
-              <IconButton
-                color="primary"
-                component="span"
-                onClick={createRow}
-              >
-                <AddIcon />
-              </IconButton>
-            </TableCell>
-            <TableCell>Nombre</TableCell>
-            <TableCell align="center">Telefono</TableCell>
-            <TableCell align="center">Parentesco</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {contacts.map(({
-            cellphone,
-            edit_mode,
-            employee_relationship,
-            id,
-            name,
-          }, index) =>
-            edit_mode
-              ? (
-                <ContactEditableRow
-                  cellphone={cellphone}
-                  id={id}
-                  key={id || `_${index}`}
-                  name={name}
-                  onCancel={onRowCancel}
-                  onSubmit={(id) => onRowSubmit(id)}
-                  relationship={employee_relationship}
-                />
-              )
-              : (
-                <TableRow key={id}>
-                  <TableCell align="center">
-                    <IconButton
-                      color="primary"
-                      onClick={() => setUpdateMode(id)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      color="primary"
-                      onClick={() => deleteRow(id)}
-                    >
-                      <RemoveIcon />
-                    </IconButton>
-                  </TableCell>
-                  <TableCell component="th" scope="row">
-                    {name}
-                  </TableCell>
-                  <TableCell align="center">
-                    {cellphone}
-                  </TableCell>
-                  <TableCell align="center">
-                    {employee_relationship}
-                  </TableCell>
-                </TableRow>
-              )
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Card
+      variant="outlined"
+    >
+      <CardContent>
+        <TableContainer component={Paper}>
+          <Typography
+            component="h2"
+            variant="h5"
+          >
+            Contactos
+          </Typography>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell align="center">
+                  <IconButton
+                    color="primary"
+                    component="span"
+                    onClick={createRow}
+                  >
+                    <AddIcon />
+                  </IconButton>
+                </TableCell>
+                <TableCell>Nombre</TableCell>
+                <TableCell align="center">Telefono</TableCell>
+                <TableCell align="center">Parentesco</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {contacts.map(({
+                cellphone,
+                edit_mode,
+                employee_relationship,
+                id,
+                name,
+              }, index) =>
+                edit_mode
+                  ? (
+                    <ContactEditableRow
+                      cellphone={cellphone}
+                      id={id}
+                      key={index}
+                      name={name}
+                      onCancel={onRowCancel}
+                      onSubmit={(id) => onRowSubmit(id)}
+                      relationship={employee_relationship}
+                    />
+                  )
+                  : (
+                    <TableRow key={index}>
+                      <TableCell align="center">
+                        <IconButton
+                          color="primary"
+                          onClick={() => setUpdateMode(id)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="primary"
+                          onClick={() => deleteRow(id)}
+                        >
+                          <RemoveIcon />
+                        </IconButton>
+                      </TableCell>
+                      <TableCell component="th" scope="row">
+                        {name}
+                      </TableCell>
+                      <TableCell align="center">
+                        {cellphone}
+                      </TableCell>
+                      <TableCell align="center">
+                        {employee_relationship}
+                      </TableCell>
+                    </TableRow>
+                  )
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
   );
 }

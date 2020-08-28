@@ -16,15 +16,11 @@ const getUserDocument = () => fetchUserApi();
 const setUserDocument = (
   city,
   date,
-  number,
-  type,
 ) =>
   fetchUserApi("", {
     body: JSON.stringify({
       document_expedition_city: city,
       document_expedition_date: date,
-      document: number,
-      document_type: type,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -67,10 +63,8 @@ export default function DocumentForm() {
 
   const handleSubmit = () => {
     setUserDocument(
-      fields.city,
-      fields.date,
-      fields.number,
-      fields.type,
+      fields.city || null,
+      fields.date || null,
     )
       .then((request) => {
         if (!request.ok) {
@@ -85,26 +79,23 @@ export default function DocumentForm() {
   return (
     <CardForm
       onSubmit={handleSubmit}
-      title="Identificacion"
+      title="Identificación"
       variant="outlined"
     >
       <TextField
         disabled
         fullWidth
-        label="Identificacion"
+        label="Identificación"
         name="number"
         onChange={handleChange}
-        readOnly
-        required
         value={fields.number}
       />
       <SelectField
         disabled
-        label="Tipo de Identificacion"
+        label="Tipo de identificación"
         fullWidth
         name="type"
         onChange={handleChange}
-        required
         value={fields.type}
       >
         <option value="CC">Cedula de Ciudadania</option>
@@ -114,17 +105,16 @@ export default function DocumentForm() {
         <option value="TI">Tarjeta de Identidad</option>
       </SelectField>
       <CitySelector
-        label="Ciudad de expedicion"
+        label="Ciudad de expedición"
         setValue={(value) =>
           setFields((prev_state) => ({ ...prev_state, city: value }))}
         value={fields.city}
       />
       <TextField
         fullWidth
-        label="Fecha de Expedicion"
+        label="Fecha de expedición"
         name="date"
         onChange={handleChange}
-        required
         type="date"
         value={fields.date}
       />

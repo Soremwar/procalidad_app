@@ -288,6 +288,11 @@ main_router
     usuario.deleteChildren,
   )
   .get("/api/usuario/soportes", checkUserAccess(), usuario.getSupportFiles)
+  .get<{ id: string }>(
+    "/api/usuario/soportes/:id",
+    checkUserAccess(),
+    usuario.getSupportFile,
+  )
   .put<{ id: string }>(
     "/api/usuario/soportes/:id",
     checkUserAccess(),

@@ -5,6 +5,8 @@ import React, {
   useState,
 } from "react";
 import {
+  Card,
+  CardContent,
   IconButton,
   Paper,
   Table,
@@ -344,95 +346,101 @@ export default function LanguageForm() {
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Typography
-        component="h2"
-        variant="h5"
-      >
-        Idiomas
-      </Typography>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell align="center">
-              <IconButton
-                color="primary"
-                component="span"
-                onClick={createRow}
-              >
-                <AddIcon />
-              </IconButton>
-            </TableCell>
-            <TableCell>Idioma</TableCell>
-            <TableCell align="center">Lectura</TableCell>
-            <TableCell align="center">Escritura</TableCell>
-            <TableCell align="center">Habla</TableCell>
-            <TableCell align="center">Escucha</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <ParameterContext.Provider value={context_parameters}>
-            {languages.map(({
-              id,
-              edit_mode,
-              language,
-              language_id,
-              read_skill,
-              write_skill,
-              talk_skill,
-              listen_skill,
-            }, index) =>
-              edit_mode
-                ? (
-                  <LanguageEditableRow
-                    id={id}
-                    key={id || `_${index}`}
-                    language={language_id}
-                    listen_skill={listen_skill}
-                    onCancel={onRowCancel}
-                    onSubmit={(id) => onRowSubmit(id)}
-                    read_skill={read_skill}
-                    talk_skill={talk_skill}
-                    write_skill={write_skill}
-                  />
-                )
-                : (
-                  <TableRow key={id}>
-                    <TableCell align="center">
-                      <IconButton
-                        color="primary"
-                        onClick={() => setUpdateMode(id)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="primary"
-                        onClick={() => deleteRow(id)}
-                      >
-                        <RemoveIcon />
-                      </IconButton>
-                    </TableCell>
-                    <TableCell component="th" scope="row">
-                      {language}
-                    </TableCell>
-                    <TableCell align="center">
-                      {LanguageSkill.get(read_skill)}
-                    </TableCell>
-                    <TableCell align="center">
-                      {LanguageSkill.get(write_skill)}
-                    </TableCell>
-                    <TableCell align="center">
-                      {LanguageSkill.get(talk_skill)}
-                    </TableCell>
-                    <TableCell align="center">
-                      {LanguageSkill.get(listen_skill)}
-                    </TableCell>
-                  </TableRow>
-                )
-            )}
-          </ParameterContext.Provider>
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Card
+      variant="outlined"
+    >
+      <CardContent>
+        <TableContainer component={Paper}>
+          <Typography
+            component="h2"
+            variant="h5"
+          >
+            Idiomas
+          </Typography>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell align="center">
+                  <IconButton
+                    color="primary"
+                    component="span"
+                    onClick={createRow}
+                  >
+                    <AddIcon />
+                  </IconButton>
+                </TableCell>
+                <TableCell>Idioma</TableCell>
+                <TableCell align="center">Lectura</TableCell>
+                <TableCell align="center">Escritura</TableCell>
+                <TableCell align="center">Habla</TableCell>
+                <TableCell align="center">Escucha</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <ParameterContext.Provider value={context_parameters}>
+                {languages.map(({
+                  id,
+                  edit_mode,
+                  language,
+                  language_id,
+                  read_skill,
+                  write_skill,
+                  talk_skill,
+                  listen_skill,
+                }, index) =>
+                  edit_mode
+                    ? (
+                      <LanguageEditableRow
+                        id={id}
+                        key={id || `_${index}`}
+                        language={language_id}
+                        listen_skill={listen_skill}
+                        onCancel={onRowCancel}
+                        onSubmit={(id) => onRowSubmit(id)}
+                        read_skill={read_skill}
+                        talk_skill={talk_skill}
+                        write_skill={write_skill}
+                      />
+                    )
+                    : (
+                      <TableRow key={id}>
+                        <TableCell align="center">
+                          <IconButton
+                            color="primary"
+                            onClick={() => setUpdateMode(id)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            color="primary"
+                            onClick={() => deleteRow(id)}
+                          >
+                            <RemoveIcon />
+                          </IconButton>
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {language}
+                        </TableCell>
+                        <TableCell align="center">
+                          {LanguageSkill.get(read_skill)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {LanguageSkill.get(write_skill)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {LanguageSkill.get(talk_skill)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {LanguageSkill.get(listen_skill)}
+                        </TableCell>
+                      </TableRow>
+                    )
+                )}
+              </ParameterContext.Provider>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
   );
 }

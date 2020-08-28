@@ -1,9 +1,11 @@
 import React, {
-  Fragment,
   useEffect,
   useState,
 } from "react";
 import {
+  Button,
+  Card,
+  CardContent,
   Paper,
   Table,
   TableBody,
@@ -13,6 +15,13 @@ import {
   TableRow,
   Typography,
 } from "@material-ui/core";
+import {
+  makeStyles,
+} from "@material-ui/styles";
+import {
+  GetApp as DownloadIcon,
+  CloudUpload as UploadIcon,
+} from "@material-ui/icons";
 import {
   fetchUserApi,
 } from "../../../../lib/api/generator.js";
@@ -51,7 +60,15 @@ const uploadUserFile = async (
 
 const getUserFiles = () => fetchUserApi("soportes");
 
+const useStyles = makeStyles(() => ({
+  file_input: {
+    display: "none",
+  },
+}));
+
 export default function FileForm() {
+  const classes = useStyles();
+
   const [table_data, setTableData] = useState([]);
 
   const updateFileTable = () => {
@@ -89,48 +106,76 @@ export default function FileForm() {
   }, []);
 
   return (
-    <Fragment>
-      <TableContainer component={Paper}>
-        <Typography
-          component="h2"
-          variant="h5"
-        >
-          Soportes
-        </Typography>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell align="center">Soporte</TableCell>
-              <TableCell align="center"></TableCell>
-              <TableCell align="center">Ultima Carga</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {table_data.map(({
-              template,
-              template_id,
-              upload_date,
-            }) => (
-              <TableRow key={template_id}>
-                <TableCell component="th" scope="row">
-                  {template}
-                </TableCell>
-                <TableCell align="center">
-                  <input
-                    onChange={(event) => uploadFile(template_id, event)}
-                    type="file"
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  {upload_date
-                    ? formatDate(upload_date)
-                    : "El archivo no ha sido cargado"}
-                </TableCell>
+    <Card variant="outlined">
+      <CardContent>
+        <TableContainer component={Paper}>
+          <Typography
+            component="h2"
+            variant="h5"
+          >
+            Soportes
+          </Typography>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell align="center">Soporte</TableCell>
+                <TableCell align="center"></TableCell>
+                <TableCell align="center"></TableCell>
+                <TableCell align="center">Ultima Carga</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Fragment>
+            </TableHead>
+            <TableBody>
+              {table_data.map(({
+                template,
+                template_id,
+                upload_date,
+              }) => (
+                <TableRow key={template_id}>
+                  <TableCell component="th" scope="row">
+                    {template}
+                  </TableCell>
+                  <TableCell align="center">
+                    <label>
+                      <input
+                        //accept="image/*"
+                        className={classes.file_input}
+                        onChange={(event) => uploadFile(template_id, event)}
+                        type="file"
+                      />
+                      <Button
+                        color="primary"
+                        component="span"
+                        endIcon={<UploadIcon />}
+                        variant="contained"
+                      >
+                        Cargar Archivo
+                      </Button>
+                    </label>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button
+                      color="primary"
+                      component={"a"}
+                      disabled={!upload_date}
+                      endIcon={<DownloadIcon />}
+                      href={`api/usuario/soportes/${template_id}`}
+                      target={"_blank"}
+                      variant="contained"
+                    >
+                      Descargar
+                    </Button>
+                  </TableCell>
+                  <TableCell align="center">
+                    {upload_date
+                      ? formatDate(upload_date)
+                      : "El archivo no ha sido cargado"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
   );
 }

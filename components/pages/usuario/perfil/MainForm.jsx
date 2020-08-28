@@ -148,7 +148,9 @@ export default function MainForm() {
     cellphone: "",
     civil_status: "",
     gender: "",
+    has_military_passbook: false,
     military_passbook: "",
+    name: "",
     personal_email: "",
     phone: "",
   });
@@ -190,7 +192,9 @@ export default function MainForm() {
           cellphone: information.telefono,
           civil_status: information.fk_estado_civil || "",
           gender: information.fk_genero || "",
+          has_military_passbook: Boolean(information.libreta_militar),
           military_passbook: information.libreta_militar || "",
+          name: information.nombre,
           personal_email: information.correo_personal || "",
           phone: information.telefono_fijo || "",
           picture: null,
@@ -206,14 +210,14 @@ export default function MainForm() {
 
   const handleSubmit = () => {
     setUserInformation(
-      fields.birth_city || undefined,
-      fields.birth_date || undefined,
-      fields.blood_type || undefined,
-      fields.civil_status || undefined,
-      fields.gender || undefined,
-      fields.military_passbook || undefined,
-      fields.personal_email || undefined,
-      fields.phone || undefined,
+      fields.birth_city || null,
+      fields.birth_date || null,
+      fields.blood_type || null,
+      fields.civil_status || null,
+      fields.gender || null,
+      fields.has_military_passbook ? fields.military_passbook || null : null,
+      fields.personal_email || null,
+      fields.phone || null,
     )
       .then((request) => {
         if (!request.ok) {
@@ -228,11 +232,17 @@ export default function MainForm() {
   return (
     <CardForm
       onSubmit={handleSubmit}
-      title="Informacion Principal"
       variant="outlined"
     >
       <Grid container spacing={10}>
         <Grid item md={6} xs={12}>
+          <TextField
+            disabled
+            fullWidth
+            label="Nombre"
+            name="birth_date"
+            value={fields.name}
+          />
           <CitySelector
             label="Ciudad de nacimiento"
             setValue={(value) =>
@@ -303,13 +313,32 @@ export default function MainForm() {
         <Grid item md={6} xs={12}>
           <ProfilePicture />
           <br />
-          <TextField
+          <SelectField
+            blank_value={false}
             fullWidth
             label="Libreta militar"
-            name="military_passbook"
-            onChange={handleChange}
-            value={fields.military_passbook}
-          />
+            name="has_military_passbook"
+            onChange={(event) => {
+              const has_military_passbook = Boolean(Number(event.target.value));
+              setFields((prev_state) => ({
+                ...prev_state,
+                has_military_passbook,
+              }));
+            }}
+            value={Number(fields.has_military_passbook)}
+          >
+            <option value="0">No</option>
+            <option value="1">Si</option>
+          </SelectField>
+          {fields.has_military_passbook && (
+            <TextField
+              fullWidth
+              label="Numero libreta militar"
+              name="military_passbook"
+              onChange={handleChange}
+              value={fields.military_passbook}
+            />
+          )}
           <TextField
             fullWidth
             InputProps={{

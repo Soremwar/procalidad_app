@@ -11,10 +11,12 @@ import FileForm from "./perfil/FileForm.jsx";
 import LanguageForm from "./perfil/LanguageForm.jsx";
 import MainForm from "./perfil/MainForm.jsx";
 import ResidenceForm from "./perfil/ResidenceForm.jsx";
+import Title from "../../common/Title.jsx";
 
 export default function Perfil() {
   return (
     <Fragment>
+      <Title title={"Datos personales"} />
       <MainForm />
       <br />
       <br />
