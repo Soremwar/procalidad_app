@@ -247,6 +247,7 @@ const AddModal = ({
         value={fields.business}
       />
       <CitySelector
+        required
         setValue={(value) =>
           setFields((prev_state) => ({ ...prev_state, city: value }))}
         value={fields.city}
@@ -390,6 +391,7 @@ const EditModal = ({
         value={fields.business}
       />
       <CitySelector
+        required
         setValue={(value) =>
           setFields((prev_state) => ({ ...prev_state, city: value }))}
         value={fields.city}

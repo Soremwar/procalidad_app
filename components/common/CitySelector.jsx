@@ -79,6 +79,7 @@ const useStyles = makeStyles(() => ({
 
 export default function CitySelector({
   label,
+  required = false,
   setValue,
   value,
 }) {
@@ -202,16 +203,16 @@ export default function CitySelector({
           label="Pais"
           onInputChange={handleCountrySearch}
           setValue={handleCountryChange}
-          value={country || null}
+          value={country}
         />
         <AsyncSelectField
           componentClassName={classes.select}
           disabled={!country}
           fetchOptions={generateStateSearch(country?.value, state_search)}
-          label="Estado"
+          label="Departamento"
           onInputChange={handleStateSearch}
           setValue={handleStateChange}
-          value={state || null}
+          value={state}
         />
         <AsyncSelectField
           componentClassName={classes.select}
@@ -219,8 +220,9 @@ export default function CitySelector({
           fetchOptions={generateCitySearch(state?.value, city_search)}
           label="Ciudad"
           onInputChange={handleCitySearch}
+          required={required}
           setValue={handleCityChange}
-          value={city || null}
+          value={city}
         />
       </div>
     </Fragment>
