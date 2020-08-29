@@ -3,6 +3,7 @@ import {
   createNew,
   findAll,
   findById,
+  findByCode,
   getTableData,
   TipoParametro,
 } from "../../../api/models/MAESTRO/parametro.ts";
@@ -56,6 +57,15 @@ export const getParameter = async (
   if (!parameter) throw new NotFoundError();
 
   response.body = parameter;
+};
+
+export const getParameterValue = async (
+  { params, response }: RouterContext<{ code: string }>,
+) => {
+  const parameter = await findByCode(params.code);
+  if (!parameter) throw new NotFoundError();
+
+  response.body = await parameter.getValue();
 };
 
 export const updateParameter = async (

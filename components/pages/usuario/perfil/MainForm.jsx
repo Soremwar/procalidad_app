@@ -1,4 +1,5 @@
 import React, {
+  Fragment,
   useEffect,
   useState,
 } from "react";
@@ -7,6 +8,9 @@ import {
   Card,
   CardActions,
   CardMedia,
+  Dialog,
+  DialogActions,
+  DialogContent,
   Grid,
   TextField,
 } from "@material-ui/core";
@@ -19,11 +23,32 @@ import {
 import {
   fetchMaritalStatus,
   fetchGenderApi,
+  fetchParameterApi,
   fetchUserApi,
 } from "../../../../lib/api/generator.js";
 import CardForm from "./components/CardForm.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import SelectField from "../../../common/SelectField.jsx";
+
+//TODO
+//The fetching of the text warning or any parameters should be globally defined(like generators)
+//Replace for top level await when we switch to Deno compiler
+let AVATAR_UPLOAD_WARNING = (
+  "No fue posible cargar las recomendaciones de carga. " +
+  "Sea profesional al escoger la foto  que desea para su perfil."
+);
+(async () =>
+  await fetchParameterApi("valor/TEXTO_CARGA_FOTO")
+    .then(async (response) => {
+      if (response.ok) {
+        AVATAR_UPLOAD_WARNING = await response.text();
+      } else {
+        throw new Error();
+      }
+    })
+    .catch(() => {
+      console.error("The avatar upload warning couldnt be loaded");
+    }))();
 
 const getGenders = () => fetchGenderApi();
 const getMaritalStatuses = () => fetchMaritalStatus();
@@ -94,6 +119,7 @@ const useProfilePictureStyles = makeStyles(() => ({
 const ProfilePicture = () => {
   const classes = useProfilePictureStyles();
   const [picture_key, setPictureKey] = useState(0);
+  const [is_modal_open, setModalOpen] = useState(false);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -101,6 +127,7 @@ const ProfilePicture = () => {
       .then((response) => {
         if (response.ok) {
           setPictureKey((prev) => prev + 1);
+          setModalOpen(false);
         } else {
           throw new Error();
         }
@@ -109,34 +136,57 @@ const ProfilePicture = () => {
   };
 
   return (
-    <Card className={classes.card} variant="outlined">
-      <div className={classes.card_details}>
-        <CardMedia
-          className={classes.image}
-          image={`/api/usuario/foto#${picture_key}`}
-        />
-      </div>
-      <CardActions className={classes.card_content}>
-        <input
-          accept="image/*"
-          id="upload_image"
-          className={classes.input}
-          onChange={handleImageChange}
-          type="file"
-        />
-        <label htmlFor="upload_image">
+    <Fragment>
+      <Card className={classes.card} variant="outlined">
+        <div className={classes.card_details}>
+          <CardMedia
+            className={classes.image}
+            image={`/api/usuario/foto#${picture_key}`}
+          />
+        </div>
+        <CardActions className={classes.card_content}>
           <Button
             color="primary"
             component="span"
             className={classes.button}
             endIcon={<UploadIcon />}
+            onClick={() => setModalOpen(true)}
             variant="contained"
           >
             Cambiar foto
           </Button>
-        </label>
-      </CardActions>
-    </Card>
+        </CardActions>
+      </Card>
+      <Dialog
+        fullWidth
+        maxWidth="sm"
+        onClose={() => setModalOpen(false)}
+        open={is_modal_open}
+      >
+        <DialogContent>
+          {AVATAR_UPLOAD_WARNING}
+        </DialogContent>
+        <DialogActions>
+          <label>
+            <input
+              accept="image/*"
+              id="upload_image"
+              className={classes.input}
+              onChange={handleImageChange}
+              type="file"
+            />
+            <Button
+              color="primary"
+              component="span"
+              className={classes.button}
+              variant="contained"
+            >
+              Continuar
+            </Button>
+          </label>
+        </DialogActions>
+      </Dialog>
+    </Fragment>
   );
 };
 

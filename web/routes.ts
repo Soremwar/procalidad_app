@@ -1,7 +1,7 @@
-import { Router } from "oak";
-import { checkUserAccess } from "./middleware.ts";
-import { Profiles } from "../api/common/profiles.ts";
-import { createSession } from "./handlers/auth.ts";
+import {Router} from "oak";
+import {checkUserAccess} from "./middleware.ts";
+import {Profiles} from "../api/common/profiles.ts";
+import {createSession} from "./handlers/auth.ts";
 import * as usuario from "./handlers/usuario.ts";
 import {
   createContact,
@@ -19,13 +19,9 @@ import {
   getSectorsTable,
   updateSector,
 } from "./handlers/clientes/sector.ts";
-import {
-  getCountries,
-  getCountry,
-  searchCountry,
-} from "./handlers/maestro/pais.ts";
-import { getState, getStates, searchState } from "./handlers/maestro/estado.ts";
-import { getCities, getCity, searchCity } from "./handlers/maestro/ciudad.ts";
+import {getCountries, getCountry, searchCountry,} from "./handlers/maestro/pais.ts";
+import {getState, getStates, searchState} from "./handlers/maestro/estado.ts";
+import {getCities, getCity, searchCity} from "./handlers/maestro/ciudad.ts";
 import * as language from "./handlers/maestro/idioma.ts";
 import * as gender from "./handlers/maestro/genero.ts";
 import * as marital_status from "./handlers/maestro/estado_civil.ts";
@@ -71,14 +67,7 @@ import {
   getAreaTypesTable,
   updateAreaType,
 } from "./handlers/organizacion/tipo_area.ts";
-import {
-  createArea,
-  deleteArea,
-  getArea,
-  getAreas,
-  getAreasTable,
-  updateArea,
-} from "./handlers/organizacion/area.ts";
+import {createArea, deleteArea, getArea, getAreas, getAreasTable, updateArea,} from "./handlers/organizacion/area.ts";
 import {
   createSubArea,
   deleteSubArea,
@@ -153,25 +142,11 @@ import {
   getBudgetTable,
   updateBudget,
 } from "./handlers/operaciones/presupuesto.ts";
-import { searchBudgetDetails } from "./handlers/operaciones/presupuesto_detalle.ts";
-import {
-  createParameter,
-  deleteParameter,
-  getParameter,
-  getParameters,
-  getParametersTable,
-  updateParameter,
-} from "./handlers/maestro/parametro.ts";
-import {
-  createParameterDefinition,
-  deleteParameterDefinition,
-  getParameterDefinition,
-  getParameterDefinitions,
-  searchParameterDefinition,
-  updateParameterDefinition,
-} from "./handlers/maestro/parametro_definicion.ts";
-import { getBlacklistedDays } from "./handlers/maestro/tiempo.ts";
-import { getProfile, getProfiles } from "./handlers/maestro/profile.ts";
+import {searchBudgetDetails} from "./handlers/operaciones/presupuesto_detalle.ts";
+import * as parameter from "./handlers/maestro/parametro.ts";
+import * as parameter_definition from "./handlers/maestro/parametro_definicion.ts";
+import {getBlacklistedDays} from "./handlers/maestro/tiempo.ts";
+import {getProfile, getProfiles} from "./handlers/maestro/profile.ts";
 import {
   createAccess,
   deleteAccess,
@@ -195,8 +170,8 @@ import {
   deleteAssignation,
   getAssignation,
   getAssignations,
-  getAssignationWeeks,
   getAssignationsTable,
+  getAssignationWeeks,
   updateAssignation,
 } from "./handlers/asignacion.ts";
 import {
@@ -337,7 +312,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getParameters,
+    parameter.getParameters,
   )
   .post(
     "/api/maestro/parametro/table",
@@ -347,7 +322,20 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getParametersTable,
+    parameter.getParametersTable,
+  )
+  .get<{ code: string }>(
+    "/api/maestro/parametro/valor/:code",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+      Profiles.PROYECT_MANAGER,
+      Profiles.SALES,
+    ]),
+    parameter.getParameterValue,
   )
   .get<{ id: string }>(
     "/api/maestro/parametro/:id",
@@ -357,7 +345,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getParameter,
+    parameter.getParameter,
   )
   .post(
     "/api/maestro/parametro",
@@ -365,7 +353,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    createParameter,
+    parameter.createParameter,
   )
   .put<{ id: string }>(
     "/api/maestro/parametro/:id",
@@ -373,7 +361,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    updateParameter,
+    parameter.updateParameter,
   )
   .delete<{ id: string }>(
     "/api/maestro/parametro/:id",
@@ -381,7 +369,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    deleteParameter,
+    parameter.deleteParameter,
   );
 
 main_router
@@ -393,7 +381,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getParameterDefinitions,
+    parameter_definition.getParameterDefinitions,
   )
   .get(
     "/api/maestro/parametro_definicion/search",
@@ -403,7 +391,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    searchParameterDefinition,
+    parameter_definition.searchParameterDefinition,
   )
   .get<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
@@ -413,7 +401,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getParameterDefinition,
+    parameter_definition.getParameterDefinition,
   )
   .post<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
@@ -421,7 +409,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    createParameterDefinition,
+    parameter_definition.createParameterDefinition,
   )
   .put<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
@@ -429,7 +417,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    updateParameterDefinition,
+    parameter_definition.updateParameterDefinition,
   )
   .delete<{ id: string }>(
     "/api/maestro/parametro_definicion/:id",
@@ -437,7 +425,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    deleteParameterDefinition,
+    parameter_definition.deleteParameterDefinition,
   );
 
 main_router
