@@ -706,7 +706,54 @@ main_router
   );
 
 main_router
-  .get("/api/maestro/idioma", checkUserAccess(), language.getLanguages);
+  .get(
+    "/api/maestro/idioma",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    language.getLanguages,
+  )
+  .post(
+    "/api/maestro/idioma/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    language.getLanguagesTable,
+  )
+  .get<{ id: string }>(
+    "/api/maestro/idioma/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    language.getLanguage,
+  )
+  .post(
+    "/api/maestro/idioma",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    language.createLanguage,
+  )
+  .put<{ id: string }>(
+    "/api/maestro/idioma/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    language.updateLanguage,
+  )
+  .delete<{ id: string }>(
+    "/api/maestro/idioma/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    language.deleteLanguage,
+  );
 
 main_router
   .get("/api/maestro/genero", checkUserAccess(), gender.getGenders);

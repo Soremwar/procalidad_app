@@ -26,6 +26,7 @@ import Computador from "../pages/organizacion/computador.jsx";
 import Contacto from "../pages/clientes/Contacto.jsx";
 import CostoEmpleado from "../pages/organizacion/costo_empleado.jsx";
 import Formato from "../pages/maestro/formato.jsx";
+import Idioma from "../pages/maestro/idioma.jsx";
 import Licencia from "../pages/organizacion/licencia.jsx";
 import Parametro from "../pages/maestro/parametro.jsx";
 import Perfil from "../pages/usuario/perfil.jsx";
@@ -128,6 +129,14 @@ const Layout = (props) => {
               ]}
               component={Plantilla}
               path="/maestro/plantilla"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+              ]}
+              component={Idioma}
+              path="/maestro/idioma"
             />
             <ProfiledRoute
               allowed_profiles={[

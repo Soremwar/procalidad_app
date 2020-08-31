@@ -81,6 +81,14 @@ const structure = [
         label: "Plantillas",
         link: "/maestro/plantilla",
       },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ],
+        label: "Idiomas",
+        link: "/maestro/idioma",
+      },
     ],
   },
   {
