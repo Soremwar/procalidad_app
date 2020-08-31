@@ -1,5 +1,7 @@
 import React, {
+  createContext,
   Fragment,
+  useContext,
   useEffect,
   useState,
 } from "react";
@@ -11,21 +13,27 @@ import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
+  fetchFormatApi,
   fetchFileTemplateApi,
 } from "../../../lib/api/generator.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
+import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
+
+const getFormats = () => fetchFormatApi();
 
 const getSupport = (id) => fetchFileTemplateApi(id).then((x) => x.json());
 
 const createLicense = async (
+  format,
   name,
   prefix,
 ) =>
   fetchFileTemplateApi("", {
     body: JSON.stringify({
+      format,
       name,
       prefix,
     }),
@@ -58,6 +66,13 @@ const deleteLicense = async (id) =>
 
 const headers = [
   {
+    id: "format",
+    numeric: false,
+    disablePadding: false,
+    label: "Formato",
+    searchable: true,
+  },
+  {
     id: "name",
     numeric: false,
     disablePadding: false,
@@ -73,17 +88,38 @@ const headers = [
   },
 ];
 
+const ParameterContext = createContext({
+  formats: [],
+});
+
 const AddModal = ({
   is_open,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    formats,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
+    format: "",
     name: "",
     prefix: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        format: "",
+        name: "",
+        prefix: "",
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [is_open]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -95,6 +131,7 @@ const AddModal = ({
     setError(null);
 
     const request = await createLicense(
+      fields.format,
       fields.name,
       fields.prefix,
     );
@@ -109,17 +146,6 @@ const AddModal = ({
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (is_open) {
-      setFields({
-        name: "",
-        prefix: "",
-      });
-      setLoading(false);
-      setError(null);
-    }
-  }, [is_open]);
-
   return (
     <DialogForm
       error={error}
@@ -129,6 +155,18 @@ const AddModal = ({
       setIsOpen={setModalOpen}
       title={"Crear Nuevo"}
     >
+      <SelectField
+        fullWidth
+        label="Formato"
+        name="format"
+        onChange={handleChange}
+        required
+        value={fields.format}
+      >
+        {formats.map(({ id, name }) => (
+          <option key={id} value={id}>{name}</option>
+        ))}
+      </SelectField>
       <TextField
         fullWidth
         InputProps={{
@@ -308,6 +346,9 @@ const DeleteModal = ({
 };
 
 export default () => {
+  const [parameters, setParameters] = useState({
+    formats: [],
+  });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
   const [selected_support, setSelectedSupport] = useState({});
@@ -330,23 +371,35 @@ export default () => {
   };
 
   useEffect(() => {
+    getFormats()
+      .then(async (response) => {
+        if (response.ok) {
+          const formats = await response.json();
+          setParameters((prev_state) => ({ ...prev_state, formats }));
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("formats couldnt be loaded"));
     updateTable();
   }, []);
 
   return (
     <Fragment>
       <Title title={"Plantillas de archivo"} />
-      <AddModal
-        is_open={is_add_modal_open}
-        setModalOpen={setAddModalOpen}
-        updateTable={updateTable}
-      />
-      <EditModal
-        data={selected_support}
-        is_open={is_edit_modal_open}
-        setModalOpen={setEditModalOpen}
-        updateTable={updateTable}
-      />
+      <ParameterContext.Provider value={parameters}>
+        <AddModal
+          is_open={is_add_modal_open}
+          setModalOpen={setAddModalOpen}
+          updateTable={updateTable}
+        />
+        <EditModal
+          data={selected_support}
+          is_open={is_edit_modal_open}
+          setModalOpen={setEditModalOpen}
+          updateTable={updateTable}
+        />
+      </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
         setModalOpen={setDeleteModalOpen}

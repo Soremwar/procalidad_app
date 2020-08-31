@@ -1,7 +1,7 @@
-import {Router} from "oak";
-import {checkUserAccess} from "./middleware.ts";
-import {Profiles} from "../api/common/profiles.ts";
-import {createSession} from "./handlers/auth.ts";
+import { Router } from "oak";
+import { checkUserAccess } from "./middleware.ts";
+import { Profiles } from "../api/common/profiles.ts";
+import { createSession } from "./handlers/auth.ts";
 import * as user_profile from "./handlers/usuario/perfil.ts";
 import {
   createContact,
@@ -19,9 +19,13 @@ import {
   getSectorsTable,
   updateSector,
 } from "./handlers/clientes/sector.ts";
-import {getCountries, getCountry, searchCountry,} from "./handlers/maestro/pais.ts";
-import {getState, getStates, searchState} from "./handlers/maestro/estado.ts";
-import {getCities, getCity, searchCity} from "./handlers/maestro/ciudad.ts";
+import {
+  getCountries,
+  getCountry,
+  searchCountry,
+} from "./handlers/maestro/pais.ts";
+import { getState, getStates, searchState } from "./handlers/maestro/estado.ts";
+import { getCities, getCity, searchCity } from "./handlers/maestro/ciudad.ts";
 import * as language from "./handlers/maestro/idioma.ts";
 import * as gender from "./handlers/maestro/genero.ts";
 import * as marital_status from "./handlers/maestro/estado_civil.ts";
@@ -67,7 +71,14 @@ import {
   getAreaTypesTable,
   updateAreaType,
 } from "./handlers/organizacion/tipo_area.ts";
-import {createArea, deleteArea, getArea, getAreas, getAreasTable, updateArea,} from "./handlers/organizacion/area.ts";
+import {
+  createArea,
+  deleteArea,
+  getArea,
+  getAreas,
+  getAreasTable,
+  updateArea,
+} from "./handlers/organizacion/area.ts";
 import {
   createSubArea,
   deleteSubArea,
@@ -142,11 +153,11 @@ import {
   getBudgetTable,
   updateBudget,
 } from "./handlers/operaciones/presupuesto.ts";
-import {searchBudgetDetails} from "./handlers/operaciones/presupuesto_detalle.ts";
+import { searchBudgetDetails } from "./handlers/operaciones/presupuesto_detalle.ts";
 import * as parameter from "./handlers/maestro/parametro.ts";
 import * as parameter_definition from "./handlers/maestro/parametro_definicion.ts";
-import {getBlacklistedDays} from "./handlers/maestro/tiempo.ts";
-import {getProfile, getProfiles} from "./handlers/maestro/permiso.ts";
+import { getBlacklistedDays } from "./handlers/maestro/tiempo.ts";
+import { getProfile, getProfiles } from "./handlers/maestro/permiso.ts";
 import {
   createAccess,
   deleteAccess,
@@ -220,7 +231,11 @@ main_router
     checkUserAccess(),
     user_profile.deleteContact,
   )
-  .get("/api/usuario/idiomas", checkUserAccess(), user_profile.getLanguageExperience)
+  .get(
+    "/api/usuario/idiomas",
+    checkUserAccess(),
+    user_profile.getLanguageExperience,
+  )
   .get(
     "/api/usuario/idiomas/table",
     checkUserAccess(),
@@ -709,62 +724,60 @@ main_router
   );
 
 main_router
-    .get(
-        "/api/maestro/plantilla",
-        checkUserAccess([
-            Profiles.ADMINISTRATOR,
-            Profiles.CONSULTANT,
-            Profiles.CONTROLLER,
-            Profiles.HUMAN_RESOURCES,
-        ]),
-        people_supports.getSupportFormats,
-    )
-    .post(
-        "/api/maestro/plantilla/table",
-        checkUserAccess([
-            Profiles.ADMINISTRATOR,
-            Profiles.CONTROLLER,
-            Profiles.HUMAN_RESOURCES,
-        ]),
-        people_supports.getSupportFormatsTable,
-    )
-    .get<{ id: string }>(
-        "/api/maestro/plantilla/:id",
-        checkUserAccess([
-            Profiles.ADMINISTRATOR,
-            Profiles.CONSULTANT,
-            Profiles.CONTROLLER,
-            Profiles.HUMAN_RESOURCES,
-        ]),
-        people_supports.getSupportFormat,
-    )
-    .post(
-        "/api/maestro/plantilla",
-        checkUserAccess([
-            Profiles.ADMINISTRATOR,
-            Profiles.CONTROLLER,
-            Profiles.HUMAN_RESOURCES,
-        ]),
-        people_supports.createSupportFormat,
-    )
-    .put<{ id: string }>(
-        "/api/maestro/plantilla/:id",
-        checkUserAccess([
-            Profiles.ADMINISTRATOR,
-            Profiles.CONTROLLER,
-            Profiles.HUMAN_RESOURCES,
-        ]),
-        people_supports.updateSupportFormat,
-    )
-    .delete<{ id: string }>(
-        "/api/maestro/plantilla/:id",
-        checkUserAccess([
-            Profiles.ADMINISTRATOR,
-            Profiles.CONTROLLER,
-            Profiles.HUMAN_RESOURCES,
-        ]),
-        people_supports.deleteSupportFormat,
-    );
+  .get(
+    "/api/maestro/plantilla",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    people_supports.getSupportFormats,
+  )
+  .post(
+    "/api/maestro/plantilla/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.getSupportFormatsTable,
+  )
+  .get<{ id: string }>(
+    "/api/maestro/plantilla/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.getSupportFormat,
+  )
+  .post(
+    "/api/maestro/plantilla",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.createSupportFormat,
+  )
+  .put<{ id: string }>(
+    "/api/maestro/plantilla/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.updateSupportFormat,
+  )
+  .delete<{ id: string }>(
+    "/api/maestro/plantilla/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    people_supports.deleteSupportFormat,
+  );
 
 main_router
   .get(

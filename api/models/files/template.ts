@@ -1,9 +1,7 @@
 import postgres from "../../services/postgres.js";
 import { TABLE as ASSET_TABLE } from "./asset.ts";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
-import { TABLE as CLIENT_TABLE } from "../CLIENTES/CLIENTE.ts";
-import { TABLE as SUB_AREA_TABLE } from "../ORGANIZACION/sub_area.ts";
-import { TABLE as PEOPLE_TABLE } from "../ORGANIZACION/people.ts";
+import { TABLE as FORMAT_TABLE } from "../files/asset.ts";
 
 export const TABLE = "ARCHIVOS.PLANTILLA";
 
@@ -118,11 +116,11 @@ export const findById = async (
 };
 
 /*
-* {format} is required since the storage system is not accesible directly
+* {format} should alway be provided since the storage system is not accesible directly
 * through the API, but rather abstracted through the format system
 * */
 export const getAll = async (
-  format: number,
+  format?: number,
 ): Promise<Template[]> => {
   const { rows } = await postgres.query(
     `SELECT
@@ -131,8 +129,7 @@ export const getAll = async (
       NOMBRE,
       PREFIJO_ARCHIVO
     FROM ${TABLE}
-    WHERE FK_FORMATO = $1`,
-    format,
+    ${format ? `WHERE FK_FORMATO = ${format}` : ""}`,
   );
 
   return rows.map((row: [
@@ -146,46 +143,44 @@ export const getAll = async (
 class TableData {
   constructor(
     public id: number,
+    public format: string,
     public name: string,
     public prefix: string,
   ) {}
 }
 
-export const generateTable = (
-  format?: number,
-) => {
-  return async function (
-    order: TableOrder,
-    page: number,
-    rows: number | null,
-    search: { [key: string]: string },
-  ): Promise<TableResult> {
-    const base_query = (
-      `SELECT
+export const getTableData = async (
+  order: TableOrder,
+  page: number,
+  rows: number | null,
+  search: { [key: string]: string },
+): Promise<TableResult> => {
+  const base_query = (
+    `SELECT
         PK_PLANTILLA AS ID,
+        (SELECT NOMBRE FROM ${FORMAT_TABLE} WHERE PK_FORMATO = FK_FORMATO) AS FORMAT,
         NOMBRE AS NAME,
         PREFIJO_ARCHIVO AS PREFIX
-      FROM ${TABLE}
-      ${format ? `WHERE FK_FORMATO = ${format}` : ""}`
-    );
+      FROM ${TABLE}`
+  );
 
-    const { count, data } = await getTableModels(
-      base_query,
-      order,
-      page,
-      rows,
-      search,
-    );
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    search,
+  );
 
-    const models = data.map((x: [
-      number,
-      string,
-      string,
-    ]) => new TableData(...x));
+  const models = data.map((x: [
+    number,
+    string,
+    string,
+    string,
+  ]) => new TableData(...x));
 
-    return new TableResult(
-      count,
-      models,
-    );
-  };
+  return new TableResult(
+    count,
+    models,
+  );
 };
