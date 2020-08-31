@@ -30,7 +30,7 @@ const formatDate = (date) => {
   const parsed_date = new Date(date);
   if (parsed_date.valueOf()) {
     const year = parsed_date.getFullYear();
-    let month = parsed_date.getMonth();
+    let month = parsed_date.getMonth() + 1;
     month = month < 10 ? `0${month}` : month;
     let day = parsed_date.getDate();
     day = day < 10 ? `0${day}` : day;
@@ -158,7 +158,7 @@ export default function FileForm() {
                       component={"a"}
                       disabled={!upload_date}
                       endIcon={<DownloadIcon />}
-                      href={`api/usuario/soportes/${template_id}`}
+                      href={`/api/usuario/soportes/${template_id}`}
                       target={"_blank"}
                       variant="contained"
                     >
