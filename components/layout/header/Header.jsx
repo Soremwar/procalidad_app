@@ -115,7 +115,7 @@ export default function Header(props) {
               " ",
             )}
             component={Link}
-            to="/perfil"
+            to="/usuario/perfil"
           >
             <AccountIcon className={classes.profileMenuIcon} />
             Perfil

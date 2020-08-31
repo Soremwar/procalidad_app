@@ -2,7 +2,7 @@ import {Router} from "oak";
 import {checkUserAccess} from "./middleware.ts";
 import {Profiles} from "../api/common/profiles.ts";
 import {createSession} from "./handlers/auth.ts";
-import * as usuario from "./handlers/usuario.ts";
+import * as user_profile from "./handlers/usuario/perfil.ts";
 import {
   createContact,
   deleteContact,
@@ -146,7 +146,7 @@ import {searchBudgetDetails} from "./handlers/operaciones/presupuesto_detalle.ts
 import * as parameter from "./handlers/maestro/parametro.ts";
 import * as parameter_definition from "./handlers/maestro/parametro_definicion.ts";
 import {getBlacklistedDays} from "./handlers/maestro/tiempo.ts";
-import {getProfile, getProfiles} from "./handlers/maestro/profile.ts";
+import {getProfile, getProfiles} from "./handlers/maestro/permiso.ts";
 import {
   createAccess,
   deleteAccess,
@@ -188,7 +188,7 @@ import {
   getAssignationRequestTable,
   updateAssignationRequest,
 } from "./handlers/asignacion_solicitud.ts";
-import * as people_supports from "./handlers/humanos/soporte.ts";
+import * as people_supports from "./handlers/maestro/plantilla.ts";
 
 const main_router = new Router();
 
@@ -199,91 +199,91 @@ main_router
   .post("/api/auth", createSession);
 
 main_router
-  .get("/api/usuario/contacto", checkUserAccess(), usuario.getContacts)
+  .get("/api/usuario/contacto", checkUserAccess(), user_profile.getContacts)
   .get(
     "/api/usuario/contacto/table",
     checkUserAccess(),
-    usuario.getContactsTable,
+    user_profile.getContactsTable,
   )
   .post(
     "/api/usuario/contacto",
     checkUserAccess(),
-    usuario.createContact,
+    user_profile.createContact,
   )
   .put<{ id: string }>(
     "/api/usuario/contacto/:id",
     checkUserAccess(),
-    usuario.updateContact,
+    user_profile.updateContact,
   )
   .delete<{ id: string }>(
     "/api/usuario/contacto/:id",
     checkUserAccess(),
-    usuario.deleteContact,
+    user_profile.deleteContact,
   )
-  .get("/api/usuario/idiomas", checkUserAccess(), usuario.getLanguageExperience)
+  .get("/api/usuario/idiomas", checkUserAccess(), user_profile.getLanguageExperience)
   .get(
     "/api/usuario/idiomas/table",
     checkUserAccess(),
-    usuario.getLanguageExperienceTable,
+    user_profile.getLanguageExperienceTable,
   )
   .post(
     "/api/usuario/idiomas",
     checkUserAccess(),
-    usuario.createLanguageExperience,
+    user_profile.createLanguageExperience,
   )
   .put<{ id: string }>(
     "/api/usuario/idiomas/:id",
     checkUserAccess(),
-    usuario.updateLanguageExperience,
+    user_profile.updateLanguageExperience,
   )
   .delete<{ id: string }>(
     "/api/usuario/idiomas/:id",
     checkUserAccess(),
-    usuario.deleteLanguageExperience,
+    user_profile.deleteLanguageExperience,
   )
-  .get("/api/usuario/hijos", checkUserAccess(), usuario.getChildren)
+  .get("/api/usuario/hijos", checkUserAccess(), user_profile.getChildren)
   .get(
     "/api/usuario/hijos/table",
     checkUserAccess(),
-    usuario.getChildrenTable,
+    user_profile.getChildrenTable,
   )
   .post(
     "/api/usuario/hijos",
     checkUserAccess(),
-    usuario.createChildren,
+    user_profile.createChildren,
   )
   .put<{ id: string }>(
     "/api/usuario/hijos/:id",
     checkUserAccess(),
-    usuario.updateChildren,
+    user_profile.updateChildren,
   )
   .delete<{ id: string }>(
     "/api/usuario/hijos/:id",
     checkUserAccess(),
-    usuario.deleteChildren,
+    user_profile.deleteChildren,
   )
-  .get("/api/usuario/soportes", checkUserAccess(), usuario.getSupportFiles)
+  .get("/api/usuario/soportes", checkUserAccess(), user_profile.getSupportFiles)
   .get<{ id: string }>(
     "/api/usuario/soportes/:id",
     checkUserAccess(),
-    usuario.getSupportFile,
+    user_profile.getSupportFile,
   )
   .put<{ id: string }>(
     "/api/usuario/soportes/:id",
     checkUserAccess(),
-    usuario.loadSupportFile,
+    user_profile.loadSupportFile,
   )
-  .get("/api/usuario/foto", checkUserAccess(), usuario.getPicture)
-  .put("/api/usuario/foto", checkUserAccess(), usuario.updatePicture)
+  .get("/api/usuario/foto", checkUserAccess(), user_profile.getPicture)
+  .put("/api/usuario/foto", checkUserAccess(), user_profile.updatePicture)
   .get(
     "/api/usuario",
     checkUserAccess(),
-    usuario.getUserInformation,
+    user_profile.getUserInformation,
   )
   .put(
     "/api/usuario",
     checkUserAccess(),
-    usuario.updateUserInformation,
+    user_profile.updateUserInformation,
   );
 
 /*
@@ -707,6 +707,64 @@ main_router
     checkUserAccess(),
     marital_status.getMaritalStatus,
   );
+
+main_router
+    .get(
+        "/api/maestro/plantilla",
+        checkUserAccess([
+            Profiles.ADMINISTRATOR,
+            Profiles.CONSULTANT,
+            Profiles.CONTROLLER,
+            Profiles.HUMAN_RESOURCES,
+        ]),
+        people_supports.getSupportFormats,
+    )
+    .post(
+        "/api/maestro/plantilla/table",
+        checkUserAccess([
+            Profiles.ADMINISTRATOR,
+            Profiles.CONTROLLER,
+            Profiles.HUMAN_RESOURCES,
+        ]),
+        people_supports.getSupportFormatsTable,
+    )
+    .get<{ id: string }>(
+        "/api/maestro/plantilla/:id",
+        checkUserAccess([
+            Profiles.ADMINISTRATOR,
+            Profiles.CONSULTANT,
+            Profiles.CONTROLLER,
+            Profiles.HUMAN_RESOURCES,
+        ]),
+        people_supports.getSupportFormat,
+    )
+    .post(
+        "/api/maestro/plantilla",
+        checkUserAccess([
+            Profiles.ADMINISTRATOR,
+            Profiles.CONTROLLER,
+            Profiles.HUMAN_RESOURCES,
+        ]),
+        people_supports.createSupportFormat,
+    )
+    .put<{ id: string }>(
+        "/api/maestro/plantilla/:id",
+        checkUserAccess([
+            Profiles.ADMINISTRATOR,
+            Profiles.CONTROLLER,
+            Profiles.HUMAN_RESOURCES,
+        ]),
+        people_supports.updateSupportFormat,
+    )
+    .delete<{ id: string }>(
+        "/api/maestro/plantilla/:id",
+        checkUserAccess([
+            Profiles.ADMINISTRATOR,
+            Profiles.CONTROLLER,
+            Profiles.HUMAN_RESOURCES,
+        ]),
+        people_supports.deleteSupportFormat,
+    );
 
 main_router
   .get(
@@ -2150,64 +2208,6 @@ main_router
       Profiles.SALES,
     ]),
     updateAssignationRequest,
-  );
-
-main_router
-  .get(
-    "/api/humanos/soporte",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
-    people_supports.getSupportFormats,
-  )
-  .post(
-    "/api/humanos/soporte/table",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
-    people_supports.getSupportFormatsTable,
-  )
-  .get<{ id: string }>(
-    "/api/humanos/soporte/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
-    people_supports.getSupportFormat,
-  )
-  .post(
-    "/api/humanos/soporte",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
-    people_supports.createSupportFormat,
-  )
-  .put<{ id: string }>(
-    "/api/humanos/soporte/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
-    people_supports.updateSupportFormat,
-  )
-  .delete<{ id: string }>(
-    "/api/humanos/soporte/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
-    people_supports.deleteSupportFormat,
   );
 
 export const routes = main_router.routes();

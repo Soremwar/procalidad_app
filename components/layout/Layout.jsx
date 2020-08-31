@@ -16,32 +16,32 @@ import Sidebar from "./sidebar/Sidebar.jsx";
 import { UserContext } from "../context/User.jsx";
 import { useLayoutState } from "../context/Layout.jsx";
 
-import Sector from "../pages/clientes/Sector.jsx";
-import Cliente from "../pages/clientes/Cliente.jsx";
-import Contacto from "../pages/clientes/Contacto.jsx";
-import Proyecto from "../pages/operaciones/proyecto.jsx";
-import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
-import TipoArea from "../pages/organizacion/TipoArea.jsx";
+import Acceso from "../pages/maestro/acceso.jsx";
 import Area from "../pages/organizacion/Area.jsx";
-import SubArea from "../pages/organizacion/sub_area.jsx";
-import Persona from "../pages/organizacion/persona.jsx";
+import Asignacion from "../pages/asignacion.jsx";
 import AsignacionCargo from "../pages/organizacion/asignacion_cargo.jsx";
 import Cargo from "../pages/organizacion/cargo.jsx";
+import Cliente from "../pages/clientes/Cliente.jsx";
 import Computador from "../pages/organizacion/computador.jsx";
-import Licencia from "../pages/organizacion/licencia.jsx";
+import Contacto from "../pages/clientes/Contacto.jsx";
 import CostoEmpleado from "../pages/organizacion/costo_empleado.jsx";
-import TipoPresupuesto from "../pages/operaciones/TipoPresupuesto.jsx";
-import Rol from "../pages/operaciones/Rol.jsx";
-import Presupuesto from "../pages/operaciones/Presupuesto.jsx";
+import Formato from "../pages/maestro/formato.jsx";
+import Licencia from "../pages/organizacion/licencia.jsx";
 import Parametro from "../pages/maestro/parametro.jsx";
-import Acceso from "../pages/maestro/acceso.jsx";
+import Perfil from "../pages/usuario/perfil.jsx";
+import Persona from "../pages/organizacion/persona.jsx";
 import PlaneacionProyecto from "../pages/planeacion/proyecto.jsx";
 import PlaneacionRecurso from "../pages/planeacion/recurso.jsx";
-import Asignacion from "../pages/asignacion.jsx";
+import Plantilla from "../pages/maestro/plantilla.jsx";
+import Presupuesto from "../pages/operaciones/Presupuesto.jsx";
+import Proyecto from "../pages/operaciones/proyecto.jsx";
 import Registro from "../pages/registro.jsx";
-import Formato from "../pages/maestro/formato.jsx";
-import Perfil from "../pages/usuario/perfil.jsx";
-import ArchivosSoporte from "../pages/humanos/soporte.jsx";
+import Rol from "../pages/operaciones/Rol.jsx";
+import Sector from "../pages/clientes/Sector.jsx";
+import SubArea from "../pages/organizacion/sub_area.jsx";
+import TipoArea from "../pages/organizacion/TipoArea.jsx";
+import TipoPresupuesto from "../pages/operaciones/TipoPresupuesto.jsx";
+import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
 
 //TODO
 //Make profiles constant (shared?)
@@ -95,7 +95,7 @@ const Layout = (props) => {
             Find a way to encapsulate routes over section
           */}
           <Switch>
-            <Route component={Perfil} path="/perfil" />
+            <Route component={Perfil} path="/usuario/perfil" />
             <ProfiledRoute
               allowed_profiles={[
                 Profiles.ADMINISTRATOR,
@@ -120,6 +120,14 @@ const Layout = (props) => {
               ]}
               component={Formato}
               path="/maestro/formato"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+              ]}
+              component={Plantilla}
+              path="/maestro/plantilla"
             />
             <ProfiledRoute
               allowed_profiles={[
@@ -352,12 +360,10 @@ const Layout = (props) => {
             />
             <ProfiledRoute
               allowed_profiles={[
-                Profiles.ADMINISTRATOR,
-                Profiles.CONTROLLER,
-                Profiles.HUMAN_RESOURCES,
+                Profiles.CONSULTANT,
               ]}
-              component={ArchivosSoporte}
-              path="/humanos/soporte"
+              component={Perfil}
+              path="/usuario/perfil"
             />
           </Switch>
         </div>

@@ -73,6 +73,14 @@ const structure = [
         label: "Formato",
         link: "/maestro/formato",
       },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ],
+        label: "Plantillas",
+        link: "/maestro/plantilla",
+      },
     ],
   },
   {
@@ -341,17 +349,15 @@ const structure = [
     ],
   },
   {
-    label: "Recursos humanos",
+    label: "Hoja de vida",
     icon: <AccountBoxIcon />,
     children: [
       {
         allowed_profiles: [
-          Profiles.ADMINISTRATOR,
-          Profiles.CONTROLLER,
-          Profiles.HUMAN_RESOURCES,
+          Profiles.CONSULTANT,
         ],
-        label: "Soportes",
-        link: "/humanos/soporte",
+        label: "Perfil",
+        link: "/usuario/perfil",
       },
     ],
   },

@@ -11,20 +11,20 @@ import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
 import {
-  fetchSupportFilesApi,
+  fetchFileTemplateApi,
 } from "../../../lib/api/generator.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 
-const getSupport = (id) => fetchSupportFilesApi(id).then((x) => x.json());
+const getSupport = (id) => fetchFileTemplateApi(id).then((x) => x.json());
 
 const createLicense = async (
   name,
   prefix,
 ) =>
-  fetchSupportFilesApi("", {
+  fetchFileTemplateApi("", {
     body: JSON.stringify({
       name,
       prefix,
@@ -40,7 +40,7 @@ const updateLicense = async (
   name,
   prefix,
 ) =>
-  fetchSupportFilesApi(id, {
+  fetchFileTemplateApi(id, {
     body: JSON.stringify({
       name,
       prefix,
@@ -52,7 +52,7 @@ const updateLicense = async (
   });
 
 const deleteLicense = async (id) =>
-  fetchSupportFilesApi(id, {
+  fetchFileTemplateApi(id, {
     method: "DELETE",
   });
 
@@ -335,7 +335,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Archivos de soporte"} />
+      <Title title={"Plantillas de archivo"} />
       <AddModal
         is_open={is_add_modal_open}
         setModalOpen={setAddModalOpen}
@@ -360,7 +360,7 @@ export default () => {
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
-        url={"humanos/soporte/table"}
+        url={"maestro/plantilla/table"}
       />
     </Fragment>
   );
