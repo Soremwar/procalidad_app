@@ -193,6 +193,7 @@ export default ({
                 }
                 return month_count;
               }, {}))
+              .sort(([a], [b]) => a.localeCompare(b))
               .map(([month_id, count]) => (
                 <CleanTableCell align="center" colSpan={count} key={month_id}>
                   {month_lang.get(month_id)}
