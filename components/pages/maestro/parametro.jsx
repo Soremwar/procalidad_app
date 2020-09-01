@@ -631,7 +631,9 @@ const EditModal = ({
         )}
       </DialogContent>
       <DialogActions>
-        <Button color="primary">Cerrar</Button>
+        <Button color="primary" onClick={() => setModalOpen(false)}>
+          Cerrar
+        </Button>
         {is_loading
           ? (
             <CircularProgress
