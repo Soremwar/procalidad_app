@@ -53,7 +53,7 @@ export const createAssignationRequestEmail = async (
     message: html.encode(message),
     project: html.encode(project),
     requestant: html.encode(requestant),
-    role: html.encode(requestant),
+    role: html.encode(role),
   });
 };
 
