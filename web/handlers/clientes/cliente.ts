@@ -41,7 +41,12 @@ const update_request = {
       type: "string",
     },
     "sector": TRUTHY_INTEGER,
-    "verification_digit": TRUTHY_INTEGER,
+    "verification_digit": {
+      minimum: 0,
+      maximum: 9,
+      pattern: "^[0-9]$",
+      type: ["string", "number"],
+    },
   },
 };
 
