@@ -213,7 +213,7 @@ export const getTableData = async (
           SELECT
             COD_SEMANA
           FROM ${WEEK_TABLE}
-          WHERE NOW() BETWEEN FECHA_INICIO AND FECHA_FIN
+          WHERE CURRENT_DATE BETWEEN FECHA_INICIO AND FECHA_FIN
         )
         ORDER BY COD_SEMANA DESC
         LIMIT 1

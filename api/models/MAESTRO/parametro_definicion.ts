@@ -86,7 +86,7 @@ export const getActiveDefinition = async (
       VALOR
     FROM ${TABLE}
     WHERE FK_PARAMETRO = $1
-    AND NOW() BETWEEN FEC_INICIO AND FEC_FIN`,
+    AND CURRENT_DATE BETWEEN FEC_INICIO AND FEC_FIN`,
     parameter,
   );
 

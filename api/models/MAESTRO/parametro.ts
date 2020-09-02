@@ -68,7 +68,7 @@ class Parametro {
       `SELECT
         VALOR
       FROM ${PARAMETER_VALUE_TABLE} 
-      WHERE NOW() BETWEEN FEC_INICIO AND FEC_FIN
+      WHERE CURRENT_DATE BETWEEN FEC_INICIO AND FEC_FIN
       AND FK_PARAMETRO = $1`,
       this.pk_parametro,
     );
