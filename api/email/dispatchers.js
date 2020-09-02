@@ -52,10 +52,11 @@ export const dispatchAssignationRequested = async (assignation_request) => {
   const { rows } = await postgres.query(
     `SELECT
       TO_CHAR(TO_DATE(ASO.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = CS.FK_PERSONA) AS REQUESTANT,
+      REQ.NOMBRE AS REQUESTANT,
       (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE = PRO.FK_CLIENTE) AS CLIENT,
       PRO.NOMBRE AS PROJECT,
-      (SELECT CORREO FROM ${PERSON_TABLE} WHERE PK_PERSONA = PRO.FK_SUPERVISOR) AS SUPERVISOR_EMAIL,
+      SUP.NOMBRE AS SUPERVISOR_NAME,
+      SUP.CORREO AS SUPERVISOR_EMAIL,
       ROL.NOMBRE AS ROLE,
       ASO.HORAS AS HOURS,
       ASO.DESCRIPCION AS DESCRIPTION
@@ -68,6 +69,10 @@ export const dispatchAssignationRequested = async (assignation_request) => {
       ON PRO.PK_PROYECTO = PRE.FK_PROYECTO
     JOIN ${ROLE_TABLE} ROL
       ON ROL.PK_ROL = ASO.FK_ROL
+    JOIN ${PERSON_TABLE} AS REQ
+      ON REQ.PK_PERSONA = CS.FK_PERSONA
+    JOIN ${PERSON_TABLE} AS SUP
+      ON REQ.PK_PERSONA = PRO.FK_SUPERVISOR
     WHERE ASO.PK_SOLICITUD = $1`,
     assignation_request,
   );
@@ -77,6 +82,7 @@ export const dispatchAssignationRequested = async (assignation_request) => {
     requestant,
     client,
     project,
+    supervisor_name,
     supervisor_email,
     role,
     hours,
@@ -84,13 +90,14 @@ export const dispatchAssignationRequested = async (assignation_request) => {
   ] = rows[0];
 
   const email_content = await createAssignationRequestEmail(
-    requestant,
-    description,
-    date,
     client,
-    project,
-    role,
+    date,
     hours,
+    description,
+    project,
+    requestant,
+    role,
+    supervisor_name,
   );
 
   await sendNewEmail(
@@ -107,8 +114,9 @@ export const dispatchAssignationRequestReviewed = async (
   const { rows } = await postgres.query(
     `SELECT
       TO_CHAR(TO_DATE(ASO.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
-      PER.CORREO AS REQUESTANT_EMAIL,
-      PER.NOMBRE AS REQUESTANT_NAME,
+      REQ.CORREO AS REQUESTANT_EMAIL,
+      REQ.NOMBRE AS REQUESTANT_NAME,
+      SUP.NOMBRE AS SUPERVISOR_NAME,
       (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE = PRO.FK_CLIENTE) AS CLIENT,
       PRO.NOMBRE AS PROJECT,
       ROL.NOMBRE AS ROLE,
@@ -117,14 +125,16 @@ export const dispatchAssignationRequestReviewed = async (
     FROM ${ASSIGNATION_REQUEST_TABLE} ASO
     JOIN ${WEEK_CONTROL_TABLE} CS
       ON ASO.FK_CONTROL_SEMANA = CS.PK_CONTROL
-    JOIN ${PERSON_TABLE} PER
-      ON PER.PK_PERSONA = CS.FK_PERSONA
     JOIN ${BUDGET_TABLE} PRE
       ON PRE.PK_PRESUPUESTO = ASO.FK_PRESUPUESTO
     JOIN ${PROJECT_TABLE} PRO
       ON PRO.PK_PROYECTO = PRE.FK_PROYECTO
     JOIN ${ROLE_TABLE} ROL
       ON ROL.PK_ROL = ASO.FK_ROL
+    JOIN ${PERSON_TABLE} REQ
+      ON REQ.PK_PERSONA = CS.FK_PERSONA
+    JOIN ${PERSON_TABLE} SUP
+      ON SUP.PK_PERSONA = PRO.FK_SUPERVISOR
     WHERE ASO.PK_SOLICITUD = $1`,
     assignation_request,
   );
@@ -133,6 +143,7 @@ export const dispatchAssignationRequestReviewed = async (
     date,
     requestant_email,
     requestant_name,
+    supervisor_name,
     client,
     project,
     role,
@@ -149,6 +160,7 @@ export const dispatchAssignationRequestReviewed = async (
     project,
     requestant_name,
     role,
+    supervisor_name,
   );
 
   await sendNewEmail(

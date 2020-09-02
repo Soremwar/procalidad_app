@@ -30,13 +30,14 @@ const layout = await Deno.readTextFile(
 Handlebars.registerPartial("layout", layout);
 
 export const createAssignationRequestEmail = async (
-  requestant,
-  message,
-  date,
   client,
-  project,
-  role,
+  date,
   hours,
+  message,
+  project,
+  requestant,
+  role,
+  supervisor,
 ) => {
   const html = new HtmlEncoder.AllHtmlEntities();
   const raw_template = await Deno.readTextFile(
@@ -54,6 +55,7 @@ export const createAssignationRequestEmail = async (
     project: html.encode(project),
     requestant: html.encode(requestant),
     role: html.encode(role),
+    supervisor: html.encode(supervisor),
   });
 };
 
@@ -66,6 +68,7 @@ export const createAssignationRequestReviewEmail = async (
   project,
   requestant,
   role,
+  supervisor,
 ) => {
   const html = new HtmlEncoder.AllHtmlEntities();
   const raw_template = await Deno.readTextFile(
@@ -84,6 +87,7 @@ export const createAssignationRequestReviewEmail = async (
     project: html.encode(project),
     requestant: html.encode(requestant),
     role: html.encode(role),
+    supervisor: html.encode(supervisor),
   });
 };
 
