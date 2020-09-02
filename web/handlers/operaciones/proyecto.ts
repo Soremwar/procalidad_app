@@ -1,4 +1,5 @@
-import { Body, RouterContext } from "oak";
+import { helpers, RouterContext } from "oak";
+import Ajv from "ajv";
 import {
   createNew,
   findAll,
@@ -12,11 +13,71 @@ import {
 import { Profiles } from "../../../api/common/profiles.ts";
 import { decodeToken } from "../../../lib/jwt.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
-import { formatResponse, Message, Status } from "../../http_utils.ts";
+import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import { BOOLEAN, TRUTHY_INTEGER } from "../../../lib/ajv/types.js";
+import { castStringToBoolean } from "../../../lib/utils/boolean.js";
 
-export const getProjects = async ({ response }: RouterContext) => {
-  response.body = await findAll();
+const list_request = {
+  $id: "list",
+  properties: {
+    "assignated_only": BOOLEAN,
+  },
+};
+
+const update_request = {
+  $id: "update",
+  properties: {
+    "client": TRUTHY_INTEGER,
+    "description": {
+      type: "string",
+    },
+    "name": {
+      maxLength: 255,
+      type: "string",
+    },
+    "status": TRUTHY_INTEGER,
+    "sub_area": TRUTHY_INTEGER,
+    "supervisor": TRUTHY_INTEGER,
+    "type": TRUTHY_INTEGER,
+  },
+};
+
+const create_request = Object.assign({}, update_request, {
+  $id: "create",
+  "required": [
+    "client",
+    "description",
+    "name",
+    "status",
+    "sub_area",
+    "supervisor",
+    "type",
+  ],
+});
+
+// @ts-ignore
+const request_validator = new Ajv({
+  schemas: [
+    create_request,
+    list_request,
+    update_request,
+  ],
+});
+
+export const getProjects = async (context: RouterContext) => {
+  const session_cookie = context.cookies.get("PA_AUTH") || "";
+  const { id } = await decodeToken(session_cookie);
+  const url_params = helpers.getQuery(context);
+
+  if (!request_validator.validate("list", url_params)) {
+    throw new RequestSyntaxError();
+  }
+
+  context.response.body = await findAll(
+    castStringToBoolean(url_params.assignated_only || false),
+    id,
+  );
 };
 
 export const getProjectsTable = async (context: RouterContext) =>
@@ -30,36 +91,17 @@ export const createProject = async (
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    type,
-    client,
-    sub_area,
-    name,
-    supervisor,
-    description,
-    status,
-  } = await request.body({ type: "json" }).value;
+  const value = await request.body({ type: "json" }).value;
 
-  if (
-    !(
-      Number(type) &&
-      Number(client) &&
-      Number(sub_area) &&
-      name &&
-      Number(supervisor) &&
-      description &&
-      Number.isInteger(Number(status))
-    )
-  ) {
+  if (!request_validator.validate("create", value)) {
     throw new RequestSyntaxError();
   }
 
-  const project_type = await findProjectType(Number(Number(type)));
+  const project_type = await findProjectType(value.type);
   if (!project_type) {
     throw new Error("El tipo de proyecto seleccionado no fue encontrado");
   }
 
-  //Ignore cause this is already validated but TypeScript is too dumb to notice
   const session_cookie = cookies.get("PA_AUTH") || "";
   const { profiles } = await decodeToken(session_cookie);
 
@@ -80,13 +122,13 @@ export const createProject = async (
   }
 
   response.body = await createNew(
-    Number(type),
-    Number(client),
-    Number(sub_area),
-    name,
-    Number(supervisor),
-    description,
-    Number(status),
+    value.type,
+    value.client,
+    value.sub_area,
+    value.name,
+    value.supervisor,
+    value.description,
+    value.status,
   );
 };
 
@@ -128,16 +170,8 @@ export const updateProject = async (
   let project = await findById(id);
   if (!project) throw new NotFoundError();
 
-  const {
-    client,
-    sub_area,
-    name,
-    supervisor,
-    description,
-    status,
-  } = await request.body({ type: "json" }).value;
+  const value = await request.body({ type: "json" }).value;
 
-  //Ignore cause this is already validated but TypeScript is too dumb to notice
   const session_cookie = cookies.get("PA_AUTH") || "";
   const {
     id: user_id,
@@ -159,12 +193,12 @@ export const updateProject = async (
   }
 
   response.body = await project.update(
-    Number(client) || undefined,
-    Number(sub_area) || undefined,
-    name,
-    Number(supervisor) || undefined,
-    description,
-    Number.isInteger(Number(status)) ? Number(status) : undefined,
+    value.client,
+    value.sub_area,
+    value.name,
+    value.supervisor,
+    value.description,
+    value.status,
   );
 };
 
@@ -178,9 +212,6 @@ export const deleteProject = async (
   if (!project) throw new NotFoundError();
 
   await project.delete();
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
+
+  response.body = Message.OK;
 };

@@ -6,14 +6,20 @@ import {
   TableResult,
 } from "../../common/table.ts";
 import {
-  TABLE as STATE_TABLE,
-} from "../MAESTRO/ESTADO.ts";
-import {
-  TABLE as CITY_TABLE,
-} from "../MAESTRO/CIUDAD.ts";
-import {
   TABLE as SECTOR_TABLE,
 } from "./SECTOR.ts";
+import {
+  TABLE as PROJECT_TABLE,
+} from "../OPERACIONES/PROYECTO.ts";
+import {
+  TABLE as SUB_AREA_TABLE,
+} from "../ORGANIZACION/sub_area.ts";
+import {
+  TABLE as ACCESS_TABLE,
+} from "../MAESTRO/access.ts";
+import {
+  Profiles,
+} from "../../common/profiles.ts";
 
 export const TABLE = "CLIENTES.CLIENTE";
 
@@ -29,8 +35,6 @@ class Cliente {
     public nit: string,
     public d_verificacion: number,
     public razon_social: string,
-    public fk_pais: number | undefined,
-    public fk_estado: number | undefined,
     public fk_ciudad: number,
     public direccion: string,
   ) {}
@@ -58,6 +62,7 @@ class Cliente {
         direccion,
       },
     );
+
     await postgres.query(
       `UPDATE ${TABLE} SET
         FK_SECTOR = $2,
@@ -101,82 +106,7 @@ class Cliente {
   }
 }
 
-export const findAll = async (): Promise<Cliente[]> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      CL.PK_CLIENTE,
-      CL.FK_SECTOR,
-      CL.NOMBRE,
-      CL.NIT,
-      CL.D_VERIFICACION,
-      CL.RAZON_SOCIAL,
-      ST.FK_PAIS,
-      CT.FK_ESTADO,
-      CL.FK_CIUDAD,
-      CL.DIRECCION
-    FROM
-      ${TABLE} AS CL
-    JOIN ${CITY_TABLE} AS CT
-      ON CL.FK_CIUDAD = CT.PK_CIUDAD
-    JOIN ${STATE_TABLE} AS ST
-    ON CT.FK_ESTADO = ST.PK_ESTADO`,
-  );
-
-  const models = rows.map((row: [
-    number,
-    number,
-    string,
-    string,
-    number,
-    string,
-    number,
-    number,
-    number,
-    string,
-  ]) => new Cliente(...row));
-
-  return models;
-};
-
-export const findById = async (id: number): Promise<Cliente | null> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      CL.PK_CLIENTE,
-      CL.FK_SECTOR,
-      CL.NOMBRE,
-      CL.NIT,
-      CL.D_VERIFICACION,
-      CL.RAZON_SOCIAL,
-      ST.FK_PAIS,
-      CT.FK_ESTADO,
-      CL.FK_CIUDAD,
-      CL.DIRECCION
-    FROM
-      ${TABLE} AS CL
-    JOIN ${CITY_TABLE} AS CT
-      ON CL.FK_CIUDAD = CT.PK_CIUDAD
-    JOIN ${STATE_TABLE} AS ST
-      ON CT.FK_ESTADO = ST.PK_ESTADO
-    WHERE CL.PK_CLIENTE = $1`,
-    id,
-  );
-  if (!rows[0]) return null;
-  const result: [
-    number,
-    number,
-    string,
-    string,
-    number,
-    string,
-    number,
-    number,
-    number,
-    string,
-  ] = rows[0];
-  return new Cliente(...result);
-};
-
-export const createNew = async (
+export const create = async (
   fk_sector: number,
   nombre: string,
   nit: string,
@@ -184,8 +114,8 @@ export const createNew = async (
   razon_social: string,
   fk_ciudad: number,
   direccion: string,
-): Promise<void> => {
-  await postgres.query(
+): Promise<Cliente> => {
+  const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_SECTOR,
       NOMBRE,
@@ -202,7 +132,7 @@ export const createNew = async (
       $5,
       $6,
       $7
-    )`,
+    ) RETURNING PK_CLIENTE`,
     fk_sector,
     nombre,
     nit,
@@ -217,6 +147,111 @@ export const createNew = async (
 
     throw e;
   });
+
+  const id: number = rows[0][0];
+
+  return new Cliente(
+    id,
+    fk_sector,
+    nombre,
+    nit,
+    d_verificacion,
+    razon_social,
+    fk_ciudad,
+    direccion,
+  );
+};
+
+export const getAll = async (
+  assignated_only: boolean,
+  user: number,
+): Promise<Cliente[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_CLIENTE,
+      FK_SECTOR,
+      NOMBRE,
+      NIT,
+      D_VERIFICACION,
+      RAZON_SOCIAL,
+      FK_CIUDAD,
+      DIRECCION
+    FROM ${TABLE}
+    ${
+      assignated_only
+        ? `WHERE PK_CLIENTE IN (
+            WITH ADMIN_USERS AS (
+              SELECT FK_PERSONA AS USERS
+              FROM ${ACCESS_TABLE}
+              WHERE FK_PERMISO IN (
+                ${Profiles.ADMINISTRATOR},
+                ${Profiles.CONTROLLER}
+              )
+            )
+            SELECT
+              FK_CLIENTE
+            FROM (
+              SELECT
+                PRO.FK_CLIENTE,
+                UNNEST(ARRAY_CAT(
+                  ARRAY[PRO.FK_SUPERVISOR, SA.FK_SUPERVISOR],
+                  (SELECT ARRAY_AGG(USERS) FROM ADMIN_USERS)
+                )) AS SUPERVISOR
+              FROM ${PROJECT_TABLE} PRO
+              JOIN ${SUB_AREA_TABLE} SA
+                ON SA.PK_SUB_AREA = PRO.FK_SUB_AREA
+              GROUP BY
+                PRO.FK_CLIENTE,
+                SUPERVISOR
+            ) A
+            WHERE SUPERVISOR = ${user}
+          )`
+        : ""
+    }`,
+  );
+
+  return rows.map((row: [
+    number,
+    number,
+    string,
+    string,
+    number,
+    string,
+    number,
+    string,
+  ]) => new Cliente(...row));
+};
+
+export const findById = async (id: number): Promise<Cliente | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_CLIENTE,
+      FK_SECTOR,
+      NOMBRE,
+      NIT,
+      D_VERIFICACION,
+      RAZON_SOCIAL,
+      FK_CIUDAD,
+      DIRECCION
+    FROM ${TABLE}
+    WHERE PK_CLIENTE = $1`,
+    id,
+  );
+
+  if (!rows[0]) return null;
+
+  const result: [
+    number,
+    number,
+    string,
+    string,
+    number,
+    string,
+    number,
+    string,
+  ] = rows[0];
+
+  return new Cliente(...result);
 };
 
 class TableData {
@@ -244,34 +279,6 @@ export const getTableData = async (
         RAZON_SOCIAL AS BUSINESS
       FROM ${TABLE}`
   );
-
-  const query = `SELECT * FROM (
-      SELECT
-        PK_CLIENTE AS ID,
-        (SELECT NOMBRE FROM ${SECTOR_TABLE} WHERE PK_SECTOR = FK_SECTOR) AS SECTOR,
-        NOMBRE AS NAME,
-        NIT||'-'||D_VERIFICACION AS NIT,
-        RAZON_SOCIAL AS BUSINESS
-      FROM ${TABLE}
-    ) AS TOTAL` +
-    " " +
-    (Object.keys(search).length
-      ? `WHERE ${
-        Object.entries(search)
-          .map(([column, value]) => (
-            `CAST(${column} AS VARCHAR) ILIKE '${value || "%"}'`
-          )).join(" AND ")
-      }`
-      : "") +
-    " " +
-    (Object.values(order).length
-      ? `ORDER BY ${
-        Object.entries(order).map(([column, order]) => `${column} ${order}`)
-          .join(", ")
-      }`
-      : "") +
-    " " +
-    (rows ? `OFFSET ${rows * page} LIMIT ${rows}` : "");
 
   const { count, data } = await getTableModels(
     base_query,

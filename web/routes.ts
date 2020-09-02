@@ -30,14 +30,7 @@ import * as language from "./handlers/maestro/idioma.ts";
 import * as gender from "./handlers/maestro/genero.ts";
 import * as marital_status from "./handlers/maestro/estado_civil.ts";
 import * as file_formats from "./handlers/maestro/formato.ts";
-import {
-  createClient,
-  deleteClient,
-  getClient,
-  getClients,
-  getClientsTable,
-  updateClient,
-} from "./handlers/clientes/cliente.ts";
+import * as clients from "./handlers/clientes/cliente.ts";
 import {
   createProjectType,
   deleteProjectType,
@@ -838,7 +831,7 @@ main_router
       Profiles.PROYECT_MANAGER,
       Profiles.SALES,
     ]),
-    getClients,
+    clients.getClients,
   )
   .post(
     "/api/clientes/cliente/table",
@@ -850,7 +843,7 @@ main_router
       Profiles.PROYECT_MANAGER,
       Profiles.SALES,
     ]),
-    getClientsTable,
+    clients.getClientsTable,
   )
   .get<{ id: string }>(
     "/api/clientes/cliente/:id",
@@ -863,7 +856,7 @@ main_router
       Profiles.PROYECT_MANAGER,
       Profiles.SALES,
     ]),
-    getClient,
+    clients.getClient,
   )
   .post(
     "/api/clientes/cliente",
@@ -872,7 +865,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.SALES,
     ]),
-    createClient,
+    clients.createClient,
   )
   .put<{ id: string }>(
     "/api/clientes/cliente/:id",
@@ -881,7 +874,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.SALES,
     ]),
-    updateClient,
+    clients.updateClient,
   )
   .delete<{ id: string }>(
     "/api/clientes/cliente/:id",
@@ -890,7 +883,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.SALES,
     ]),
-    deleteClient,
+    clients.deleteClient,
   );
 
 main_router

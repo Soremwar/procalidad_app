@@ -63,9 +63,15 @@ const parseNumberAsWeek = (date) => {
 
 const getBudgets = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
-const getClients = () => fetchClientApi().then((x) => x.json());
+const getClients = () =>
+  fetchClientApi({
+    assignated_only: true,
+  }).then((x) => x.json());
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
-const getProjects = () => fetchProjectApi().then((x) => x.json());
+const getProjects = () =>
+  fetchProjectApi({
+    assignated_only: true,
+  }).then((x) => x.json());
 const getRoles = () => fetchRoleApi().then((x) => x.json());
 const getWeeks = () => fetchAssignationApi("semanas").then((x) => x.json());
 

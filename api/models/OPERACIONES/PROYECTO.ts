@@ -17,15 +17,22 @@ import {
 import {
   TABLE as BUDGET_TABLE,
 } from "./budget.ts";
+import {
+  TABLE as ACCESS_TABLE,
+} from "../MAESTRO/access.ts";
+import { Profiles } from "../../common/profiles.ts";
 
 export const TABLE = "OPERACIONES.PROYECTO";
 const ERROR_DEPENDENCY =
   "No se puede eliminar el proyecto por que hay componentes que dependen de el";
 
+//TODO
+//Project status should be a postgres enum
+//Should be validated by AJV as well
 class Proyecto {
   constructor(
     public readonly pk_proyecto: number,
-    public fk_tipo_proyecto: number,
+    public readonly fk_tipo_proyecto: number,
     public fk_cliente: number,
     public fk_sub_area: number,
     public nombre: string,
@@ -81,6 +88,7 @@ class Proyecto {
       descripcion,
       estado,
     });
+
     await postgres.query(
       `UPDATE ${TABLE} SET
         FK_CLIENTE = $2,
@@ -116,7 +124,10 @@ class Proyecto {
   }
 }
 
-export const findAll = async (): Promise<Proyecto[]> => {
+export const findAll = async (
+  assignated_only: boolean,
+  user: number,
+): Promise<Proyecto[]> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_PROYECTO,
@@ -127,7 +138,38 @@ export const findAll = async (): Promise<Proyecto[]> => {
       FK_SUPERVISOR,
       DESCRIPCION,
       ESTADO
-    FROM ${TABLE}`,
+    FROM ${TABLE}
+    ${
+      assignated_only
+        ? `WHERE PK_PROYECTO IN (
+            WITH ADMIN_USERS AS (
+              SELECT FK_PERSONA AS USERS
+              FROM ${ACCESS_TABLE}
+              WHERE FK_PERMISO IN (
+                ${Profiles.ADMINISTRATOR},
+                ${Profiles.CONTROLLER}
+              )
+            )
+            SELECT
+              PK_PROYECTO
+            FROM (
+              SELECT
+                PRO.PK_PROYECTO,
+                UNNEST(ARRAY_CAT(
+                  ARRAY[PRO.FK_SUPERVISOR, SA.FK_SUPERVISOR],
+                  (SELECT ARRAY_AGG(USERS) FROM ADMIN_USERS)
+                )) AS SUPERVISOR
+              FROM ${TABLE} PRO
+              JOIN ${SUB_AREA_TABLE} SA
+                ON SA.PK_SUB_AREA = PRO.FK_SUB_AREA
+              GROUP BY
+                PRO.PK_PROYECTO,
+                SUPERVISOR
+            ) A
+            WHERE SUPERVISOR = ${user}
+          )`
+        : ""
+    }`,
   );
 
   return rows.map((row: [
@@ -197,7 +239,7 @@ export const searchByNameAndClient = async (
     `%${query || "%"}%`,
   );
 
-  const models = rows.map((result: [
+  return rows.map((result: [
     number,
     number,
     number,
@@ -207,8 +249,6 @@ export const searchByNameAndClient = async (
     string,
     number,
   ]) => new Proyecto(...result));
-
-  return models;
 };
 
 export const createNew = async (
