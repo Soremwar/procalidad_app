@@ -43,6 +43,7 @@ import SubArea from "../pages/organizacion/sub_area.jsx";
 import TipoArea from "../pages/organizacion/TipoArea.jsx";
 import TipoPresupuesto from "../pages/operaciones/TipoPresupuesto.jsx";
 import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
+import { Router } from "@material-ui/icons";
 
 //TODO
 //Make profiles constant (shared?)
@@ -374,6 +375,8 @@ const Layout = (props) => {
               component={Perfil}
               path="/usuario/perfil"
             />
+            <Route exact={true} path="/" />
+            <Redirect from="*" to="/404" />
           </Switch>
         </div>
       </Fragment>

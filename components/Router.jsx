@@ -9,7 +9,7 @@ import {
 import { UserContext } from "./context/User.jsx";
 import Login from "./login/Login.jsx";
 import Layout from "./layout/Layout.jsx";
-import NotFound from "./utils/errors/NotFound.jsx";
+import NotFound from "./pages/errors/NotFound.jsx";
 
 const PublicRoute = ({ component, ...props }) => {
   const [userState] = useContext(UserContext);
@@ -44,8 +44,8 @@ export default () => {
     <BrowserRouter>
       <Switch>
         <PublicRoute path={"/login"} component={Login} />
+        <PrivateRoute path={"/404"} component={NotFound} />
         <PrivateRoute path={"/"} component={Layout} />
-        <Route component={NotFound} />
       </Switch>
     </BrowserRouter>
   );

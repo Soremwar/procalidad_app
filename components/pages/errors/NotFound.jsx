@@ -10,8 +10,12 @@ export default () => {
 
   return (
     <Grid container className={classes.container}>
-      <div className={classes.logotype}>
-        <h1>Icon should be here</h1>
+      <div className={classes.logotypeContainer}>
+        <img
+          src={"/resources/img/login_icon.png"}
+          alt="PROCALIDAD_APP_LOGO"
+          className={classes.logotypeImage}
+        />
         <Typography
           variant="h3"
           color="textPrimary"
