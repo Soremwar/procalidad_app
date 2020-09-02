@@ -219,12 +219,12 @@ const AddModal = ({
           return roles.map(({
             pk_rol,
             nombre,
-          }) => ({ text: nombre, value: pk_rol }));
+          }) => ({ text: nombre, value: String(pk_rol) }));
         }}
         label="Rol"
         required
         setValue={(value) =>
-          setFields((prev_state) => ({ ...prev_state, role: String(value) }))}
+          setFields((prev_state) => ({ ...prev_state, role: value }))}
         value={fields.role}
       />
       <TextField
