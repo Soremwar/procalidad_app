@@ -3,6 +3,8 @@ import { RequestSyntaxError } from "../../web/exceptions.ts";
 import postgres from "../services/postgres.js";
 import { QueryResult } from "deno_postgres/query.ts";
 
+type SearchParameter = [boolean, [string, string]];
+
 export enum Order {
   "asc" = "asc",
   "desc" = "desc",
@@ -30,12 +32,14 @@ export const tableRequestHandler = async (
     order: TableOrder,
     page: number,
     rows: number | null,
+    filters: { [key: string]: string },
     search: { [key: string]: string },
   ) => Promise<TableResult>,
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
+    filters = {},
     order = {},
     page,
     rows,
@@ -44,6 +48,7 @@ export const tableRequestHandler = async (
 
   if (
     !(
+      filters instanceof Object &&
       order instanceof Object &&
       search instanceof Object
     )
@@ -57,6 +62,7 @@ export const tableRequestHandler = async (
     order_parameters,
     page || 0,
     rows || null,
+    filters,
     search,
   );
 };
@@ -66,15 +72,30 @@ export const generateTableSql = (
   order: TableOrder,
   page: number,
   rows: number | null,
+  filters: { [key: string]: string },
   search: { [key: string]: string },
 ) => {
+  const search_params: SearchParameter[] = Object.entries(search).reduce(
+    (arr, [key, value]: [string, any]) => {
+      arr.push([false, [key, String(value)]] as SearchParameter);
+      return arr;
+    },
+    Object.keys(filters).length
+      ? Object.entries(filters).map(([key, value]: [string, any]) =>
+        [true, [key, String(value)]] as SearchParameter
+      )
+      : [],
+  );
+
   return `SELECT * FROM (${sql}) AS TOTAL` +
     " " +
-    (Object.keys(search).length
+    (search_params.length
       ? `WHERE ${
-        Object.entries(search)
-          .map(([column, value]) => (
-            `CAST(${column} AS VARCHAR) ILIKE '%${value}%'`
+        search_params
+          .map(([exact_match, [column, value]]) => (
+            `${column}::VARCHAR ${
+              exact_match ? `= '${value}'` : `ILIKE '%${value}%'`
+            }`
           )).join(" AND ")
       }`
       : "") +
@@ -91,19 +112,36 @@ export const generateTableSql = (
 
 export const generateCountSql = (
   sql: string,
+  filters: { [key: string]: string },
   search: { [key: string]: string },
-) => (
-  `SELECT COUNT(1) FROM (${sql}) AS TOTAL` +
-  " " +
-  (Object.keys(search).length
-    ? `WHERE ${
-      Object.entries(search)
-        .map(([column, value]) => (
-          `CAST(${column} AS VARCHAR) ILIKE '%${value}%'`
-        )).join(" AND ")
-    }`
-    : "")
-);
+) => {
+  const search_params: SearchParameter[] = Object.entries(search).reduce(
+    (arr, [key, value]: [string, any]) => {
+      arr.push([false, [key, String(value)]] as SearchParameter);
+      return arr;
+    },
+    Object.keys(filters).length
+      ? Object.entries(filters).map(([key, value]: [string, any]) =>
+        [true, [key, String(value)]] as SearchParameter
+      )
+      : [],
+  );
+
+  return (
+    `SELECT COUNT(1) FROM (${sql}) AS TOTAL` +
+    " " +
+    (search_params.length
+      ? `WHERE ${
+        search_params
+          .map(([exact_match, [column, value]]) => (
+            `${column}::VARCHAR ${
+              exact_match ? `= '${value}'` : `ILIKE '%${value}%'`
+            }`
+          )).join(" AND ")
+      }`
+      : "")
+  );
+};
 
 //TODO
 //Change any for typed array
@@ -112,6 +150,7 @@ export const getTableModels = async (
   order: TableOrder,
   page: number,
   rows: number | null,
+  filters: { [key: string]: string },
   search: { [key: string]: string },
 ): Promise<{ count: number; data: any[] }> => {
   const data_query = generateTableSql(
@@ -119,11 +158,13 @@ export const getTableModels = async (
     order,
     page,
     rows,
+    filters,
     search,
   );
 
   const count_query = generateCountSql(
     sql,
+    filters,
     search,
   );
 

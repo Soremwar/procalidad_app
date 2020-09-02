@@ -46,7 +46,9 @@ export default ({
   }, [value]);
 
   useEffect(() => {
-    onChange({ [value]: search_string });
+    if (String(value) && String(search_string)) {
+      onChange({ [value]: search_string });
+    }
   }, [search_string, value]);
 
   return (

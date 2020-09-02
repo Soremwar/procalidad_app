@@ -307,7 +307,7 @@ const assignationIsAvailable = async (
   return !rows.length;
 };
 
-class TableData {
+class ProjectTableData {
   constructor(
     public id: number,
     public id_project: number,
@@ -324,6 +324,7 @@ export const getProjectTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
+  filters: { [key: string]: string },
   search: { [key: string]: string },
 ): Promise<TableResult> => {
   const base_query = (
@@ -344,6 +345,7 @@ export const getProjectTableData = async (
     order,
     page,
     rows,
+    filters,
     search,
   );
 
@@ -356,7 +358,7 @@ export const getProjectTableData = async (
     string,
     string,
     number,
-  ]) => new TableData(...x));
+  ]) => new ProjectTableData(...x));
 
   return new TableResult(
     count,
@@ -378,6 +380,7 @@ export const getResourceTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
+  filters: { [key: string]: string },
   search: { [key: string]: string },
 ): Promise<TableResult> => {
   const base_query = (
@@ -396,6 +399,7 @@ export const getResourceTableData = async (
     order,
     page,
     rows,
+    filters,
     search,
   );
 
@@ -430,6 +434,7 @@ export const getDetailTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
+  filters: { [key: string]: string },
   search: { [key: string]: string },
 ): Promise<TableResult> => {
   const base_query = (
@@ -450,6 +455,7 @@ export const getDetailTableData = async (
     order,
     page,
     rows,
+    filters,
     search,
   );
 

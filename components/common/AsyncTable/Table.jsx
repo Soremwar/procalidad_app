@@ -54,18 +54,32 @@ const getTableData = async (
   page,
   rows,
   search,
+  filters,
   params,
 ) => {
-  //Avoid overlapping of parameters
+  //Avoid overlapping of parameters specified in url query
   const url_params = Object.fromEntries(
     Object.entries(params).filter(([index]) =>
-      !([order, page, rows, search].includes(index))
+      !([
+        "filters",
+        "order",
+        "page",
+        "rows",
+        "search",
+      ].includes(index))
     ),
   );
 
   return fetchApi(source, {
     method: "POST",
-    body: JSON.stringify({ order, page, rows, search, ...url_params }),
+    body: JSON.stringify({
+      filters,
+      order,
+      page,
+      rows,
+      search,
+      ...url_params,
+    }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -92,16 +106,16 @@ export default function AsyncTable({
 }) {
   const classes = useStyles();
 
-  const [search_bar, setSearchBar] = useState({});
+  const [filters, setFilters] = useState({});
   const [orderBy, setOrderBy] = useState({});
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [rows, setRows] = useState([]);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [search, setSearch] = useState({});
   const [selected, setSelected] = useState(new Set());
-  const [source_url, setSourceURL] = useState("");
-  const [source_params, setSourceParams] = useState({});
   const [should_fetch_data, setShouldFetchData] = useState(false);
+  const [source_params, setSourceParams] = useState({});
+  const [source_url, setSourceURL] = useState("");
   const [total_count, setTotalCount] = useState(0);
 
   const updateSortingDirection = (column) => {
@@ -123,14 +137,18 @@ export default function AsyncTable({
   };
 
   //Validation to avoid unnecessary fetching on same filters
-  const updateSearchFilters = () => {
-    const filters = Object.fromEntries(
-      Object.entries({ ...custom_search, ...search_bar }).filter((
-        [key, value],
-      ) => String(key) && String(value)),
-    );
-    if (!objectsAreEqual(filters, search)) {
-      setSearch(filters);
+  const updateCustomFilters = (new_filters) => {
+    if (!objectsAreEqual(new_filters, filters)) {
+      setFilters(new_filters);
+      setPage(0);
+      setShouldFetchData(true);
+    }
+  };
+
+  //Validation to avoid unnecessary fetching on same filters
+  const updateSearchFilters = (new_search_params) => {
+    if (!objectsAreEqual(new_search_params, search)) {
+      setSearch(new_search_params);
       setPage(0);
       setShouldFetchData(true);
     }
@@ -188,20 +206,14 @@ export default function AsyncTable({
 
   //Initialize table
   useEffect(() => {
-    setSearch(
-      Object.fromEntries(
-        Object.entries({ ...custom_search }).filter(([key, value]) =>
-          String(key) && String(value)
-        ),
-      ),
-    );
+    setFilters(custom_search);
     setSourceURL(data_source);
     setSourceParams(request_parameters);
   }, []);
 
   useEffect(() => {
-    updateSearchFilters();
-  }, [custom_search, search_bar]);
+    updateCustomFilters(custom_search);
+  }, [custom_search]);
 
   useEffect(() => {
     updateURLSource(data_source);
@@ -230,6 +242,7 @@ export default function AsyncTable({
         page,
         rowsPerPage,
         search,
+        filters,
         source_params,
       ).then(({ count, data }) => {
         let new_selected = new Set();
@@ -262,7 +275,7 @@ export default function AsyncTable({
           onAddClick={onAddClick}
           onEditClick={onEditClick}
           onDeleteClick={onDeleteClick}
-          onFilterChange={setSearchBar}
+          onFilterChange={updateSearchFilters}
           selected={selected}
         />
         <TableContainer>

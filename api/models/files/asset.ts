@@ -144,6 +144,7 @@ export const getTableData = async (
   order: TableOrder,
   page: number,
   rows: number | null,
+  filters: { [key: string]: string },
   search: { [key: string]: string },
 ): Promise<TableResult> => {
   const base_query = (
@@ -161,6 +162,7 @@ export const getTableData = async (
     order,
     page,
     rows,
+    filters,
     search,
   );
 

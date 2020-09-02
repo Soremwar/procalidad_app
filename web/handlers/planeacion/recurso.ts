@@ -93,6 +93,7 @@ export const getResourcesTable = async (
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const {
+    filters = {},
     order = {},
     page,
     rows,
@@ -102,6 +103,7 @@ export const getResourcesTable = async (
 
   if (
     !(
+      filters instanceof Object &&
       order instanceof Object &&
       search instanceof Object
     )
@@ -119,6 +121,7 @@ export const getResourcesTable = async (
       order_parameters,
       page || 0,
       rows || null,
+      filters,
       search,
     );
   } else if (table_type === ResourceViewType.resource) {
@@ -126,6 +129,7 @@ export const getResourcesTable = async (
       order_parameters,
       page || 0,
       rows || null,
+      filters,
       search,
     );
   } else if (table_type === ResourceViewType.detail) {
@@ -133,6 +137,7 @@ export const getResourcesTable = async (
       order_parameters,
       page || 0,
       rows || null,
+      filters,
       search,
     );
   }
