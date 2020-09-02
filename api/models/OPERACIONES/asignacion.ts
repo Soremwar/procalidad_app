@@ -163,7 +163,7 @@ export const createNew = async (
   const is_control_open = await isControlOpen(person, week);
   if (!is_control_open) {
     throw new Error(
-      "La semana asociada a esta asignacion se encuentra cerrada",
+      "La persona a asignar no tiene abierta la semana seleccionada",
     );
   }
 
