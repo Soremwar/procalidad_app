@@ -19,7 +19,7 @@ const PublicRoute = ({ component, ...props }) => {
       {...props}
       render={(children_props) =>
         userState.is_authenticated
-          ? <Redirect to={"/home"} />
+          ? <Redirect to={"/"} />
           : React.createElement(component, children_props)}
     />
   );

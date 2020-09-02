@@ -82,7 +82,7 @@ export const attemptGoogleLogin = (
           profiles,
         },
       });
-      history.push("/home");
+      history.push("/");
     })
     .catch(({ message }) => {
       switch (message) {

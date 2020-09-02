@@ -42,6 +42,9 @@ const Login = ({ history }) => {
             <Typography variant="h1" className={classes.greeting}>
               Bienvenido!
             </Typography>
+            {//TODO
+            //Google login key should be configurable
+            }
             <GoogleLogin
               className={classes.googleButton}
               clientId="754494090542-7kmmopqoulege94gf4mm988ukmda7jv2.apps.googleusercontent.com"
