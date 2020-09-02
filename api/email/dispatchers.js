@@ -52,7 +52,8 @@ export const dispatchAssignationRequested = async (assignation_request) => {
   const { rows } = await postgres.query(
     `SELECT
       TO_CHAR(TO_DATE(ASO.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
-      REQ.NOMBRE AS REQUESTANT,
+      REQ.NOMBRE AS REQUESTANT_NAME,
+      REQ.CORREO AS REQUESTANT_EMAIL,
       (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PK_CLIENTE = PRO.FK_CLIENTE) AS CLIENT,
       PRO.NOMBRE AS PROJECT,
       SUP.NOMBRE AS SUPERVISOR_NAME,
@@ -72,14 +73,15 @@ export const dispatchAssignationRequested = async (assignation_request) => {
     JOIN ${PERSON_TABLE} AS REQ
       ON REQ.PK_PERSONA = CS.FK_PERSONA
     JOIN ${PERSON_TABLE} AS SUP
-      ON REQ.PK_PERSONA = PRO.FK_SUPERVISOR
+      ON SUP.PK_PERSONA = PRO.FK_SUPERVISOR
     WHERE ASO.PK_SOLICITUD = $1`,
     assignation_request,
   );
 
   const [
     date,
-    requestant,
+    requestant_name,
+    requestant_email,
     client,
     project,
     supervisor_name,
@@ -95,13 +97,22 @@ export const dispatchAssignationRequested = async (assignation_request) => {
     hours,
     description,
     project,
-    requestant,
+    requestant_name,
     role,
     supervisor_name,
   );
 
+  //TODO
+  //Should be the same mail with copy to requestant
+
   await sendNewEmail(
     supervisor_email,
+    "Solicitud de Asignación",
+    email_content,
+  );
+
+  await sendNewEmail(
+    requestant_email,
     "Solicitud de Asignación",
     email_content,
   );
