@@ -56,7 +56,7 @@ class Asignacion {
       );
     }
 
-    await control.clearRegistry(this.id);
+    await control.clearRegistry(this.budget, this.role);
 
     await postgres.query(
       `DELETE FROM ${TABLE} WHERE PK_ASIGNACION = $1`,

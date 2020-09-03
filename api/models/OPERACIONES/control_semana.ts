@@ -26,24 +26,18 @@ export class WeekControl {
     public close_date: Date | null,
   ) {}
 
-  /*
-  * This function recalculates the registry and deletes not matching records from the assignation
-  * If an assignation is provided, it will tell the registry to remove every record that follows that assignation
-  * as if it was already deleted
-  * */
-  async clearRegistry(assignation?: number): Promise<void> {
+  async clearRegistry(
+    budget: number,
+    role: number,
+  ): Promise<void> {
     await postgres.query(
       `DELETE FROM ${REGISTRY_TABLE}
-      WHERE FK_CONTROL_SEMANA||'_'||FK_PRESUPUESTO||'_'||FK_ROL NOT IN (
-        SELECT C.PK_CONTROL||'_'||A.FK_PRESUPUESTO||'_'||A.FK_ROL
-        FROM ${ASSIGNATION_TABLE} A
-        JOIN ${TABLE} C
-        ON A.FK_SEMANA = C.FK_SEMANA
-        AND A.FK_PERSONA = C.FK_PERSONA
-        WHERE A.FK_SEMANA = $1
-        ${assignation ? `AND A.PK_ASIGNACION <> ${assignation}` : ""}
-      )`,
+      WHERE FK_CONTROL_SEMANA = $1
+      AND FK_PRESUPUESTO = $2
+      AND FK_ROL = $3`,
       this.id,
+      budget,
+      role,
     );
   }
 
