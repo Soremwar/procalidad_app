@@ -695,6 +695,7 @@ main_router
     "/api/maestro/idioma",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
     ]),
     language.getLanguages,
@@ -711,6 +712,7 @@ main_router
     "/api/maestro/idioma/:id",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
     ]),
     language.getLanguage,
