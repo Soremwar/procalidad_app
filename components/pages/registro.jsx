@@ -23,7 +23,6 @@ import {
   UserContext,
 } from "../context/User.jsx";
 import {
-  parseStandardNumber,
   parseDateToStandardNumber,
   formatStandardNumberToStandardString,
   formatStandardStringToStandardNumber,
@@ -35,7 +34,7 @@ import DialogForm from "../common/DialogForm.jsx";
 import Title from "../common/Title.jsx";
 import Table from "./registro/Table.jsx";
 
-const getWeekDate = (id) => fetchWeekDetailApi(`semana/${id}`);
+const getWeekDate = () => fetchWeekDetailApi(`semana`);
 
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getProjects = () => fetchProjectApi().then((x) => x.json());
@@ -280,7 +279,13 @@ export default () => {
   const [context] = useContext(UserContext);
 
   const [alert_open, setAlertOpen] = useState(false);
-  const [current_week, setCurrentWeek] = useState(null);
+  const [week_details, setWeekDetails] = useState({
+    assignated_hours: 0,
+    date: null,
+    executed_hours: 0,
+    expected_hours: 0,
+    requested_hours: 0,
+  });
   const [error, setError] = useState(null);
   const [parameters, setParameters] = useState({
     clients: [],
@@ -289,24 +294,20 @@ export default () => {
   const [request_modal_open, setRequestModalOpen] = useState(false);
   const [table_data, setTableData] = useState(new Map());
 
-  const updateCurrentWeek = () => {
-    if (context.id) {
-      getWeekDate(context.id)
-        .then(async (response) => {
-          if (response.ok) {
-            const current_week = parseStandardNumber(await response.json());
-            if (!current_week) throw new Error();
-            setCurrentWeek(current_week);
-          } else {
-            throw new Error();
-          }
-        })
-        .catch(() => {
-          setAlertOpen(false);
-          setError("No fue posible actualizar la fecha de registro");
-          setAlertOpen(true);
-        });
-    }
+  const updateCurrentWeekDetails = () => {
+    getWeekDate()
+      .then(async (response) => {
+        if (response.ok) {
+          setWeekDetails(await response.json());
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => {
+        setAlertOpen(false);
+        setError("No fue posible actualizar la fecha de registro");
+        setAlertOpen(true);
+      });
   };
 
   //Set budget_id and role_id as unique key since id can be null
@@ -399,7 +400,7 @@ export default () => {
           setAlertOpen(true);
         })
         .finally(() => {
-          updateCurrentWeek();
+          updateCurrentWeekDetails();
           updateTable();
         });
     }
@@ -411,7 +412,7 @@ export default () => {
   };
 
   useEffect(() => {
-    updateCurrentWeek();
+    updateCurrentWeekDetails();
     getClients().then((clients) => {
       const entries = clients
         .map(({ pk_cliente, nombre }) => [pk_cliente, nombre])
@@ -449,7 +450,7 @@ export default () => {
         onRowSave={handleRowSave}
         onRowUpdate={updateRow}
         onWeekSave={handleWeekSave}
-        week={current_week}
+        week_details={week_details}
       />
       <Snackbar
         anchorOrigin={{

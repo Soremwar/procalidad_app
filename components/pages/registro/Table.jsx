@@ -24,18 +24,27 @@ import {
 import {
   months,
 } from "../../../lib/date/lang.js";
+import {
+  parseStandardNumber,
+} from "../../../lib/date/mod.js";
 
 import TableHeaders from "./components/Header.jsx";
 import TableFooter from "./components/Footer.jsx";
 
-const parseDateAsWeek = (date) => {
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
-  const month_string = month < 10
-    ? months.get(`0${month}`)
-    : months.get(String(month));
+const parseStandardNumberAsWeek = (standard_date) => {
+  const date = parseStandardNumber(standard_date);
 
-  return `Semana del ${day} de ${month_string}`;
+  if (date) {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const month_string = month < 10
+      ? months.get(`0${month}`)
+      : months.get(String(month));
+
+    return `Semana del ${day} de ${month_string}`;
+  } else {
+    return "La fecha proporcionada por el sistema no es válida";
+  }
 };
 
 const columns = [
@@ -73,7 +82,7 @@ export default function ({
   onRowSave,
   onRowUpdate,
   onWeekSave,
-  week,
+  week_details,
 }) {
   const classes = useStyles();
 
@@ -115,9 +124,27 @@ export default function ({
           <Toolbar>
             <Grid container alignItems="center">
               <Grid container item xs={6} justify="flex-start">
-                <Typography>
-                  {week ? parseDateAsWeek(week) : "Semana no disponible"}
-                </Typography>
+                <div>
+                  <Typography variant="h5">
+                    {week_details.date
+                      ? parseStandardNumberAsWeek(week_details.date)
+                      : "Semana no disponible"}
+                  </Typography>
+                  <Typography variant="subtitle2">
+                    Horas totales de la semana: {week_details.expected_hours ||
+                      0}
+                  </Typography>
+                  <Typography variant="subtitle2">
+                    Horas asignadas: {week_details.assignated_hours || 0}
+                  </Typography>
+                  <Typography variant="subtitle2">
+                    Horas registradas: {week_details.executed_hours || 0}
+                  </Typography>
+                  <Typography variant="subtitle2">
+                    Horas solicitadas pendientes:
+                    {week_details.requested_hours || 0}
+                  </Typography>
+                </div>
               </Grid>
               <Grid container item xs={6} justify="flex-end">
                 <Button

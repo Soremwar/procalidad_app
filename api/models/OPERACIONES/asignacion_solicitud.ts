@@ -90,6 +90,13 @@ export const createNew = async (
   );
 };
 
+export const deleteByWeekControl = async (control: number): Promise<void> => {
+  await postgres.query(
+    `DELETE FROM ${TABLE} WHERE FK_CONTROL_SEMANA = $1`,
+    control,
+  );
+};
+
 export const findById = async (id: number): Promise<AssignationRequest> => {
   const { rows } = await postgres.query(
     `SELECT
@@ -119,11 +126,19 @@ export const findById = async (id: number): Promise<AssignationRequest> => {
   return new AssignationRequest(...result);
 };
 
-export const deleteByWeekControl = async (control: number): Promise<void> => {
-  await postgres.query(
-    `DELETE FROM ${TABLE} WHERE FK_CONTROL_SEMANA = $1`,
-    control,
+export const getRequestedHoursByControlWeek = async (control_week: number) => {
+  const { rows } = await postgres.query(
+    `SELECT
+      COALESCE(
+        SUM(HORAS),
+        0
+      )
+    FROM ${TABLE}
+    WHERE FK_CONTROL_SEMANA = $1`,
+    control_week,
   );
+
+  return Number(rows[0]?.[0]) || 0;
 };
 
 class TableData {

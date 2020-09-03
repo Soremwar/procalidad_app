@@ -1,8 +1,10 @@
-import { RouterContext, Body } from "oak";
+import { RouterContext } from "oak";
+import Ajv from "ajv";
 import {
   createNew,
-  findAll,
   findById,
+  getAll,
+  getRegistryHoursByControlWeek as getWeekRegistry,
   getTableData,
 } from "../../api/models/OPERACIONES/registro.ts";
 import {
@@ -10,12 +12,21 @@ import {
   findOpenWeek,
   getOpenWeekAsDate,
 } from "../../api/models/OPERACIONES/control_semana.ts";
-import Ajv from "ajv";
+import {
+  findById as findWeek,
+} from "../../api/models/MAESTRO/dim_semana.ts";
+import {
+  getAssignationHoursByWeek as getWeekAssignation,
+} from "../../api/models/OPERACIONES/asignacion.ts";
+import {
+  getRequestedHoursByControlWeek as getWeekRequests,
+} from "../../api/models/OPERACIONES/asignacion_solicitud.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
   TRUTHY_INTEGER,
   UNSIGNED_NUMBER,
 } from "../../lib/ajv/types.js";
+import { decodeToken } from "../../lib/jwt.ts";
 
 const post_structure = {
   $id: "post",
@@ -56,7 +67,7 @@ const request_validator = new Ajv({
 });
 
 export const getWeeksDetail = async ({ response }: RouterContext) => {
-  response.body = await findAll();
+  response.body = await getAll();
 };
 
 export const getWeekDetail = async (
@@ -71,13 +82,39 @@ export const getWeekDetail = async (
   response.body = detail;
 };
 
-export const getPersonOpenWeek = async (
-  { params, response }: RouterContext<{ person: string }>,
+export const getWeekInformation = async (
+  { cookies, response }: RouterContext,
 ) => {
-  const person: number = Number(params.person);
-  if (!person) throw new RequestSyntaxError();
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
 
-  response.body = await getOpenWeekAsDate(person);
+  const week_information = {
+    assignated_hours: 0,
+    date: 20001231,
+    executed_hours: 0,
+    expected_hours: 0,
+    requested_hours: 0,
+  };
+
+  const control_week = await findOpenWeek(user_id);
+  if (control_week) {
+    const week = await findWeek(control_week.week);
+    if (!week) {
+      throw new NotFoundError("Semana de registro no encontrada");
+    }
+    week_information.assignated_hours = await getWeekAssignation(
+      user_id,
+      week.id,
+    );
+    week_information.date = await week.getStartDate();
+    week_information.executed_hours = await getWeekRegistry(control_week.id);
+    week_information.expected_hours = await week.getLaboralHours();
+    week_information.requested_hours = await getWeekRequests(control_week.id);
+  } else {
+    week_information.date = await getOpenWeekAsDate(user_id);
+  }
+
+  response.body = week_information;
 };
 
 export const getWeekDetailTable = async (

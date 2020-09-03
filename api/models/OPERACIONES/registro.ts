@@ -132,7 +132,7 @@ export const findById = async (id: number): Promise<WeekDetail | null> => {
   return new WeekDetail(...result);
 };
 
-export const findAll = async (): Promise<WeekDetail[]> => {
+export const getAll = async (): Promise<WeekDetail[]> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_REGISTRO,
@@ -150,6 +150,23 @@ export const findAll = async (): Promise<WeekDetail[]> => {
     number,
     number,
   ]) => new WeekDetail(...row));
+};
+
+export const getRegistryHoursByControlWeek = async (control_week: number) => {
+  const { rows } = await postgres.query(
+    `SELECT
+      COALESCE(
+        SUM(HORAS),
+        0
+      )
+    FROM ${TABLE}
+    WHERE FK_CONTROL_SEMANA = $1
+    GROUP BY
+      FK_CONTROL_SEMANA`,
+    control_week,
+  );
+
+  return Number(rows[0]?.[0]) || 0;
 };
 
 class WeekDetailData {

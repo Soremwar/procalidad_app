@@ -23,7 +23,7 @@ import {
   TABLE as SUB_AREA_TABLE,
 } from "../ORGANIZACION/sub_area.ts";
 import {
-  findIdByDate as findIsWeekByDate,
+  findByDate as findWeek,
   TABLE as WEEK_TABLE,
 } from "../MAESTRO/dim_semana.ts";
 import {
@@ -47,6 +47,22 @@ class Asignacion {
     public date: number,
     public hours: number,
   ) {}
+
+  async delete(): Promise<void> {
+    const control = await findControl(this.person, this.week);
+    if (!control || control.closed) {
+      throw new Error(
+        "La semana asociada a esta asignacion se encuentra cerrada",
+      );
+    }
+
+    await control.clearRegistry(this.id);
+
+    await postgres.query(
+      `DELETE FROM ${TABLE} WHERE PK_ASIGNACION = $1`,
+      this.id,
+    );
+  }
 
   /*
   * Updates only the hours for each assignation
@@ -76,24 +92,6 @@ class Asignacion {
     );
 
     return this;
-  }
-
-  //TODO
-  //Should delete assignations on cascade
-  async delete(): Promise<void> {
-    const control = await findControl(this.person, this.week);
-    if (!control || control.closed) {
-      throw new Error(
-        "La semana asociada a esta asignacion se encuentra cerrada",
-      );
-    }
-
-    await control.clearRegistry(this.id);
-
-    await postgres.query(
-      `DELETE FROM ${TABLE} WHERE PK_ASIGNACION = $1`,
-      this.id,
-    );
   }
 }
 
@@ -158,9 +156,9 @@ export const createNew = async (
   date: number,
   hours: number,
 ) => {
-  const week = await findIsWeekByDate(date);
+  const week = await findWeek(date);
   if (!week) throw new Error("Fecha invalida");
-  const is_control_open = await isControlOpen(person, week);
+  const is_control_open = await isControlOpen(person, week.id);
   if (!is_control_open) {
     throw new Error(
       "La persona a asignar no tiene abierta la semana seleccionada",
@@ -188,7 +186,7 @@ export const createNew = async (
     person,
     budget,
     role,
-    week,
+    week.id,
     date,
     hours,
   );
@@ -200,7 +198,7 @@ export const createNew = async (
     person,
     budget,
     role,
-    week,
+    week.id,
     date,
     final_hours,
   );
@@ -246,6 +244,29 @@ export const getAvailableWeeks = async (): Promise<AvailableWeeks[]> => {
     code,
     date,
   } as AvailableWeeks));
+};
+
+export const getAssignationHoursByWeek = async (
+  person: number,
+  week: number,
+): Promise<number> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      COALESCE(
+        SUM(HORAS),
+        0
+      )
+    FROM ${TABLE}
+    WHERE FK_PERSONA = $1
+    AND FK_SEMANA = $2
+    GROUP BY
+      FK_PERSONA,
+      FK_SEMANA`,
+    person,
+    week,
+  );
+
+  return Number(rows[0]?.[0]) || 0;
 };
 
 class TableData {

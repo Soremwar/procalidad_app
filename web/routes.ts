@@ -178,15 +178,7 @@ import {
   getAssignationWeeks,
   updateAssignation,
 } from "./handlers/asignacion.ts";
-import {
-  closePersonWeek,
-  createWeekDetail,
-  getPersonOpenWeek,
-  getWeekDetail,
-  getWeekDetailTable,
-  getWeeksDetail,
-  updateWeekDetail,
-} from "./handlers/registro.ts";
+import * as registry from "./handlers/registro.ts";
 import {
   createAssignationRequest,
   getAssignationRequestTable,
@@ -2185,49 +2177,49 @@ main_router
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
-    getWeeksDetail,
+    registry.getWeeksDetail,
   )
-  .get<{ person: string }>(
-    "/api/registro/semana/:person",
+  .get(
+    "/api/registro/semana",
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
-    getPersonOpenWeek,
+    registry.getWeekInformation,
   )
   .put<{ person: string }>(
     "/api/registro/semana/:person",
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
-    closePersonWeek,
+    registry.closePersonWeek,
   )
   .get<{ id: string }>(
     "/api/registro/:id",
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
-    getWeekDetail,
+    registry.getWeekDetail,
   )
   .get<{ id: string }>(
     "/api/registro/table/:id",
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
-    getWeekDetailTable,
+    registry.getWeekDetailTable,
   )
   .post<{ person: string }>(
     "/api/registro/:person",
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
-    createWeekDetail,
+    registry.createWeekDetail,
   )
   .put<{ id: string }>(
     "/api/registro/:id",
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
-    updateWeekDetail,
+    registry.updateWeekDetail,
   );
 
 main_router
