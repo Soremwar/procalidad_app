@@ -137,7 +137,12 @@ export default function AsyncTable({
   };
 
   //Validation to avoid unnecessary fetching on same filters
-  const updateCustomFilters = (new_filters) => {
+  const updateCustomFilters = (raw_new_filters) => {
+    const new_filters = Object.fromEntries(
+      Object.entries(raw_new_filters).filter(([key, value]) =>
+        String(key) && String(value)
+      ),
+    );
     if (!objectsAreEqual(new_filters, filters)) {
       setFilters(new_filters);
       setPage(0);
@@ -206,7 +211,11 @@ export default function AsyncTable({
 
   //Initialize table
   useEffect(() => {
-    setFilters(custom_search);
+    setFilters(Object.fromEntries(
+      Object.entries(custom_search).filter(([key, value]) =>
+        String(key) && String(value)
+      ),
+    ));
     setSourceURL(data_source);
     setSourceParams(request_parameters);
   }, []);
