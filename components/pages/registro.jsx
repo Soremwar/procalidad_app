@@ -364,10 +364,11 @@ export default () => {
       )
         .then((response) => {
           setAlertOpen(false);
-          if (!response.ok) {
-            setError("No fue posible actualizar el registro");
-          } else {
+          if (response.ok) {
+            updateCurrentWeekDetails();
             setError(null);
+          } else {
+            setError("No fue posible actualizar el registro");
           }
           setAlertOpen(true);
         })
@@ -391,11 +392,12 @@ export default () => {
       closeWeek(context.id)
         .then(async (response) => {
           setAlertOpen(false);
-          if (!response.ok) {
+          if (response.ok) {
+            setError(null);
+            updateCurrentWeekDetails();
+          } else {
             const res = await response.json().then((body) => body.message);
             setError(res);
-          } else {
-            setError(null);
           }
           setAlertOpen(true);
         })
@@ -438,8 +440,9 @@ export default () => {
           is_open={request_modal_open}
           person_id={context.id}
           onSuccess={() => {
-            setError(false);
             setAlertOpen(true);
+            setError(false);
+            updateCurrentWeekDetails();
           }}
           setModalOpen={setRequestModalOpen}
         />
