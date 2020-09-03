@@ -23,7 +23,7 @@ const columns = [
   { id: "person", label: "Recurso", orderable: true },
   { id: "project", label: "Proyecto", orderable: true },
   { id: "role", label: "Rol", orderable: true },
-  { id: "date", label: "Fecha", orderable: true },
+  { id: "supervisor", label: "Responsable", orderable: true },
   { id: "hours", label: "Horas solicitadas", orderable: true },
   { id: "description", label: "Descripcion", orderable: false },
 ];

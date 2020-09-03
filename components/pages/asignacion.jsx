@@ -672,7 +672,6 @@ export default () => {
           setAlertOpen(true);
         } else {
           const { message } = await response.json();
-          console.log(message);
           setError(message);
           setAlertOpen(true);
         }
@@ -696,11 +695,6 @@ export default () => {
     setAlertOpen(false);
     setError(null);
     if (selected_week && (selected_tab === 1)) {
-      console.log({
-        selected_client,
-        selected_project,
-        selected_week,
-      });
       getAssignationRequestTable(user_id)
         .then(async (response) => {
           if (response.ok) {

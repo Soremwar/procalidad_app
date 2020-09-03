@@ -150,7 +150,7 @@ class TableData {
     public readonly id_project: number,
     public readonly project: string,
     public readonly role: string,
-    public readonly date: string,
+    public readonly supervisor: string,
     public readonly hours: number,
     public readonly description: string,
   ) {
@@ -174,7 +174,7 @@ export const getTableData = async (person: number) => {
       P.PK_PROYECTO AS ID_PROJECT,
       P.NOMBRE AS PROJECT,
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = A.FK_ROL) AS ROLE,
-      TO_CHAR(TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD'), 'YYYY-MM-DD') AS DATE,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = P.FK_SUPERVISOR) AS SUPERVISOR,
       TO_CHAR(A.HORAS, 'FM999999999.0') AS HOURS,
       A.DESCRIPCION AS DESCRIPTION
     FROM ${TABLE} AS A
