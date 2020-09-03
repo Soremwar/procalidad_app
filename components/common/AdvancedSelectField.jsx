@@ -20,12 +20,14 @@ const useStyles = makeStyles(() => ({
 //TODO
 //Disabled doesnt do anything
 export default ({
+  disabled = false,
   fullWidth = false,
   label = null,
   name,
   onChange = false,
   onInputChange = false,
   options = [],
+  required = false,
   variant = "standard",
   value: external_value = null,
   ...props
@@ -39,8 +41,13 @@ export default ({
   }, [external_value]);
 
   return (
-    <FormControl className={classes.formControl} fullWidth={fullWidth}>
+    <FormControl
+      className={classes.formControl}
+      fullWidth={fullWidth}
+      required={required}
+    >
       <Autocomplete
+        disabled={disabled}
         filterOptions={(options, { inputValue }) => {
           return options.filter(([_index, text]) =>
             isStringIn(text, inputValue)
@@ -65,7 +72,7 @@ export default ({
             {...props}
             label={label}
             name={name}
-            required
+            required={required}
             variant={variant}
           />
         )}

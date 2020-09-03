@@ -210,6 +210,7 @@ const AddModal = ({
         options={people}
         onChange={(_event, value) =>
           setFields((prev_state) => ({ ...prev_state, person: value }))}
+        required
         value={fields.person}
       />
       <SelectField
@@ -425,6 +426,7 @@ const EditModal = ({
         options={people}
         onChange={(_event, value) =>
           setFields((prev_state) => ({ ...prev_state, person: value }))}
+        requireds
         value={fields.person}
       />
       <SelectField

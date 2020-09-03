@@ -25,9 +25,13 @@ import Cliente from "../pages/clientes/Cliente.jsx";
 import Computador from "../pages/organizacion/computador.jsx";
 import Contacto from "../pages/clientes/Contacto.jsx";
 import CostoEmpleado from "../pages/organizacion/costo_empleado.jsx";
+import FormacionAcademica from "../pages/usuario/academica.jsx";
+import Capacitacion from "../pages/usuario/capacitacion.jsx";
+import FormacionContinuada from "../pages/usuario/continuada.jsx";
 import Formato from "../pages/maestro/formato.jsx";
 import Idioma from "../pages/maestro/idioma.jsx";
 import Licencia from "../pages/organizacion/licencia.jsx";
+import NivelFormacion from "../pages/maestro/nivel_formacion.jsx";
 import Parametro from "../pages/maestro/parametro.jsx";
 import Perfil from "../pages/usuario/perfil.jsx";
 import Persona from "../pages/organizacion/persona.jsx";
@@ -43,7 +47,6 @@ import SubArea from "../pages/organizacion/sub_area.jsx";
 import TipoArea from "../pages/organizacion/TipoArea.jsx";
 import TipoPresupuesto from "../pages/operaciones/TipoPresupuesto.jsx";
 import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
-import { Router } from "@material-ui/icons";
 
 //TODO
 //Make profiles constant (shared?)
@@ -138,6 +141,14 @@ const Layout = (props) => {
               ]}
               component={Idioma}
               path="/maestro/idioma"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+              ]}
+              component={NivelFormacion}
+              path="/maestro/nivel_formacion"
             />
             <ProfiledRoute
               allowed_profiles={[
@@ -374,6 +385,27 @@ const Layout = (props) => {
               ]}
               component={Perfil}
               path="/usuario/perfil"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.CONSULTANT,
+              ]}
+              component={FormacionAcademica}
+              path="/usuario/formacion/academica"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.CONSULTANT,
+              ]}
+              component={FormacionContinuada}
+              path="/usuario/formacion/continuada"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.CONSULTANT,
+              ]}
+              component={Capacitacion}
+              path="/usuario/formacion/capacitacion"
             />
             <Route exact={true} path="/" />
             <Redirect from="*" to="/404" />

@@ -1,9 +1,9 @@
 import postgres from "../../services/postgres.js";
 import { TABLE as TEMPLATE_TABLE } from "./template.ts";
 
-export const TABLE = "ARCHIVOS.ARCHIVO";
+export const TABLE = "ARCHIVOS.ARCHIVO_PLANTILLA";
 
-export class File {
+export class TemplateFile {
   constructor(
     public readonly template: number,
     public readonly user: number,
@@ -16,7 +16,7 @@ export const upsert = async (
   template: number,
   user: number,
   name: string,
-): Promise<File> => {
+): Promise<TemplateFile> => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_PLANTILLA,
@@ -40,7 +40,7 @@ export const upsert = async (
 
   const upload_date: Date = rows[0][0];
 
-  return new File(
+  return new TemplateFile(
     template,
     user,
     name,
@@ -51,7 +51,7 @@ export const upsert = async (
 export const findByTemplateAndUser = async (
   template: number,
   user: number,
-): Promise<File | null> => {
+): Promise<TemplateFile | null> => {
   const { rows } = await postgres.query(
     `SELECT
       FK_PLANTILLA,
@@ -67,7 +67,7 @@ export const findByTemplateAndUser = async (
 
   if (!rows.length) return null;
 
-  return new File(
+  return new TemplateFile(
     ...rows[0] as [
       number,
       number,

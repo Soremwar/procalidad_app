@@ -3,39 +3,52 @@ import React, {
   useState,
 } from "react";
 import {
+  Button,
   TextField,
 } from "@material-ui/core";
 import {
-  parseStandardString,
-} from "../../lib/date/mod.js";
+  makeStyles,
+} from "@material-ui/styles";
+import {
+  CloudUpload as UploadIcon,
+} from "@material-ui/icons";
+
+const useStyles = makeStyles(() => ({
+  input: {
+    display: "none",
+  },
+}));
 
 /*
-* This returns a FileList object
+* This returns a FileList object on the onChange event
 */
 export default function InputField({
   accept,
   disabled = false,
-  fullWidth = false,
-  label,
   multiple = false,
-  name,
   onChange,
-  required = false,
 }) {
+  const classes = useStyles();
+
   return (
-    <TextField
-      accept={accept}
-      disabled={disabled}
-      fullWidth={fullWidth}
-      label={label}
-      multiple={multiple}
-      name={name}
-      onChange={(event) => onChange(event.target.files)}
-      required={required}
-      type="file"
-      InputLabelProps={{
-        shrink: true,
-      }}
-    />
+    <label>
+      <TextField
+        accept={accept}
+        className={classes.input}
+        disabled={disabled}
+        multiple={multiple}
+        onChange={(event) => onChange(event.target.files)}
+        type="file"
+      />
+      <Button
+        disabled={disabled}
+        color="primary"
+        component="span"
+        endIcon={<UploadIcon />}
+        variant="contained"
+      >
+        Cargar Archivo
+      </Button>
+    </label>
   );
 }

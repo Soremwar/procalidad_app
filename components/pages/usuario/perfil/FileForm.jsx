@@ -25,25 +25,9 @@ import {
 import {
   fetchUserApi,
 } from "../../../../lib/api/generator.js";
-
-const formatDate = (date) => {
-  const parsed_date = new Date(date);
-  if (parsed_date.valueOf()) {
-    const year = parsed_date.getFullYear();
-    let month = parsed_date.getMonth() + 1;
-    month = month < 10 ? `0${month}` : month;
-    let day = parsed_date.getDate();
-    day = day < 10 ? `0${day}` : day;
-    let hours = parsed_date.getHours();
-    hours = hours < 10 ? `0${hours}` : hours;
-    let minutes = parsed_date.getMinutes();
-    minutes = minutes < 10 ? `0${minutes}` : minutes;
-
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
-  } else {
-    return "Fecha no valida";
-  }
-};
+import {
+  formatDateToStringDatetime,
+} from "../../../../lib/date/mod.js";
 
 const uploadUserFile = async (
   template,
@@ -167,7 +151,7 @@ export default function FileForm() {
                   </TableCell>
                   <TableCell align="center">
                     {upload_date
-                      ? formatDate(upload_date)
+                      ? formatDateToStringDatetime(upload_date)
                       : "El archivo no ha sido cargado"}
                   </TableCell>
                 </TableRow>

@@ -3,7 +3,7 @@ import Ajv from "ajv";
 import { decodeToken } from "../../../lib/jwt.ts";
 import * as children_model from "../../../api/models/users/children.ts";
 import * as contact_model from "../../../api/models/users/contact.ts";
-import * as file_model from "../../../api/models/files/file.ts";
+import * as file_model from "../../../api/models/files/template_file.ts";
 import * as language_model from "../../../api/models/users/language_experience.ts";
 import {
   findById as findPerson,
@@ -19,8 +19,8 @@ import {
   getFileFormatCode,
 } from "../../../api/parameters.ts";
 import {
-  getFile,
-  writeFile,
+  getTemplateFile,
+  writeTemplateFile,
 } from "../../../api/storage/uploads.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import {
@@ -441,7 +441,7 @@ export const getSupportFile = async (
   if (!template_id) throw new RequestSyntaxError();
   const { id: user_id } = await decodeToken(cookies.get("PA_AUTH") || "");
 
-  const file = await getFile(
+  const file = await getTemplateFile(
     template_id as number,
     user_id,
   )
@@ -493,7 +493,7 @@ export const loadSupportFile = async (
   //VALIDATE EXTENSION
   //VALIDATE SIZE
 
-  response.body = await writeFile(
+  response.body = await writeTemplateFile(
     template_id,
     user_id,
     content,
@@ -516,7 +516,7 @@ export const getPicture = async (
   );
   if (!picture_parameter_value) throw new NotFoundError();
 
-  const file = await getFile(
+  const file = await getTemplateFile(
     picture_parameter_value.valor as number,
     user,
   )
@@ -575,7 +575,7 @@ export const updatePicture = async (
   //VALIDATE EXTENSION
   //VALIDATE SIZE
 
-  response.body = await writeFile(
+  response.body = await writeTemplateFile(
     Number(picture_parameter_value.valor),
     user_id,
     content,

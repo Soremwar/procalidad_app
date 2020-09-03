@@ -3,6 +3,9 @@ import { checkUserAccess } from "./middleware.ts";
 import { Profiles } from "../api/common/profiles.ts";
 import { createSession } from "./handlers/auth.ts";
 import * as user_profile from "./handlers/usuario/perfil.ts";
+import * as user_academic_title from "./handlers/usuario/formacion_academica.ts";
+import * as user_continuous_title from "./handlers/usuario/formacion_continuada.ts";
+import * as user_training_title from "./handlers/usuario/formacion_capacitacion.ts";
 import {
   createContact,
   deleteContact,
@@ -30,6 +33,7 @@ import * as language from "./handlers/maestro/idioma.ts";
 import * as gender from "./handlers/maestro/genero.ts";
 import * as marital_status from "./handlers/maestro/estado_civil.ts";
 import * as file_formats from "./handlers/maestro/formato.ts";
+import * as formation_level from "./handlers/maestro/nivel_formacion.ts";
 import * as clients from "./handlers/clientes/cliente.ts";
 import {
   createProjectType,
@@ -185,6 +189,7 @@ import {
   updateAssignationRequest,
 } from "./handlers/asignacion_solicitud.ts";
 import * as people_supports from "./handlers/maestro/plantilla.ts";
+import * as file from "./handlers/archivo.ts";
 
 const main_router = new Router();
 
@@ -286,23 +291,152 @@ main_router
     user_profile.updateUserInformation,
   );
 
-/*
-.post(
-  "/api/usuario/soportes",
-  checkUserAccess(),
-  usuario.createChildren,
-)
-.put<{ id: string }>(
-  "/api/usuario/soportes/:id",
-  checkUserAccess(),
-  usuario.updateChildren,
-)
-.delete<{ id: string }>(
-  "/api/usuario/soportes/:id",
-  checkUserAccess(),
-  usuario.deleteChildren,
-)
-*/
+main_router
+  .get(
+    "/api/usuario/formacion/academica",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_academic_title.getAcademicFormationTitles,
+  )
+  .post(
+    "/api/usuario/formacion/academica/table",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_academic_title.getAcademicFormationTitlesTable,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/formacion/academica/certificado/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_academic_title.updateAcademicFormationTitleCertificate,
+  )
+  .get<{ id: string }>(
+    "/api/usuario/formacion/academica/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_academic_title.getAcademicFormationTitle,
+  )
+  .post(
+    "/api/usuario/formacion/academica",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_academic_title.createAcademicFormationTitle,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/formacion/academica/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_academic_title.updateAcademicFormationTitle,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/formacion/academica/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_academic_title.deleteAcademicFormationTitle,
+  );
+
+main_router
+  .get(
+    "/api/usuario/formacion/continuada",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_continuous_title.getContinuousFormationTitles,
+  )
+  .post(
+    "/api/usuario/formacion/continuada/table",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_continuous_title.getContinuousFormationTitlesTable,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/formacion/continuada/certificado/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_continuous_title.updateContinuousFormationTitleCertificate,
+  )
+  .get<{ id: string }>(
+    "/api/usuario/formacion/continuada/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_continuous_title.getContinuousFormationTitle,
+  )
+  .post(
+    "/api/usuario/formacion/continuada",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_continuous_title.createContinuousFormationTitle,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/formacion/continuada/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_continuous_title.updateContinuousFormationTitle,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/formacion/continuada/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_continuous_title.deleteContinuousFormationTitle,
+  );
+
+main_router
+  .get(
+    "/api/usuario/formacion/capacitacion",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_training_title.getTrainingTitles,
+  )
+  .post(
+    "/api/usuario/formacion/capacitacion/table",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_training_title.getTrainingTitlesTable,
+  )
+  .get<{ id: string }>(
+    "/api/usuario/formacion/capacitacion/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_training_title.getTrainingTitle,
+  )
+  .post(
+    "/api/usuario/formacion/capacitacion",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_training_title.createTrainingTitle,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/formacion/capacitacion/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_training_title.updateTrainingTitle,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/formacion/capacitacion/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_training_title.deleteTrainingTitle,
+  );
+
 main_router
   .get(
     "/api/maestro/parametro",
@@ -811,6 +945,58 @@ main_router
       Profiles.HUMAN_RESOURCES,
     ]),
     people_supports.deleteSupportFormat,
+  );
+
+main_router
+  .get(
+    "/api/maestro/nivel_formacion",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+    ]),
+    formation_level.getFormationLevels,
+  )
+  .post(
+    "/api/maestro/nivel_formacion/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    formation_level.getFormationLevelsTable,
+  )
+  .get<{ id: string }>(
+    "/api/maestro/nivel_formacion/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+    ]),
+    formation_level.getFormationLevel,
+  )
+  .post(
+    "/api/maestro/nivel_formacion",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    formation_level.createFormationLevel,
+  )
+  .put<{ id: string }>(
+    "/api/maestro/nivel_formacion/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    formation_level.updateFormationLevel,
+  )
+  .delete<{ id: string }>(
+    "/api/maestro/nivel_formacion/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    formation_level.deleteFormationLevel,
   );
 
 main_router
@@ -2255,6 +2441,22 @@ main_router
       Profiles.SALES,
     ]),
     updateAssignationRequest,
+  );
+
+main_router
+  .get<{ id: string }>(
+    "/api/archivos/generico/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    file.getGenericFile,
+  )
+  .get<{ id: string }>(
+    "/api/archivos/plantilla/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    file.getTemplateFile,
   );
 
 export const routes = main_router.routes();

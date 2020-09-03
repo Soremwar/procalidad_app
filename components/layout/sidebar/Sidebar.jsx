@@ -89,6 +89,14 @@ const structure = [
         label: "Idiomas",
         link: "/maestro/idioma",
       },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ],
+        label: "Nivel de formación",
+        link: "/maestro/nivel_formacion",
+      },
     ],
   },
   {
@@ -366,6 +374,27 @@ const structure = [
         ],
         label: "Datos personales",
         link: "/usuario/perfil",
+      },
+      {
+        allowed_profiles: [
+          Profiles.CONSULTANT,
+        ],
+        label: "Formación académica",
+        link: "/usuario/formacion/academica",
+      },
+      {
+        allowed_profiles: [
+          Profiles.CONSULTANT,
+        ],
+        label: "Formación continuada",
+        link: "/usuario/formacion/continuada",
+      },
+      {
+        allowed_profiles: [
+          Profiles.CONSULTANT,
+        ],
+        label: "Capacitaciones",
+        link: "/usuario/formacion/capacitacion",
       },
     ],
   },
