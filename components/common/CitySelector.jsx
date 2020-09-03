@@ -4,7 +4,7 @@ import React, {
   useState,
 } from "react";
 import {
-  Typography,
+  InputLabel,
 } from "@material-ui/core";
 import {
   makeStyles,
@@ -14,6 +14,7 @@ import {
   fetchCountryApi,
   fetchStateApi,
 } from "../../lib/api/generator.js";
+import hashGenerator from "../../lib/hash_generator/mod.js";
 import AsyncSelectField from "./AsyncSelectField.jsx";
 
 const generateCountrySearch = (input) => {
@@ -84,13 +85,15 @@ export default function CitySelector({
   value,
 }) {
   const classes = useStyles();
-  const [country, setCountry] = useState(null);
+
+  const [city_search, setCitySearch] = useState("");
+  const [city, setCity] = useState(null);
   const [country_disabled, setCountryDisabled] = useState(false);
   const [country_search, setCountrySearch] = useState("");
-  const [state, setState] = useState(null);
+  const [country, setCountry] = useState(null);
+  const [component_id] = useState(hashGenerator(10));
   const [state_search, setStateSearch] = useState("");
-  const [city, setCity] = useState(null);
-  const [city_search, setCitySearch] = useState("");
+  const [state, setState] = useState(null);
 
   const handleCountrySearch = (_event, value, reason, reloadOptions) => {
     if (value && reason !== "reset") {
@@ -189,13 +192,13 @@ export default function CitySelector({
 
   return (
     <Fragment>
-      <Typography
-        color="textSecondary"
-        variant="caption"
+      <InputLabel
+        htmlFor={component_id}
+        required={required}
       >
         {label}
-      </Typography>
-      <div className={classes.container}>
+      </InputLabel>
+      <div className={classes.container} id={component_id}>
         <AsyncSelectField
           componentClassName={classes.select}
           disabled={country_disabled}
