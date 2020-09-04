@@ -55,7 +55,7 @@ const structure = [
           Profiles.CONTROLLER,
           Profiles.HUMAN_RESOURCES,
         ],
-        label: "Parametro",
+        label: "Parámetro",
         link: "/maestro/parametro",
       },
       {
@@ -197,7 +197,7 @@ const structure = [
     ],
   },
   {
-    label: "Organizacion",
+    label: "Organización",
     icon: <AccountBoxIcon />,
     children: [
       {
@@ -207,7 +207,7 @@ const structure = [
           Profiles.CONTROLLER,
           Profiles.HUMAN_RESOURCES,
         ],
-        label: "Tipo de Area",
+        label: "Tipo de área",
         link: "/organizacion/tipo_area",
       },
       {
@@ -217,7 +217,7 @@ const structure = [
           Profiles.CONTROLLER,
           Profiles.HUMAN_RESOURCES,
         ],
-        label: "Area",
+        label: "Área",
         link: "/organizacion/area",
       },
       {
@@ -227,7 +227,7 @@ const structure = [
           Profiles.CONTROLLER,
           Profiles.HUMAN_RESOURCES,
         ],
-        label: "SubArea",
+        label: "Subárea",
         link: "/organizacion/sub_area",
       },
       {
@@ -260,7 +260,7 @@ const structure = [
           Profiles.HUMAN_RESOURCES,
           Profiles.PROYECT_MANAGER,
         ],
-        label: "Asignacion de Cargo",
+        label: "Asignación de cargo",
         link: "/organizacion/asignacion_cargo",
       },
       {
@@ -296,7 +296,7 @@ const structure = [
     ],
   },
   {
-    label: "Planeacion",
+    label: "Planeación",
     icon: <AccountBoxIcon />,
     children: [
       {
@@ -326,7 +326,7 @@ const structure = [
     ],
   },
   {
-    label: "Asignacion",
+    label: "Asignación",
     icon: <AccountBoxIcon />,
     children: [
       {
@@ -338,7 +338,7 @@ const structure = [
           Profiles.PROYECT_MANAGER,
           Profiles.SALES,
         ],
-        label: "Asignacion",
+        label: "Asignación",
         link: "/asignacion/asignacion",
       },
     ],
@@ -364,7 +364,7 @@ const structure = [
         allowed_profiles: [
           Profiles.CONSULTANT,
         ],
-        label: "Perfil",
+        label: "Datos personales",
         link: "/usuario/perfil",
       },
     ],

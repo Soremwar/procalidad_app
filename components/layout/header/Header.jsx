@@ -118,7 +118,7 @@ export default function Header(props) {
             to="/usuario/perfil"
           >
             <AccountIcon className={classes.profileMenuIcon} />
-            Perfil
+            Datos personales
           </MenuItem>
           <div className={classes.profileMenuUser}>
             <Typography
