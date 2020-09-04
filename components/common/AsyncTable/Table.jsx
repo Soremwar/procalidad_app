@@ -93,6 +93,8 @@ const getTableData = async (
     });
 };
 
+const defaultCellDisplay = (value) => value;
+
 export default function AsyncTable({
   columns,
   onAddClick,
@@ -327,8 +329,14 @@ export default function AsyncTable({
                         />
                       </TableCell>
                       {Object.entries(columns).map(([_, column]) => {
+                        //TODO
+                        //Document cell value handler
+
                         return (<TableCell key={column.id}>
-                          {row[column.id]}
+                          {column.displayAs &&
+                              typeof column.displayAs === "function"
+                            ? column.displayAs(row[column.id])
+                            : defaultCellDisplay(row[column.id])}
                         </TableCell>);
                       })}
                     </TableRow>
