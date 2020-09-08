@@ -169,15 +169,16 @@ export const updateAcademicFormationTitle = async (
   }
 
   response.body = await formation_title.update(
-    value.title,
     value.institution,
     value.start_date,
     value.end_date,
     value.city,
+    undefined,
     null,
     castStringToBoolean(value.status),
   )
-    .catch(() => {
+    .catch((e) => {
+      console.log()
       throw new Error("No fue posible actualizar el título de formación");
     });
 };
