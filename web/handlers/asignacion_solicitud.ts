@@ -11,8 +11,13 @@ import {
 } from "../../api/models/OPERACIONES/asignacion.ts";
 import {
   findById as findWeekControl,
-  findByPersonAndDate as findWeekControlByPersonAndDate,
+  findOpenWeek as findOpenWeekOfPerson,
 } from "../../api/models/OPERACIONES/control_semana.ts";
+import {
+  findByDate as findWeekByDate,
+  findById as findWeekById,
+  getCurrentWeek,
+} from "../../api/models/MAESTRO/dim_semana.ts";
 import {
   findById as findBudget,
   findOpenBudgetByProject as findBudgetByProject,
@@ -87,9 +92,11 @@ export const createAssignationRequest = async (
 
   const value = await request.body({ type: "json" }).value;
 
+  const parsed_date = parseStandardNumber(Number(value.date));
+
   if (
     !request_validator.validate("post", value) ||
-    !parseStandardNumber(Number(value.date))
+    !parsed_date
   ) {
     throw new RequestSyntaxError();
   }
@@ -101,18 +108,29 @@ export const createAssignationRequest = async (
     );
   }
 
-  const control = await findWeekControlByPersonAndDate(
+  const control = await findOpenWeekOfPerson(
     person,
-    Number(value.date),
   );
   if (!control) {
-    throw new NotFoundError(
-      "La semana solicitada no se encuentra disponible para asignacion",
+    throw new RequestSyntaxError(
+      "La persona solicitada no se encuentra habilitada para registrar horas",
     );
   }
-  if (control.closed) {
+
+  const open_week = await findWeekById(control.week);
+  if (!open_week) {
     throw new Error(
-      "La semana requerida para la solicitud se encuentra cerrada",
+      "No fue posible obtener la información de la fecha requerida",
+    );
+  }
+  const current_week = await getCurrentWeek();
+
+  if (
+    (parsed_date as Date).getTime() < open_week.start_date.getTime() ||
+    (parsed_date as Date).getTime() > current_week.start_date.getTime()
+  ) {
+    throw new RequestSyntaxError(
+      "La fecha solicitada no se encuentra disponible para asignación",
     );
   }
 
@@ -127,7 +145,7 @@ export const createAssignationRequest = async (
 
   await sendAssignationRequestEmail(assignation_request.id)
     .catch(() => {
-      //This  should be removed after an email queue is created
+      throw new Error("No fue posible enviar el correo de solicitud");
     });
 
   response.body = assignation_request;
@@ -151,11 +169,6 @@ export const updateAssignationRequest = async (
   const approved = typeof value.approved === "string"
     ? castStringToBoolean(value.approved)
     : value.approved;
-
-  //TODO
-  //Should queue here
-  //After the approval/rejection operation has been completed, it should be set to send
-  await sendAssignationRequestReviewEmail(assignation_request.id, approved);
 
   if (approved) {
     const budget_data = await findBudget(assignation_request.budget);
@@ -197,22 +210,29 @@ export const updateAssignationRequest = async (
 
     const control = await findWeekControl(assignation_request.control);
     if (!control) throw new NotFoundError("La semana solicitada no existe");
-    if (control.closed) {
-      throw new Error(
-        "La semana especificada para la solicitud ya se encuentra cerrada",
-      );
+
+    const week = await findWeekByDate(assignation_request.date);
+    if (!week) {
+      throw new Error("La fecha de la solicitud es inválida");
     }
 
     await createAssignation(
       control.person,
       assignation_request.budget,
       assignation_request.role,
+      week.id,
       assignation_request.date,
       assignation_request.hours,
     );
   }
 
+  await sendAssignationRequestReviewEmail(assignation_request.id, approved)
+    .catch(() => {
+      throw new Error("No fue posible enviar el correo de confirmación");
+    });
+
   await assignation_request.delete();
+
   response.body = { approved };
 };
 

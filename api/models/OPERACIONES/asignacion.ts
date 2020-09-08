@@ -153,18 +153,10 @@ export const createNew = async (
   person: number,
   budget: number,
   role: number,
+  week: number,
   date: number,
   hours: number,
 ) => {
-  const week = await findWeek(date);
-  if (!week) throw new Error("Fecha invalida");
-  const is_control_open = await isControlOpen(person, week.id);
-  if (!is_control_open) {
-    throw new Error(
-      "La persona a asignar no tiene abierta la semana seleccionada",
-    );
-  }
-
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} AS A (
       FK_PERSONA,
@@ -186,7 +178,7 @@ export const createNew = async (
     person,
     budget,
     role,
-    week.id,
+    week,
     date,
     hours,
   );
@@ -198,7 +190,7 @@ export const createNew = async (
     person,
     budget,
     role,
-    week.id,
+    week,
     date,
     final_hours,
   );

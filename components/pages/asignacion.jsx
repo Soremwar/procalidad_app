@@ -291,9 +291,13 @@ const AddModal = ({
           value={fields.budget}
         >
           {budgets
-            .filter(({ fk_proyecto, estado }) =>
-              fk_proyecto == project && estado
-            )
+            .filter(({ fk_proyecto, estado }) => {
+              if (project) {
+                return fk_proyecto == project && estado;
+              } else {
+                return estado;
+              }
+            })
             .map(({ pk_presupuesto, nombre }) => (
               <option key={pk_presupuesto} value={pk_presupuesto}>
                 {nombre}

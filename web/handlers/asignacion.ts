@@ -14,6 +14,14 @@ import {
   findById as findProject,
 } from "../../api/models/OPERACIONES/PROYECTO.ts";
 import {
+  findByDate as findWeek,
+  findById as findWeekById,
+  getCurrentWeek,
+} from "../../api/models/MAESTRO/dim_semana.ts";
+import {
+  findOpenWeek as findOpenWeekOfPerson,
+} from "../../api/models/OPERACIONES/control_semana.ts";
+import {
   tableRequestHandler,
 } from "../../api/common/table.ts";
 import { Profiles } from "../../api/common/profiles.ts";
@@ -91,10 +99,42 @@ export const createAssignation = async (
     }
   }
 
+  const parsed_date = parseStandardNumber(date);
+
+  const open_week_control = await findOpenWeekOfPerson(person);
+  if (!open_week_control) {
+    throw new RequestSyntaxError(
+      "La persona solicitada no se encuentra habilitada para registrar horas",
+    );
+  }
+
+  const open_week = await findWeekById(open_week_control.week);
+  if (!open_week) {
+    throw new Error(
+      "No fue posible obtener la información de la fecha requerida",
+    );
+  }
+  const current_week = await getCurrentWeek();
+
+  if (
+    (parsed_date as Date).getTime() < open_week.start_date.getTime() ||
+    (parsed_date as Date).getTime() > current_week.start_date.getTime()
+  ) {
+    throw new RequestSyntaxError(
+      "La fecha solicitada no se encuentra disponible para asignación",
+    );
+  }
+
+  const week = await findWeek(Number(date));
+  if (!week) {
+    throw new Error("La fecha de la asignación es inválida");
+  }
+
   response.body = await createNew(
     Number(person),
     Number(budget),
     Number(role),
+    week.id,
     Number(date),
     Number(hours),
   );

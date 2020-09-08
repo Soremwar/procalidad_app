@@ -11,23 +11,7 @@ class Week {
     public readonly code: string,
     public readonly start_date: Date,
     public readonly end_date: Date,
-  ) {
-  }
-
-  /*
-  * Get week starting date as YYYYMMDD
-  * */
-  async getStartDate(): Promise<number> {
-    const { rows } = await postgres.query(
-      `SELECT
-        TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER
-      FROM ${TABLE}
-      WHERE PK_SEMANA = $1`,
-      this.id,
-    );
-
-    return rows[0][0];
-  }
+  ) {}
 
   async getLaboralHours(): Promise<number> {
     const { rows } = await postgres.query(
@@ -44,7 +28,46 @@ class Week {
 
     return Number(rows[0]?.[0]) || 0;
   }
+
+  /*
+  * Get week starting date as YYYYMMDD
+  * */
+  async getStartDate(): Promise<number> {
+    const { rows } = await postgres.query(
+      `SELECT
+        TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER
+      FROM ${TABLE}
+      WHERE PK_SEMANA = $1`,
+      this.id,
+    );
+
+    return rows[0][0];
+  }
 }
+
+export const findById = async (id: number): Promise<Week | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_SEMANA,
+      COD_SEMANA,
+      FECHA_INICIO,
+      FECHA_FIN
+    FROM ${TABLE}
+    WHERE PK_SEMANA = $1`,
+    id,
+  );
+
+  if (!rows.length) return null;
+
+  return new Week(
+    ...rows[0] as [
+      number,
+      string,
+      Date,
+      Date,
+    ],
+  );
+};
 
 /*
 * Receives a YYYYMMDD date number and returns the model
@@ -74,7 +97,7 @@ export const findByDate = async (date: number): Promise<Week | null> => {
   );
 };
 
-export const findById = async (id: number): Promise<Week | null> => {
+export const getCurrentWeek = async (): Promise<Week> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_SEMANA,
@@ -82,11 +105,8 @@ export const findById = async (id: number): Promise<Week | null> => {
       FECHA_INICIO,
       FECHA_FIN
     FROM ${TABLE}
-    WHERE PK_SEMANA = $1`,
-    id,
+    WHERE CURRENT_DATE BETWEEN FECHA_INICIO AND FECHA_FIN`,
   );
-
-  if (!rows.length) return null;
 
   return new Week(
     ...rows[0] as [
