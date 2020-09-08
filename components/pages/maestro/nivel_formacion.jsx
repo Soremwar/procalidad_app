@@ -156,9 +156,11 @@ const AddModal = ({
         required
         value={fields.formation_type}
       >
-        {FormationType.map((x) => (
-          <option key={x} value={x}>{x}</option>
-        ))}
+        {FormationType
+          .sort((x, y) => x.localeCompare(y))
+          .map((x) => (
+            <option key={x} value={x}>{x}</option>
+          ))}
       </SelectField>
     </DialogForm>
   );
@@ -238,9 +240,10 @@ const EditModal = ({
         onChange={handleChange}
         value={fields.formation_type}
       >
-        {FormationType.map((x) => (
-          <option key={x} value={x}>{x}</option>
-        ))}
+        {FormationType
+          .map((x) => (
+            <option key={x} value={x}>{x}</option>
+          ))}
       </SelectField>
     </DialogForm>
   );

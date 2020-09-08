@@ -216,9 +216,11 @@ const AddModal = ({
         required
         value={fields.formation_level}
       >
-        {formation_levels.map(({ id, name }) => (
-          <option key={id} value={id}>{name}</option>
-        ))}
+        {formation_levels
+          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
       </SelectField>
       <TextField
         fullWidth
@@ -284,7 +286,7 @@ const AddModal = ({
         label="Instructor"
         onChange={(_event, value) =>
           setFields((prev_state) => ({ ...prev_state, teacher: value }))}
-        options={people}
+        options={people.sort(([_a, x], [_b, y]) => x.localeCompare(y))}
         value={fields.teacher}
       />
     </DialogForm>
@@ -377,9 +379,11 @@ const EditModal = ({
         required
         value={fields.formation_level}
       >
-        {formation_levels.map(({ id, name }) => (
-          <option key={id} value={id}>{name}</option>
-        ))}
+        {formation_levels
+          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
       </SelectField>
       <TextField
         fullWidth
@@ -445,7 +449,7 @@ const EditModal = ({
         label="Instructor"
         onChange={(_event, value) =>
           setFields((prev_state) => ({ ...prev_state, teacher: value }))}
-        options={people}
+        options={people.sort(([_a, x], [_b, y]) => x.localeCompare(y))}
         value={fields.teacher}
       />
     </DialogForm>

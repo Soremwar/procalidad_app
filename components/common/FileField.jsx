@@ -8,7 +8,7 @@ import {
   makeStyles,
 } from "@material-ui/styles";
 import {
-  CloudUpload as UploadIcon,
+  Publish as UploadIcon,
 } from "@material-ui/icons";
 
 const useStyles = makeStyles(() => ({

@@ -30,7 +30,6 @@ import DialogForm from "../../common/DialogForm.jsx";
 import FileField from "../../common/FileField.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
-import InputField from "../../common/FileField.jsx";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
@@ -300,9 +299,11 @@ const AddModal = ({
         required
         value={fields.formation_level}
       >
-        {formation_levels.map(({ id, name }) => (
-          <option key={id} value={id}>{name}</option>
-        ))}
+        {formation_levels
+          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
       </SelectField>
       <TextField
         fullWidth
@@ -448,9 +449,11 @@ const EditModal = ({
         required
         value={fields.formation_level}
       >
-        {formation_levels.map(({ id, name }) => (
-          <option key={id} value={id}>{name}</option>
-        ))}
+        {formation_levels
+          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
       </SelectField>
       <TextField
         fullWidth
