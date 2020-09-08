@@ -335,7 +335,11 @@ export default function AsyncTable({
                         return (<TableCell key={column.id}>
                           {column.displayAs &&
                               typeof column.displayAs === "function"
-                            ? column.displayAs(row[column.id])
+                            ? column.displayAs(
+                              row.id,
+                              row[column.id],
+                              () => setShouldFetchData(true),
+                            )
                             : defaultCellDisplay(row[column.id])}
                         </TableCell>);
                       })}

@@ -13,11 +13,21 @@ export class GenericFile {
     public upload_date: Date | null,
   ) {}
 
+  async delete() {
+    await postgres.query(
+      `DELETE FROM ${TABLE}
+      WHERE PK_ARCHIVO = $1`,
+      this.id,
+    );
+  }
+
   async updateUploadDate() {
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
         FEC_CARGA = NOW()
+      WHERE PK_ARCHIVO = $1
       RETURNING FEC_CARGA`,
+      this.id,
     );
 
     this.upload_date = rows[0][0];
@@ -39,7 +49,7 @@ export const create = async (
       RUTA,
       MAX_TAMANO,
       EXTENSIONES,
-      NOMBRE_ARCHIVO,
+      NOMBRE_ARCHIVO
     ) VALUES (
       $1,
       $2,

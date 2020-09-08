@@ -35,8 +35,9 @@ export default function Header({
             sortDirection={orderBy?.[headCell.id] || false}
           >
             <TableSortLabel
-              active={orderBy?.[headCell.id] && true}
+              active={orderBy?.[headCell.id]}
               direction={orderBy?.[headCell.id] || "asc"}
+              disabled={headCell.orderable === false}
               onClick={(_) => updateSortingDirection(headCell.id)}
               hideSortIcon={true}
             >

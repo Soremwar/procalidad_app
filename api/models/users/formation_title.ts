@@ -60,7 +60,7 @@ class FormationTitle {
         FECHA_INICIO = $3,
         FECHA_FIN = $4,
         FK_CIUDAD = $5,
-        FK_PLANTILLA_ARCHIVO = $6,
+        FK_ARCHIVO_GENERICO = $6,
         FK_INSTRUCTOR = $7,
         ESTADO = $8
       WHERE PK_FORMACION = $1`,

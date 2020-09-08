@@ -14,7 +14,10 @@ import {
   STANDARD_DATE_STRING_OR_NULL,
   TRUTHY_INTEGER,
 } from "../../../lib/ajv/types.js";
-import { writeGenericFile } from "../../../api/storage/uploads.ts";
+import {
+  deleteFile as deleteGenericFile,
+  writeFile as writeGenericFile,
+} from "../../../api/storage/generic_file.ts";
 
 const update_request = {
   $id: "update",
@@ -93,7 +96,13 @@ export const deleteContinuousFormationTitle = async (
   }
 
   try {
+    let generic_file_id = continuous_title.generic_file;
+
+    //Formation title should be deleted first so file constraint doesn't complain
     await continuous_title.delete();
+    if (generic_file_id) {
+      await deleteGenericFile(generic_file_id);
+    }
   } catch (_e) {
     throw new Error("No fue posible eliminar el título de formacion");
   }
@@ -189,19 +198,32 @@ export const updateContinuousFormationTitleCertificate = async (
   const form = await request.body({ type: "form-data" }).value.read({
     maxSize: 10000000,
   });
-  console.log(form);
   if (!form.files || !form.files.length) {
     throw new RequestSyntaxError();
   }
   const {
     content,
+    name: file_name,
   } = form.files[0];
   if (!content) {
     throw new RequestSyntaxError("Tamaño maximo de archivo excedido");
   }
 
-  //TODO
-  //Validate extension and size
+  /* In MegaBytes */
+  const max_file_size = 10;
+  const allowed_extensions = ["pdf", "jpg", "png"];
+
+  const [_, extension] = file_name.split(/\.(?=[^\.]+$)/);
+  if (!allowed_extensions.includes(extension)) {
+    throw new RequestSyntaxError(
+      `El certificado cargado no es un tipo de archivo permitido: ${extension}`,
+    );
+  }
+  if (content.length / 1024 / 1024 > max_file_size) {
+    throw new RequestSyntaxError(
+      "El archivo excede el tamaño máximo permitido",
+    );
+  }
 
   if (formation_title.generic_file) {
     await writeGenericFile(
@@ -214,13 +236,14 @@ export const updateContinuousFormationTitleCertificate = async (
       undefined,
       user_id,
       content,
-      "FORMACION_ACADEMICA",
+      "FORMACION_CONTINUADA",
       removeAccents(formation_title.title)
         .replaceAll(/[\s_]+/g, "_")
         .replaceAll(/\W/g, "")
-        .toUpperCase(),
-      10,
-      ["pdf", "jpg", "png"],
+        .toUpperCase() +
+        `.${extension}`,
+      max_file_size,
+      allowed_extensions,
     );
     formation_title.generic_file = file_id;
     formation_title = await formation_title.update();

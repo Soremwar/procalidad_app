@@ -9,8 +9,9 @@ import { tableRequestHandler } from "../../../api/common/table.ts";
 import { decodeToken } from "../../../lib/jwt.ts";
 import { castStringToBoolean } from "../../../lib/utils/boolean.js";
 import {
-  writeGenericFile,
-} from "../../../api/storage/uploads.ts";
+  deleteFile as deleteGenericFile,
+  writeFile as writeGenericFile,
+} from "../../../api/storage/generic_file.ts";
 import {
   BOOLEAN,
   STANDARD_DATE_STRING,
@@ -97,7 +98,13 @@ export const deleteAcademicFormationTitle = async (
   }
 
   try {
+    let generic_file_id = formation_title.generic_file;
+
+    //Formation title should be deleted first so file constraint doesn't complain
     await formation_title.delete();
+    if (generic_file_id) {
+      await deleteGenericFile(generic_file_id);
+    }
   } catch (_e) {
     throw new Error("No fue posible eliminar el título de formación");
   }
@@ -198,13 +205,27 @@ export const updateAcademicFormationTitleCertificate = async (
   }
   const {
     content,
+    name: file_name,
   } = form.files[0];
   if (!content) {
     throw new RequestSyntaxError("Tamaño maximo de archivo excedido");
   }
 
-  //TODO
-  //Validate extension and size
+  /* In MegaBytes */
+  const max_file_size = 10;
+  const allowed_extensions = ["pdf", "jpg", "png"];
+
+  const [_, extension] = file_name.split(/\.(?=[^\.]+$)/);
+  if (!allowed_extensions.includes(extension)) {
+    throw new RequestSyntaxError(
+      `El certificado cargado no es un tipo de archivo permitido: ${extension}`,
+    );
+  }
+  if (content.length / 1024 / 1024 > max_file_size) {
+    throw new RequestSyntaxError(
+      "El archivo excede el tamaño máximo permitido",
+    );
+  }
 
   if (formation_title.generic_file) {
     await writeGenericFile(
@@ -221,9 +242,10 @@ export const updateAcademicFormationTitleCertificate = async (
       removeAccents(formation_title.title)
         .replaceAll(/[\s_]+/g, "_")
         .replaceAll(/\W/g, "")
-        .toUpperCase(),
-      10,
-      ["pdf", "jpg", "png"],
+        .toUpperCase() +
+        `.${extension}`,
+      max_file_size,
+      allowed_extensions,
     );
     formation_title.generic_file = file_id;
     formation_title = await formation_title.update();

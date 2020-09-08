@@ -1,8 +1,10 @@
 import { RouterContext } from "oak";
 import {
-  getGenericFile as getGenericFileContent,
-  getTemplateFile as getTemplateFileContent,
-} from "../../api/storage/uploads.ts";
+  getFile as getTemplateFileContent,
+} from "../../api/storage/template_file.ts";
+import {
+  getFile as getGenericFileContent,
+} from "../../api/storage/generic_file.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import { decodeToken } from "../../lib/jwt.ts";
 

@@ -23,6 +23,17 @@ const resolveUploadFolder = () => {
   }
 };
 
+export const deleteUploadFile = async (
+  file_relative_path,
+) => {
+  const storage_path = resolveUploadFolder();
+  const file_path = resolve(
+    storage_path,
+    file_relative_path,
+  );
+  await Deno.remove(file_path);
+};
+
 export const getUploadFile = async (
   file_relative_path,
 ) => {

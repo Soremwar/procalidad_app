@@ -1,9 +1,7 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React from "react";
 import {
   Button,
+  CircularProgress,
   TextField,
 } from "@material-ui/core";
 import {
@@ -25,6 +23,8 @@ const useStyles = makeStyles(() => ({
 export default function InputField({
   accept,
   disabled = false,
+  label,
+  loading = false,
   multiple = false,
   onChange,
 }) {
@@ -33,9 +33,11 @@ export default function InputField({
   return (
     <label>
       <TextField
-        accept={accept}
         className={classes.input}
         disabled={disabled}
+        inputProps={{
+          accept,
+        }}
         multiple={multiple}
         onChange={(event) => onChange(event.target.files)}
         type="file"
@@ -44,10 +46,15 @@ export default function InputField({
         disabled={disabled}
         color="primary"
         component="span"
-        endIcon={<UploadIcon />}
+        endIcon={loading
+          ? <CircularProgress
+            color="secondary"
+            size="1.5rem"
+          />
+          : <UploadIcon />}
         variant="contained"
       >
-        Cargar Archivo
+        {label}
       </Button>
     </label>
   );

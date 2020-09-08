@@ -19,9 +19,9 @@ import {
   getFileFormatCode,
 } from "../../../api/parameters.ts";
 import {
-  getTemplateFile,
-  writeTemplateFile,
-} from "../../../api/storage/uploads.ts";
+  getFile as getTemplateFile,
+  writeFile as writeTemplateFile,
+} from "../../../api/storage/template_file.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import {
   CELLPHONE,

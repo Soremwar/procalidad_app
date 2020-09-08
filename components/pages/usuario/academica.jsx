@@ -6,9 +6,14 @@ import React, {
   useState,
 } from "react";
 import {
+  Button,
   DialogContentText,
+  Grid,
   TextField,
 } from "@material-ui/core";
+import {
+  GetApp as DownloadIcon,
+} from "@material-ui/icons";
 import {
   formatResponseJson,
 } from "../../../lib/api/request.js";
@@ -97,7 +102,7 @@ const uploadCertificate = async (
 ) => {
   const data = new FormData();
   data.append(name, file);
-  return fetchUserContinuousFormation(`certificado/${id}`, {
+  return fetchUserAcademicFormation(`certificado/${id}`, {
     body: data,
     method: "PUT",
   });
@@ -133,21 +138,39 @@ const headers = [
     searchable: true,
   },
   {
-    displayAs: (value) => (
-      <FileUploader
-        file_parameters={value}
-        row_id={0}
-        reloadTable={() => console.log("this should reload")}
-      />
+    displayAs: (id, value, reloadTable) => (
+      <Grid container spacing={1}>
+        <Grid item md={6} xs={12}>
+          <FileUploader
+            file_parameters={value}
+            row_id={id}
+            reloadTable={reloadTable}
+          />
+        </Grid>
+        <Grid item md={6} xs={12}>
+          <Button
+            color="primary"
+            component={"a"}
+            disabled={!value.id}
+            endIcon={<DownloadIcon />}
+            href={`/api/archivos/generico/${value.id}`}
+            target={"_blank"}
+            variant="contained"
+          >
+            Descargar
+          </Button>
+        </Grid>
+      </Grid>
     ),
     id: "file",
     numeric: false,
     disablePadding: false,
-    label: "Certificado",
+    label: "Cargar certificado",
     searchable: false,
+    orderable: false,
   },
   {
-    displayAs: (value) => {
+    displayAs: (_, value) => {
       return value
         ? formatDateToStringDatetime(value)
         : "No se ha cargado certificado";
@@ -169,7 +192,10 @@ const FileUploader = ({
   reloadTable,
   row_id,
 }) => {
+  const [loading, setLoading] = useState(false);
+
   const handleFileUpload = (id, file) => {
+    setLoading(true);
     uploadCertificate(id, file.name, file)
       .then((response) => {
         if (response.ok) {
@@ -180,14 +206,19 @@ const FileUploader = ({
       })
       .catch(() => {
         console.error("couldnt upload file");
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
   return (
-    <InputField
+    <FileField
       accept={file_parameters.extensions
         ? file_parameters.extensions.map((x) => `.${x}`).join(",")
         : undefined}
+      label="Cargar"
+      loading={loading}
       onChange={(files) => handleFileUpload(row_id, files[0])}
     />
   );
