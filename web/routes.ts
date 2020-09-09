@@ -439,6 +439,15 @@ main_router
 
 main_router
   .get(
+    "/api/usuario/planeacion",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_profile.getPlanning,
+  );
+
+main_router
+  .get(
     "/api/maestro/parametro",
     checkUserAccess([
       Profiles.ADMINISTRATOR,

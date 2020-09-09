@@ -178,7 +178,7 @@ export const updateAcademicFormationTitle = async (
     castStringToBoolean(value.status),
   )
     .catch((e) => {
-      console.log()
+      console.log();
       throw new Error("No fue posible actualizar el título de formación");
     });
 };

@@ -28,8 +28,8 @@ import {
   parseStandardNumber,
 } from "../../../lib/date/mod.js";
 
-import TableHeaders from "./components/Header.jsx";
-import TableFooter from "./components/Footer.jsx";
+import TableHeaders from "./Table/Header.jsx";
+import TableFooter from "./Table/Footer.jsx";
 
 const parseStandardNumberAsWeek = (standard_date) => {
   const date = parseStandardNumber(standard_date);
@@ -76,12 +76,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function ({
+export default function RegistryTable({
   data,
+  footer,
   onButtonClick,
   onRowSave,
   onRowUpdate,
-  onWeekSave,
   week_details,
 }) {
   const classes = useStyles();
@@ -250,11 +250,12 @@ export default function ({
             length_options={[1, 5, 10, 25]}
             onChangeSelectedPage={handleChangePage}
             onChangePageLength={handleChangeRowsPerPage}
-            onWeekSave={onWeekSave}
             page_length={rowsPerPage}
             selected_page={page}
             total_count={data.size}
-          />
+          >
+            {footer}
+          </TableFooter>
         </TableContainer>
       </Paper>
     </div>

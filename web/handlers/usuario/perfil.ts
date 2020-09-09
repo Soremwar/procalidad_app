@@ -15,6 +15,7 @@ import {
 import {
   getActiveDefinition as findParameterValue,
 } from "../../../api/models/MAESTRO/parametro_definicion.ts";
+import { getDetailHeatmapData } from "../../../api/models/planeacion/recurso.ts";
 import {
   getFileFormatCode,
 } from "../../../api/parameters.ts";
@@ -580,5 +581,13 @@ export const updatePicture = async (
     user_id,
     content,
     originalName,
+  );
+};
+
+export const getPlanning = async ({ cookies, response }: RouterContext) => {
+  const { id: user_id } = await decodeToken(cookies.get("PA_AUTH") || "");
+
+  response.body = await getDetailHeatmapData(
+    user_id,
   );
 };

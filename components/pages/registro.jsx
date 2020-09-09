@@ -6,6 +6,8 @@ import React, {
   useState,
 } from "react";
 import {
+  Button,
+  Grid,
   Snackbar,
   TextField,
 } from "@material-ui/core";
@@ -17,6 +19,7 @@ import {
   fetchClientApi,
   fetchProjectApi,
   fetchRoleApi,
+  fetchTimeApi,
   fetchWeekDetailApi,
 } from "../../lib/api/generator.js";
 import {
@@ -27,15 +30,23 @@ import {
   formatStandardNumberToStandardString,
   formatStandardStringToStandardNumber,
 } from "../../lib/date/mod.js";
-
 import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
 import AsyncSelectField from "../common/AsyncSelectField.jsx";
 import DialogForm from "../common/DialogForm.jsx";
+import PlanningModal from "./registro/PlanningModal.jsx";
 import Title from "../common/Title.jsx";
 import Table from "./registro/Table.jsx";
 
 const getWeekDate = () => fetchWeekDetailApi(`semana`);
 
+const getBlacklistedDates = (start_date, end_date) => {
+  const params = new URLSearchParams({
+    start_date,
+    end_date,
+  });
+
+  return fetchTimeApi(`blacklist?${params.toString()}`);
+};
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getProjects = () => fetchProjectApi().then((x) => x.json());
 
@@ -100,8 +111,9 @@ const submitWeekDetail = async (
   }
 };
 
-const ParameterContext = createContext({
+export const ParameterContext = createContext({
   clients: [],
+  heatmap_blacklisted_dates: [],
   projects: [],
 });
 
@@ -275,10 +287,26 @@ const AddModal = ({
   );
 };
 
+const TODAY = parseDateToStandardNumber(new Date());
+const MAX_DATE_HEATMAP = (() => {
+  const date = new Date();
+  date.setMonth(new Date().getMonth() + 2);
+  return parseDateToStandardNumber(date);
+})();
+
 export default () => {
   const [context] = useContext(UserContext);
 
   const [alert_open, setAlertOpen] = useState(false);
+  const [error, setError] = useState(null);
+  const [parameters, setParameters] = useState({
+    clients: [],
+    heatmap_blacklisted_dates: [],
+    projects: [],
+  });
+  const [is_planning_modal_open, setPlanningModalOpen] = useState(false);
+  const [request_modal_open, setRequestModalOpen] = useState(false);
+  const [table_data, setTableData] = useState(new Map());
   const [week_details, setWeekDetails] = useState({
     assignated_hours: 0,
     date: null,
@@ -286,13 +314,6 @@ export default () => {
     expected_hours: 0,
     requested_hours: 0,
   });
-  const [error, setError] = useState(null);
-  const [parameters, setParameters] = useState({
-    clients: [],
-    projects: [],
-  });
-  const [request_modal_open, setRequestModalOpen] = useState(false);
-  const [table_data, setTableData] = useState(new Map());
 
   const updateCurrentWeekDetails = () => {
     getWeekDate()
@@ -415,6 +436,24 @@ export default () => {
 
   useEffect(() => {
     updateCurrentWeekDetails();
+    getBlacklistedDates(
+      TODAY,
+      MAX_DATE_HEATMAP,
+    )
+      .then(async (response) => {
+        if (response.ok) {
+          const heatmap_blacklisted_dates = await response.json();
+          setParameters((prev_state) => ({
+            ...prev_state,
+            heatmap_blacklisted_dates,
+          }));
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() =>
+        console.error("Couldnt load the banned dates for the calendar")
+      );
     getClients().then((clients) => {
       const entries = clients
         .map(({ pk_cliente, nombre }) => [pk_cliente, nombre])
@@ -449,10 +488,27 @@ export default () => {
       </ParameterContext.Provider>
       <Table
         data={table_data}
+        footer={<Grid container style={{ textAlign: "center" }}>
+          <Grid item md={6} xs={12}>
+            <Button
+              onClick={handleWeekSave}
+              variant="contained"
+            >
+              Cerrar Semana
+            </Button>
+          </Grid>
+          <Grid item md={6} xs={12}>
+            <Button
+              onClick={() => setPlanningModalOpen(true)}
+              variant="contained"
+            >
+              Visualizar planeación
+            </Button>
+          </Grid>
+        </Grid>}
         onButtonClick={() => setRequestModalOpen(true)}
         onRowSave={handleRowSave}
         onRowUpdate={updateRow}
-        onWeekSave={handleWeekSave}
         week_details={week_details}
       />
       <Snackbar
@@ -473,6 +529,14 @@ export default () => {
           {error || "El registro fue guardado con exito"}
         </Alert>
       </Snackbar>
+      <ParameterContext.Provider value={parameters}>
+        <PlanningModal
+          closeModal={() => setPlanningModalOpen(false)}
+          end_date={MAX_DATE_HEATMAP}
+          is_open={is_planning_modal_open}
+          start_date={TODAY}
+        />
+      </ParameterContext.Provider>
     </Fragment>
   );
 };
