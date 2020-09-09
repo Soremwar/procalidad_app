@@ -575,7 +575,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Capacitaciones"} />
+      <Title title={"Capacitaciones internas"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}

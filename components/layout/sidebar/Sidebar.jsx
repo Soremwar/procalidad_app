@@ -393,7 +393,7 @@ const structure = [
         allowed_profiles: [
           Profiles.CONSULTANT,
         ],
-        label: "Capacitaciones",
+        label: "Capacitaciones internas",
         link: "/usuario/formacion/capacitacion",
       },
     ],
