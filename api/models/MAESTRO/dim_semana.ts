@@ -43,6 +43,18 @@ class Week {
 
     return rows[0][0];
   }
+
+  async isCurrentWeek(): Promise<boolean> {
+    const { rows } = await postgres.query(
+      `SELECT
+        CASE WHEN CURRENT_DATE BETWEEN FECHA_INICIO AND FECHA_FIN THEN TRUE ELSE FALSE END
+      FROM ${TABLE}
+      WHERE PK_SEMANA = $1`,
+      this.id,
+    );
+
+    return rows[0][0];
+  }
 }
 
 export const findById = async (id: number): Promise<Week | null> => {

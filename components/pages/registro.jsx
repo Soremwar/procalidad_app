@@ -7,6 +7,9 @@ import React, {
 } from "react";
 import {
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
   Grid,
   Snackbar,
   TextField,
@@ -287,6 +290,41 @@ const AddModal = ({
   );
 };
 
+const ConfirmRequestModal = ({
+  closeModal,
+  onConfirm,
+  is_open,
+}) => {
+  return (
+    <Dialog
+      onClose={closeModal}
+      open={is_open}
+    >
+      <DialogContent>
+        Usted esta registrando sobre la semana actual
+        <br />
+        <br />
+        Tenga en cuenta que su planeación sera cargada aqui unicamente al
+        finalizar la semana, asi que no contar con datos es normal
+        <br />
+        <br />
+        Consulte su planeación antes de solicitar asignación
+      </DialogContent>
+      <DialogActions>
+        <Button
+          color="primary"
+          onClick={() => {
+            closeModal();
+            onConfirm();
+          }}
+        >
+          Confirmar
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const TODAY = parseDateToStandardNumber(new Date());
 const MAX_DATE_HEATMAP = (() => {
   const date = new Date();
@@ -298,6 +336,9 @@ export default () => {
   const [context] = useContext(UserContext);
 
   const [alert_open, setAlertOpen] = useState(false);
+  const [confirm_request_modal_open, setConfirmRequestModalOpen] = useState(
+    false,
+  );
   const [error, setError] = useState(null);
   const [parameters, setParameters] = useState({
     clients: [],
@@ -474,6 +515,11 @@ export default () => {
   return (
     <Fragment>
       <Title title={"Registro"} />
+      <ConfirmRequestModal
+        closeModal={() => setConfirmRequestModalOpen(false)}
+        onConfirm={() => setRequestModalOpen(true)}
+        is_open={confirm_request_modal_open}
+      />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={request_modal_open}
@@ -506,7 +552,13 @@ export default () => {
             </Button>
           </Grid>
         </Grid>}
-        onButtonClick={() => setRequestModalOpen(true)}
+        onButtonClick={() => {
+          if (week_details.is_current_week === false) {
+            setRequestModalOpen(true);
+          } else if (week_details.is_current_week) {
+            setConfirmRequestModalOpen(true);
+          }
+        }}
         onRowSave={handleRowSave}
         onRowUpdate={updateRow}
         week_details={week_details}

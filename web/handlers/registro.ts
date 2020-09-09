@@ -88,11 +88,19 @@ export const getWeekInformation = async (
   const session_cookie = cookies.get("PA_AUTH") || "";
   const { id: user_id } = await decodeToken(session_cookie);
 
-  const week_information = {
+  const week_information: {
+    assignated_hours: number;
+    date: number;
+    executed_hours: number;
+    expected_hours: number;
+    is_current_week: boolean | null;
+    requested_hours: number;
+  } = {
     assignated_hours: 0,
     date: 20001231,
     executed_hours: 0,
     expected_hours: 0,
+    is_current_week: null,
     requested_hours: 0,
   };
 
@@ -109,6 +117,7 @@ export const getWeekInformation = async (
     week_information.date = await week.getStartDate();
     week_information.executed_hours = await getWeekRegistry(control_week.id);
     week_information.expected_hours = await week.getLaboralHours();
+    week_information.is_current_week = await week.isCurrentWeek();
     week_information.requested_hours = await getWeekRequests(control_week.id);
   } else {
     week_information.date = await getOpenWeekAsDate(user_id);
