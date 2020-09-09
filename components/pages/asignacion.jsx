@@ -205,14 +205,18 @@ const AddModal = ({
 }) => {
   const {
     budgets,
+    clients,
     people,
+    projects,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
     budget: "",
+    client: "",
     date: parseDateToStandardNumber(new Date()),
     hours: "",
     person: "",
+    project: project,
     role: null,
   });
   const [is_loading, setLoading] = useState(false);
@@ -251,15 +255,21 @@ const AddModal = ({
     if (is_open) {
       setFields({
         budget: "",
+        client: "",
         date: parseDateToStandardNumber(new Date()),
         hours: "",
         person: "",
+        project: project,
         role: null,
       });
       setError(null);
       setLoading(false);
     }
   }, [is_open]);
+
+  useEffect(() => {
+    setFields(prev_state => ({...prev_state, project}));
+  }, [project]);
 
   return (
     <Fragment>
@@ -277,10 +287,41 @@ const AddModal = ({
           label="Recurso"
           onChange={(_event, value) =>
             setFields((prev_value) => ({ ...prev_value, person: value }))}
-          options={people}
+          options={people.sort(([_a, a], [_b, b]) => a.localeCompare(b))}
           required
           value={fields.person}
         />
+        {
+          !project
+          ? (
+            <Fragment>
+              <AdvancedSelectField
+                fullWidth
+                label="Cliente"
+                margin="dense"
+                name="client"
+                onChange={(_e, client) => setFields(prev_state => ({...prev_state, client}))}
+                options={clients.sort(([_a, a], [_b, b]) => a.localeCompare(b))}
+                required
+                value={fields.client}
+              />
+              <AdvancedSelectField
+                disabled={!fields.client}
+                fullWidth
+                label="Proyecto"
+                margin="dense"
+                onChange={(_e, project) => setFields(prev_state => ({...prev_state, project}))}
+                options={
+                  projects
+                    .filter(([_x, _y, client]) => client == fields.client)
+                    .sort(([_a, a], [_b, b]) => a.localeCompare(b))
+                }
+                required
+                value={fields.project}
+              />
+            </Fragment>
+          ) : null
+        }
         <SelectField
           fullWidth
           label="Presupuesto"
@@ -292,8 +333,8 @@ const AddModal = ({
         >
           {budgets
             .filter(({ fk_proyecto, estado }) => {
-              if (project) {
-                return fk_proyecto == project && estado;
+              if (fields.project) {
+                return fk_proyecto == fields.project && estado;
               } else {
                 return estado;
               }
@@ -784,7 +825,7 @@ export default () => {
               fullWidth
               label="Cliente"
               onChange={(_event, value) => setSelectedClient(value)}
-              options={parameters.clients}
+              options={parameters.clients.sort(([_a, a], [_b, b]) => a.localeCompare(b))}
               required
               value={selected_client}
             />
@@ -795,9 +836,12 @@ export default () => {
               fullWidth
               label="Proyecto"
               onChange={(_event, value) => setSelectedProject(value)}
-              options={parameters.projects.filter(([_x, _y, client]) =>
-                client == selected_client
-              )}
+              options={parameters.projects
+                .sort(([_a, a], [_b, b]) => a.localeCompare(b))
+                .filter(([_x, _y, client]) =>
+                  client == selected_client
+                )
+              }
               required
               value={selected_project}
             />
