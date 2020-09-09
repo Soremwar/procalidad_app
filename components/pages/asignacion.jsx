@@ -268,7 +268,7 @@ const AddModal = ({
   }, [is_open]);
 
   useEffect(() => {
-    setFields(prev_state => ({...prev_state, project}));
+    setFields((prev_state) => ({ ...prev_state, project }));
   }, [project]);
 
   return (
@@ -291,8 +291,7 @@ const AddModal = ({
           required
           value={fields.person}
         />
-        {
-          !project
+        {!project
           ? (
             <Fragment>
               <AdvancedSelectField
@@ -300,7 +299,8 @@ const AddModal = ({
                 label="Cliente"
                 margin="dense"
                 name="client"
-                onChange={(_e, client) => setFields(prev_state => ({...prev_state, client}))}
+                onChange={(_e, client) =>
+                  setFields((prev_state) => ({ ...prev_state, client }))}
                 options={clients.sort(([_a, a], [_b, b]) => a.localeCompare(b))}
                 required
                 value={fields.client}
@@ -310,18 +310,17 @@ const AddModal = ({
                 fullWidth
                 label="Proyecto"
                 margin="dense"
-                onChange={(_e, project) => setFields(prev_state => ({...prev_state, project}))}
-                options={
-                  projects
-                    .filter(([_x, _y, client]) => client == fields.client)
-                    .sort(([_a, a], [_b, b]) => a.localeCompare(b))
-                }
+                onChange={(_e, project) =>
+                  setFields((prev_state) => ({ ...prev_state, project }))}
+                options={projects
+                  .filter(([_x, _y, client]) => client == fields.client)
+                  .sort(([_a, a], [_b, b]) => a.localeCompare(b))}
                 required
                 value={fields.project}
               />
             </Fragment>
-          ) : null
-        }
+          )
+          : null}
         <SelectField
           fullWidth
           label="Presupuesto"
@@ -825,7 +824,9 @@ export default () => {
               fullWidth
               label="Cliente"
               onChange={(_event, value) => setSelectedClient(value)}
-              options={parameters.clients.sort(([_a, a], [_b, b]) => a.localeCompare(b))}
+              options={parameters.clients.sort(([_a, a], [_b, b]) =>
+                a.localeCompare(b)
+              )}
               required
               value={selected_client}
             />
@@ -838,10 +839,7 @@ export default () => {
               onChange={(_event, value) => setSelectedProject(value)}
               options={parameters.projects
                 .sort(([_a, a], [_b, b]) => a.localeCompare(b))
-                .filter(([_x, _y, client]) =>
-                  client == selected_client
-                )
-              }
+                .filter(([_x, _y, client]) => client == selected_client)}
               required
               value={selected_project}
             />

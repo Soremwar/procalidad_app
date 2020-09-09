@@ -152,12 +152,12 @@ const tableStyles = makeStyles({
   },
 });
 
-export default ({
+export default function Heatmap({
   blacklisted_dates,
   children,
   end_date,
   start_date,
-}) => {
+}) {
   const classes = tableStyles();
   const [calendar_dates, setCalendarDates] = useState([]);
 
@@ -217,4 +217,4 @@ export default ({
       </Table>
     </TableContainer>
   );
-};
+}

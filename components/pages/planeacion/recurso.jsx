@@ -883,46 +883,50 @@ export default () => {
     setDeleteModalOpen(true);
   };
 
-  const updateGantt = () => {
+  const updateGantt = async () => {
+    let tasks;
     if (!selected_person) {
-      getResourceGantt("resource").then((resources) => {
-        const tasks = resources
-          .map(({
-            person,
-            start_date,
-            end_date,
-          }, index) =>
-            new Task({
-              id: index,
-              name: person,
-              start: formatStandardNumberToStandardString(start_date),
-              end: formatStandardNumberToStandardString(end_date),
-              progress: 0,
-            })
-          );
-
-        setTasks(tasks);
-      });
+      tasks = await getResourceGantt("resource")
+        .then((resources) => {
+          return resources
+            .map(({
+              person,
+              start_date,
+              end_date,
+            }, index) =>
+              new Task({
+                id: index,
+                name: person,
+                start: formatStandardNumberToStandardString(start_date),
+                end: formatStandardNumberToStandardString(end_date),
+                progress: 0,
+              })
+            );
+        });
     } else {
-      getResourceGantt("detail", selected_person).then((resources) => {
-        const tasks = resources
-          .map(({
-            assignation,
-            project,
-            start_date,
-            end_date,
-          }, index) =>
-            new Task({
-              id: index,
-              name: `${project} - ${assignation}%`,
-              start: formatStandardNumberToStandardString(start_date),
-              end: formatStandardNumberToStandardString(end_date),
-              progress: 100,
-            })
-          );
-
-        setTasks(tasks);
-      });
+      tasks = await getResourceGantt("detail", selected_person)
+        .then((resources) => {
+          return resources
+            .map(({
+              assignation,
+              project,
+              start_date,
+              end_date,
+            }, index) =>
+              new Task({
+                id: index,
+                name: `${project} - ${assignation}%`,
+                start: formatStandardNumberToStandardString(start_date),
+                end: formatStandardNumberToStandardString(end_date),
+                progress: 100,
+              })
+            );
+        });
+    }
+    if (selected_tab === 1) {
+      setTasks(tasks);
+    } else {
+      setTasks([]);
     }
   };
 
@@ -970,12 +974,16 @@ export default () => {
   useEffect(() => {
     switch (selected_tab) {
       case 0:
+        setHeatmapShouldUpdate(false);
         updateTable();
         break;
       case 1:
+        setTableShouldUpdate(false);
+        setHeatmapShouldUpdate(false);
         updateGantt();
         break;
       case 2:
+        setTableShouldUpdate(false);
         updateHeatmap();
         break;
     }
@@ -1086,7 +1094,7 @@ export default () => {
                   end_date={MAX_DATE_HEATMAP}
                   getSource={(type, sub_area, position, role) =>
                     getResourceHeatmap(type, sub_area, position, role)}
-                  onUpdate={() => setHeatmapShouldUpdate(true)}
+                  onUpdate={() => setHeatmapShouldUpdate(false)}
                   should_update={heatmap_should_update}
                   start_date={TODAY}
                 />
@@ -1096,7 +1104,7 @@ export default () => {
                   blacklisted_dates={parameters.blacklisted_dates}
                   end_date={MAX_DATE_HEATMAP}
                   getSource={() => getDetailHeatmap(selected_person)}
-                  onUpdate={() => setHeatmapShouldUpdate(true)}
+                  onUpdate={() => setHeatmapShouldUpdate(false)}
                   should_update={heatmap_should_update}
                   start_date={TODAY}
                 />

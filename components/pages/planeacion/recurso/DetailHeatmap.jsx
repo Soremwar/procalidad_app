@@ -96,24 +96,39 @@ const HeatmapData = ({
   ));
 };
 
-export default ({
+export default function DetailHeatmap({
   blacklisted_dates,
   end_date,
   getSource,
   onUpdate,
   should_update,
   start_date,
-}) => {
+}) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
+    let active = true;
+
     if (should_update) {
-      getSource().then((res) => setData(res));
+      getSource()
+        .then((res) => {
+          if (active) {
+            setData(res);
+          }
+        })
+        .catch(() => console.error("Couldn't update detail heatmap"))
+        .finally(() => {
+          onUpdate();
+        });
     }
+
+    return () => {
+      active = false;
+    };
   }, [should_update]);
 
   useEffect(() => {
-    return function cleanUp() {
+    return () => {
       onUpdate();
     };
   }, []);
@@ -129,4 +144,4 @@ export default ({
       </Heatmap>
     </Fragment>
   );
-};
+}

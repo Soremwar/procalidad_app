@@ -129,14 +129,14 @@ const HeatmapData = ({
   ));
 };
 
-export default ({
+export default function ResourceHeatmap({
   blacklisted_dates,
   end_date,
   getSource,
   onUpdate,
   should_update,
   start_date,
-}) => {
+}) {
   const {
     positions,
     roles,
@@ -160,18 +160,35 @@ export default ({
   };
 
   useEffect(() => {
+    let active = true;
+
     if (should_update) {
       getSource(
         parameters.type,
         parameters.sub_area,
         parameters.position,
         parameters.role,
-      ).then((res) => setData(res));
+      )
+        .then((res) => {
+          if (active) {
+            setData(res);
+          }
+        })
+        .catch(() =>
+          console.error("Couldn't load the resource heatmap information")
+        )
+        .finally(() => {
+          onUpdate();
+        });
     }
+
+    return () => {
+      active = false;
+    };
   }, [should_update, parameters]);
 
   useEffect(() => {
-    return function cleanUp() {
+    return () => {
       onUpdate();
     };
   }, []);
@@ -240,4 +257,4 @@ export default ({
       </Heatmap>
     </Fragment>
   );
-};
+}
