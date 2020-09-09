@@ -304,8 +304,8 @@ const ConfirmRequestModal = ({
         Usted esta registrando sobre la semana actual
         <br />
         <br />
-        Tenga en cuenta que su planeación sera cargada aqui unicamente al
-        finalizar la semana, asi que no contar con datos es normal
+        Tenga en cuenta que su planeación será cargada aquí unicamente al
+        finalizar la semana, así que no contar con datos es normal
         <br />
         <br />
         Consulte su planeación antes de solicitar asignación
