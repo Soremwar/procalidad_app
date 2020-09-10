@@ -6,6 +6,7 @@ import * as user_profile from "./handlers/usuario/perfil.ts";
 import * as user_academic_title from "./handlers/usuario/formacion_academica.ts";
 import * as user_continuous_title from "./handlers/usuario/formacion_continuada.ts";
 import * as user_training_title from "./handlers/usuario/formacion_capacitacion.ts";
+import * as user_laboral_experience from "./handlers/usuario/experiencia/laboral.ts";
 import {
   createContact,
   deleteContact,
@@ -289,6 +290,13 @@ main_router
     "/api/usuario",
     checkUserAccess(),
     user_profile.updateUserInformation,
+  )
+  .get(
+    "/api/usuario/planeacion",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_profile.getPlanning,
   );
 
 main_router
@@ -439,11 +447,53 @@ main_router
 
 main_router
   .get(
-    "/api/usuario/planeacion",
+    "/api/usuario/experiencia/laboral",
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
-    user_profile.getPlanning,
+    user_laboral_experience.getLaboralExperiences,
+  )
+  .post(
+    "/api/usuario/experiencia/laboral/table",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_laboral_experience.getLaboralExperiencesTable,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/experiencia/laboral/certificado/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_laboral_experience.updateLaboralExperienceCertificate,
+  )
+  .get<{ id: string }>(
+    "/api/usuario/experiencia/laboral/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_laboral_experience.getLaboralExperience,
+  )
+  .post(
+    "/api/usuario/experiencia/laboral",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_laboral_experience.createLaboralExperience,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/experiencia/laboral/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_laboral_experience.updateLaboralExperience,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/experiencia/laboralcontinuada/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_laboral_experience.deleteLaboralExperience,
   );
 
 main_router

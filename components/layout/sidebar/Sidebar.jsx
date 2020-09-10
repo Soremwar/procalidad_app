@@ -396,6 +396,13 @@ const structure = [
         label: "Capacitaciones internas",
         link: "/usuario/formacion/capacitacion",
       },
+      {
+        allowed_profiles: [
+          Profiles.CONSULTANT,
+        ],
+        label: "Experiencia laboral",
+        link: "/usuario/experiencia/laboral",
+      },
     ],
   },
 ];

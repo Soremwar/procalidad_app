@@ -6,8 +6,7 @@ import {
   TableResult,
 } from "../../common/table.ts";
 
-//TODO
-//Add table name constant
+export const TABLE = "ORGANIZACION.CARGO";
 
 const ERROR_DEPENDENCY =
   "No se puede eliminar el area por que hay componentes que dependen de el";
@@ -27,7 +26,7 @@ class Cargo {
   > {
     Object.assign(this, { nombre, descripcion });
     await postgres.query(
-      `UPDATE ORGANIZACION.CARGO SET
+      `UPDATE ${TABLE} SET
         NOMBRE = $2,
         DESCRIPCION = $3
       WHERE PK_CARGO = $1`,
@@ -41,7 +40,7 @@ class Cargo {
 
   async delete(): Promise<void> {
     await postgres.query(
-      "DELETE FROM ORGANIZACION.CARGO WHERE PK_CARGO = $1",
+      `DELETE FROM ${TABLE} WHERE PK_CARGO = $1`,
       this.pk_cargo,
     ).catch((e: PostgresError) => {
       if (e.fields.constraint) {
@@ -55,7 +54,7 @@ class Cargo {
 
 export const findAll = async (): Promise<Cargo[]> => {
   const { rows } = await postgres.query(
-    "SELECT PK_CARGO, NOMBRE, DESCRIPCION FROM ORGANIZACION.CARGO",
+    `SELECT PK_CARGO, NOMBRE, DESCRIPCION FROM ${TABLE}`,
   );
 
   const models = rows.map((row: [
@@ -69,7 +68,12 @@ export const findAll = async (): Promise<Cargo[]> => {
 
 export const findById = async (id: number): Promise<Cargo | null> => {
   const { rows } = await postgres.query(
-    "SELECT PK_CARGO, NOMBRE, DESCRIPCION FROM ORGANIZACION.CARGO WHERE PK_CARGO = $1",
+    `SELECT
+      PK_CARGO,
+      NOMBRE,
+      DESCRIPCION
+    FROM ${TABLE}
+    WHERE PK_CARGO = $1`,
     id,
   );
   if (!rows[0]) return null;
@@ -86,7 +90,7 @@ export const createNew = async (
   descripcion: string,
 ): Promise<Cargo> => {
   const { rows } = await postgres.query(
-    `INSERT INTO ORGANIZACION.CARGO (
+    `INSERT INTO ${TABLE} (
       NOMBRE, DESCRIPCION
     ) VALUES ($1, $2)
     RETURNING PK_CARGO`,
@@ -119,7 +123,7 @@ export const getTableData = async (
       PK_CARGO AS ID,
       NOMBRE AS NAME,
       DESCRIPCION AS DESCRIPTION
-    FROM ORGANIZACION.CARGO`
+    FROM ${TABLE}`
   );
 
   const { count, data } = await getTableModels(

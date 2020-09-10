@@ -27,6 +27,7 @@ import Contacto from "../pages/clientes/Contacto.jsx";
 import CostoEmpleado from "../pages/organizacion/costo_empleado.jsx";
 import FormacionAcademica from "../pages/usuario/academica.jsx";
 import Capacitacion from "../pages/usuario/capacitacion.jsx";
+import ExperienciaLaboral from "../pages/usuario/experiencia/laboral.jsx";
 import FormacionContinuada from "../pages/usuario/continuada.jsx";
 import Formato from "../pages/maestro/formato.jsx";
 import Idioma from "../pages/maestro/idioma.jsx";
@@ -406,6 +407,13 @@ const Layout = (props) => {
               ]}
               component={Capacitacion}
               path="/usuario/formacion/capacitacion"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.CONSULTANT,
+              ]}
+              component={ExperienciaLaboral}
+              path="/usuario/experiencia/laboral"
             />
             <Route exact={true} path="/" />
             <Redirect from="*" to="/404" />
