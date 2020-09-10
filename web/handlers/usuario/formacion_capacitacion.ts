@@ -56,8 +56,10 @@ const request_validator = new Ajv({
 });
 
 export const createTrainingTitle = async (
-  { request, response }: RouterContext,
+  { cookies, request, response }: RouterContext,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   if (!request.hasBody) {
     throw new RequestSyntaxError();
   }
@@ -70,6 +72,7 @@ export const createTrainingTitle = async (
 
   response.body = await formation_title_model.create(
     value.formation_level,
+    user_id,
     value.title,
     value.institution,
     value.start_date,
@@ -81,14 +84,19 @@ export const createTrainingTitle = async (
 };
 
 export const deleteTrainingTitle = async (
-  { params, response }: RouterContext<{ id: string }>,
+  { cookies, params, response }: RouterContext<{ id: string }>,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   const id = Number(params.id);
   if (!id) {
     throw new RequestSyntaxError();
   }
 
-  const continuous_title = await formation_title_model.findById(id);
+  const continuous_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!continuous_title) {
     throw new NotFoundError();
   }
@@ -103,24 +111,33 @@ export const deleteTrainingTitle = async (
 };
 
 export const getTrainingTitle = async (
-  { params, response }: RouterContext<{ id: string }>,
+  { cookies, params, response }: RouterContext<{ id: string }>,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   const id = Number(params.id);
   if (!id) {
     throw new RequestSyntaxError();
   }
 
-  const training_title = await formation_title_model.findById(id);
+  const training_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!training_title) throw new NotFoundError();
 
   response.body = training_title;
 };
 
 export const getTrainingTitles = async (
-  { response }: RouterContext,
+  { cookies, response }: RouterContext,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
+
   response.body = await formation_title_model.getAll(
     FormationType.Capacitaciones,
+    user_id,
   );
 };
 
@@ -140,8 +157,10 @@ export const getTrainingTitlesTable = async (
 };
 
 export const updateTrainingTitle = async (
-  { params, request, response }: RouterContext<{ id: string }>,
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   const id = Number(params.id);
   if (!id) {
     throw new RequestSyntaxError();
@@ -153,7 +172,10 @@ export const updateTrainingTitle = async (
     throw new RequestSyntaxError();
   }
 
-  const training_title = await formation_title_model.findById(id);
+  const training_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!training_title) {
     throw new NotFoundError();
   }

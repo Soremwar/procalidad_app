@@ -10,6 +10,7 @@ import {
 import {
   TABLE as PEOPLE_TABLE,
 } from "../ORGANIZACION/people.ts";
+import { user } from "../../../config/services/postgresql.ts";
 
 export const TABLE = "USUARIOS.FORMACION";
 
@@ -17,6 +18,7 @@ class FormationTitle {
   constructor(
     public readonly id: number,
     public readonly formation_level: number,
+    public readonly user: number,
     public title: string,
     public institution: string,
     public start_date: string,
@@ -80,6 +82,7 @@ class FormationTitle {
 
 export const create = async (
   formation_level: number,
+  user: number,
   title: string,
   institution: string,
   start_date: string,
@@ -91,6 +94,7 @@ export const create = async (
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_NIVEL_FORMACION,
+      FK_USUARIO,
       TITULO,
       INSTITUCION,
       FECHA_INICIO,
@@ -106,9 +110,11 @@ export const create = async (
       $5,
       $6,
       $7,
-      $8
+      $8,
+      $9
     ) RETURNING PK_FORMACION`,
     formation_level,
+    user,
     title,
     institution,
     start_date,
@@ -123,6 +129,7 @@ export const create = async (
   return new FormationTitle(
     id,
     formation_level,
+    user,
     title,
     institution,
     start_date,
@@ -136,11 +143,13 @@ export const create = async (
 
 export const getAll = async (
   formation_type: FormationType,
+  user?: number,
 ): Promise<FormationTitle[]> => {
   const { rows } = await postgres.query(
     `SELECT
       T.PK_FORMACION,
       T.FK_NIVEL_FORMACION,
+      T.FK_USUARIO,
       T.TITULO,
       T.INSTITUCION,
       TO_CHAR(FECHA_INICIO, 'YYYY-MM-DD'),
@@ -152,10 +161,12 @@ export const getAll = async (
      FROM ${TABLE} T
      JOIN ${FORMATION_LEVEL_TABLE} L
        ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
-     WHERE L.TIPO_FORMACION = '${formation_type}'`,
+     WHERE L.TIPO_FORMACION = '${formation_type}'
+     ${user ? `AND T.FK_USUARIO = ${user}` : ""}`,
   );
 
   return rows.map((row: [
+    number,
     number,
     number,
     string,
@@ -193,6 +204,50 @@ export const findById = async (
 
   return new FormationTitle(
     ...rows[0] as [
+      number,
+      number,
+      number,
+      string,
+      string,
+      string,
+      string | null,
+      number | null,
+      number,
+      number | null,
+      boolean,
+    ],
+  );
+};
+
+export const findByIdAndUser = async (
+  id: number,
+  user: number,
+): Promise<FormationTitle | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_FORMACION,
+      FK_NIVEL_FORMACION,
+      FK_USUARIO,
+      TITULO,
+      INSTITUCION,
+      TO_CHAR(FECHA_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(FECHA_FIN, 'YYYY-MM-DD'),
+      FK_CIUDAD,
+      FK_ARCHIVO_GENERICO,
+      FK_INSTRUCTOR,
+      ESTADO
+     FROM ${TABLE}
+     WHERE PK_FORMACION = $1
+     AND FK_USUARIO = $2`,
+    id,
+    user,
+  );
+
+  if (!rows.length) return null;
+
+  return new FormationTitle(
+    ...rows[0] as [
+      number,
       number,
       number,
       string,
@@ -250,8 +305,8 @@ export const generateTableData = (
       ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
     LEFT JOIN ${GENERIC_FILE_TABLE} AS F
       ON F.PK_ARCHIVO = T.FK_ARCHIVO_GENERICO
-      AND F.FK_USUARIO = ${user_id}
-    WHERE L.TIPO_FORMACION = '${formation_type}'`
+    WHERE L.TIPO_FORMACION = '${formation_type}'
+    AND T.FK_USUARIO = ${user_id}`
     );
 
     const { count, data } = await getTableModels(

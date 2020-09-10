@@ -58,8 +58,10 @@ const request_validator = new Ajv({
 });
 
 export const createContinuousFormationTitle = async (
-  { request, response }: RouterContext,
+  { cookies, request, response }: RouterContext,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   if (!request.hasBody) {
     throw new RequestSyntaxError();
   }
@@ -72,6 +74,7 @@ export const createContinuousFormationTitle = async (
 
   response.body = await formation_title_model.create(
     value.formation_level,
+    user_id,
     value.title,
     value.institution,
     value.start_date,
@@ -83,14 +86,19 @@ export const createContinuousFormationTitle = async (
 };
 
 export const deleteContinuousFormationTitle = async (
-  { params, response }: RouterContext<{ id: string }>,
+  { cookies, params, response }: RouterContext<{ id: string }>,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   const id = Number(params.id);
   if (!id) {
     throw new RequestSyntaxError();
   }
 
-  const continuous_title = await formation_title_model.findById(id);
+  const continuous_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!continuous_title) {
     throw new NotFoundError();
   }
@@ -111,24 +119,33 @@ export const deleteContinuousFormationTitle = async (
 };
 
 export const getContinuousFormationTitle = async (
-  { params, response }: RouterContext<{ id: string }>,
+  { cookies, params, response }: RouterContext<{ id: string }>,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   const id = Number(params.id);
   if (!id) {
     throw new RequestSyntaxError();
   }
 
-  const formation_title = await formation_title_model.findById(id);
+  const formation_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!formation_title) throw new NotFoundError();
 
   response.body = formation_title;
 };
 
 export const getContinuousFormationTitles = async (
-  { response }: RouterContext,
+  { cookies, response }: RouterContext,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
+
   response.body = await formation_title_model.getAll(
     FormationType.Continuada,
+    user_id,
   );
 };
 
@@ -148,8 +165,10 @@ export const getContinuousFormationTitlesTable = async (
 };
 
 export const updateContinuousFormationTitle = async (
-  { params, request, response }: RouterContext<{ id: string }>,
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   const id = Number(params.id);
   if (!id) {
     throw new RequestSyntaxError();
@@ -161,7 +180,10 @@ export const updateContinuousFormationTitle = async (
     throw new RequestSyntaxError();
   }
 
-  const formation_title = await formation_title_model.findById(id);
+  const formation_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!formation_title) {
     throw new NotFoundError();
   }
@@ -190,7 +212,10 @@ export const updateContinuousFormationTitleCertificate = async (
     throw new RequestSyntaxError();
   }
 
-  let formation_title = await formation_title_model.findById(id);
+  let formation_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!formation_title) {
     throw new NotFoundError();
   }

@@ -18,6 +18,7 @@ import {
   STANDARD_DATE_STRING_OR_NULL,
   TRUTHY_INTEGER,
 } from "../../../lib/ajv/types.js";
+import { user } from "../../../config/services/postgresql.ts";
 
 const update_request = {
   $id: "update",
@@ -60,8 +61,10 @@ const request_validator = new Ajv({
 });
 
 export const createAcademicFormationTitle = async (
-  { request, response }: RouterContext,
+  { cookies, request, response }: RouterContext,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   if (!request.hasBody) {
     throw new RequestSyntaxError();
   }
@@ -74,6 +77,7 @@ export const createAcademicFormationTitle = async (
 
   response.body = await formation_title_model.create(
     value.formation_level,
+    user_id,
     value.title,
     value.institution,
     value.start_date,
@@ -85,14 +89,19 @@ export const createAcademicFormationTitle = async (
 };
 
 export const deleteAcademicFormationTitle = async (
-  { params, response }: RouterContext<{ id: string }>,
+  { cookies, params, response }: RouterContext<{ id: string }>,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   const id = Number(params.id);
   if (!id) {
     throw new RequestSyntaxError();
   }
 
-  const formation_title = await formation_title_model.findById(id);
+  const formation_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!formation_title) {
     throw new NotFoundError();
   }
@@ -113,24 +122,33 @@ export const deleteAcademicFormationTitle = async (
 };
 
 export const getAcademicFormationTitle = async (
-  { params, response }: RouterContext<{ id: string }>,
+  { cookies, params, response }: RouterContext<{ id: string }>,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   const id = Number(params.id);
   if (!id) {
     throw new RequestSyntaxError();
   }
 
-  const formation_title = await formation_title_model.findById(id);
+  const formation_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!formation_title) throw new NotFoundError();
 
   response.body = formation_title;
 };
 
 export const getAcademicFormationTitles = async (
-  { response }: RouterContext,
+  { cookies, response }: RouterContext,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
+
   response.body = await formation_title_model.getAll(
     FormationType.Academica,
+    user_id,
   );
 };
 
@@ -150,8 +168,10 @@ export const getAcademicFormationTitlesTable = async (
 };
 
 export const updateAcademicFormationTitle = async (
-  { params, request, response }: RouterContext<{ id: string }>,
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
   const id = Number(params.id);
   if (!id) {
     throw new RequestSyntaxError();
@@ -163,7 +183,10 @@ export const updateAcademicFormationTitle = async (
     throw new RequestSyntaxError();
   }
 
-  const formation_title = await formation_title_model.findById(id);
+  const formation_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!formation_title) {
     throw new NotFoundError();
   }
@@ -193,7 +216,10 @@ export const updateAcademicFormationTitleCertificate = async (
     throw new RequestSyntaxError();
   }
 
-  let formation_title = await formation_title_model.findById(id);
+  let formation_title = await formation_title_model.findByIdAndUser(
+    id,
+    user_id,
+  );
   if (!formation_title) {
     throw new NotFoundError();
   }
