@@ -61,22 +61,18 @@ const createTrainingTitle = async (
 const updateTrainingTitle = async (
   id,
   end_date,
-  formation_level,
   institution,
   start_date,
   status,
   teacher,
-  title,
 ) =>
   fetchUserTrainingFormation(id, {
     body: JSON.stringify({
       end_date,
-      formation_level,
       institution,
       start_date,
       status,
       teacher,
-      title,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -328,12 +324,10 @@ const EditModal = ({
     const request = await updateTrainingTitle(
       data.id,
       fields.end_date || null,
-      fields.formation_level,
       fields.institution,
       fields.start_date,
       fields.status,
       fields.teacher || null,
-      fields.title,
     );
 
     if (request.ok) {
@@ -372,11 +366,10 @@ const EditModal = ({
       title={"Editar"}
     >
       <SelectField
+        disabled
         fullWidth
         label="Nivel de formación"
         name="formation_level"
-        onChange={handleChange}
-        required
         value={fields.formation_level}
       >
         {formation_levels
@@ -386,16 +379,10 @@ const EditModal = ({
           ))}
       </SelectField>
       <TextField
+        disabled
         fullWidth
-        InputProps={{
-          inputProps: {
-            maxLength: "50",
-          },
-        }}
         label="Título"
         name="title"
-        onChange={handleChange}
-        required
         value={fields.title}
       />
       <TextField
