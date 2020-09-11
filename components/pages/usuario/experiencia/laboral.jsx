@@ -33,32 +33,39 @@ import FileField from "../../../common/FileField.jsx";
 import Title from "../../../common/Title.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 
-const getPositions = () => fetchPositionApi();
 const getSectors = () => fetchSectorApi();
 
 const getLaboralExperience = (id) => fetchUserLaboralExperience(id);
 
 const createLaboralExperience = async (
-  city,
-  company,
-  description,
+  achievement_description,
+  company_address,
+  company_city,
+  company_name,
+  company_nit,
+  company_phone,
+  company_sector,
+  company_verification_digit,
+  contact,
   end_date,
-  homologous_position,
-  phone,
+  function_description,
   position,
-  sector,
   start_date,
 ) =>
   fetchUserLaboralExperience("", {
     body: JSON.stringify({
-      city,
-      company,
-      description,
+      achievement_description,
+      company_address,
+      company_city,
+      company_name,
+      company_nit,
+      company_phone,
+      company_sector,
+      company_verification_digit,
+      contact,
       end_date,
-      homologous_position,
-      phone,
+      function_description,
       position,
-      sector,
       start_date,
     }),
     headers: {
@@ -69,24 +76,34 @@ const createLaboralExperience = async (
 
 const updateLaboralExperience = async (
   id,
-  city,
-  description,
+  achievement_description,
+  company_address,
+  company_city,
+  company_name,
+  company_nit,
+  company_phone,
+  company_sector,
+  company_verification_digit,
+  contact,
   end_date,
-  homologous_position,
-  phone,
+  function_description,
   position,
-  sector,
   start_date,
 ) =>
   fetchUserLaboralExperience(id, {
     body: JSON.stringify({
-      city,
-      description,
+      achievement_description,
+      company_address,
+      company_city,
+      company_name,
+      company_nit,
+      company_phone,
+      company_sector,
+      company_verification_digit,
+      contact,
       end_date,
-      homologous_position,
-      phone,
+      function_description,
       position,
-      sector,
       start_date,
     }),
     headers: {
@@ -126,13 +143,6 @@ const headers = [
     numeric: false,
     disablePadding: false,
     label: "Empresa",
-    searchable: true,
-  },
-  {
-    id: "position",
-    numeric: false,
-    disablePadding: false,
-    label: "Cargo",
     searchable: true,
   },
   {
@@ -229,19 +239,22 @@ const AddModal = ({
   updateTable,
 }) => {
   const {
-    positions,
     sectors,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    city: "",
-    company: "",
-    description: "",
+    achievement_description: "",
+    company_address: "",
+    company_city: "",
+    company_name: "",
+    company_nit: "",
+    company_phone: "",
+    company_sector: "",
+    company_verification_digit: "",
+    contact: "",
     end_date: "",
-    homologous_position: "",
-    phone: "",
+    function_description: "",
     position: "",
-    sector: "",
     start_date: "",
   });
   const [is_loading, setLoading] = useState(false);
@@ -257,14 +270,18 @@ const AddModal = ({
     setError(null);
 
     const request = await createLaboralExperience(
-      fields.city,
-      fields.company,
-      fields.description,
+      fields.achievement_description,
+      fields.company_address,
+      fields.company_city,
+      fields.company_name,
+      fields.company_nit,
+      fields.company_phone,
+      fields.company_sector,
+      fields.company_verification_digit,
+      fields.contact,
       fields.end_date,
-      fields.homologous_position,
-      fields.phone,
+      fields.function_description,
       fields.position,
-      fields.sector,
       fields.start_date,
     );
 
@@ -281,14 +298,18 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        city: "",
-        company: "",
-        description: "",
+        achievement_description: "",
+        company_address: "",
+        company_city: "",
+        company_name: "",
+        company_nit: "",
+        company_phone: "",
+        company_sector: "",
+        company_verification_digit: "",
+        contact: "",
         end_date: "",
-        homologous_position: "",
-        phone: "",
+        function_description: "",
         position: "",
-        sector: "",
         start_date: "",
       });
       setLoading(false);
@@ -310,22 +331,65 @@ const AddModal = ({
         inputProps={{
           maxLength: "50",
         }}
-        label="Empresa"
-        name="company"
+        label="Razón social de la empresa"
+        name="company_name"
         onChange={(e) => {
-          const company = e.target.value.toUpperCase();
-          setFields((prev_state) => ({ ...prev_state, company }));
+          const company_name = e.target.value.toUpperCase();
+          setFields((prev_state) => ({ ...prev_state, company_name }));
         }}
         required
-        value={fields.company}
+        value={fields.company_name}
+      />
+      <Grid container spacing={1}>
+        <Grid item md={7} xs={12}>
+          <TextField
+            fullWidth
+            inputProps={{
+              min: "1",
+              max: "999999999",
+            }}
+            label="NIT"
+            name="company_nit"
+            onChange={handleChange}
+            required
+            type="number"
+            value={fields.company_nit}
+          />
+        </Grid>
+        <Grid item md={5} xs={12}>
+          <TextField
+            fullWidth
+            inputProps={{
+              min: "0",
+              max: "9",
+            }}
+            label="Dígito de verificación"
+            name="company_verification_digit"
+            onChange={handleChange}
+            required
+            type="number"
+            value={fields.company_verification_digit}
+          />
+        </Grid>
+      </Grid>
+      <TextField
+        fullWidth
+        inputProps={{
+          maxLength: "100",
+        }}
+        label="Dirección"
+        name="company_address"
+        onChange={handleChange}
+        required
+        value={fields.company_address}
       />
       <SelectField
         fullWidth
         label="Sector"
-        name="sector"
+        name="company_sector"
         onChange={handleChange}
         required
-        value={fields.sector}
+        value={fields.company_sector}
       >
         {sectors
           .map(({ pk_sector, nombre }) => (
@@ -359,53 +423,60 @@ const AddModal = ({
         required
         value={fields.position}
       />
-      <SelectField
-        fullWidth
-        label="Cargo equivalente"
-        name="homologous_position"
-        onChange={handleChange}
-        required
-        value={fields.homologous_position}
-      >
-        {positions
-          .map(({ pk_cargo, nombre }) => (
-            <option key={pk_cargo} value={pk_cargo}>{nombre}</option>
-          ))}
-      </SelectField>
       <CitySelector
         label="Lugar de Trabajo"
-        setValue={(city) => {
-          setFields((prev_state) => ({ ...prev_state, city }));
+        setValue={(company_city) => {
+          setFields((prev_state) => ({ ...prev_state, company_city }));
         }}
-        value={fields.city}
+        value={fields.company_city}
       />
       <TextField
         fullWidth
         inputProps={{
-          maxLength: "20",
+          maxLength: "255",
         }}
-        label="Teléfono"
-        name="phone"
-        onChange={(e) => {
-          const phone = e.target.value.toUpperCase();
-          setFields((prev_state) => ({ ...prev_state, phone }));
-        }}
+        label="Contacto"
+        name="contact"
+        onChange={handleChange}
         required
-        value={fields.phone}
+        value={fields.contact}
+      />
+      <TextField
+        fullWidth
+        label="Teléfono"
+        name="company_phone"
+        onChange={handleChange}
+        required
+        type="number"
+        value={fields.company_phone}
       />
       <TextField
         fullWidth
         inputProps={{
           maxLength: "1000",
         }}
-        label="Logros y Responsabilidades"
+        label="Funciones"
         multiline
         rows={3}
         rowsMax={10}
-        name="description"
+        name="function_description"
         onChange={handleChange}
         required
-        value={fields.description}
+        value={fields.function_description}
+      />
+      <TextField
+        fullWidth
+        inputProps={{
+          maxLength: "1000",
+        }}
+        label="Logros a resaltar"
+        multiline
+        rows={3}
+        rowsMax={10}
+        name="achievement_description"
+        onChange={handleChange}
+        required
+        value={fields.achievement_description}
       />
     </DialogForm>
   );
@@ -418,19 +489,22 @@ const EditModal = ({
   updateTable,
 }) => {
   const {
-    positions,
     sectors,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    city: "",
-    company: "",
-    description: "",
+    achievement_description: "",
+    company_address: "",
+    company_city: "",
+    company_name: "",
+    company_nit: "",
+    company_phone: "",
+    company_sector: "",
+    company_verification_digit: "",
+    contact: "",
     end_date: "",
-    homologous_position: "",
-    phone: "",
+    function_description: "",
     position: "",
-    sector: "",
     start_date: "",
   });
   const [is_loading, setLoading] = useState(false);
@@ -447,13 +521,18 @@ const EditModal = ({
 
     const request = await updateLaboralExperience(
       data.id,
-      fields.city,
-      fields.description,
+      fields.achievement_description,
+      fields.company_address,
+      fields.company_city,
+      fields.company_name,
+      fields.company_nit,
+      fields.company_phone,
+      fields.company_sector,
+      fields.company_verification_digit,
+      fields.contact,
       fields.end_date,
-      fields.homologous_position,
-      fields.phone,
+      fields.function_description,
       fields.position,
-      fields.sector,
       fields.start_date,
     );
 
@@ -470,14 +549,18 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        city: data.city,
-        company: data.company,
-        description: data.description,
+        achievement_description: data.achievement_description,
+        company_address: data.company_address,
+        company_city: data.company_city,
+        company_name: data.company_name,
+        company_nit: data.company_nit,
+        company_phone: data.company_phone,
+        company_sector: data.company_sector,
+        company_verification_digit: data.company_verification_digit,
+        contact: data.contact,
         end_date: data.end_date,
-        homologous_position: data.homologous_position,
-        phone: data.phone,
+        function_description: data.function_description,
         position: data.position,
-        sector: data.sector,
         start_date: data.start_date,
       });
       setLoading(false);
@@ -497,17 +580,60 @@ const EditModal = ({
       <TextField
         disabled
         fullWidth
-        label="Empresa"
-        name="company"
-        value={fields.company}
+        label="Razón social de la empresa"
+        name="company_name"
+        value={fields.company_name}
+      />
+      <Grid container spacing={1}>
+        <Grid item md={7} xs={12}>
+          <TextField
+            fullWidth
+            inputProps={{
+              min: "1",
+              max: "999999999",
+            }}
+            label="NIT"
+            name="company_nit"
+            onChange={handleChange}
+            required
+            type="number"
+            value={fields.company_nit}
+          />
+        </Grid>
+        <Grid item md={5} xs={12}>
+          <TextField
+            fullWidth
+            inputProps={{
+              min: "0",
+              max: "9",
+            }}
+            label="Dígito de verificación"
+            name="company_verification_digit"
+            onChange={handleChange}
+            required
+            type="number"
+            value={fields.company_verification_digit}
+          />
+        </Grid>
+      </Grid>
+      <TextField
+        fullWidth
+        inputProps={{
+          maxLength: "100",
+        }}
+        label="Dirección"
+        name="company_address"
+        onChange={handleChange}
+        required
+        value={fields.company_address}
       />
       <SelectField
         fullWidth
         label="Sector"
-        name="sector"
+        name="company_sector"
         onChange={handleChange}
         required
-        value={fields.sector}
+        value={fields.company_sector}
       >
         {sectors
           .map(({ pk_sector, nombre }) => (
@@ -541,53 +667,60 @@ const EditModal = ({
         required
         value={fields.position}
       />
-      <SelectField
-        fullWidth
-        label="Cargo equivalente"
-        name="homologous_position"
-        onChange={handleChange}
-        required
-        value={fields.homologous_position}
-      >
-        {positions
-          .map(({ pk_cargo, nombre }) => (
-            <option key={pk_cargo} value={pk_cargo}>{nombre}</option>
-          ))}
-      </SelectField>
       <CitySelector
         label="Lugar de Trabajo"
-        setValue={(city) => {
-          setFields((prev_state) => ({ ...prev_state, city }));
+        setValue={(company_city) => {
+          setFields((prev_state) => ({ ...prev_state, company_city }));
         }}
-        value={fields.city}
+        value={fields.company_city}
       />
       <TextField
         fullWidth
         inputProps={{
-          maxLength: "20",
+          maxLength: "255",
         }}
-        label="Teléfono"
-        name="phone"
-        onChange={(e) => {
-          const phone = e.target.value.toUpperCase();
-          setFields((prev_state) => ({ ...prev_state, phone }));
-        }}
+        label="Contacto"
+        name="contact"
+        onChange={handleChange}
         required
-        value={fields.phone}
+        value={fields.contact}
+      />
+      <TextField
+        fullWidth
+        label="Teléfono"
+        name="company_phone"
+        onChange={handleChange}
+        required
+        type="number"
+        value={fields.company_phone}
       />
       <TextField
         fullWidth
         inputProps={{
           maxLength: "1000",
         }}
-        label="Logros y Responsabilidades"
+        label="Funciones"
         multiline
         rows={3}
         rowsMax={10}
-        name="description"
+        name="function_description"
         onChange={handleChange}
         required
-        value={fields.description}
+        value={fields.function_description}
+      />
+      <TextField
+        fullWidth
+        inputProps={{
+          maxLength: "1000",
+        }}
+        label="Logros a resaltar"
+        multiline
+        rows={3}
+        rowsMax={10}
+        name="achievement_description"
+        onChange={handleChange}
+        required
+        value={fields.achievement_description}
       />
     </DialogForm>
   );
@@ -684,21 +817,6 @@ export default () => {
   };
 
   useEffect(() => {
-    getPositions()
-      .then(async (response) => {
-        if (response.ok) {
-          const positions = await response.json()
-            .then((positions) =>
-              positions.sort(({ nombre: x }, { nombre: y }) =>
-                x.localeCompare(y)
-              )
-            );
-          setParameters((prev_state) => ({ ...prev_state, positions }));
-        } else {
-          throw new Error();
-        }
-      })
-      .catch(() => console.error("Couldnt load the positions"));
     getSectors()
       .then(async (response) => {
         if (response.ok) {

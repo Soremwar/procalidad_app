@@ -9,6 +9,7 @@ import { decodeToken } from "../../../../lib/jwt.ts";
 import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
 import {
   STANDARD_DATE_STRING,
+  STRING,
   TRUTHY_INTEGER,
 } from "../../../../lib/ajv/types.js";
 import {
@@ -19,22 +20,18 @@ import {
 const update_request = {
   $id: "update",
   properties: {
-    "city": TRUTHY_INTEGER,
-    "description": {
-      maxLength: 1000,
-      type: "string",
-    },
+    "achievement_description": STRING(1000),
+    "company_adress": STRING(100),
+    "company_city": TRUTHY_INTEGER,
+    "company_name": STRING(50),
+    "company_nit": TRUTHY_INTEGER,
+    "company_phone": TRUTHY_INTEGER,
+    "company_sector": TRUTHY_INTEGER,
+    "company_verification_digit": TRUTHY_INTEGER,
+    "contact": STRING(255),
     "end_date": STANDARD_DATE_STRING,
-    "homologous_position": TRUTHY_INTEGER,
-    "phone": {
-      maxLength: 20,
-      type: "string",
-    },
-    "position": {
-      maxLength: 100,
-      type: "string",
-    },
-    "sector": TRUTHY_INTEGER,
+    "function_description": STRING(1000),
+    "position": STRING(100),
     "start_date": STANDARD_DATE_STRING,
   },
 };
@@ -42,13 +39,18 @@ const update_request = {
 const create_request = Object.assign({}, update_request, {
   $id: "create",
   required: [
-    "city",
-    "description",
+    "achievement_description",
+    "company_adress",
+    "company_city",
+    "company_name",
+    "company_nit",
+    "company_phone",
+    "company_sector",
+    "company_verification_digit",
+    "contact",
     "end_date",
-    "homologous_position",
-    "phone",
+    "function_description",
     "position",
-    "sector",
     "start_date",
   ],
 });
@@ -78,15 +80,19 @@ export const createLaboralExperience = async (
 
   response.body = await laboral_experience_modal.create(
     user_id,
-    value.company.toUpperCase(),
-    value.sector,
-    value.city,
-    value.phone.toUpperCase(),
+    value.company_name.toUpperCase(),
+    value.company_nit,
+    value.company_verification_digit,
+    value.company_sector,
+    value.company_city,
+    value.company_adress,
+    value.company_phone,
+    value.contact,
     value.start_date,
     value.end_date,
     value.position,
-    value.homologous_position,
-    value.description,
+    value.function_description,
+    value.achievement_description,
   )
     .catch(() => {
       throw new Error("No fue posible crear la experiencia laboral");
@@ -195,14 +201,18 @@ export const updateLaboralExperience = async (
   }
 
   response.body = await laboral_experience.update(
-    value.sector,
-    value.city,
-    value.phone.toUpperCase(),
+    value.company_nit,
+    value.company_verification_digit,
+    value.company_sector,
+    value.company_city,
+    value.company_adress,
+    value.company_phone,
+    value.contact,
     value.start_date,
     value.end_date,
     value.position,
-    value.homologous_position,
-    value.description,
+    value.function_description,
+    value.achievement_description,
   )
     .catch((e) => {
       throw new Error("No fue posible actualizar la experiencia laboral");
@@ -269,7 +279,7 @@ export const updateLaboralExperienceCertificate = async (
       user_id,
       content,
       "EXPERIENCIA_LABORAL",
-      removeAccents(laboral_experience.company)
+      removeAccents(laboral_experience.company_name)
         .replaceAll(/[\s_]+/g, "_")
         .replaceAll(/\W/g, "")
         .toUpperCase() +
