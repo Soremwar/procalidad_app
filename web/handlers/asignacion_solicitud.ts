@@ -127,7 +127,8 @@ export const createAssignationRequest = async (
 
   if (
     (parsed_date as Date).getTime() < open_week.start_date.getTime() ||
-    (parsed_date as Date).getTime() > current_week.start_date.getTime()
+    (parsed_date as Date).getTime() >
+      current_week.end_date.getTime() + ((1000 * 60 * 60 * 24) - 1)
   ) {
     throw new RequestSyntaxError(
       "La fecha solicitada no se encuentra disponible para asignación",
