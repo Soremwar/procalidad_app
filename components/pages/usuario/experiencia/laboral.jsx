@@ -18,14 +18,15 @@ import {
   formatResponseJson,
 } from "../../../../lib/api/request.js";
 import {
+  fetchClientApi,
   fetchSectorApi,
-  fetchPositionApi,
   fetchUserLaboralExperience,
 } from "../../../../lib/api/generator.js";
 import {
   formatDateToStringDatetime,
 } from "../../../../lib/date/mod.js";
 import AsyncTable from "../../../common/AsyncTable/Table.jsx";
+import Autocomplete from "../../../common/Autocomplete.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
@@ -33,6 +34,8 @@ import FileField from "../../../common/FileField.jsx";
 import Title from "../../../common/Title.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 
+const getClients = () => fetchClientApi();
+const getLaboralExperiences = () => fetchUserLaboralExperience();
 const getSectors = () => fetchSectorApi();
 
 const getLaboralExperience = (id) => fetchUserLaboralExperience(id);
@@ -192,7 +195,8 @@ const headers = [
 ];
 
 const ParameterContext = createContext({
-  positions: [],
+  clients: [],
+  companies: [],
   sectors: [],
 });
 
@@ -236,9 +240,12 @@ const FileUploader = ({
 const AddModal = ({
   is_open,
   setModalOpen,
+  updateCompanies,
   updateTable,
 }) => {
   const {
+    clients,
+    companies,
     sectors,
   } = useContext(ParameterContext);
 
@@ -287,6 +294,7 @@ const AddModal = ({
 
     if (request.ok) {
       setModalOpen(false);
+      updateCompanies();
       updateTable();
     } else {
       const { message } = await request.json();
@@ -326,18 +334,21 @@ const AddModal = ({
       setIsOpen={setModalOpen}
       title={"Crear Nuevo"}
     >
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "50",
+      <Autocomplete
+        fetchOptions={async () => {
+          return clients
+            .map((x) => x.razon_social.toUpperCase())
+            .concat(companies)
+            .sort((a, b) => a.localeCompare(b));
         }}
         label="Razón social de la empresa"
+        max={50}
         name="company_name"
-        onChange={(e) => {
-          const company_name = e.target.value.toUpperCase();
-          setFields((prev_state) => ({ ...prev_state, company_name }));
-        }}
-        required
+        setValue={(value) =>
+          setFields((prev_state) => ({
+            ...prev_state,
+            company_name: value.toUpperCase(),
+          }))}
         value={fields.company_name}
       />
       <Grid container spacing={1}>
@@ -784,7 +795,8 @@ const DeleteModal = ({
 
 export default () => {
   const [parameters, setParameters] = useState({
-    positions: [],
+    clients: [],
+    companies: [],
     sectors: [],
   });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
@@ -816,7 +828,31 @@ export default () => {
     setTableShouldUpdate(true);
   };
 
+  const updateCompanies = () => {
+    getLaboralExperience()
+      .then(async (response) => {
+        if (response.ok) {
+          const companies = await response.json()
+            .then((experience) => experience.map((x) => x.company_name));
+          setParameters((prev_state) => ({ ...prev_state, companies }));
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("Couldnt load the companies"));
+  };
+
   useEffect(() => {
+    getClients()
+      .then(async (response) => {
+        if (response.ok) {
+          const clients = await response.json();
+          setParameters((prev_state) => ({ ...prev_state, clients }));
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("Couldnt load the clients"));
     getSectors()
       .then(async (response) => {
         if (response.ok) {
@@ -830,6 +866,7 @@ export default () => {
         }
       })
       .catch(() => console.error("Couldnt load the sectors"));
+    updateCompanies();
     updateTable();
   }, []);
 
@@ -840,6 +877,7 @@ export default () => {
         <AddModal
           is_open={is_add_modal_open}
           setModalOpen={setAddModalOpen}
+          updateCompanies={updateCompanies}
           updateTable={updateTable}
         />
         <EditModal
