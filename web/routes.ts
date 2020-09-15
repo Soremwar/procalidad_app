@@ -7,6 +7,7 @@ import * as user_academic_title from "./handlers/usuario/formacion_academica.ts"
 import * as user_continuous_title from "./handlers/usuario/formacion_continuada.ts";
 import * as user_training_title from "./handlers/usuario/formacion_capacitacion.ts";
 import * as user_laboral_experience from "./handlers/usuario/experiencia/laboral.ts";
+import * as user_project_experience from "./handlers/usuario/experiencia/proyecto.ts";
 import {
   createContact,
   deleteContact,
@@ -489,11 +490,55 @@ main_router
     user_laboral_experience.updateLaboralExperience,
   )
   .delete<{ id: string }>(
-    "/api/usuario/experiencia/laboralcontinuada/:id",
+    "/api/usuario/experiencia/laboral/:id",
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
     user_laboral_experience.deleteLaboralExperience,
+  );
+
+main_router
+  .get(
+    "/api/usuario/experiencia/proyecto",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_project_experience.getProjectExperiences,
+  )
+  .post(
+    "/api/usuario/experiencia/proyecto/table",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_project_experience.getProjectExperiencesTable,
+  )
+  .get<{ id: string }>(
+    "/api/usuario/experiencia/proyecto/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_project_experience.getProjectExperience,
+  )
+  .post(
+    "/api/usuario/experiencia/proyecto",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_project_experience.createProjectExperience,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/experiencia/proyecto/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_project_experience.updateProjectExperience,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/experiencia/proyecto/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_project_experience.deleteProjectExperience,
   );
 
 main_router

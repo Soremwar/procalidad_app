@@ -403,6 +403,13 @@ const structure = [
         label: "Experiencia laboral",
         link: "/usuario/experiencia/laboral",
       },
+      {
+        allowed_profiles: [
+          Profiles.CONSULTANT,
+        ],
+        label: "Experiencia en proyecto",
+        link: "/usuario/experiencia/proyecto",
+      },
     ],
   },
 ];
