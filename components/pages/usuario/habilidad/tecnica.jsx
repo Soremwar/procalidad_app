@@ -48,14 +48,12 @@ const updateTecnicalSkill = async (
   administration,
   development,
   installation,
-  skill,
 ) =>
   fetchUserTecnicalSkill(id, {
     body: JSON.stringify({
       administration,
       development,
       installation,
-      skill,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -271,7 +269,6 @@ const EditModal = ({
       fields.administration,
       fields.development,
       fields.installation,
-      fields.skill,
     );
 
     if (request.ok) {
@@ -307,11 +304,10 @@ const EditModal = ({
       title={"Editar"}
     >
       <SelectField
+        disabled
         fullWidth
         label="Herramienta"
         name="skill"
-        onChange={handleChange}
-        required
         value={fields.skill}
       >
         {skills.map(({ id, name }) => (
