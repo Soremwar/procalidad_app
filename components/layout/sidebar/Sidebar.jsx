@@ -97,6 +97,14 @@ const structure = [
         label: "Nivel de formación",
         link: "/maestro/nivel_formacion",
       },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ],
+        label: "Herramientas",
+        link: "/maestro/herramienta",
+      },
     ],
   },
   {
@@ -409,6 +417,13 @@ const structure = [
         ],
         label: "Experiencia en proyecto",
         link: "/usuario/experiencia/proyecto",
+      },
+      {
+        allowed_profiles: [
+          Profiles.CONSULTANT,
+        ],
+        label: "Habilidades técnicas",
+        link: "/usuario/habilidad/tecnica",
       },
     ],
   },

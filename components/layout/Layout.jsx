@@ -31,6 +31,8 @@ import ExperienciaProyecto from "../pages/usuario/experiencia/proyecto.jsx";
 import FormacionAcademica from "../pages/usuario/academica.jsx";
 import FormacionContinuada from "../pages/usuario/continuada.jsx";
 import Formato from "../pages/maestro/formato.jsx";
+import HabilidadTecnica from "../pages/usuario/habilidad/tecnica.jsx";
+import Herramienta from "../pages/maestro/herramienta.jsx";
 import Idioma from "../pages/maestro/idioma.jsx";
 import Licencia from "../pages/organizacion/licencia.jsx";
 import NivelFormacion from "../pages/maestro/nivel_formacion.jsx";
@@ -151,6 +153,14 @@ const Layout = (props) => {
               ]}
               component={NivelFormacion}
               path="/maestro/nivel_formacion"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+              ]}
+              component={Herramienta}
+              path="/maestro/herramienta"
             />
             <ProfiledRoute
               allowed_profiles={[
@@ -422,6 +432,13 @@ const Layout = (props) => {
               ]}
               component={ExperienciaProyecto}
               path="/usuario/experiencia/proyecto"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.CONSULTANT,
+              ]}
+              component={HabilidadTecnica}
+              path="/usuario/habilidad/tecnica"
             />
             <Route exact={true} path="/" />
             <Redirect from="*" to="/404" />

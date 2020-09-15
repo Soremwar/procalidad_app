@@ -8,6 +8,7 @@ import * as user_continuous_title from "./handlers/usuario/formacion_continuada.
 import * as user_training_title from "./handlers/usuario/formacion_capacitacion.ts";
 import * as user_laboral_experience from "./handlers/usuario/experiencia/laboral.ts";
 import * as user_project_experience from "./handlers/usuario/experiencia/proyecto.ts";
+import * as user_technical_skill from "./handlers/usuario/habilidad/tecnica.ts";
 import {
   createContact,
   deleteContact,
@@ -36,6 +37,7 @@ import * as gender from "./handlers/maestro/genero.ts";
 import * as marital_status from "./handlers/maestro/estado_civil.ts";
 import * as file_formats from "./handlers/maestro/formato.ts";
 import * as formation_level from "./handlers/maestro/nivel_formacion.ts";
+import * as tool from "./handlers/maestro/herramienta.ts";
 import * as clients from "./handlers/clientes/cliente.ts";
 import {
   createProjectType,
@@ -539,6 +541,50 @@ main_router
       Profiles.CONSULTANT,
     ]),
     user_project_experience.deleteProjectExperience,
+  );
+
+main_router
+  .get(
+    "/api/usuario/habilidad/tecnica",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_technical_skill.getTechnicalSkills,
+  )
+  .post(
+    "/api/usuario/habilidad/tecnica/table",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_technical_skill.getTechnicalSkillsTable,
+  )
+  .get<{ id: string }>(
+    "/api/usuario/habilidad/tecnica/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_technical_skill.getTechnicalSkill,
+  )
+  .post(
+    "/api/usuario/habilidad/tecnica",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_technical_skill.createTechnicalSkill,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/habilidad/tecnica/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_technical_skill.updateTechnicalSkill,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/habilidad/tecnica/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_technical_skill.deleteTechnicalSkill,
   );
 
 main_router
@@ -1101,6 +1147,58 @@ main_router
       Profiles.CONTROLLER,
     ]),
     formation_level.deleteFormationLevel,
+  );
+
+main_router
+  .get(
+    "/api/maestro/herramienta",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+    ]),
+    tool.getTools,
+  )
+  .post(
+    "/api/maestro/herramienta/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    tool.getToolsTable,
+  )
+  .get<{ id: string }>(
+    "/api/maestro/herramienta/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+    ]),
+    tool.getTool,
+  )
+  .post(
+    "/api/maestro/herramienta",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    tool.createTool,
+  )
+  .put<{ id: string }>(
+    "/api/maestro/herramienta/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    tool.updateTools,
+  )
+  .delete<{ id: string }>(
+    "/api/maestro/herramienta/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    tool.deleteTool,
   );
 
 main_router
