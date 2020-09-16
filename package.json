@@ -1,6 +1,6 @@
 {
   "name": "procalidad_app",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "description": "Esta es una app empresarial para realizar planeación y asignación de recursos",
   "main": "app.js",
   "directories": {
