@@ -19,7 +19,7 @@ const update_request = {
   properties: {
     "client_city": TRUTHY_INTEGER,
     "client_name": STRING(255),
-    "functions": STRING(100),
+    "functions": STRING(1000),
     "project_contact_name": STRING(255),
     "project_contact_phone": TRUTHY_INTEGER,
     "project_description": STRING(100),

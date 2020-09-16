@@ -304,12 +304,15 @@ const AddModal = ({
       <TextField
         fullWidth
         inputProps={{
-          maxLength: "100",
+          maxLength: "1000",
         }}
         label="Funciones"
+        multiline
         name="functions"
         onChange={handleChange}
         placeholder="Actividades ejecutadas en el proyecto"
+        rows="3"
+        rowsMax="10"
         required
         value={fields.functions}
       />
@@ -560,12 +563,15 @@ const EditModal = ({
       <TextField
         fullWidth
         inputProps={{
-          maxLength: "100",
+          maxLength: "1000",
         }}
         label="Funciones"
+        multiline
         name="functions"
         onChange={handleChange}
         placeholder="Actividades ejecutadas en el proyecto"
+        rows="3"
+        rowsMax="10"
         required
         value={fields.functions}
       />
