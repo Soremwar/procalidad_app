@@ -6,10 +6,11 @@ import React, {
   useState,
 } from "react";
 import {
-  Button,
+  IconButton,
   DialogContentText,
   Grid,
   TextField,
+  Tooltip,
 } from "@material-ui/core";
 import {
   GetApp as DownloadIcon,
@@ -150,7 +151,7 @@ const headers = [
   },
   {
     displayAs: (id, value, reloadTable) => (
-      <Grid container spacing={1}>
+      <Grid container justify="center">
         <Grid item md={6} xs={12}>
           <FileUploader
             file_parameters={value}
@@ -159,17 +160,18 @@ const headers = [
           />
         </Grid>
         <Grid item md={6} xs={12}>
-          <Button
-            color="primary"
-            component={"a"}
-            disabled={!value.id}
-            endIcon={<DownloadIcon />}
-            href={`/api/archivos/generico/${value.id}`}
-            target={"_blank"}
-            variant="contained"
-          >
-            Descargar
-          </Button>
+          <Tooltip title="Descargar">
+            <IconButton
+              color="primary"
+              component={"a"}
+              disabled={!value.id}
+              href={`/api/archivos/generico/${value.id}`}
+              target={"_blank"}
+              variant="contained"
+            >
+              <DownloadIcon />
+            </IconButton>
+          </Tooltip>
         </Grid>
       </Grid>
     ),
@@ -233,6 +235,7 @@ const FileUploader = ({
       label="Cargar"
       loading={loading}
       onChange={(files) => handleFileUpload(row_id, files[0])}
+      only_icon={true}
     />
   );
 };

@@ -1,8 +1,10 @@
 import React from "react";
 import {
   Button,
+  IconButton,
   CircularProgress,
   TextField,
+  Tooltip,
 } from "@material-ui/core";
 import {
   makeStyles,
@@ -23,10 +25,11 @@ const useStyles = makeStyles(() => ({
 export default function InputField({
   accept,
   disabled = false,
-  label,
+  label = "",
   loading = false,
   multiple = false,
   onChange,
+  only_icon = false,
 }) {
   const classes = useStyles();
 
@@ -42,20 +45,40 @@ export default function InputField({
         onChange={(event) => onChange(event.target.files)}
         type="file"
       />
-      <Button
-        disabled={disabled}
-        color="primary"
-        component="span"
-        endIcon={loading
-          ? <CircularProgress
-            color="secondary"
-            size="1.5rem"
-          />
-          : <UploadIcon />}
-        variant="contained"
-      >
-        {label}
-      </Button>
+      {!only_icon
+        ? (
+          <Button
+            disabled={disabled}
+            color="primary"
+            component="span"
+            endIcon={loading
+              ? <CircularProgress
+                color="secondary"
+                size="1.5rem"
+              />
+              : <UploadIcon />}
+            variant="contained"
+          >
+            {label}
+          </Button>
+        )
+        : (
+          <Tooltip title={label}>
+            <IconButton
+              disabled={disabled}
+              color="primary"
+              component="span"
+              variant="contained"
+            >
+              {loading
+                ? <CircularProgress
+                  color="secondary"
+                  size="1.5rem"
+                />
+                : <UploadIcon />}
+            </IconButton>
+          </Tooltip>
+        )}
     </label>
   );
 }
