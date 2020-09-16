@@ -131,6 +131,14 @@ const headers = [
     label: "Duración(meses)",
     searchable: true,
   },
+  {
+    displayAs: (_i, value) => `${value} %`,
+    id: "participation",
+    numeric: false,
+    disablePadding: false,
+    label: "Participación",
+    searchable: true,
+  },
 ];
 
 const ParameterContext = createContext({

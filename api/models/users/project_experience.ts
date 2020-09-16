@@ -276,6 +276,7 @@ class TableData {
     public readonly client: string,
     public readonly project: string,
     public readonly duration: string,
+    public readonly participation: number,
   ) {}
 }
 
@@ -294,7 +295,8 @@ export const generateTableData = (
         PK_EXPERIENCIA AS ID,
         CLIENTE AS CLIENT,
         PROYECTO AS PROJECT,
-        ROUND((FEC_FIN - FEC_INICIO) / 30.0) AS DURATION
+        ROUND((FEC_FIN - FEC_INICIO) / 30.0) AS DURATION,
+        PORCENTAJE_PARTICIPACION AS PARTICIPATION
       FROM ${TABLE}
       WHERE FK_USUARIO = ${user_id}`
     );
@@ -313,6 +315,7 @@ export const generateTableData = (
       string,
       string,
       string,
+      number,
     ]) => new TableData(...x));
 
     return new TableResult(
