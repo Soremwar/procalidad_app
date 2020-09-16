@@ -131,7 +131,7 @@ const headers = [
     id: "duration",
     numeric: false,
     disablePadding: false,
-    label: "Duración",
+    label: "Duración(meses)",
     searchable: true,
   },
 ];

@@ -310,7 +310,7 @@ export const generateTableData = (
         PK_EXPERIENCIA AS ID,
         CLIENTE AS CLIENT,
         PROYECTO AS PROJECT,
-        DATE_PART('DAY', AGE(FEC_FIN, FEC_INICIO))
+        ROUND((FEC_FIN - FEC_INICIO) / 30.0) AS DURATION
       FROM ${TABLE}
       WHERE FK_USUARIO = ${user_id}`
     );
