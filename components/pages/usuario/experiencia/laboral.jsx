@@ -829,7 +829,7 @@ export default () => {
   };
 
   const updateCompanies = () => {
-    getLaboralExperience()
+    getLaboralExperiences()
       .then(async (response) => {
         if (response.ok) {
           const companies = await response.json()

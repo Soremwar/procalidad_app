@@ -19,6 +19,7 @@ import AsyncTable from "../../../common/AsyncTable/Table.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
+import MultipleTextField from "../../../common/MultipleTextField.jsx";
 import Title from "../../../common/Title.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 
@@ -167,6 +168,12 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
+    if (!fields.roles.length) {
+      setError('Por favor llene la casilla "roles" antes de continuar');
+      setLoading(false);
+      return;
+    }
+
     const request = await createProjectExperience(
       fields.client_address,
       fields.client_city,
@@ -264,17 +271,14 @@ const AddModal = ({
         required
         value={fields.project_description}
       />
-      <TextField
-        fullWidth
+      <MultipleTextField
+        fetchSuggestions={async () => []}
         label="Roles"
-        name="roles"
-        onChange={(e) => {
-          const roles = [e.target.value];
-          setFields((prev_state) => ({ ...prev_state, roles }));
-        }}
+        max="20"
         required
-        //This is an autocomplete array
-        value={fields.roles[0]}
+        setValue={(roles) =>
+          setFields((prev_state) => ({ ...prev_state, roles }))}
+        value={fields.roles}
       />
       <TextField
         fullWidth
@@ -424,6 +428,12 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
+    if (!fields.roles.length) {
+      setError('Por favor llene la casilla "roles" antes de continuar');
+      setLoading(false);
+      return;
+    }
+
     const request = await updateProjectExperience(
       data.id,
       fields.client_address,
@@ -522,17 +532,14 @@ const EditModal = ({
         required
         value={fields.project_description}
       />
-      <TextField
-        fullWidth
+      <MultipleTextField
+        fetchSuggestions={async () => []}
         label="Roles"
-        name="roles"
-        onChange={(e) => {
-          const roles = [e.target.value];
-          setFields((prev_state) => ({ ...prev_state, roles }));
-        }}
+        max="20"
         required
-        //This is an autocomplete array
-        value={fields.roles[0]}
+        setValue={(roles) =>
+          setFields((prev_state) => ({ ...prev_state, roles }))}
+        value={fields.roles}
       />
       <TextField
         fullWidth
