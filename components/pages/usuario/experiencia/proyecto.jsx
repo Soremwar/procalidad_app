@@ -27,6 +27,7 @@ import SelectField from "../../../common/SelectField.jsx";
 const getRoles = () => fetchRoleApi();
 
 const getProjectExperience = (id) => fetchUserProjectExperience(id);
+const getProjectExperiences = () => fetchUserProjectExperience();
 
 const createProjectExperience = async (
   client_city,
@@ -134,6 +135,7 @@ const headers = [
 
 const ParameterContext = createContext({
   roles: [],
+  tools_used: [],
 });
 
 const AddModal = ({
@@ -143,6 +145,7 @@ const AddModal = ({
 }) => {
   const {
     roles,
+    tools_used,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
@@ -370,7 +373,7 @@ const AddModal = ({
         value={fields.project_participation}
       />
       <MultipleTextField
-        fetchSuggestions={async () => []}
+        fetchSuggestions={async () => tools_used}
         label="Entorno tecnológico"
         max="40"
         required
@@ -624,7 +627,7 @@ const EditModal = ({
         value={fields.project_participation}
       />
       <MultipleTextField
-        fetchSuggestions={async () => []}
+        fetchSuggestions={async () => tools_used}
         label="Entorno tecnológico"
         max="40"
         required
@@ -701,6 +704,7 @@ const DeleteModal = ({
 export default () => {
   const [parameters, setParameters] = useState({
     roles: [],
+    tools_used: [],
   });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
@@ -742,6 +746,21 @@ export default () => {
               .map((x) => x.nombre)
               .sort((a, b) => a.localeCompare(b)),
           }));
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("Couldnt load the roles"));
+    getProjectExperiences()
+      .then(async (response) => {
+        if (response.ok) {
+          const tools_used = await response.json()
+            .then((experience) => {
+              return [...new Set(experience.map((x) => x.tools_used))]
+                .flat()
+                .sort((a, b) => a.localeCompare(b));
+            });
+          setParameters((prev_state) => ({ ...prev_state, tools_used }));
         } else {
           throw new Error();
         }
