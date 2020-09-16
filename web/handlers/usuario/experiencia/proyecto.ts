@@ -33,10 +33,19 @@ const update_request = {
         maxLength: 20,
         type: "string",
       },
+      minItems: 1,
       type: "array",
       uniqueItems: true,
     },
-    "tools_used": STRING(1000),
+    "tools_used": {
+      items: {
+        maxLength: 40,
+        type: "string",
+      },
+      minItems: 1,
+      type: "array",
+      uniqueItems: true,
+    },
   },
 };
 

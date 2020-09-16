@@ -158,7 +158,7 @@ const AddModal = ({
     project_participation: 0,
     project_start_date: "",
     roles: [],
-    tools_used: "",
+    tools_used: [],
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -174,6 +174,14 @@ const AddModal = ({
 
     if (!fields.roles.length) {
       setError('Por favor llene la casilla "roles" antes de continuar');
+      setLoading(false);
+      return;
+    }
+
+    if (!fields.tools_used.length) {
+      setError(
+        'Por favor llene la casilla "Entorno tecnológico" antes de continuar',
+      );
       setLoading(false);
       return;
     }
@@ -221,7 +229,7 @@ const AddModal = ({
         project_participation: 0,
         project_start_date: "",
         roles: [],
-        tools_used: "",
+        tools_used: [],
       });
       setLoading(false);
       setError(null);
@@ -361,18 +369,13 @@ const AddModal = ({
         type="number"
         value={fields.project_participation}
       />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "1000",
-        }}
-        multiline
+      <MultipleTextField
+        fetchSuggestions={async () => []}
         label="Entorno tecnológico"
-        name="tools_used"
-        onChange={handleChange}
+        max="40"
         required
-        rows={3}
-        rowsMax={10}
+        setValue={(tools_used) =>
+          setFields((prev_state) => ({ ...prev_state, tools_used }))}
         value={fields.tools_used}
       />
       <CitySelector
@@ -408,7 +411,7 @@ const EditModal = ({
     project_participation: 0,
     project_start_date: "",
     roles: [],
-    tools_used: "",
+    tools_used: [],
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -424,6 +427,14 @@ const EditModal = ({
 
     if (!fields.roles.length) {
       setError('Por favor llene la casilla "roles" antes de continuar');
+      setLoading(false);
+      return;
+    }
+
+    if (!fields.tools_used.length) {
+      setError(
+        'Por favor llene la casilla "Entorno tecnológico" antes de continuar',
+      );
       setLoading(false);
       return;
     }
@@ -612,18 +623,13 @@ const EditModal = ({
         type="number"
         value={fields.project_participation}
       />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "1000",
-        }}
-        multiline
+      <MultipleTextField
+        fetchSuggestions={async () => []}
         label="Entorno tecnológico"
-        name="tools_used"
-        onChange={handleChange}
+        max="40"
         required
-        rows={3}
-        rowsMax={10}
+        setValue={(tools_used) =>
+          setFields((prev_state) => ({ ...prev_state, tools_used }))}
         value={fields.tools_used}
       />
       <CitySelector
