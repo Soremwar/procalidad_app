@@ -29,7 +29,7 @@
     {{/unless}}
   {{/inline}}
   {{#*inline "subtitle"}}
-    {{ requestant }} ha realizado una solicitud de {{ hours }} horas para la fecha {{ date }}.
+    {{{ requestant }}} ha realizado una solicitud de {{ hours }} horas para la fecha {{{ date }}}.
   {{/inline}}
   {{#*inline "content"}}
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -38,8 +38,14 @@
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
             <tr>
               <td class="text-services">
+                {{#if approved}}
                 <h3>Justificaci&oacute;n</h3>
                 <p>{{{ message }}}</p>
+                {{/if}}
+                {{#unless approved}}
+                <h3>Raz&oacute;n de rechazo</h3>
+                <p>{{{ reason }}}</p>
+                {{/unless}}
               </td>
             </tr>
           </table>
@@ -50,11 +56,11 @@
               <td class="text-services">
                 <h3>Detalles</h3>
                 <ul>
-                  <li>Responsable: {{supervisor}}</li>
-                  <li>Cliente: {{client}}</li>
-                  <li>Proyecto: {{project}}</li>
-                  <li>Rol: {{role}}</li>
-                  <li>Horas: {{hours}}</li>
+                  <li>Responsable: {{{ supervisor }}}</li>
+                  <li>Cliente: {{{ client }}}</li>
+                  <li>Proyecto: {{{ project }}}</li>
+                  <li>Rol: {{{ role }}}</li>
+                  <li>Horas: {{ hours }}</li>
                 </ul>
               </td>
             </tr>
@@ -64,7 +70,7 @@
     </table>
   {{/inline}}
   {{#*inline "information"}}
-    Ingrese a la <a href="{{ AppUrl '' }}">aplicacion Procalidad</a>
+    Ingrese a la <a href="{{ AppUrl '' }}">aplicaci&oacute;n Procalidad</a>
     {{#if approved}}
       y llene su registro
     {{/if}}

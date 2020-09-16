@@ -33,6 +33,7 @@ import { Profiles } from "../../api/common/profiles.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
   BOOLEAN,
+  STRING,
   TRUTHY_INTEGER,
   UNSIGNED_NUMBER,
 } from "../../lib/ajv/types.js";
@@ -52,10 +53,7 @@ const post_structure = {
       type: ["number", "string"],
     },
     "hours": UNSIGNED_NUMBER,
-    "description": {
-      maxLength: 255,
-      type: "string",
-    },
+    "description": STRING(255),
   },
   required: [
     "project",
@@ -68,8 +66,21 @@ const post_structure = {
 
 const put_structure = {
   $id: "put",
+  if: {
+    properties: {
+      "approved": {
+        const: false,
+      },
+    },
+  },
+  then: {
+    required: [
+      "reason",
+    ],
+  },
   properties: {
     "approved": BOOLEAN,
+    "reason": STRING(255),
   },
   required: [
     "approved",
@@ -227,7 +238,11 @@ export const updateAssignationRequest = async (
     );
   }
 
-  await sendAssignationRequestReviewEmail(assignation_request.id, approved)
+  await sendAssignationRequestReviewEmail(
+    assignation_request.id,
+    approved,
+    value.reason,
+  )
     .catch(() => {
       throw new Error("No fue posible enviar el correo de confirmación");
     });

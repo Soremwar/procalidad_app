@@ -8,16 +8,26 @@ import React, {
 import {
   AppBar,
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
   DialogContentText,
+  DialogTitle,
   Grid,
+  IconButton,
   Snackbar,
   Tab,
   Tabs,
+  Typography,
   TextField,
 } from "@material-ui/core";
 import {
   makeStyles,
 } from "@material-ui/styles";
+import {
+  Close as CloseIcon,
+} from "@material-ui/icons";
 import {
   Alert,
 } from "@material-ui/lab";
@@ -128,9 +138,9 @@ const deleteAssignation = async (id) =>
 const getAssignationRequestTable = async (id) =>
   fetchAssignationRequestApi(`table/${id}`);
 
-const updateAssignationRequest = async (id, approved) =>
+const updateAssignationRequest = async (id, approved, reason) =>
   fetchAssignationRequestApi(id, {
-    body: JSON.stringify({ approved }),
+    body: JSON.stringify({ approved, reason }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -651,6 +661,76 @@ const DeleteModal = ({
   );
 };
 
+const reasonDialogStyles = makeStyles((theme) => ({
+  closeButton: {
+    position: "absolute",
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500],
+  },
+  title: {
+    backgroundColor: theme.palette.primary.main,
+    color: "white",
+  },
+}));
+
+const ReasonDialog = ({
+  is_open,
+  closeModal,
+  onConfirm,
+}) => {
+  const classes = reasonDialogStyles();
+  const [message, setMessage] = useState("");
+
+  return (
+    <Dialog
+      fullWidth={true}
+      maxWidth="sm"
+      open={is_open}
+      onClose={closeModal}
+    >
+      <DialogTitle className={classes.title} disableTypography>
+        <Typography variant="h6">Razón de rechazo</Typography>
+        <IconButton className={classes.closeButton} onClick={closeModal}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Justifique la razón de rechazo. (El solicitante recibirá un correo con
+          esta justificación)
+        </DialogContentText>
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "255",
+          }}
+          multiline
+          rows="3"
+          maxRows="10"
+          onChange={(event) => setMessage(event.target.value)}
+          variant="outlined"
+          value={message}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={closeModal} color="primary">
+          Cancelar
+        </Button>
+        <Button
+          color="primary"
+          onClick={() => {
+            onConfirm(message);
+            closeModal();
+          }}
+        >
+          Enviar
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const useStyles = makeStyles((theme) => ({
   bar: {
     flexGrow: 1,
@@ -677,13 +757,15 @@ export default () => {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
+  const [is_reason_modal_open, setReasonModalOpen] = useState(false);
   const [request_table_data, setRequestTableData] = useState([]);
-  const [selected, setSelected] = useState([]);
   const [selected_client, setSelectedClient] = useState("");
   const [selected_project, setSelectedProject] = useState("");
   const [selected_resource, setSelectedResource] = useState({});
+  const [selected_request, setSelectedRequest] = useState(0);
   const [selected_tab, setSelectedTab] = useState(0);
   const [selected_week, setSelectedWeek] = useState("");
+  const [selected, setSelected] = useState([]);
 
   const handleTabChange = (tab_id) => {
     setSelectedTab(tab_id);
@@ -707,10 +789,12 @@ export default () => {
     setDeleteModalOpen(true);
   };
 
-  const handleRequestUpdate = (id, approved) => {
+  //TODO
+  //This should spawn a loading animation in the notification queue
+  const updateRequest = (id, approved, message) => {
     setAlertOpen(false);
     setError(null);
-    updateAssignationRequest(id, approved)
+    updateAssignationRequest(id, approved, message)
       .then(async (response) => {
         if (response.ok) {
           setAlertOpen(true);
@@ -727,6 +811,15 @@ export default () => {
       .finally(() => {
         updateRequestTable();
       });
+  };
+
+  const handleRequestUpdate = (id, approved) => {
+    if (approved) {
+      updateRequest(id, approved);
+    } else {
+      setSelectedRequest(id);
+      setReasonModalOpen(true);
+    }
   };
 
   const updateAssignationTable = () => {
@@ -925,6 +1018,13 @@ export default () => {
           {error || "El registro fue guardado con exito"}
         </Alert>
       </Snackbar>
+      <ReasonDialog
+        is_open={is_reason_modal_open}
+        closeModal={() => setReasonModalOpen(false)}
+        onConfirm={(msg) => {
+          updateRequest(selected_request, false, msg);
+        }}
+      />
     </Fragment>
   );
 };

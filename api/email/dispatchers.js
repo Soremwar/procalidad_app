@@ -121,6 +121,7 @@ export const dispatchAssignationRequested = async (assignation_request) => {
 export const dispatchAssignationRequestReviewed = async (
   assignation_request,
   approved,
+  reason,
 ) => {
   const { rows } = await postgres.query(
     `SELECT
@@ -169,6 +170,7 @@ export const dispatchAssignationRequestReviewed = async (
     description,
     client,
     project,
+    reason,
     requestant_name,
     role,
     supervisor_name,
