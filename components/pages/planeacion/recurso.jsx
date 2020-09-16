@@ -18,6 +18,7 @@ import {
   Tab,
   Tabs,
   TextField,
+  Typography,
 } from "@material-ui/core";
 import {
   makeStyles,
@@ -58,16 +59,6 @@ import Widget from "../../common/Widget.jsx";
 
 import ResourceHeatmap from "./recurso/ResourceHeatmap.jsx";
 import DetailHeatmap from "./recurso/DetailHeatmap.jsx";
-
-const global_tasks = [
-  {
-    id: "Task 1",
-    name: "William Morales",
-    start: "2016-12-28",
-    end: "2017-1-15",
-    progress: 20,
-  },
-].map((x) => new Task(x));
 
 const getBudgets = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
@@ -1077,10 +1068,18 @@ export default () => {
           index={1}
           value={selected_tab}
         >
-          <Gantt
-            tasks={tasks.length ? tasks : global_tasks}
-            viewMode={ViewMode.Week}
-          />
+          {tasks.length
+            ? (
+              <Gantt
+                tasks={tasks}
+                viewMode={ViewMode.Week}
+              />
+            )
+            : (
+              <Typography variant="h3" gutterBottom>
+                No existen datos para mostrar
+              </Typography>
+            )}
         </TabPanel>
         <TabPanel
           index={2}

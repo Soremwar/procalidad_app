@@ -898,7 +898,7 @@ export default () => {
                 />
               )
               : (
-                <Typography>
+                <Typography variant="h3" gutterBottom>
                   No existen datos para mostrar
                 </Typography>
               )}
