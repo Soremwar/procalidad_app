@@ -339,10 +339,14 @@ const AddModal = ({
     >
       <Autocomplete
         fetchOptions={async () => {
-          return clients
-            .map((x) => x.razon_social.toUpperCase())
-            .concat(companies)
-            .sort((a, b) => a.localeCompare(b));
+          return [
+            ...new Set(
+              clients
+                .map((x) => x.razon_social.toUpperCase())
+                .concat(companies)
+                .sort((a, b) => a.localeCompare(b)),
+            ),
+          ];
         }}
         label="Razón social de la empresa"
         max={50}
