@@ -82,7 +82,6 @@ export default function Autocomplete({
       getOptionSelected={(option, value) => option === value}
       loading={loading}
       onChange={(_e, value) => {
-        console.log(value);
         if (!isNaN(max)) {
           setValue(String(value).slice(0, max));
         } else {

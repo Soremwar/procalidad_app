@@ -479,6 +479,7 @@ const AddModal = ({
         rowsMax={10}
         name="function_description"
         onChange={handleChange}
+        placeholder="Diferentes actividades ejecutadas en el transcurso del proyecto"
         required
         value={fields.function_description}
       />
@@ -493,6 +494,7 @@ const AddModal = ({
         rowsMax={10}
         name="achievement_description"
         onChange={handleChange}
+        placeholder="Acontecimientos o logros importantes completados en el transcurso del proyecto"
         required
         value={fields.achievement_description}
       />
@@ -723,6 +725,7 @@ const EditModal = ({
         rowsMax={10}
         name="function_description"
         onChange={handleChange}
+        placeholder="Diferentes actividades ejecutadas en el transcurso del proyecto"
         required
         value={fields.function_description}
       />
@@ -737,6 +740,7 @@ const EditModal = ({
         rowsMax={10}
         name="achievement_description"
         onChange={handleChange}
+        placeholder="Acontecimientos o logros importantes completados en el transcurso del proyecto"
         required
         value={fields.achievement_description}
       />

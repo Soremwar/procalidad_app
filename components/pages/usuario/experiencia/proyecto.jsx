@@ -301,12 +301,13 @@ const AddModal = ({
         label="Funciones"
         name="functions"
         onChange={handleChange}
+        placeholder="Actividades ejecutadas en el proyecto"
         required
         value={fields.functions}
       />
       <DateField
         fullWidth
-        label="Fecha de inicio"
+        label="Fecha de inicio de participación"
         name="project_start_date"
         onChange={handleChange}
         required
@@ -314,7 +315,7 @@ const AddModal = ({
       />
       <DateField
         fullWidth
-        label="Fecha de finalización"
+        label="Fecha de fin de participación"
         name="project_end_date"
         onChange={handleChange}
         required
@@ -376,6 +377,7 @@ const AddModal = ({
         fetchSuggestions={async () => tools_used}
         label="Entorno tecnológico"
         max="40"
+        placeholder="Herramientas usadas en el proyecto Eg: (ODI, DataStage)"
         required
         setValue={(tools_used) =>
           setFields((prev_state) => ({ ...prev_state, tools_used }))}
@@ -555,12 +557,13 @@ const EditModal = ({
         label="Funciones"
         name="functions"
         onChange={handleChange}
+        placeholder="Actividades ejecutadas en el proyecto"
         required
         value={fields.functions}
       />
       <DateField
         fullWidth
-        label="Fecha de inicio"
+        label="Fecha de inicio de participación"
         name="project_start_date"
         onChange={handleChange}
         required
@@ -568,7 +571,7 @@ const EditModal = ({
       />
       <DateField
         fullWidth
-        label="Fecha de finalización"
+        label="Fecha de fin de participación"
         name="project_end_date"
         onChange={handleChange}
         required
@@ -630,6 +633,7 @@ const EditModal = ({
         fetchSuggestions={async () => tools_used}
         label="Entorno tecnológico"
         max="40"
+        placeholder="Herramientas usadas en el proyecto Eg: (ODI, DataStage)"
         required
         setValue={(tools_used) =>
           setFields((prev_state) => ({ ...prev_state, tools_used }))}

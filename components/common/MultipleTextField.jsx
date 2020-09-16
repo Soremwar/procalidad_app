@@ -97,7 +97,6 @@ export default function MultipleTextField({
 
     setInternalValue(
       new_value.map((x) => {
-        console.log(x);
         if (max) {
           return String(x).slice(0, max);
         } else {
