@@ -778,7 +778,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Experiencia en proyectos"} />
+      <Title title={"Experiencia en proyectos - servicios"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}
