@@ -29,7 +29,6 @@ const getRoles = () => fetchRoleApi();
 const getProjectExperience = (id) => fetchUserProjectExperience(id);
 
 const createProjectExperience = async (
-  client_address,
   client_city,
   client_name,
   functions,
@@ -46,7 +45,6 @@ const createProjectExperience = async (
 ) =>
   fetchUserProjectExperience("", {
     body: JSON.stringify({
-      client_address,
       client_city,
       client_name,
       functions,
@@ -69,7 +67,6 @@ const createProjectExperience = async (
 
 const updateProjectExperience = async (
   id,
-  client_address,
   client_city,
   client_name,
   functions,
@@ -86,7 +83,6 @@ const updateProjectExperience = async (
 ) =>
   fetchUserProjectExperience(id, {
     body: JSON.stringify({
-      client_address,
       client_city,
       client_name,
       functions,
@@ -150,7 +146,6 @@ const AddModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    client_address: "",
     client_city: "",
     client_name: "",
     functions: "",
@@ -184,7 +179,6 @@ const AddModal = ({
     }
 
     const request = await createProjectExperience(
-      fields.client_address,
       fields.client_city,
       fields.client_name,
       fields.functions,
@@ -215,7 +209,6 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        client_address: "",
         client_city: "",
         client_name: "",
         functions: "",
@@ -334,17 +327,6 @@ const AddModal = ({
       <TextField
         fullWidth
         inputProps={{
-          maxLength: "100",
-        }}
-        label="Dirección"
-        name="client_address"
-        onChange={handleChange}
-        required
-        value={fields.client_address}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
           maxLength: "255",
         }}
         label="Nombre de contacto"
@@ -414,7 +396,6 @@ const EditModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
-    client_address: "",
     client_city: "",
     client_name: "",
     functions: "",
@@ -449,7 +430,6 @@ const EditModal = ({
 
     const request = await updateProjectExperience(
       data.id,
-      fields.client_address,
       fields.client_city,
       fields.client_name,
       fields.functions,
@@ -480,7 +460,6 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        client_address: data.client_address,
         client_city: data.client_city,
         client_name: data.client_name,
         functions: data.functions,
@@ -596,17 +575,6 @@ const EditModal = ({
         <option value="0">No</option>
         <option value="1">Sí</option>
       </SelectField>
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "100",
-        }}
-        label="Dirección"
-        name="client_address"
-        onChange={handleChange}
-        required
-        value={fields.client_address}
-      />
       <TextField
         fullWidth
         inputProps={{

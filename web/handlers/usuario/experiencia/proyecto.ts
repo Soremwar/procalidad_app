@@ -17,7 +17,6 @@ import {
 const update_request = {
   $id: "update",
   properties: {
-    "client_address": STRING(100),
     "client_city": TRUTHY_INTEGER,
     "client_name": STRING(255),
     "functions": STRING(100),
@@ -44,7 +43,6 @@ const update_request = {
 const create_request = Object.assign({}, update_request, {
   $id: "create",
   required: [
-    "client_address",
     "client_city",
     "client_name",
     "functions",
@@ -87,7 +85,6 @@ export const createProjectExperience = async (
   response.body = await project_experience_model.create(
     user_id,
     value.client_name.toUpperCase(),
-    value.client_address,
     value.client_city,
     value.project_name,
     value.project_description,
@@ -204,7 +201,6 @@ export const updateProjectExperience = async (
 
   response.body = await project_experience.update(
     value.client_name.toUpperCase(),
-    value.client_address,
     value.client_city,
     value.project_name,
     value.project_description,
