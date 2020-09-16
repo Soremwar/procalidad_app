@@ -13,6 +13,7 @@ import {
   formatResponseJson,
 } from "../../../../lib/api/request.js";
 import {
+  fetchRoleApi,
   fetchUserProjectExperience,
 } from "../../../../lib/api/generator.js";
 import AsyncTable from "../../../common/AsyncTable/Table.jsx";
@@ -22,6 +23,8 @@ import DialogForm from "../../../common/DialogForm.jsx";
 import MultipleTextField from "../../../common/MultipleTextField.jsx";
 import Title from "../../../common/Title.jsx";
 import SelectField from "../../../common/SelectField.jsx";
+
+const getRoles = () => fetchRoleApi();
 
 const getProjectExperience = (id) => fetchUserProjectExperience(id);
 
@@ -133,13 +136,19 @@ const headers = [
   },
 ];
 
-const ParameterContext = createContext({});
+const ParameterContext = createContext({
+  roles: [],
+});
 
 const AddModal = ({
   is_open,
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    roles,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     client_address: "",
     client_city: "",
@@ -272,7 +281,7 @@ const AddModal = ({
         value={fields.project_description}
       />
       <MultipleTextField
-        fetchSuggestions={async () => []}
+        fetchSuggestions={async () => roles}
         label="Roles"
         max="20"
         required
@@ -400,6 +409,10 @@ const EditModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const {
+    roles,
+  } = useContext(ParameterContext);
+
   const [fields, setFields] = useState({
     client_address: "",
     client_city: "",
@@ -533,7 +546,7 @@ const EditModal = ({
         value={fields.project_description}
       />
       <MultipleTextField
-        fetchSuggestions={async () => []}
+        fetchSuggestions={async () => roles}
         label="Roles"
         max="20"
         required
@@ -712,7 +725,9 @@ const DeleteModal = ({
 };
 
 export default () => {
-  const [parameters, setParameters] = useState({});
+  const [parameters, setParameters] = useState({
+    roles: [],
+  });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
@@ -743,6 +758,21 @@ export default () => {
   };
 
   useEffect(() => {
+    getRoles()
+      .then(async (response) => {
+        if (response.ok) {
+          const roles = await response.json();
+          setParameters((prev_state) => ({
+            ...prev_state,
+            roles: roles
+              .map((x) => x.nombre)
+              .sort((a, b) => a.localeCompare(b)),
+          }));
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("Couldnt load the roles"));
     updateTable();
   }, []);
 
