@@ -32,6 +32,7 @@ const cellStyles = makeStyles({
     fontSize: "10px",
     padding: "2px",
     margin: 0,
+    textAlign: "center",
   },
 });
 
