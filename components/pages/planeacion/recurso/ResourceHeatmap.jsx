@@ -133,7 +133,7 @@ export default function ResourceHeatmap({
   blacklisted_dates,
   end_date,
   getSource,
-  onUpdate,
+  setShouldUpdate,
   should_update,
   start_date,
 }) {
@@ -178,18 +178,22 @@ export default function ResourceHeatmap({
           console.error("Couldn't load the resource heatmap information")
         )
         .finally(() => {
-          onUpdate();
+          setShouldUpdate(false);
         });
     }
 
     return () => {
       active = false;
     };
-  }, [should_update, parameters]);
+  }, [should_update]);
+
+  useEffect(() => {
+    setShouldUpdate(true);
+  }, [parameters]);
 
   useEffect(() => {
     return () => {
-      onUpdate();
+      setShouldUpdate(false);
     };
   }, []);
 

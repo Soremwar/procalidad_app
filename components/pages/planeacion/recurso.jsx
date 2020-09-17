@@ -1093,7 +1093,7 @@ export default () => {
                   end_date={MAX_DATE_HEATMAP}
                   getSource={(type, sub_area, position, role) =>
                     getResourceHeatmap(type, sub_area, position, role)}
-                  onUpdate={() => setHeatmapShouldUpdate(false)}
+                  setShouldUpdate={setHeatmapShouldUpdate}
                   should_update={heatmap_should_update}
                   start_date={TODAY}
                 />
