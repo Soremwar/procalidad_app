@@ -16,20 +16,26 @@ import {
   TABLE as BUDGET_TABLE,
 } from "../OPERACIONES/budget.ts";
 import {
-  TABLE as BUDGET_DETAIL_TABLE,
-} from "../OPERACIONES/PRESUPUESTO_DETALLE.ts";
-import {
   TABLE as PROJECT_TABLE,
 } from "../OPERACIONES/PROYECTO.ts";
 import {
   TABLE as ROLE_TABLE,
 } from "../OPERACIONES/ROL.ts";
 import {
-  TABLE as PERSON_TABLE,
+  TABLE as PEOPLE_TABLE,
 } from "../ORGANIZACION/people.ts";
 import {
   TABLE as POSITION_ASSIGNATION_TABLE,
 } from "../ORGANIZACION/asignacion_cargo.ts";
+import {
+  TABLE as SUB_AREA_TABLE,
+} from "../ORGANIZACION/sub_area.ts";
+import {
+  TABLE as AREA_TABLE,
+} from "../ORGANIZACION/AREA.ts";
+import {
+  TABLE as AREA_TYPE_TABLE,
+} from "../ORGANIZACION/area_type.ts";
 
 export const TABLE = "PLANEACION.RECURSO";
 
@@ -331,7 +337,7 @@ export const getProjectTableData = async (
     `SELECT
       PK_RECURSO,
       (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = FK_ROL) AS ROLE,
       TO_CHAR(TO_DATE(CAST(FECHA_INICIO AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
       TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
@@ -386,7 +392,7 @@ export const getResourceTableData = async (
   const base_query = (
     `SELECT
       FK_PERSONA,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
       TO_CHAR(TO_DATE(CAST(MIN(FECHA_INICIO) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
       TO_CHAR(TO_DATE(CAST(MAX(FECHA_FIN) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
       TO_CHAR(SUM(HORAS), 'FM999999999.0') AS HOURS
@@ -492,7 +498,7 @@ export const getProjectGanttData = async (
 ): Promise<ProjectGanttData[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = FK_ROL) AS ROLE,
       FECHA_INICIO,
       FECHA_FIN,
@@ -524,7 +530,7 @@ class ResourceGanttData {
 export const getResourceGanttData = async (): Promise<ResourceGanttData[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
       MIN(FECHA_INICIO) AS START_DATE,
       MAX(FECHA_FIN) AS END_DATE,
       SUM(HORAS) AS HOURS
@@ -558,7 +564,7 @@ export const getDetailGanttData = async (
 ): Promise<DetailGanttData[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
+      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
       (SELECT NOMBRE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)) AS PROJECT,
       (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = FK_ROL) AS ROLE,
       FECHA_INICIO,
@@ -695,25 +701,15 @@ export const getDetailHeatmapData = async (
   return projects;
 };
 
-class ResourceHeatmapDate {
-  constructor(
-    public person_id: number,
-    public date: number,
-    public hours: number,
-    public assignation: number,
-  ) {}
-}
-
 class ResourceHeatmapData {
   constructor(
-    public person_id: number,
     public person: string,
-    public dates: ResourceHeatmapDate[],
+    public dates: {
+      date: number;
+      hours: number;
+      assignation: number;
+    },
   ) {}
-
-  addDate(date: ResourceHeatmapDate) {
-    this.dates.push(date);
-  }
 }
 
 export enum HeatmapFormula {
@@ -727,84 +723,79 @@ export const getResourceHeatmapData = async (
   position?: number,
   role?: number,
 ): Promise<ResourceHeatmapData[]> => {
-  const { rows: dates } = await postgres.query(
+  const { rows } = await postgres.query(
+    // deno-fmt-ignore
     `SELECT
-      R.FK_PERSONA,
-      RD.FECHA,
-      ${
-      formula === "occupation"
-        ? `SUM(RD.HORAS)`
-        : `ABS(SUM(RD.HORAS) - ${LABORAL_HOURS})`
-    }::NUMERIC,
-      ${
-      formula === "occupation"
-        ? `TO_CHAR(SUM(RD.HORAS) / ${LABORAL_HOURS} * 100, '000.99')`
-        : `TO_CHAR(ABS(SUM(RD.HORAS) - ${LABORAL_HOURS}) / ${LABORAL_HOURS} * 100, '000.99')`
-    }::NUMERIC
-    FROM ${DETAIL_TABLE} AS RD
-    JOIN ${TABLE} AS R
-      ON RD.FK_RECURSO = R.PK_RECURSO
+      P.NOMBRE,
+      CASE WHEN PD.FK_PERSONA IS NULL
+        THEN '[]'::JSON
+        ELSE JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'date', PD.FECHA,
+            'hours', TO_CHAR(${
+              formula === "occupation" ? `PD.HORAS` : `ABS(PD.HORAS - ${LABORAL_HOURS})`
+            }, '0.99')::NUMERIC,
+            'assignation', TO_CHAR(${
+              formula === "occupation"
+                ? `PD.HORAS / ${LABORAL_HOURS} * 100`
+                : `ABS(PD.HORAS - ${LABORAL_HOURS}) / ${LABORAL_HOURS} * 100`
+            }, '990.99')::NUMERIC
+          )
+        ) END
+    FROM ${PEOPLE_TABLE} P
+    LEFT JOIN (
+      SELECT
+        R.FK_PERSONA AS FK_PERSONA,
+        RD.FECHA AS FECHA,
+        SUM(RD.HORAS) AS HORAS
+      FROM ${DETAIL_TABLE} RD
+      JOIN ${TABLE} R
+        ON R.PK_RECURSO = RD.FK_RECURSO
+      JOIN ${POSITION_ASSIGNATION_TABLE} AS AC
+        ON AC.FK_PERSONA = R.FK_PERSONA
+      WHERE TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 MONTHS'
+      ${sub_area ? `AND AC.FK_SUB_AREA = ${sub_area}` : ""}
+      ${position ? `AND AC.FK_CARGO = ${position}` : ""}
+      ${role ? `AND ${role} = ANY(AC.FK_ROLES)` : ""}
+      GROUP BY
+        R.FK_PERSONA,
+        RD.FECHA
+      ORDER BY
+        RD.FECHA
+    ) AS PD
+      ON P.PK_PERSONA = PD.FK_PERSONA
     JOIN ${POSITION_ASSIGNATION_TABLE} AS AC
-      ON AC.FK_PERSONA = R.FK_PERSONA
-    WHERE
-      TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 months'
+      ON AC.FK_PERSONA = P.PK_PERSONA
+    JOIN ${SUB_AREA_TABLE} AS SA
+      ON AC.FK_SUB_AREA = SA.PK_SUB_AREA
+    JOIN ${AREA_TABLE} AS A
+      ON SA.FK_AREA = A.PK_AREA
+    JOIN ${AREA_TYPE_TABLE} AS TA
+      ON A.FK_TIPO_AREA = TA.PK_TIPO
+    WHERE TA.BAN_REGISTRABLE = TRUE
     ${sub_area ? `AND AC.FK_SUB_AREA = ${sub_area}` : ""}
     ${position ? `AND AC.FK_CARGO = ${position}` : ""}
     ${role ? `AND ${role} = ANY(AC.FK_ROLES)` : ""}
     GROUP BY
-      R.FK_PERSONA,
-      RD.FECHA
-    ORDER BY RD.FECHA`,
-  );
-
-  const { rows: raw_people } = await postgres.query(
-    `SELECT
-      R.FK_PERSONA,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = R.FK_PERSONA)
-    FROM ${TABLE} AS R
-    JOIN ${POSITION_ASSIGNATION_TABLE} AS AC
-      ON AC.FK_PERSONA = R.FK_PERSONA
-    WHERE
-      R.PK_RECURSO IN (
-        SELECT DISTINCT FK_RECURSO
-        FROM ${DETAIL_TABLE}
-        WHERE
-          TO_DATE(CAST(FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 months'
-      )
-    ${sub_area ? `AND AC.FK_SUB_AREA = ${sub_area}` : ""}
-    ${position ? `AND AC.FK_CARGO = ${position}` : ""}
-    ${role ? `AND ${role} = ANY(AC.FK_ROLES)` : ""}
-    GROUP BY
-      R.FK_PERSONA,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = R.FK_PERSONA)
+      P.NOMBRE,
+      PD.FK_PERSONA
     ORDER BY
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = R.FK_PERSONA)`,
+      P.NOMBRE`,
   );
 
-  const people: ResourceHeatmapData[] = raw_people.map((person: [
-    number,
+  const people: ResourceHeatmapData[] = rows.map((person: [
     string,
+    {
+      date: number;
+      hours: number;
+      assignation: number;
+    },
   ]) =>
     new ResourceHeatmapData(
       person[0],
       person[1],
-      [],
     )
   );
-
-  dates
-    .map((row: [
-      number,
-      number,
-      number,
-      number,
-    ]) => new ResourceHeatmapDate(...row))
-    .forEach((x: ResourceHeatmapDate) => {
-      const person = people.find((person) => person.person_id === x.person_id);
-      if (person) {
-        person.addDate(x);
-      }
-    });
 
   return people;
 };
