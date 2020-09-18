@@ -605,98 +605,69 @@ class DetailHeatmapDate {
 
 class DetailHeatmapData {
   constructor(
-    public project_id: number,
     public project: string,
-    public dates: DetailHeatmapDate[],
+    public dates: {
+      date: number;
+      hours: number;
+      assignation: number;
+    },
   ) {}
-
-  addDate(date: DetailHeatmapDate) {
-    this.dates.push(date);
-  }
 }
 
 export const getDetailHeatmapData = async (
   person: number,
 ): Promise<DetailHeatmapData[]> => {
-  const { rows: dates } = await postgres.query(
+  const { rows } = await postgres.query(
+    // deno-fmt-ignore
     `SELECT
-      PRE.FK_PROYECTO,
-      RD.FECHA,
-      SUM(RD.HORAS),
-      TO_CHAR(SUM(RD.HORAS) / ${LABORAL_HOURS} * 100, '000.99')
-    FROM
-      ${TABLE} AS R 
-    JOIN
-      ${DETAIL_TABLE} AS RD
-      ON R.PK_RECURSO = RD.FK_RECURSO
-    JOIN
-      ${BUDGET_TABLE} PRE
-      ON PRE.PK_PRESUPUESTO = R.FK_PRESUPUESTO
-    WHERE
-      R.FK_PERSONA = $1
-    AND
-      TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 MONTHS'
-    GROUP BY 
-      PRE.FK_PROYECTO,
+      PR.NOMBRE,
+      CASE WHEN PD.FK_PRESUPUESTO IS NULL
+        THEN '[]'::JSON
+        ELSE JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'date', PD.FECHA,
+            'hours', TO_CHAR(PD.HORAS, '0.99')::NUMERIC,
+            'assignation', TO_CHAR(PD.HORAS / ${LABORAL_HOURS} * 100, '990.99')::NUMERIC
+          )
+        ) END
+    FROM (
+      SELECT
+        R.FK_PRESUPUESTO AS FK_PRESUPUESTO,
+        RD.FECHA AS FECHA,
+        SUM(RD.HORAS) AS HORAS
+      FROM ${DETAIL_TABLE} RD
+      JOIN ${TABLE} R
+        ON R.PK_RECURSO = RD.FK_RECURSO
+      WHERE TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 MONTHS'
+      AND FK_PERSONA = $1
+      GROUP BY
+        R.FK_PRESUPUESTO,
+        RD.FECHA
+      ORDER BY
       RD.FECHA
-    ORDER BY
-      RD.FECHA`,
+    ) AS PD
+    JOIN ${BUDGET_TABLE} AS P
+      ON PD.FK_PRESUPUESTO = P.PK_PRESUPUESTO
+    JOIN ${PROJECT_TABLE} AS PR
+      ON P.FK_PROYECTO = PR.PK_PROYECTO
+    GROUP BY PR.NOMBRE, PD.FK_PRESUPUESTO
+    ORDER BY PR.NOMBRE`,
     person,
   );
 
-  const { rows: raw_projects } = await postgres.query(
-    `SELECT
-      PRO.PK_PROYECTO,
-      PRO.NOMBRE
-    FROM
-      ${TABLE} AS R
-    JOIN
-      ${BUDGET_TABLE} AS PRE
-      ON R.FK_PRESUPUESTO = PRE.PK_PRESUPUESTO
-    JOIN
-      ${PROJECT_TABLE} AS PRO
-      ON PRE.FK_PROYECTO = PRO.PK_PROYECTO
-    WHERE
-      PK_RECURSO IN (
-        SELECT DISTINCT FK_RECURSO
-        FROM ${DETAIL_TABLE}
-        WHERE
-          TO_DATE(CAST(FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 MONTHS'
-      )
-    AND
-      R.FK_PERSONA = $1
-    GROUP BY
-      PRO.PK_PROYECTO,
-      PRO.NOMBRE`,
-    person,
-  );
-
-  const projects: DetailHeatmapData[] = raw_projects.map((project: [
-    number,
+  const projects: DetailHeatmapData[] = rows.map((project: [
     string,
+    {
+      date: number;
+      hours: number;
+      assignation: number;
+    },
   ]) =>
     new DetailHeatmapData(
       project[0],
       project[1],
-      [],
     )
   );
-
-  dates
-    .map((row: [
-      number,
-      number,
-      number,
-      number,
-    ]) => new DetailHeatmapDate(...row))
-    .forEach((x: DetailHeatmapDate) => {
-      const project = projects.find((project) =>
-        project.project_id === x.project_id
-      );
-      if (project) {
-        project.addDate(x);
-      }
-    });
 
   return projects;
 };
