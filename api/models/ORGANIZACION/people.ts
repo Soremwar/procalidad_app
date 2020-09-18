@@ -51,7 +51,22 @@ class People {
     public tipo_sangre: TipoSangre | null,
     public fk_ciudad_residencia: number | null,
     public direccion_residencia: string | null,
+    public fecha_inicio: string | null,
+    public fecha_retiro: string | null,
   ) {}
+
+  async delete(): Promise<void> {
+    await postgres.query(
+      `DELETE FROM ${TABLE} WHERE PK_PERSONA = $1`,
+      this.pk_persona,
+    ).catch((e: PostgresError) => {
+      if (e.fields.constraint) {
+        e.message = ERROR_DEPENDENCY;
+      }
+
+      throw e;
+    });
+  }
 
   async update(
     tipo_identificacion: TipoIdentificacion = this.tipo_identificacion,
@@ -72,6 +87,8 @@ class People {
     tipo_sangre: TipoSangre | null = this.tipo_sangre,
     fk_ciudad_residencia: number | null = this.fk_ciudad_residencia,
     direccion_residencia: string | null = this.direccion_residencia,
+    fecha_inicio: string | null = this.fecha_inicio,
+    fecha_retiro: string | null = this.fecha_retiro,
   ): Promise<People> {
     Object.assign(this, {
       tipo_identificacion,
@@ -90,6 +107,8 @@ class People {
       tipo_sangre,
       fk_ciudad_residencia,
       direccion_residencia,
+      fecha_inicio,
+      fecha_retiro,
     });
 
     await postgres.query(
@@ -109,7 +128,9 @@ class People {
         TELEFONO_FIJO = $14,
         TIPO_SANGRE = $15,
         FK_CIUDAD_RESIDENCIA = $16,
-        DIRECCION_RESIDENCIA = $17
+        DIRECCION_RESIDENCIA = $17,
+        FEC_INICIO = $18,
+        FEC_RETIRO = $19
       WHERE PK_PERSONA = $1`,
       this.pk_persona,
       this.tipo_identificacion,
@@ -128,28 +149,75 @@ class People {
       this.tipo_sangre,
       this.fk_ciudad_residencia,
       this.direccion_residencia,
+      this.fecha_inicio,
+      this.fecha_retiro,
     );
 
     return this;
   }
-
-  async delete(): Promise<void> {
-    await postgres.query(
-      `DELETE FROM ${TABLE} WHERE PK_PERSONA = $1`,
-      this.pk_persona,
-    ).catch((e: PostgresError) => {
-      if (e.fields.constraint) {
-        e.message = ERROR_DEPENDENCY;
-      }
-
-      throw e;
-    });
-  }
 }
+
+export const create = async (
+  tipo_identificacion: TipoIdentificacion,
+  identificacion: string,
+  nombre: string,
+  telefono: string,
+  correo: string,
+  fecha_inicio: string,
+) => {
+  const { rows } = await postgres.query(
+    `INSERT INTO ${TABLE} (
+      TIPO_IDENTIFICACION,
+      IDENTIFICACION,
+      NOMBRE,
+      TELEFONO,
+      CORREO,
+      FEC_INICIO
+    ) VALUES (
+      $1,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6
+    ) RETURNING PK_PERSONA`,
+    tipo_identificacion,
+    identificacion,
+    nombre,
+    telefono,
+    correo,
+    fecha_inicio,
+  );
+
+  const id: number = rows[0][0];
+
+  return new People(
+    id,
+    tipo_identificacion,
+    identificacion,
+    null,
+    null,
+    nombre,
+    telefono,
+    correo,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    fecha_inicio,
+    null,
+  );
+};
 
 //TODO
 //Replace string call with enum call
-export const findAll = async (): Promise<People[]> => {
+export const getAll = async (): Promise<People[]> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_PERSONA,
@@ -169,7 +237,9 @@ export const findAll = async (): Promise<People[]> => {
       TELEFONO_FIJO,
       TIPO_SANGRE::VARCHAR,
       FK_CIUDAD_RESIDENCIA,
-      DIRECCION_RESIDENCIA
+      DIRECCION_RESIDENCIA,
+      TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD')
     FROM ${TABLE}`,
   );
 
@@ -191,6 +261,8 @@ export const findAll = async (): Promise<People[]> => {
     number | null,
     TipoSangre | null,
     number | null,
+    string | null,
+    string | null,
     string | null,
   ]) => new People(...row));
 };
@@ -217,7 +289,9 @@ export const findById = async (id: number): Promise<People | null> => {
       TELEFONO_FIJO,
       TIPO_SANGRE::VARCHAR,
       FK_CIUDAD_RESIDENCIA,
-      DIRECCION_RESIDENCIA
+      DIRECCION_RESIDENCIA,
+      TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD')
     FROM ${TABLE}
     WHERE PK_PERSONA = $1`,
     id,
@@ -245,59 +319,9 @@ export const findById = async (id: number): Promise<People | null> => {
       TipoSangre | null,
       number | null,
       string | null,
+      string | null,
+      string | null,
     ],
-  );
-};
-
-export const createNew = async (
-  tipo_identificacion: TipoIdentificacion,
-  identificacion: string,
-  nombre: string,
-  telefono: string,
-  correo: string,
-) => {
-  const { rows } = await postgres.query(
-    `INSERT INTO ${TABLE} (
-      TIPO_IDENTIFICACION,
-      IDENTIFICACION,
-      NOMBRE,
-      TELEFONO,
-      CORREO
-    ) VALUES (
-      $1,
-      $2,
-      $3,
-      $4,
-      $5
-    ) RETURNING PK_PERSONA`,
-    tipo_identificacion,
-    identificacion,
-    nombre,
-    telefono,
-    correo,
-  );
-
-  const id: number = rows[0][0];
-
-  return new People(
-    id,
-    tipo_identificacion,
-    identificacion,
-    null,
-    null,
-    nombre,
-    telefono,
-    correo,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
   );
 };
 

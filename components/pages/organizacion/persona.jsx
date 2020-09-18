@@ -14,6 +14,7 @@ import {
   fetchPeopleApi,
 } from "../../../lib/api/generator.js";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
+import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
@@ -25,6 +26,7 @@ const createPerson = async (
   identification,
   name,
   phone,
+  start_date,
   type,
 ) =>
   fetchPeopleApi("", {
@@ -33,6 +35,7 @@ const createPerson = async (
       identification,
       name,
       phone,
+      start_date,
       type,
     }),
     headers: {
@@ -47,6 +50,8 @@ const updatePerson = async (
   identification,
   name,
   phone,
+  retirement_date,
+  start_date,
   type,
 ) =>
   fetchPeopleApi(id, {
@@ -55,6 +60,8 @@ const updatePerson = async (
       identification,
       name,
       phone,
+      retirement_date,
+      start_date,
       type,
     }),
     headers: {
@@ -109,6 +116,7 @@ const AddModal = ({
     identification: "",
     name: "",
     phone: "",
+    start_date: "",
     type: "",
   });
   const [is_loading, setLoading] = useState(false);
@@ -121,6 +129,7 @@ const AddModal = ({
         identification: "",
         name: "",
         phone: "",
+        start_date: "",
         type: "",
       });
       setError(null);
@@ -142,6 +151,7 @@ const AddModal = ({
       fields.identification,
       fields.name,
       fields.phone,
+      fields.start_date,
       fields.type,
     );
 
@@ -211,8 +221,17 @@ const AddModal = ({
         margin="dense"
         name="email"
         onChange={handleChange}
+        type="email"
         required
         value={fields.email}
+      />
+      <DateField
+        fullWidth
+        label="Fecha de inicio(en la compañía)"
+        name="start_date"
+        onChange={handleChange}
+        required
+        value={fields.start_date}
       />
     </DialogForm>
   );
@@ -229,6 +248,8 @@ const EditModal = ({
     identification: "",
     name: "",
     phone: "",
+    retirement_date: "",
+    start_date: "",
     type: "",
   });
   const [is_loading, setLoading] = useState(false);
@@ -240,6 +261,8 @@ const EditModal = ({
         type: data.tipo_identificacion,
         identification: data.identificacion,
         name: data.nombre,
+        retirement_date: data.fecha_retiro || "",
+        start_date: data.fecha_inicio || "",
         phone: data.telefono,
         email: data.correo,
       });
@@ -263,6 +286,8 @@ const EditModal = ({
       fields.identification,
       fields.name,
       fields.phone,
+      fields.retirement_date || null,
+      fields.start_date,
       fields.type,
     );
 
@@ -332,7 +357,24 @@ const EditModal = ({
         label="Correo"
         margin="dense"
         name="email"
+        onChange={handleChange}
+        type="email"
         value={fields.email}
+      />
+      <DateField
+        fullWidth
+        label="Fecha de inicio(en la compañía)"
+        name="start_date"
+        onChange={handleChange}
+        required
+        value={fields.start_date}
+      />
+      <DateField
+        fullWidth
+        label="Fecha de retiro"
+        name="retirement_date"
+        onChange={handleChange}
+        value={fields.retirement_date}
       />
     </DialogForm>
   );

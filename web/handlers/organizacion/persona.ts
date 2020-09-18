@@ -1,7 +1,11 @@
 import { RouterContext } from "oak";
 import {
-  createNew,
-  findAll,
+  PostgresError,
+} from "deno_postgres/error.ts";
+import Ajv from "ajv";
+import {
+  create,
+  getAll,
   findById,
   getTableData,
   TipoIdentificacion,
@@ -9,9 +13,94 @@ import {
 import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
+import {
+  EMAIL,
+  STANDARD_DATE_STRING,
+  STANDARD_DATE_STRING_OR_NULL,
+  STRING,
+} from "../../../lib/ajv/types.js";
+
+const update_request = {
+  $id: "update",
+  properties: {
+    "email": EMAIL,
+    "identification": STRING(15),
+    "name": STRING(255),
+    "phone": STRING(20),
+    "retirement_date": STANDARD_DATE_STRING_OR_NULL,
+    "start_date": STANDARD_DATE_STRING,
+    "type": STRING(
+      undefined,
+      undefined,
+      Object.values(TipoIdentificacion),
+    ),
+  },
+};
+
+const create_request = Object.assign({}, update_request, {
+  $id: "create",
+  required: [
+    "email",
+    "identification",
+    "name",
+    "phone",
+    "type",
+    "start_date",
+  ],
+});
+
+//@ts-ignore
+const request_validator = new Ajv({
+  schemas: [
+    create_request,
+    update_request,
+  ],
+});
+
+export const createPerson = async ({ request, response }: RouterContext) => {
+  if (!request.hasBody) throw new RequestSyntaxError();
+
+  const value = await request.body({ type: "json" }).value;
+
+  if (!request_validator.validate("create", value)) {
+    throw new RequestSyntaxError();
+  }
+
+  response.body = await create(
+    value.type,
+    value.identification,
+    value.name,
+    value.phone,
+    value.email,
+    value.start_date,
+  );
+};
+export const deletePerson = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
+  const id: number = Number(params.id);
+  if (!id) throw new RequestSyntaxError();
+
+  let person = await findById(id);
+  if (!person) throw new NotFoundError();
+
+  await person.delete()
+    .catch((e) => {
+      if (e instanceof PostgresError && e.fields.constraint) {
+        throw new Error(
+          'La persona seleccionada esta siendo utilizada dentro del sistema. Por favor utilize el campo de "Fecha retiro" para retirarla del sistema seguramente',
+        );
+      } else {
+        throw new Error(
+          "No fue posible eliminar a la persona",
+        );
+      }
+    });
+  response.body = Message.OK;
+};
 
 export const getPeople = async ({ response }: RouterContext) => {
-  response.body = await findAll();
+  response.body = await getAll();
 };
 
 export const getPeopleTable = async (context: RouterContext) =>
@@ -19,40 +108,6 @@ export const getPeopleTable = async (context: RouterContext) =>
     context,
     getTableData,
   );
-
-export const createPerson = async ({ request, response }: RouterContext) => {
-  if (!request.hasBody) throw new RequestSyntaxError();
-
-  const {
-    type,
-    identification,
-    name,
-    phone,
-    email,
-  } = await request.body({ type: "json" }).value;
-
-  if (
-    !(
-      type &&
-      identification &&
-      name &&
-      phone &&
-      email
-    )
-  ) {
-    throw new RequestSyntaxError();
-  }
-
-  response.body = await createNew(
-    type in TipoIdentificacion
-      ? type as TipoIdentificacion
-      : TipoIdentificacion.CC,
-    identification,
-    name,
-    phone,
-    email,
-  );
-};
 
 export const getPerson = async (
   { params, response }: RouterContext<{ id: string }>,
@@ -75,36 +130,35 @@ export const updatePerson = async (
   let person = await findById(id);
   if (!person) throw new NotFoundError();
 
-  const {
-    type,
-    identification,
-    name,
-    phone,
-  } = await request.body({ type: "json" }).value;
+  const value = await request.body({ type: "json" }).value;
 
-  person = await person.update(
-    type in TipoIdentificacion
-      ? type as TipoIdentificacion
-      : TipoIdentificacion.CC,
-    identification,
+  if (!request_validator.validate("update", value)) {
+    throw new RequestSyntaxError();
+  }
+
+  response.body = await person.update(
+    value.type,
+    value.identification,
     undefined,
     undefined,
-    name,
-    phone,
-  );
-
-  response.body = person;
-};
-
-export const deletePerson = async (
-  { params, response }: RouterContext<{ id: string }>,
-) => {
-  const id: number = Number(params.id);
-  if (!id) throw new RequestSyntaxError();
-
-  let person = await findById(id);
-  if (!person) throw new NotFoundError();
-
-  await person.delete();
-  response.body = Message.OK;
+    value.name,
+    value.phone,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    value.start_date,
+    value.retirement_date,
+  )
+    .catch((e) => {
+      throw new Error(
+        "No fue posible actualizar a la persona",
+      );
+    });
 };
