@@ -195,7 +195,8 @@ export const dispatchRegistryDelayedUsers = async () => {
       ON DS.PK_SEMANA = CS.FK_SEMANA
     JOIN ${PERSON_TABLE} P
       ON P.PK_PERSONA = CS.FK_PERSONA
-    WHERE CS.BAN_CERRADO = FALSE
+    WHERE COALESCE(P.FEC_RETIRO, TO_DATE('2099-12-31', 'YYYY-MM-DD')) >= CURRENT_DATE
+    AND CS.BAN_CERRADO = FALSE
     AND FECHA_FIN < CURRENT_DATE
     AND P.PK_PERSONA IN (
       SELECT FK_PERSONA
@@ -235,63 +236,52 @@ export const dispatchRegistryDelayedUsers = async () => {
 };
 
 export const dispatchRegistryDelayedSubAreas = async () => {
-  const { rows: delayed_sub_areas } = await postgres.query(
+  const { rows } = await postgres.query(
     `SELECT
       P.CORREO AS SUPERVISOR_EMAIL,
-      SA.PK_SUB_AREA AS ID_SUB_AREA,
-      SA.NOMBRE AS SUB_AREA
+      SA.NOMBRE AS SUB_AREA,
+      ARRAY_AGG(R.DATA) AS DELAYED_USERS
     FROM ${SUB_AREA_TABLE} SA
-    JOIN ${PERSON_TABLE} P
-      ON P.PK_PERSONA = SA.FK_SUPERVISOR
-    WHERE PK_SUB_AREA IN (
+    JOIN (
       SELECT
-        AC.FK_SUB_AREA
+        AC.FK_SUB_AREA,
+        JSON_BUILD_OBJECT(
+          'name', P.NOMBRE,
+          'week', TO_CHAR(DS.FECHA_INICIO, 'YYYY-MM-DD')
+        ) AS DATA
       FROM ${WEEK_CONTROL_TABLE} CS
+      JOIN ${PERSON_TABLE} AS P
+        ON CS.FK_PERSONA = P.PK_PERSONA
       JOIN ${WEEK_TABLE} DS
         ON DS.PK_SEMANA = CS.FK_SEMANA
       JOIN ${POSITION_ASSIGNATION_TABLE} AC
         ON AC.FK_PERSONA = CS.FK_PERSONA
-      JOIN ${SUB_AREA_TABLE} SA 
+      JOIN ${SUB_AREA_TABLE} SA
         ON SA.PK_SUB_AREA = AC.FK_SUB_AREA
       JOIN ${AREA_TABLE} A
         ON A.PK_AREA = SA.FK_AREA
       JOIN ${AREA_TYPE_TABLE} AT
         ON AT.PK_TIPO = A.FK_TIPO_AREA
-      WHERE CS.BAN_CERRADO = FALSE
-      AND FECHA_FIN < CURRENT_DATE
+      WHERE 1 =1 --COALESCE(P.FEC_RETIRO, TO_DATE('2099-12-31', 'YYYY-MM-DD')) >= CURRENT_DATE
       AND AT.BAN_REGISTRABLE = TRUE
-    )`,
+      AND CS.BAN_CERRADO = FALSE
+      AND DS.FECHA_FIN < CURRENT_DATE
+    ) R
+    ON SA.PK_SUB_AREA = R.FK_SUB_AREA
+    JOIN ${PERSON_TABLE} AS P
+      ON SA.FK_SUPERVISOR = P.PK_PERSONA
+    GROUP BY
+      P.CORREO,
+      SA.NOMBRE`,
   );
 
   for (
     const [
       supervisor_email,
-      id_sub_area,
       sub_area,
-    ] of delayed_sub_areas
+      delayed_users,
+    ] of rows
   ) {
-    const { rows } = await postgres.query(
-      `SELECT
-        (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = CS.FK_PERSONA) AS PERSON_NAME,
-        TO_CHAR(DS.FECHA_INICIO, 'YYYY-MM-DD') AS WEEK_DATE
-      FROM ${WEEK_CONTROL_TABLE} CS
-      JOIN ${WEEK_TABLE} DS
-        ON DS.PK_SEMANA = CS.FK_SEMANA
-      JOIN ${POSITION_ASSIGNATION_TABLE} AC
-        ON AC.FK_PERSONA = CS.FK_PERSONA
-      WHERE CS.BAN_CERRADO = FALSE
-      AND DS.FECHA_FIN < CURRENT_DATE
-      AND AC.FK_SUB_AREA = $1`,
-      id_sub_area,
-    );
-
-    const delayed_users = rows.map(([
-      name,
-      week,
-    ]) => {
-      return { name, week };
-    });
-
     await sendNewEmail(
       supervisor_email,
       `Notificacion de retraso en Subarea: ${sub_area}`,
