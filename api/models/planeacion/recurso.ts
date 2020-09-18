@@ -335,15 +335,18 @@ export const getProjectTableData = async (
 ): Promise<TableResult> => {
   const base_query = (
     `SELECT
-      PK_RECURSO,
-      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) AS ID_PROJECT,
-      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
-      (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = FK_ROL) AS ROLE,
-      TO_CHAR(TO_DATE(CAST(FECHA_INICIO AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
-      TO_CHAR(TO_DATE(CAST(FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
-      PORCENTAJE||'%' AS ASSIGNATION,
-      TO_CHAR(HORAS, 'FM999999999.0') AS HOURS
-    FROM ${TABLE}`
+      PL.PK_RECURSO AS ID,
+      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = PL.FK_PRESUPUESTO) AS ID_PROJECT,
+      P.NOMBRE AS PERSON,
+      (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = PL.FK_ROL) AS ROLE,
+      TO_CHAR(TO_DATE(CAST(PL.FECHA_INICIO AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
+      TO_CHAR(TO_DATE(CAST(PL.FECHA_FIN AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
+      PL.PORCENTAJE||' %' AS ASSIGNATION,
+      TO_CHAR(PL.HORAS, 'FM999999999.0') AS HOURS
+    FROM ${TABLE} PL
+    JOIN ${PEOPLE_TABLE} AS P
+      ON PL.FK_PERSONA = P.PK_PERSONA
+    WHERE COALESCE(P.FEC_RETIRO, TO_DATE('2099-12-31', 'YYYY-MM-DD')) >= CURRENT_DATE`
   );
 
   const { count, data } = await getTableModels(
@@ -391,13 +394,17 @@ export const getResourceTableData = async (
 ): Promise<TableResult> => {
   const base_query = (
     `SELECT
-      FK_PERSONA,
-      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
-      TO_CHAR(TO_DATE(CAST(MIN(FECHA_INICIO) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
-      TO_CHAR(TO_DATE(CAST(MAX(FECHA_FIN) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
-      TO_CHAR(SUM(HORAS), 'FM999999999.0') AS HOURS
-    FROM ${TABLE}
-    GROUP BY FK_PERSONA`
+      P.PK_PERSONA AS ID,
+      P.NOMBRE AS PERSON,
+      TO_CHAR(TO_DATE(CAST(MIN(PL.FECHA_INICIO) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS START_DATE,
+      TO_CHAR(TO_DATE(CAST(MAX(PL.FECHA_FIN) AS VARCHAR), 'YYYYMMDD'), 'YYYY-MM-DD') AS END_DATE,
+      TO_CHAR(SUM(PL.HORAS), 'FM999999999.0') AS HOURS
+    FROM ${TABLE} AS PL
+    JOIN ${PEOPLE_TABLE} AS P
+      ON PL.FK_PERSONA = P.PK_PERSONA
+    WHERE COALESCE(P.FEC_RETIRO, TO_DATE('2099-12-31', 'YYYY-MM-DD')) >= CURRENT_DATE
+    GROUP BY
+      P.PK_PERSONA`
   );
 
   const { count, data } = await getTableModels(
@@ -498,14 +505,17 @@ export const getProjectGanttData = async (
 ): Promise<ProjectGanttData[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
-      (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = FK_ROL) AS ROLE,
-      FECHA_INICIO,
-      FECHA_FIN,
-      PORCENTAJE,
-      HORAS
-    FROM ${TABLE}
-    WHERE (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO) = ${project}`,
+      P.NOMBRE AS PERSON,
+      (SELECT NOMBRE FROM ${ROLE_TABLE} WHERE PK_ROL = PL.FK_ROL) AS ROLE,
+      PL.FECHA_INICIO,
+      PL.FECHA_FIN,
+      PL.PORCENTAJE,
+      PL.HORAS
+    FROM ${TABLE} AS PL
+    JOIN ${PEOPLE_TABLE} AS P
+      ON PL.FK_PERSONA = P.PK_PERSONA
+    WHERE COALESCE(P.FEC_RETIRO, TO_DATE('2099-12-31', 'YYYY-MM-DD')) >= CURRENT_DATE
+    AND (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = PL.FK_PRESUPUESTO) = ${project}`,
   );
 
   return rows.map((row: [
@@ -530,12 +540,16 @@ class ResourceGanttData {
 export const getResourceGanttData = async (): Promise<ResourceGanttData[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_PERSONA) AS PERSON,
-      MIN(FECHA_INICIO) AS START_DATE,
-      MAX(FECHA_FIN) AS END_DATE,
-      SUM(HORAS) AS HOURS
-    FROM ${TABLE}
-    GROUP BY FK_PERSONA`,
+      P.NOMBRE AS PERSON,
+      MIN(PL.FECHA_INICIO) AS START_DATE,
+      MAX(PL.FECHA_FIN) AS END_DATE,
+      SUM(PL.HORAS) AS HOURS
+    FROM ${TABLE} AS PL
+    JOIN ${PEOPLE_TABLE} AS P
+      ON PL.FK_PERSONA = P.PK_PERSONA
+    WHERE COALESCE(P.FEC_RETIRO, TO_DATE('2099-12-31', 'YYYY-MM-DD')) >= CURRENT_DATE
+    GROUP BY
+      P.PK_PERSONA`,
   );
 
   return rows.map((row: [
@@ -593,15 +607,6 @@ export const getDetailGanttData = async (
 //TODO
 //Remove laboral hours constant and make personal calculation
 const LABORAL_HOURS = 9;
-
-class DetailHeatmapDate {
-  constructor(
-    public project_id: number,
-    public date: number,
-    public hours: number,
-    public assignation: number,
-  ) {}
-}
 
 class DetailHeatmapData {
   constructor(
@@ -722,9 +727,12 @@ export const getResourceHeatmapData = async (
       FROM ${DETAIL_TABLE} RD
       JOIN ${TABLE} R
         ON R.PK_RECURSO = RD.FK_RECURSO
+      JOIN ${PEOPLE_TABLE} AS P
+        ON R.FK_PERSONA = P.PK_PERSONA
       JOIN ${POSITION_ASSIGNATION_TABLE} AS AC
         ON AC.FK_PERSONA = R.FK_PERSONA
       WHERE TO_DATE(CAST(RD.FECHA AS VARCHAR), 'YYYYMMDD') BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '2 MONTHS'
+      AND COALESCE(P.FEC_RETIRO, TO_DATE('2099-12-31', 'YYYY-MM-DD')) >= CURRENT_DATE
       ${sub_area ? `AND AC.FK_SUB_AREA = ${sub_area}` : ""}
       ${position ? `AND AC.FK_CARGO = ${position}` : ""}
       ${role ? `AND ${role} = ANY(AC.FK_ROLES)` : ""}
@@ -744,6 +752,7 @@ export const getResourceHeatmapData = async (
     JOIN ${AREA_TYPE_TABLE} AS TA
       ON A.FK_TIPO_AREA = TA.PK_TIPO
     WHERE TA.BAN_REGISTRABLE = TRUE
+    AND COALESCE(P.FEC_RETIRO, TO_DATE('2099-12-31', 'YYYY-MM-DD')) >= CURRENT_DATE
     ${sub_area ? `AND AC.FK_SUB_AREA = ${sub_area}` : ""}
     ${position ? `AND AC.FK_CARGO = ${position}` : ""}
     ${role ? `AND ${role} = ANY(AC.FK_ROLES)` : ""}
