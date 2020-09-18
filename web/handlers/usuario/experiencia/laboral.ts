@@ -11,6 +11,7 @@ import {
   STANDARD_DATE_STRING,
   STRING,
   TRUTHY_INTEGER,
+  UNSIGNED_NUMBER,
 } from "../../../../lib/ajv/types.js";
 import {
   deleteFile as deleteGenericFile,
@@ -24,7 +25,7 @@ const update_request = {
     "company_address": STRING(100),
     "company_city": TRUTHY_INTEGER,
     "company_name": STRING(50),
-    "company_nit": TRUTHY_INTEGER,
+    "company_nit": UNSIGNED_NUMBER,
     "company_phone": TRUTHY_INTEGER,
     "company_sector": TRUTHY_INTEGER,
     "company_verification_digit": TRUTHY_INTEGER,
