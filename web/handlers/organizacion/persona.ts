@@ -1,4 +1,5 @@
-import { RouterContext } from "oak";
+import { helpers } from "oak";
+import type { RouterContext } from "oak";
 import {
   PostgresError,
 } from "deno_postgres/error.ts";
@@ -14,11 +15,22 @@ import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
 import {
+  BOOLEAN,
   EMAIL,
   STANDARD_DATE_STRING,
   STANDARD_DATE_STRING_OR_NULL,
   STRING,
 } from "../../../lib/ajv/types.js";
+import {
+  castStringToBoolean,
+} from "../../../lib/utils/boolean.js";
+
+const list_request = {
+  $id: "list",
+  properties: {
+    "list_retired": BOOLEAN,
+  },
+};
 
 const update_request = {
   $id: "update",
@@ -53,6 +65,7 @@ const create_request = Object.assign({}, update_request, {
 const request_validator = new Ajv({
   schemas: [
     create_request,
+    list_request,
     update_request,
   ],
 });
@@ -99,8 +112,19 @@ export const deletePerson = async (
   response.body = Message.OK;
 };
 
-export const getPeople = async ({ response }: RouterContext) => {
-  response.body = await getAll();
+export const getPeople = async (ctx: RouterContext) => {
+  const query_params = helpers.getQuery(ctx);
+
+  if (!request_validator.validate("list", query_params)) {
+    throw new RequestSyntaxError();
+  }
+
+  //Secretly clever
+  ctx.response.body = await getAll(
+    query_params.list_retired
+      ? castStringToBoolean(query_params.list_retired)
+      : false,
+  );
 };
 
 export const getPeopleTable = async (context: RouterContext) =>

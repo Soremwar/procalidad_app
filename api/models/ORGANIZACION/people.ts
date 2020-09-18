@@ -217,7 +217,9 @@ export const create = async (
 
 //TODO
 //Replace string call with enum call
-export const getAll = async (): Promise<People[]> => {
+export const getAll = async (
+  include_retired: boolean,
+): Promise<People[]> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_PERSONA,
@@ -240,7 +242,12 @@ export const getAll = async (): Promise<People[]> => {
       DIRECCION_RESIDENCIA,
       TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
       TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD')
-    FROM ${TABLE}`,
+    FROM ${TABLE}
+    ${
+      include_retired
+        ? ""
+        : `WHERE COALESCE(FEC_RETIRO, TO_DATE('2099-12-31', 'YYYY-MM-DD')) >= CURRENT_DATE`
+    }`,
   );
 
   return rows.map((row: [
