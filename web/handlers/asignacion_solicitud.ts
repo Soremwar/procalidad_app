@@ -87,7 +87,6 @@ const put_structure = {
   ],
 };
 
-// @ts-ignore
 const request_validator = new Ajv({
   schemas: [
     post_structure,
@@ -128,21 +127,13 @@ export const createAssignationRequest = async (
     );
   }
 
-  const open_week = await findWeekById(control.week);
-  if (!open_week) {
-    throw new Error(
-      "No fue posible obtener la información de la fecha requerida",
-    );
-  }
   const current_week = await getCurrentWeek();
 
   if (
-    (parsed_date as Date).getTime() < open_week.start_date.getTime() ||
-    (parsed_date as Date).getTime() >
-      current_week.end_date.getTime() + ((1000 * 60 * 60 * 24) - 1)
+    (parsed_date as Date).getTime() < current_week.start_date.getTime()
   ) {
     throw new RequestSyntaxError(
-      "La fecha solicitada no se encuentra disponible para asignación",
+      "Debe solicitar una fecha superior a la semana registrada actualmente",
     );
   }
 
@@ -156,7 +147,7 @@ export const createAssignationRequest = async (
   );
 
   await sendAssignationRequestEmail(assignation_request.id)
-    .catch(() => {
+    .catch((e) => {
       throw new Error("No fue posible enviar el correo de solicitud");
     });
 
@@ -220,16 +211,13 @@ export const updateAssignationRequest = async (
       }
     }
 
-    const control = await findWeekControl(assignation_request.control);
-    if (!control) throw new NotFoundError("La semana solicitada no existe");
-
     const week = await findWeekByDate(assignation_request.date);
     if (!week) {
       throw new Error("La fecha de la solicitud es inválida");
     }
 
     await createAssignation(
-      control.person,
+      assignation_request.person,
       assignation_request.budget,
       assignation_request.role,
       week.id,

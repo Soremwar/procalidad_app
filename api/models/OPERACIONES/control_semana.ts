@@ -9,9 +9,6 @@ import {
   TABLE as ASSIGNATION_TABLE,
 } from "./asignacion.ts";
 import {
-  deleteByWeekControl as deleteAssignationRequests,
-} from "./asignacion_solicitud.ts";
-import {
   TABLE as REGISTRY_TABLE,
 } from "./registro.ts";
 
@@ -57,8 +54,6 @@ export class WeekControl {
         "La semana a cerrar aun se encuentra en curso",
       );
     }
-
-    await deleteAssignationRequests(this.id);
 
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET

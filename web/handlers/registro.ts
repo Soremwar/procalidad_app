@@ -19,7 +19,7 @@ import {
   getAssignationHoursByWeek as getWeekAssignation,
 } from "../../api/models/OPERACIONES/asignacion.ts";
 import {
-  getRequestedHoursByControlWeek as getWeekRequests,
+  getRequestedHoursByWeek as getWeekRequests,
 } from "../../api/models/OPERACIONES/asignacion_solicitud.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import {
@@ -58,7 +58,6 @@ const put_structure = {
   ],
 };
 
-// @ts-ignore
 const request_validator = new Ajv({
   schemas: [
     post_structure,
@@ -118,7 +117,7 @@ export const getWeekInformation = async (
     week_information.executed_hours = await getWeekRegistry(control_week.id);
     week_information.expected_hours = await week.getLaboralHours();
     week_information.is_current_week = await week.isCurrentWeek();
-    week_information.requested_hours = await getWeekRequests(control_week.id);
+    week_information.requested_hours = await getWeekRequests(control_week.week);
   } else {
     week_information.date = await getOpenWeekAsDate(user_id);
   }

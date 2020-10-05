@@ -23,13 +23,16 @@ import {
 import {
   TABLE as CONTROL_TABLE,
 } from "./control_semana.ts";
+import {
+  TABLE as WEEK_TABLE,
+} from "../MAESTRO/dim_semana.ts";
 
 export const TABLE = "OPERACIONES.ASIGNACION_SOLICITUD";
 
 class AssignationRequest {
   constructor(
     public readonly id: number,
-    public readonly control: number,
+    public readonly person: number,
     public readonly budget: number,
     public readonly role: number,
     public readonly date: number,
@@ -46,7 +49,7 @@ class AssignationRequest {
 }
 
 export const createNew = async (
-  control: number,
+  person: number,
   budget: number,
   role: number,
   date: number,
@@ -55,7 +58,7 @@ export const createNew = async (
 ): Promise<AssignationRequest> => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
-      FK_CONTROL_SEMANA,
+      FK_PERSONA,
       FK_PRESUPUESTO,
       FK_ROL,
       FECHA,
@@ -69,7 +72,7 @@ export const createNew = async (
       $5,
       $6
     ) RETURNING PK_SOLICITUD`,
-    control,
+    person,
     budget,
     role,
     date,
@@ -81,7 +84,7 @@ export const createNew = async (
 
   return new AssignationRequest(
     id,
-    control,
+    person,
     budget,
     role,
     date,
@@ -90,18 +93,11 @@ export const createNew = async (
   );
 };
 
-export const deleteByWeekControl = async (control: number): Promise<void> => {
-  await postgres.query(
-    `DELETE FROM ${TABLE} WHERE FK_CONTROL_SEMANA = $1`,
-    control,
-  );
-};
-
 export const findById = async (id: number): Promise<AssignationRequest> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_SOLICITUD,
-      FK_CONTROL_SEMANA,
+      FK_PERSONA,
       FK_PRESUPUESTO,
       FK_ROL,
       FECHA,
@@ -126,16 +122,15 @@ export const findById = async (id: number): Promise<AssignationRequest> => {
   return new AssignationRequest(...result);
 };
 
-export const getRequestedHoursByControlWeek = async (control_week: number) => {
+export const getRequestedHoursByWeek = async (week: number) => {
   const { rows } = await postgres.query(
     `SELECT
-      COALESCE(
-        SUM(HORAS),
-        0
-      )
-    FROM ${TABLE}
-    WHERE FK_CONTROL_SEMANA = $1`,
-    control_week,
+      SUM(A.HORAS)
+    FROM ${TABLE} A 
+    JOIN ${WEEK_TABLE} DS
+      ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN DS.FECHA_INICIO AND DS.FECHA_FIN
+    WHERE DS.PK_SEMANA = $1`,
+    week,
   );
 
   return Number(rows[0]?.[0]) || 0;
@@ -168,8 +163,8 @@ export const getTableData = async (person: number) => {
     )
     SELECT
       A.PK_SOLICITUD AS ID,
-      C.FK_SEMANA AS ID_WEEK,
-      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = C.FK_PERSONA) AS PERSON,
+      S.PK_SEMANA AS ID_WEEK,
+      (SELECT NOMBRE FROM ${PERSON_TABLE} WHERE PK_PERSONA = A.FK_PERSONA) AS PERSON,
       P.FK_CLIENTE AS ID_CLIENT,
       P.PK_PROYECTO AS ID_PROJECT,
       P.NOMBRE AS PROJECT,
@@ -178,8 +173,8 @@ export const getTableData = async (person: number) => {
       TO_CHAR(A.HORAS, 'FM999999999.0') AS HOURS,
       A.DESCRIPCION AS DESCRIPTION
     FROM ${TABLE} AS A
-    JOIN ${CONTROL_TABLE} AS C
-      ON A.FK_CONTROL_SEMANA = C.PK_CONTROL
+    JOIN ${WEEK_TABLE} AS S
+      ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
     JOIN ${BUDGET_TABLE} AS B
       ON A.FK_PRESUPUESTO = B.PK_PRESUPUESTO
     JOIN ${PROJECT_TABLE} AS P
