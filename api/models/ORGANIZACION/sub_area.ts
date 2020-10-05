@@ -1,13 +1,11 @@
 import postgres from "../../services/postgres.js";
-import { PostgresError } from "deno_postgres";
+import type{ PostgresError } from "deno_postgres";
 import {
   TableOrder,
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
 
-//TODO
-//replace for real this constant in all ocurrences
 export const TABLE = "ORGANIZACION.SUB_AREA";
 
 const ERROR_CONSTRAINT_DEFAULT =
@@ -161,7 +159,7 @@ export const getTableData = async (
         (SELECT NOMBRE FROM ORGANIZACION.AREA WHERE PK_AREA = FK_AREA) AS AREA,
         NOMBRE AS NAME,
         (SELECT NOMBRE FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = FK_SUPERVISOR) AS SUPERVISOR
-      FROM ORGANIZACION.SUB_AREA`
+      FROM ${TABLE}`
   );
 
   const { count, data } = await getTableModels(

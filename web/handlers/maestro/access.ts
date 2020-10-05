@@ -1,7 +1,4 @@
-import {
-  Body,
-  RouterContext,
-} from "oak";
+import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import {
   createNew,

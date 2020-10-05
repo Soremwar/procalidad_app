@@ -1,6 +1,6 @@
 import Ajv from "ajv";
 import { decodeToken } from "../../lib/jwt.ts";
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import {
   createNew,
   findById,

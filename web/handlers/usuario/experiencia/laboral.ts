@@ -1,4 +1,4 @@
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import removeAccents from "remove-accents";
 import * as laboral_experience_modal from "../../../../api/models/users/laboral_experience.ts";
@@ -6,7 +6,6 @@ import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
 import { Message } from "../../../http_utils.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
 import { decodeToken } from "../../../../lib/jwt.ts";
-import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
 import {
   STANDARD_DATE_STRING,
   STRING,

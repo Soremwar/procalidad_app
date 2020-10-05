@@ -1,6 +1,4 @@
-import {
-  RouterContext,
-} from "oak";
+import type { RouterContext } from "oak";
 import {
   findByBudget,
 } from "../../../api/models/OPERACIONES/PRESUPUESTO_DETALLE.ts";

@@ -1,4 +1,4 @@
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import { FormationType } from "../../../api/models/users/formation_level.ts";
 import * as formation_title_model from "../../../api/models/users/formation_title.ts";

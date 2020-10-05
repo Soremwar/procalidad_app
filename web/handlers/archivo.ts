@@ -1,4 +1,4 @@
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import {
   getFile as getTemplateFileContent,
 } from "../../api/storage/template_file.ts";

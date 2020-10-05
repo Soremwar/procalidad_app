@@ -1,13 +1,11 @@
 import postgres from "../../services/postgres.js";
-import { PostgresError } from "deno_postgres";
+import type { PostgresError } from "deno_postgres";
 import {
   TableOrder,
   getTableModels,
   TableResult,
 } from "../../common/table.ts";
 
-//TODO
-//Replace table string
 export const TABLE = "ORGANIZACION.AREA";
 
 const ERROR_CONSTRAINT_DEFAULT =
@@ -34,7 +32,7 @@ class Area {
   > {
     Object.assign(this, { fk_tipo_area, nombre, fk_supervisor });
     await postgres.query(
-      "UPDATE ORGANIZACION.AREA SET FK_TIPO_AREA = $2, NOMBRE = $3, FK_SUPERVISOR = $4 WHERE PK_AREA = $1",
+      `UPDATE ${TABLE} SET FK_TIPO_AREA = $2, NOMBRE = $3, FK_SUPERVISOR = $4 WHERE PK_AREA = $1`,
       this.pk_area,
       this.fk_tipo_area,
       this.nombre,
@@ -62,7 +60,7 @@ class Area {
 
   async delete(): Promise<void> {
     await postgres.query(
-      "DELETE FROM ORGANIZACION.AREA WHERE PK_AREA = $1",
+      `DELETE FROM ${TABLE} WHERE PK_AREA = $1`,
       this.pk_area,
     ).catch((e: PostgresError) => {
       if (e.fields.constraint) {
@@ -76,7 +74,7 @@ class Area {
 
 export const findAll = async (): Promise<Area[]> => {
   const { rows } = await postgres.query(
-    "SELECT PK_AREA, FK_TIPO_AREA, NOMBRE, FK_SUPERVISOR FROM ORGANIZACION.AREA",
+    `SELECT PK_AREA, FK_TIPO_AREA, NOMBRE, FK_SUPERVISOR FROM ${TABLE}`,
   );
 
   const models = rows.map((row: [
@@ -91,7 +89,7 @@ export const findAll = async (): Promise<Area[]> => {
 
 export const findById = async (id: number): Promise<Area | null> => {
   const { rows } = await postgres.query(
-    "SELECT PK_AREA, FK_TIPO_AREA, NOMBRE, FK_SUPERVISOR FROM ORGANIZACION.AREA WHERE PK_AREA = $1",
+    `SELECT PK_AREA, FK_TIPO_AREA, NOMBRE, FK_SUPERVISOR FROM ${TABLE} WHERE PK_AREA = $1`,
     id,
   );
   if (!rows[0]) return null;
@@ -110,7 +108,7 @@ export const createNew = async (
   fk_supervisor: number,
 ) => {
   await postgres.query(
-    "INSERT INTO ORGANIZACION.AREA (FK_TIPO_AREA, NOMBRE, FK_SUPERVISOR) VALUES ($1, $2, $3)",
+    `INSERT INTO ${TABLE} (FK_TIPO_AREA, NOMBRE, FK_SUPERVISOR) VALUES ($1, $2, $3)`,
     fk_tipo_area,
     nombre,
     fk_supervisor,

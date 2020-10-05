@@ -1,4 +1,4 @@
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import {
   createNew as createBudgetItem,
   findAll as findBudgetItems,

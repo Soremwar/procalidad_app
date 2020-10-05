@@ -1,4 +1,4 @@
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import {
   create,
@@ -6,9 +6,6 @@ import {
   findById,
   getTableData,
 } from "../../../api/models/files/template.ts";
-import {
-  getFileFormatCode,
-} from "../../../api/parameters.ts";
 import { TRUTHY_INTEGER } from "../../../lib/ajv/types.js";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";

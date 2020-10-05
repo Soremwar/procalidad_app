@@ -1,5 +1,5 @@
 import postgres from "../../services/postgres.js";
-import { PostgresError } from "deno_postgres";
+import type { PostgresError } from "deno_postgres";
 import {
   getTableModels,
   TableOrder,

@@ -1,4 +1,4 @@
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import {
   findAll,
 } from "../../../api/models/MAESTRO/gender.ts";

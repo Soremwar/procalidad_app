@@ -1,4 +1,4 @@
-import { RouterContext, Body } from "oak";
+import type { RouterContext } from "oak";
 import {
   createNew,
   findAll,

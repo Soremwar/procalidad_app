@@ -1,4 +1,4 @@
-import { RouterContext, Body } from "oak";
+import type { RouterContext } from "oak";
 import {
   getNonLaboralDaysBetween,
 } from "../../../api/models/MAESTRO/dim_tiempo.ts";

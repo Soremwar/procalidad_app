@@ -1,4 +1,4 @@
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import { decodeToken } from "../../lib/jwt.ts";
 import {
   createNew,

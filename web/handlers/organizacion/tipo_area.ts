@@ -1,5 +1,5 @@
 import Ajv from "ajv";
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import {
   createNew,
   findAll,

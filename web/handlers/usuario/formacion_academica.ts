@@ -1,4 +1,4 @@
-import { RouterContext } from "oak";
+import type { RouterContext } from "oak";
 import removeAccents from "remove-accents";
 import Ajv from "ajv";
 import { FormationType } from "../../../api/models/users/formation_level.ts";

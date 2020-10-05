@@ -11,7 +11,7 @@ import {
   NotFoundError,
   RequestSyntaxError,
 } from "./exceptions.ts";
-import { Profiles } from "../api/common/profiles.ts";
+import type { Profiles } from "../api/common/profiles.ts";
 
 export const errorHandler = async (
   { response }: Context,
