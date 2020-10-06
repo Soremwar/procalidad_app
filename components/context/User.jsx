@@ -1,11 +1,6 @@
-import React, {
-  createContext,
-  useReducer,
-} from "react";
-import {
-  fetchAuthApi,
-} from "../../lib/api/generator.js";
-import { useCookies, Cookies } from "react-cookie";
+import React, { createContext, useReducer } from "react";
+import { fetchAuthApi } from "../../lib/api/generator.js";
+import { Cookies, useCookies } from "react-cookie";
 import decodeJwt from "jwt-decode";
 
 const createSession = (email) =>

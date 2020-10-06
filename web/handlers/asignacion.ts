@@ -7,9 +7,7 @@ import {
   getAvailableWeeks,
   getTableData,
 } from "../../api/models/OPERACIONES/asignacion.ts";
-import {
-  findById as findBudget,
-} from "../../api/models/OPERACIONES/budget.ts";
+import { findById as findBudget } from "../../api/models/OPERACIONES/budget.ts";
 import {
   findById as findProject,
 } from "../../api/models/OPERACIONES/PROYECTO.ts";
@@ -20,9 +18,7 @@ import {
 import {
   findOpenWeek as findOpenWeekOfPerson,
 } from "../../api/models/OPERACIONES/control_semana.ts";
-import {
-  tableRequestHandler,
-} from "../../api/common/table.ts";
+import { tableRequestHandler } from "../../api/common/table.ts";
 import { Profiles } from "../../api/common/profiles.ts";
 import { formatResponse, Message, Status } from "../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";

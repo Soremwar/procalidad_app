@@ -19,38 +19,26 @@ import {
   Snackbar,
   Tab,
   Tabs,
-  Typography,
   TextField,
+  Typography,
 } from "@material-ui/core";
-import {
-  makeStyles,
-} from "@material-ui/styles";
-import {
-  Close as CloseIcon,
-} from "@material-ui/icons";
-import {
-  Alert,
-} from "@material-ui/lab";
-import {
-  UserContext,
-} from "../context/User.jsx";
-import {
-  formatResponseJson,
-} from "../../lib/api/request.js";
+import { makeStyles } from "@material-ui/styles";
+import { Close as CloseIcon } from "@material-ui/icons";
+import { Alert } from "@material-ui/lab";
+import { UserContext } from "../context/User.jsx";
+import { formatResponseJson } from "../../lib/api/request.js";
 import {
   formatStandardNumberToStandardString,
   formatStandardStringToStandardNumber,
   parseDateToStandardNumber,
 } from "../../lib/date/mod.js";
-import {
-  months,
-} from "../../lib/date/lang.js";
+import { months } from "../../lib/date/lang.js";
 import {
   fetchAssignationApi,
   fetchAssignationRequestApi,
-  fetchClientApi,
   fetchBudgetApi,
   fetchBudgetDetailApi,
+  fetchClientApi,
   fetchPeopleApi,
   fetchProjectApi,
   fetchRoleApi,

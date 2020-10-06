@@ -47,7 +47,6 @@ const create_request = Object.assign({}, update_request, {
   ],
 });
 
-// @ts-ignore
 const request_validator = new Ajv({
   schemas: [
     create_request,
@@ -80,6 +79,7 @@ export const createTrainingTitle = async (
     null,
     value.teacher,
     castStringToBoolean(value.status),
+    null,
   );
 };
 

@@ -2,9 +2,9 @@ import { helpers, RouterContext } from "oak";
 import Ajv from "ajv";
 import {
   create,
-  getTableData,
-  getAll,
   findById,
+  getAll,
+  getTableData,
 } from "../../../api/models/CLIENTES/CLIENTE.ts";
 import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";

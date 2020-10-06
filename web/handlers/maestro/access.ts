@@ -7,12 +7,10 @@ import {
   getTableData,
   hasAccessDefined,
 } from "../../../api/models/MAESTRO/access.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
+import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
-import {
-  TRUTHY_INTEGER,
-} from "../../../lib/ajv/types.js";
+import { TRUTHY_INTEGER } from "../../../lib/ajv/types.js";
 
 const post_request = {
   $id: "post",

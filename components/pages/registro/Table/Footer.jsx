@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  Button,
-  Grid,
-  TablePagination,
-} from "@material-ui/core";
+import { Button, Grid, TablePagination } from "@material-ui/core";
 
 export default ({
   children,

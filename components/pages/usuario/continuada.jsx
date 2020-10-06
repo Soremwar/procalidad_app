@@ -6,25 +6,19 @@ import React, {
   useState,
 } from "react";
 import {
-  IconButton,
   DialogContentText,
   Grid,
+  IconButton,
   TextField,
   Tooltip,
 } from "@material-ui/core";
-import {
-  GetApp as DownloadIcon,
-} from "@material-ui/icons";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
+import { GetApp as DownloadIcon } from "@material-ui/icons";
+import { formatResponseJson } from "../../../lib/api/request.js";
 import {
   fetchFormationLevelApi,
   fetchUserContinuousFormation,
 } from "../../../lib/api/generator.js";
-import {
-  formatDateToStringDatetime,
-} from "../../../lib/date/mod.js";
+import { formatDateToStringDatetime } from "../../../lib/date/mod.js";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";

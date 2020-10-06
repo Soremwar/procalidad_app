@@ -16,9 +16,7 @@ import {
   getActiveDefinition as findParameterValue,
 } from "../../../api/models/MAESTRO/parametro_definicion.ts";
 import { getDetailHeatmapData } from "../../../api/models/planeacion/recurso.ts";
-import {
-  getFileFormatCode,
-} from "../../../api/parameters.ts";
+import { getFileFormatCode } from "../../../api/parameters.ts";
 import {
   getFile as getTemplateFile,
   writeFile as writeTemplateFile,

@@ -1,41 +1,21 @@
 import postgres from "../../services/postgres.js";
-import {
-  TableOrder,
-  getTableModels,
-  TableResult,
-} from "../../common/table.ts";
+import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import {
   createNew as createDetail,
   deleteByResource as deleteDetails,
   TABLE as DETAIL_TABLE,
 } from "./recurso_detalle.ts";
-import {
-  getLaboralDaysBetween,
-} from "../MAESTRO/dim_tiempo.ts";
-import {
-  TABLE as BUDGET_TABLE,
-} from "../OPERACIONES/budget.ts";
-import {
-  TABLE as PROJECT_TABLE,
-} from "../OPERACIONES/PROYECTO.ts";
-import {
-  TABLE as ROLE_TABLE,
-} from "../OPERACIONES/ROL.ts";
-import {
-  TABLE as PEOPLE_TABLE,
-} from "../ORGANIZACION/people.ts";
+import { getLaboralDaysBetween } from "../MAESTRO/dim_tiempo.ts";
+import { TABLE as BUDGET_TABLE } from "../OPERACIONES/budget.ts";
+import { TABLE as PROJECT_TABLE } from "../OPERACIONES/PROYECTO.ts";
+import { TABLE as ROLE_TABLE } from "../OPERACIONES/ROL.ts";
+import { TABLE as PEOPLE_TABLE } from "../ORGANIZACION/people.ts";
 import {
   TABLE as POSITION_ASSIGNATION_TABLE,
 } from "../ORGANIZACION/asignacion_cargo.ts";
-import {
-  TABLE as SUB_AREA_TABLE,
-} from "../ORGANIZACION/sub_area.ts";
-import {
-  TABLE as AREA_TABLE,
-} from "../ORGANIZACION/AREA.ts";
-import {
-  TABLE as AREA_TYPE_TABLE,
-} from "../ORGANIZACION/area_type.ts";
+import { TABLE as SUB_AREA_TABLE } from "../ORGANIZACION/sub_area.ts";
+import { TABLE as AREA_TABLE } from "../ORGANIZACION/AREA.ts";
+import { TABLE as AREA_TYPE_TABLE } from "../ORGANIZACION/area_type.ts";
 
 export const TABLE = "PLANEACION.RECURSO";
 

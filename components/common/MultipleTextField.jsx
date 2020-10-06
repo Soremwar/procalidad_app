@@ -1,16 +1,6 @@
-import React, {
-  Fragment,
-  useEffect,
-  useState,
-} from "react";
-import {
-  Chip,
-  CircularProgress,
-  TextField,
-} from "@material-ui/core";
-import {
-  Autocomplete,
-} from "@material-ui/lab";
+import React, { Fragment, useEffect, useState } from "react";
+import { Chip, CircularProgress, TextField } from "@material-ui/core";
+import { Autocomplete } from "@material-ui/lab";
 
 export default function MultipleTextField({
   disabled = false,

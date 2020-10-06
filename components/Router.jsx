@@ -1,10 +1,5 @@
 import React, { useContext } from "react";
-import {
-  BrowserRouter,
-  Switch,
-  Route,
-  Redirect,
-} from "react-router-dom";
+import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 
 import { UserContext } from "./context/User.jsx";
 import Login from "./login/Login.jsx";

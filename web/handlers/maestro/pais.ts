@@ -2,21 +2,44 @@ import type { RouterContext } from "oak";
 import {
   findAll,
   findById,
+  findByName,
   searchByName,
 } from "../../../api/models/MAESTRO/PAIS.ts";
+import type { Pais } from "../../../api/models/MAESTRO/PAIS.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
 export const getCountries = async ({ response }: RouterContext) => {
   response.body = await findAll();
 };
 
+/**
+ * It receives either a name or an id
+ * and looks up for the country based on the parameter type
+ * 
+ * String -> name
+ * 
+ * Number -> Id
+ */
 export const getCountry = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
-  if (!id) throw new RequestSyntaxError();
+  let id: number | string;
 
-  const project_type = await findById(id);
+  if (Number(params.id)) {
+    id = Number(params.id);
+  } else if (params.id) {
+    id = params.id;
+  } else {
+    throw new RequestSyntaxError();
+  }
+
+  let project_type: Pais | null;
+  if (typeof id === "string") {
+    project_type = await findByName(id);
+  } else {
+    project_type = await findById(id);
+  }
+
   if (!project_type) throw new NotFoundError();
 
   response.body = project_type;

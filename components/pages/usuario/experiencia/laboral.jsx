@@ -6,26 +6,20 @@ import React, {
   useState,
 } from "react";
 import {
-  IconButton,
   DialogContentText,
   Grid,
+  IconButton,
   TextField,
   Tooltip,
 } from "@material-ui/core";
-import {
-  GetApp as DownloadIcon,
-} from "@material-ui/icons";
-import {
-  formatResponseJson,
-} from "../../../../lib/api/request.js";
+import { GetApp as DownloadIcon } from "@material-ui/icons";
+import { formatResponseJson } from "../../../../lib/api/request.js";
 import {
   fetchClientApi,
   fetchSectorApi,
   fetchUserLaboralExperience,
 } from "../../../../lib/api/generator.js";
-import {
-  formatDateToStringDatetime,
-} from "../../../../lib/date/mod.js";
+import { formatDateToStringDatetime } from "../../../../lib/date/mod.js";
 import AsyncTable from "../../../common/AsyncTable/Table.jsx";
 import Autocomplete from "../../../common/Autocomplete.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";

@@ -6,25 +6,20 @@ import React, {
   useState,
 } from "react";
 import {
-  IconButton,
   DialogContentText,
   Grid,
+  IconButton,
   TextField,
   Tooltip,
 } from "@material-ui/core";
+import { GetApp as DownloadIcon } from "@material-ui/icons";
+import { formatResponseJson } from "../../../lib/api/request.js";
 import {
-  GetApp as DownloadIcon,
-} from "@material-ui/icons";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
-import {
+  fetchCountryApi,
   fetchFormationLevelApi,
   fetchUserAcademicFormation,
 } from "../../../lib/api/generator.js";
-import {
-  formatDateToStringDatetime,
-} from "../../../lib/date/mod.js";
+import { formatDateToStringDatetime } from "../../../lib/date/mod.js";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import CitySelector from "../../common/CitySelector.jsx";
 import DateField from "../../common/DateField.jsx";
@@ -48,6 +43,7 @@ const createAcademicTitle = async (
   start_date,
   status,
   title,
+  title_is_convalidated,
 ) =>
   fetchUserAcademicFormation("", {
     body: JSON.stringify({
@@ -58,6 +54,7 @@ const createAcademicTitle = async (
       start_date,
       status,
       title,
+      title_is_convalidated,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -72,6 +69,7 @@ const updateAcademicTitle = async (
   institution,
   start_date,
   status,
+  title_is_convalidated,
 ) =>
   fetchUserAcademicFormation(id, {
     body: JSON.stringify({
@@ -80,6 +78,7 @@ const updateAcademicTitle = async (
       institution,
       start_date,
       status,
+      title_is_convalidated,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -104,6 +103,8 @@ const uploadCertificate = async (
     method: "PUT",
   });
 };
+
+const getCurrentCountry = () => fetchCountryApi("Colombia");
 
 const headers = [
   {
@@ -182,6 +183,7 @@ const headers = [
 ];
 
 const ParameterContext = createContext({
+  current_country: null,
   formation_levels: [],
 });
 
@@ -229,17 +231,20 @@ const AddModal = ({
   updateTable,
 }) => {
   const {
+    current_country,
     formation_levels,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
     city: "",
+    country: "",
     end_date: "",
     formation_level: "",
     institution: "",
     start_date: "",
     status: false,
     title: "",
+    title_is_convalidated: false,
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -261,6 +266,7 @@ const AddModal = ({
       fields.start_date,
       fields.status,
       fields.title,
+      fields.country != current_country ? fields.title_is_convalidated : null,
     );
 
     if (request.ok) {
@@ -276,6 +282,7 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
+        country: "",
         city: "",
         end_date: "",
         formation_level: "",
@@ -283,6 +290,7 @@ const AddModal = ({
         start_date: "",
         status: false,
         title: "",
+        title_is_convalidated: false,
       });
       setLoading(false);
       setError(null);
@@ -373,10 +381,31 @@ const AddModal = ({
       <CitySelector
         label="Lugar de cursado"
         required
-        setValue={(city) =>
-          setFields((prev_state) => ({ ...prev_state, city }))}
+        setValue={(city, _state, country) =>
+          setFields((prev_state) => ({ ...prev_state, city, country }))}
         value={fields.city}
       />
+      {fields.country && fields.country != current_country
+        ? (
+          <SelectField
+            blank_value={false}
+            fullWidth
+            label="Título convalidado"
+            name="title_is_convalidated"
+            onChange={(event) => {
+              const title_is_convalidated = Boolean(Number(event.target.value));
+              setFields((prevState) => ({
+                ...prevState,
+                title_is_convalidated,
+              }));
+            }}
+            value={Number(fields.title_is_convalidated)}
+          >
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+          </SelectField>
+        )
+        : null}
     </DialogForm>
   );
 };
@@ -388,17 +417,20 @@ const EditModal = ({
   updateTable,
 }) => {
   const {
+    current_country,
     formation_levels,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
     city: "",
+    country: "",
     end_date: "",
     formation_level: "",
     institution: "",
     start_date: "",
     status: "",
     title: "",
+    title_is_convalidated: false,
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -419,6 +451,7 @@ const EditModal = ({
       fields.institution,
       fields.start_date,
       fields.status,
+      fields.country != current_country ? fields.title_is_convalidated : null,
     );
 
     if (request.ok) {
@@ -435,12 +468,13 @@ const EditModal = ({
     if (is_open) {
       setFields({
         city: data.city,
-        end_date: data.end_date,
+        end_date: data.end_date || "",
         formation_level: data.formation_level,
         institution: data.institution,
         start_date: data.start_date,
         status: data.status,
         title: data.title,
+        title_is_convalidated: data.title_is_convalidated || false,
       });
       setLoading(false);
       setError(null);
@@ -524,10 +558,31 @@ const EditModal = ({
       <CitySelector
         label="Lugar de cursado"
         required
-        setValue={(city) =>
-          setFields((prev_state) => ({ ...prev_state, city }))}
+        setValue={(city, _state, country) =>
+          setFields((prev_state) => ({ ...prev_state, city, country }))}
         value={fields.city}
       />
+      {fields.country && fields.country != current_country
+        ? (
+          <SelectField
+            blank_value={false}
+            fullWidth
+            label="Título convalidado"
+            name="title_is_convalidated"
+            onChange={(event) => {
+              const title_is_convalidated = Boolean(Number(event.target.value));
+              setFields((prevState) => ({
+                ...prevState,
+                title_is_convalidated,
+              }));
+            }}
+            value={Number(fields.title_is_convalidated)}
+          >
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+          </SelectField>
+        )
+        : null}
     </DialogForm>
   );
 };
@@ -590,6 +645,7 @@ const DeleteModal = ({
 
 export default () => {
   const [parameters, setParameters] = useState({
+    current_country: null,
     formation_levels: [],
   });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
@@ -622,6 +678,25 @@ export default () => {
   };
 
   useEffect(() => {
+    getCurrentCountry()
+      .then(async (response) => {
+        if (response.ok) {
+          /**
+           * @type {object}
+           * @property {number} pk_pais
+           * */
+          const current_country = await response.json();
+          setParameters(
+            ((prevState) => ({
+              ...prevState,
+              current_country: current_country.pk_pais,
+            })),
+          );
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("Couldnt fetch current country"));
     getFormationLevels()
       .then(async (response) => {
         if (response.ok) {

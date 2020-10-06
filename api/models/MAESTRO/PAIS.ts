@@ -2,7 +2,7 @@ import postgres from "../../services/postgres.js";
 
 export const TABLE = "MAESTRO.PAIS";
 
-class Pais {
+export class Pais {
   constructor(
     public readonly pk_pais: number,
     public readonly nombre: string,
@@ -14,37 +14,74 @@ class Pais {
 
 export const findAll = async (): Promise<Pais[]> => {
   const { rows } = await postgres.query(
-    "SELECT PK_PAIS, NOMBRE, ALIAS, COD_TELEFONO, MONEDA FROM MAESTRO.PAIS",
+    `SELECT
+      PK_PAIS,
+      NOMBRE,
+      ALIAS,
+      COD_TELEFONO,
+      MONEDA
+    FROM ${TABLE}`,
   );
 
-  const models = rows.map((row: [
+  return rows.map((row: [
     number,
     string,
     string,
     number,
     string,
   ]) => new Pais(...row));
-
-  return models;
 };
 
 export const findById = async (id: number): Promise<Pais | null> => {
   const { rows } = await postgres.query(
-    "SELECT PK_PAIS, NOMBRE, ALIAS, COD_TELEFONO, MONEDA FROM MAESTRO.PAIS WHERE PK_PAIS = $1",
+    `SELECT
+      PK_PAIS,
+      NOMBRE,
+      ALIAS,
+      COD_TELEFONO,
+      MONEDA
+    FROM ${TABLE}
+    WHERE PK_PAIS = $1`,
     id,
   );
 
   if (!rows[0]) return null;
 
-  const result: [
-    number,
-    string,
-    string,
-    number,
-    string,
-  ] = rows[0];
+  return new Pais(
+    ...rows[0] as [
+      number,
+      string,
+      string,
+      number,
+      string,
+    ],
+  );
+};
 
-  return new Pais(...result);
+export const findByName = async (name: string): Promise<Pais | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_PAIS,
+      NOMBRE,
+      ALIAS,
+      COD_TELEFONO,
+      MONEDA
+    FROM ${TABLE}
+    WHERE NOMBRE ILIKE $1`,
+    name,
+  );
+
+  if (!rows[0]) return null;
+
+  return new Pais(
+    ...rows[0] as [
+      number,
+      string,
+      string,
+      number,
+      string,
+    ],
+  );
 };
 
 export const searchByName = async (
@@ -56,11 +93,7 @@ export const searchByName = async (
       limit ? `LIMIT ${limit}` : ""
     }`,
     `%${query || "%"}%`,
-  ).catch((err: any) => {
-    console.log("it explodes in the query");
-    console.log(err.toString());
-    throw err;
-  });
+  );
 
   const models = rows.map((row: [
     number,

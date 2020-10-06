@@ -1,14 +1,8 @@
-import type { RouterContext} from "oak";
+import type { RouterContext } from "oak";
 import Ajv from "ajv";
-import {
-  createNewToken,
-} from "../../lib/jwt.ts";
-import {
-  findByEmail,
-} from "../../api/models/MAESTRO/access.ts";
-import {
-  findById,
-} from "../../api/models/ORGANIZACION/people.ts";
+import { createNewToken } from "../../lib/jwt.ts";
+import { findByEmail } from "../../api/models/MAESTRO/access.ts";
+import { findById } from "../../api/models/ORGANIZACION/people.ts";
 import {
   AuthenticationRejectedError,
   NotFoundError,

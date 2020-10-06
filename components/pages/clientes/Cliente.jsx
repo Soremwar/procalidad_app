@@ -5,17 +5,9 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import {
-  DialogContentText,
-  TextField,
-} from "@material-ui/core";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
-import {
-  fetchClientApi,
-  fetchSectorApi,
-} from "../../../lib/api/generator.js";
+import { DialogContentText, TextField } from "@material-ui/core";
+import { formatResponseJson } from "../../../lib/api/request.js";
+import { fetchClientApi, fetchSectorApi } from "../../../lib/api/generator.js";
 import CitySelector from "../../common/CitySelector.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";

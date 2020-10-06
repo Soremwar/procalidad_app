@@ -1,10 +1,6 @@
 import postgres from "../../services/postgres.js";
 import type { PostgresError } from "deno_postgres";
-import {
-  TableOrder,
-  getTableModels,
-  TableResult,
-} from "../../common/table.ts";
+import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 
 export const TABLE = "ORGANIZACION.PERSONA";
 const ERROR_DEPENDENCY =
@@ -90,9 +86,9 @@ class People {
     direccion_residencia: string | null = this.direccion_residencia,
     fecha_inicio: string | null = this.fecha_inicio,
     fecha_retiro: string | null = this.fecha_retiro,
-    expedicion_tarjeta_profesional: string | null = this.expedicion_tarjeta_profesional,
+    expedicion_tarjeta_profesional: string | null =
+      this.expedicion_tarjeta_profesional,
   ): Promise<People> {
-    
     Object.assign(this, {
       tipo_identificacion,
       identificacion,

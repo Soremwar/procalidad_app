@@ -2,12 +2,12 @@ import type { RouterContext } from "oak";
 import {
   createNew,
   findAll,
-  findById,
   findByCode,
+  findById,
   getTableData,
   TipoParametro,
 } from "../../../api/models/MAESTRO/parametro.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
+import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
 

@@ -1,16 +1,9 @@
-import React, { useState, useContext } from "react";
-import {
-  Grid,
-  Typography,
-  Fade,
-} from "@material-ui/core";
+import React, { useContext, useState } from "react";
+import { Fade, Grid, Typography } from "@material-ui/core";
 import { withRouter } from "react-router-dom";
 import GoogleLogin from "react-google-login";
 
-import {
-  attemptGoogleLogin,
-  UserContext,
-} from "../context/User.jsx";
+import { attemptGoogleLogin, UserContext } from "../context/User.jsx";
 
 import useStyles from "./styles.js";
 

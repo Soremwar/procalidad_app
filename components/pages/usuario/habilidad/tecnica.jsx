@@ -5,12 +5,8 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import {
-  DialogContentText,
-} from "@material-ui/core";
-import {
-  formatResponseJson,
-} from "../../../../lib/api/request.js";
+import { DialogContentText } from "@material-ui/core";
+import { formatResponseJson } from "../../../../lib/api/request.js";
 import {
   fetchToolApi,
   fetchUserTecnicalSkill,

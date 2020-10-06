@@ -1,16 +1,11 @@
 import postgres from "../../services/postgres.js";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
-import {
-  TABLE as GENERIC_FILE_TABLE,
-} from "../files/generic_file.ts";
+import { TABLE as GENERIC_FILE_TABLE } from "../files/generic_file.ts";
 import {
   FormationType,
   TABLE as FORMATION_LEVEL_TABLE,
 } from "./formation_level.ts";
-import {
-  TABLE as PEOPLE_TABLE,
-} from "../ORGANIZACION/people.ts";
-import { user } from "../../../config/services/postgresql.ts";
+import { TABLE as PEOPLE_TABLE } from "../ORGANIZACION/people.ts";
 
 export const TABLE = "USUARIOS.FORMACION";
 
@@ -27,6 +22,7 @@ class FormationTitle {
     public generic_file: number | null,
     public teacher: number | null,
     public status: boolean,
+    public title_is_convalidated: boolean | null,
   ) {}
 
   async delete(): Promise<void> {
@@ -45,6 +41,7 @@ class FormationTitle {
     generic_file: number | null = this.generic_file,
     teacher: number | null = this.teacher,
     status: boolean = this.status,
+    title_is_convalidated: boolean | null = this.title_is_convalidated,
   ): Promise<FormationTitle> {
     Object.assign(this, {
       institution,
@@ -54,6 +51,7 @@ class FormationTitle {
       generic_file,
       teacher,
       status,
+      title_is_convalidated,
     });
 
     await postgres.query(
@@ -64,7 +62,8 @@ class FormationTitle {
         FK_CIUDAD = $5,
         FK_ARCHIVO_GENERICO = $6,
         FK_INSTRUCTOR = $7,
-        ESTADO = $8
+        ESTADO = $8,
+        BAN_TITULO_CONVALIDADO = $9
       WHERE PK_FORMACION = $1`,
       this.id,
       this.institution,
@@ -74,6 +73,7 @@ class FormationTitle {
       this.generic_file,
       this.teacher,
       this.status,
+      this.title_is_convalidated,
     );
 
     return this;
@@ -90,6 +90,7 @@ export const create = async (
   city: number | null,
   teacher: number | null,
   status: boolean,
+  title_is_convalidated: boolean | null,
 ): Promise<FormationTitle> => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
@@ -101,7 +102,8 @@ export const create = async (
       FECHA_FIN,
       FK_CIUDAD,
       FK_INSTRUCTOR,
-      ESTADO
+      ESTADO,
+      BAN_TITULO_CONVALIDADO
     ) VALUES (
       $1,
       $2,
@@ -111,7 +113,8 @@ export const create = async (
       $6,
       $7,
       $8,
-      $9
+      $9,
+      $10
     ) RETURNING PK_FORMACION`,
     formation_level,
     user,
@@ -122,6 +125,7 @@ export const create = async (
     city,
     teacher,
     status,
+    title_is_convalidated,
   );
 
   const id: number = rows[0][0];
@@ -138,6 +142,7 @@ export const create = async (
     null,
     teacher,
     status,
+    title_is_convalidated,
   );
 };
 
@@ -157,7 +162,8 @@ export const getAll = async (
       T.FK_CIUDAD,
       T.FK_ARCHIVO_GENERICO,
       T.FK_INSTRUCTOR,
-      T.ESTADO
+      T.ESTADO,
+      T.BAN_TITULO_CONVALIDADO
      FROM ${TABLE} T
      JOIN ${FORMATION_LEVEL_TABLE} L
        ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
@@ -177,6 +183,7 @@ export const getAll = async (
     number,
     number | null,
     boolean,
+    boolean | null,
   ]) => new FormationTitle(...row));
 };
 
@@ -194,7 +201,8 @@ export const findById = async (
       FK_CIUDAD,
       FK_ARCHIVO_GENERICO,
       FK_INSTRUCTOR,
-      ESTADO
+      ESTADO,
+      BAN_TITULO_CONVALIDADO
      FROM ${TABLE}
      WHERE PK_FORMACION = $1`,
     id,
@@ -215,6 +223,7 @@ export const findById = async (
       number,
       number | null,
       boolean,
+      boolean | null,
     ],
   );
 };
@@ -235,7 +244,8 @@ export const findByIdAndUser = async (
       FK_CIUDAD,
       FK_ARCHIVO_GENERICO,
       FK_INSTRUCTOR,
-      ESTADO
+      ESTADO,
+      BAN_TITULO_CONVALIDADO
      FROM ${TABLE}
      WHERE PK_FORMACION = $1
      AND FK_USUARIO = $2`,
@@ -258,6 +268,7 @@ export const findByIdAndUser = async (
       number,
       number | null,
       boolean,
+      boolean | null,
     ],
   );
 };

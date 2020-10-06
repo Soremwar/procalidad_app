@@ -1,9 +1,5 @@
 import postgres from "../../services/postgres.js";
-import {
-  TableOrder,
-  getTableModels,
-  TableResult,
-} from "../../common/table.ts";
+import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 
 export const TABLE = "ARCHIVOS.FORMATO";
 

@@ -6,7 +6,7 @@ import {
   getTableData,
 } from "../../../api/models/ORGANIZACION/computador.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
+import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
 export const getComputers = async ({ response }: RouterContext) => {

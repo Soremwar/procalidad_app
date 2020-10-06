@@ -6,13 +6,13 @@ import {
   findAll,
   findById,
   getDetailGanttData,
+  getDetailHeatmapData,
   getDetailTableData,
   getProjectGanttData,
-  getDetailHeatmapData,
+  getProjectTableData,
   getResourceGanttData,
   getResourceHeatmapData,
   getResourceTableData,
-  getProjectTableData,
   HeatmapFormula,
 } from "../../../api/models/planeacion/recurso.ts";
 import { addLaboralDays } from "../../../api/models/MAESTRO/dim_tiempo.ts";
@@ -25,9 +25,7 @@ import {
 import {
   findById as findProject,
 } from "../../../api/models/OPERACIONES/PROYECTO.ts";
-import {
-  parseOrderFromObject,
-} from "../../../api/common/table.ts";
+import { parseOrderFromObject } from "../../../api/common/table.ts";
 import { Profiles } from "../../../api/common/profiles.ts";
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";

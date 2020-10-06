@@ -1,13 +1,7 @@
 import postgres from "../../services/postgres.js";
 import type { PostgresError } from "deno_postgres";
-import {
-  TableOrder,
-  getTableModels,
-  TableResult,
-} from "../../common/table.ts";
-import {
-  findById as findProject,
-} from "./PROYECTO.ts";
+import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
+import { findById as findProject } from "./PROYECTO.ts";
 
 export const TABLE = "OPERACIONES.PRESUPUESTO";
 const ERROR_DEPENDENCY =

@@ -1,23 +1,12 @@
-import React, {
-  Fragment,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { Fragment, useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
-import {
-  Grid,
-  TableRow,
-  Tooltip,
-} from "@material-ui/core";
+import { Grid, TableRow, Tooltip } from "@material-ui/core";
 import Heatmap, {
   CleanTableCell,
   DateParameters,
   DetailDot,
 } from "./Heatmap.jsx";
-import {
-  ParameterContext,
-} from "../recurso.jsx";
+import { ParameterContext } from "../recurso.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 
 const AvailabilityCell = ({

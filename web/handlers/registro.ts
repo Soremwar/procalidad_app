@@ -12,9 +12,7 @@ import {
   findOpenWeek,
   getOpenWeekAsDate,
 } from "../../api/models/OPERACIONES/control_semana.ts";
-import {
-  findById as findWeek,
-} from "../../api/models/MAESTRO/dim_semana.ts";
+import { findById as findWeek } from "../../api/models/MAESTRO/dim_semana.ts";
 import {
   getAssignationHoursByWeek as getWeekAssignation,
 } from "../../api/models/OPERACIONES/asignacion.ts";
@@ -22,10 +20,7 @@ import {
   getRequestedHoursByWeek as getWeekRequests,
 } from "../../api/models/OPERACIONES/asignacion_solicitud.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
-import {
-  TRUTHY_INTEGER,
-  UNSIGNED_NUMBER,
-} from "../../lib/ajv/types.js";
+import { TRUTHY_INTEGER, UNSIGNED_NUMBER } from "../../lib/ajv/types.js";
 import { decodeToken } from "../../lib/jwt.ts";
 
 const post_structure = {

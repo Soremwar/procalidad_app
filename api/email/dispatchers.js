@@ -1,6 +1,4 @@
-import {
-  sendNewEmail,
-} from "../services/smtp.js";
+import { sendNewEmail } from "../services/smtp.js";
 import postgres from "../services/postgres.js";
 import {
   createAssignationRequestEmail,
@@ -14,36 +12,18 @@ import {
 import {
   TABLE as WEEK_CONTROL_TABLE,
 } from "../models/OPERACIONES/control_semana.ts";
-import {
-  TABLE as BUDGET_TABLE,
-} from "../models/OPERACIONES/budget.ts";
-import {
-  TABLE as PROJECT_TABLE,
-} from "../models/OPERACIONES/PROYECTO.ts";
-import {
-  TABLE as CLIENT_TABLE,
-} from "../models/CLIENTES/CLIENTE.ts";
-import {
-  TABLE as ROLE_TABLE,
-} from "../models/OPERACIONES/ROL.ts";
-import {
-  TABLE as PERSON_TABLE,
-} from "../models/ORGANIZACION/people.ts";
-import {
-  TABLE as AREA_TYPE_TABLE,
-} from "../models/ORGANIZACION/area_type.ts";
-import {
-  TABLE as AREA_TABLE,
-} from "../models/ORGANIZACION/AREA.ts";
-import {
-  TABLE as SUB_AREA_TABLE,
-} from "../models/ORGANIZACION/sub_area.ts";
+import { TABLE as BUDGET_TABLE } from "../models/OPERACIONES/budget.ts";
+import { TABLE as PROJECT_TABLE } from "../models/OPERACIONES/PROYECTO.ts";
+import { TABLE as CLIENT_TABLE } from "../models/CLIENTES/CLIENTE.ts";
+import { TABLE as ROLE_TABLE } from "../models/OPERACIONES/ROL.ts";
+import { TABLE as PERSON_TABLE } from "../models/ORGANIZACION/people.ts";
+import { TABLE as AREA_TYPE_TABLE } from "../models/ORGANIZACION/area_type.ts";
+import { TABLE as AREA_TABLE } from "../models/ORGANIZACION/AREA.ts";
+import { TABLE as SUB_AREA_TABLE } from "../models/ORGANIZACION/sub_area.ts";
 import {
   TABLE as POSITION_ASSIGNATION_TABLE,
 } from "../models/ORGANIZACION/asignacion_cargo.ts";
-import {
-  TABLE as WEEK_TABLE,
-} from "../models/MAESTRO/dim_semana.ts";
+import { TABLE as WEEK_TABLE } from "../models/MAESTRO/dim_semana.ts";
 
 //TODO
 //Emails should be queueable and cancellable

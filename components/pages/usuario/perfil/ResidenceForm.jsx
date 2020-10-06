@@ -1,13 +1,6 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
-import {
-  TextField,
-} from "@material-ui/core";
-import {
-  fetchUserApi,
-} from "../../../../lib/api/generator.js";
+import React, { useEffect, useState } from "react";
+import { TextField } from "@material-ui/core";
+import { fetchUserApi } from "../../../../lib/api/generator.js";
 import CitySelector from "../../../common/CitySelector.jsx";
 import CardForm from "./components/CardForm.jsx";
 

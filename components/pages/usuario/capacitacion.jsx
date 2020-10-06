@@ -5,17 +5,12 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import {
-  DialogContentText,
-  TextField,
-} from "@material-ui/core";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
+import { DialogContentText, TextField } from "@material-ui/core";
+import { formatResponseJson } from "../../../lib/api/request.js";
 import {
   fetchFormationLevelApi,
-  fetchUserTrainingFormation,
   fetchPeopleApi,
+  fetchUserTrainingFormation,
 } from "../../../lib/api/generator.js";
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";

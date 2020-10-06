@@ -1,7 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -15,19 +12,13 @@ import {
   TableRow,
   Typography,
 } from "@material-ui/core";
+import { makeStyles } from "@material-ui/styles";
 import {
-  makeStyles,
-} from "@material-ui/styles";
-import {
-  GetApp as DownloadIcon,
   CloudUpload as UploadIcon,
+  GetApp as DownloadIcon,
 } from "@material-ui/icons";
-import {
-  fetchUserApi,
-} from "../../../../lib/api/generator.js";
-import {
-  formatDateToStringDatetime,
-} from "../../../../lib/date/mod.js";
+import { fetchUserApi } from "../../../../lib/api/generator.js";
+import { formatDateToStringDatetime } from "../../../../lib/date/mod.js";
 
 const uploadUserFile = async (
   template,

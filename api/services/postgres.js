@@ -3,8 +3,8 @@ import {
   database,
   host,
   password,
-  user,
   port,
+  user,
 } from "../../config/services/postgresql.ts";
 
 async function create_new_client() {

@@ -1,13 +1,11 @@
 import { helpers } from "oak";
 import type { RouterContext } from "oak";
-import {
-  PostgresError,
-} from "deno_postgres/error.ts";
+import { PostgresError } from "deno_postgres/error.ts";
 import Ajv from "ajv";
 import {
   create,
-  getAll,
   findById,
+  getAll,
   getTableData,
   TipoIdentificacion,
 } from "../../../api/models/ORGANIZACION/people.ts";
@@ -21,9 +19,7 @@ import {
   STANDARD_DATE_STRING_OR_NULL,
   STRING,
 } from "../../../lib/ajv/types.js";
-import {
-  castStringToBoolean,
-} from "../../../lib/utils/boolean.js";
+import { castStringToBoolean } from "../../../lib/utils/boolean.js";
 
 const list_request = {
   $id: "list",

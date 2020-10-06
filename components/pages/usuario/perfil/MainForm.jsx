@@ -1,8 +1,4 @@
-import React, {
-  Fragment,
-  useEffect,
-  useState,
-} from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -14,15 +10,11 @@ import {
   Grid,
   TextField,
 } from "@material-ui/core";
+import { makeStyles } from "@material-ui/styles";
+import { CloudUpload as UploadIcon } from "@material-ui/icons";
 import {
-  makeStyles,
-} from "@material-ui/styles";
-import {
-  CloudUpload as UploadIcon,
-} from "@material-ui/icons";
-import {
-  fetchMaritalStatus,
   fetchGenderApi,
+  fetchMaritalStatus,
   fetchParameterApi,
   fetchUserApi,
 } from "../../../../lib/api/generator.js";
@@ -248,13 +240,16 @@ export default function MainForm() {
           civil_status: information.fk_estado_civil || "",
           gender: information.fk_genero || "",
           has_military_passbook: Boolean(information.libreta_militar),
-          has_professional_card: Boolean(information.expedicion_tarjeta_profesional),
+          has_professional_card: Boolean(
+            information.expedicion_tarjeta_profesional,
+          ),
           military_passbook: information.libreta_militar || "",
           name: information.nombre,
           personal_email: information.correo_personal || "",
           phone: information.telefono_fijo || "",
           picture: null,
-          professional_card_expedition: information.expedicion_tarjeta_profesional || "",
+          professional_card_expedition:
+            information.expedicion_tarjeta_profesional || "",
         }))
       )
       .catch(() => console.error("could not fetch information"));
@@ -275,7 +270,9 @@ export default function MainForm() {
       fields.has_military_passbook ? fields.military_passbook || null : null,
       fields.personal_email || null,
       fields.phone || null,
-      fields.has_professional_card ? fields.professional_card_expedition || null : null,
+      fields.has_professional_card
+        ? fields.professional_card_expedition || null
+        : null,
     )
       .then((request) => {
         if (!request.ok) {
@@ -426,8 +423,7 @@ export default function MainForm() {
             <option value="0">No</option>
             <option value="1">Si</option>
           </SelectField>
-          {
-            fields.has_professional_card
+          {fields.has_professional_card
             ? (
               <DateField
                 fullWidth
@@ -436,9 +432,8 @@ export default function MainForm() {
                 onChange={handleChange}
                 value={fields.professional_card_expedition}
               />
-              )
-            : null
-          }
+            )
+            : null}
         </Grid>
       </Grid>
     </CardForm>

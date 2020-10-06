@@ -1,6 +1,4 @@
-import React, {
-  useState,
-} from "react";
+import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
   AppBar,
@@ -21,12 +19,8 @@ import {
   CloudDone as OnlineIcon,
   OfflinePin as OfflineIcon,
 } from "@material-ui/icons";
-import {
-  months,
-} from "../../../lib/date/lang.js";
-import {
-  parseStandardNumber,
-} from "../../../lib/date/mod.js";
+import { months } from "../../../lib/date/lang.js";
+import { parseStandardNumber } from "../../../lib/date/mod.js";
 
 import TableHeaders from "./Table/Header.jsx";
 import TableFooter from "./Table/Footer.jsx";

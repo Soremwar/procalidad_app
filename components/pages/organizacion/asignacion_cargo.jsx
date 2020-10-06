@@ -5,23 +5,16 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import {
-  DialogContentText,
-  TextField,
-} from "@material-ui/core";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
+import { DialogContentText, TextField } from "@material-ui/core";
+import { formatResponseJson } from "../../../lib/api/request.js";
 import {
   fetchPeopleApi,
-  fetchPositionAssignationApi as fetchAssignationApi,
   fetchPositionApi,
+  fetchPositionAssignationApi as fetchAssignationApi,
   fetchRoleApi,
   fetchSubAreaApi,
 } from "../../../lib/api/generator.js";
-import {
-  formatDateToStandardString,
-} from "../../../lib/date/mod.js";
+import { formatDateToStandardString } from "../../../lib/date/mod.js";
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";

@@ -1,10 +1,5 @@
 import { SmtpClient } from "smtp";
-import {
-  host,
-  password,
-  port,
-  username,
-} from "../../config/services/smtp.js";
+import { host, password, port, username } from "../../config/services/smtp.js";
 
 export const sendNewEmail = async (
   recipient,

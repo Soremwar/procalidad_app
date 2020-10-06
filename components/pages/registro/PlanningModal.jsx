@@ -1,31 +1,18 @@
-import React, {
-  forwardRef,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { forwardRef, useContext, useEffect, useState } from "react";
 import {
   AppBar,
   Dialog,
   DialogContent,
   IconButton,
   Slide,
-  Typography,
   Toolbar,
+  Typography,
 } from "@material-ui/core";
-import {
-  makeStyles,
-} from "@material-ui/styles";
-import {
-  Close as CloseIcon,
-} from "@material-ui/icons";
-import {
-  fetchUserApi,
-} from "../../../lib/api/generator.js";
+import { makeStyles } from "@material-ui/styles";
+import { Close as CloseIcon } from "@material-ui/icons";
+import { fetchUserApi } from "../../../lib/api/generator.js";
 import Heatmap from "./PlanningModal/Heatmap.jsx";
-import {
-  ParameterContext,
-} from "../registro.jsx";
+import { ParameterContext } from "../registro.jsx";
 
 const getHeatmapData = () =>
   fetchUserApi(`planeacion`, {

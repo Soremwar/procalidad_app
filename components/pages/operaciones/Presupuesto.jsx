@@ -12,17 +12,15 @@ import {
   IconButton,
   Paper,
   Table,
-  TableContainer,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
   Typography,
 } from "@material-ui/core";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
+import { formatResponseJson } from "../../../lib/api/request.js";
 import {
   fetchBudgetApi,
   fetchBudgetTypeApi,

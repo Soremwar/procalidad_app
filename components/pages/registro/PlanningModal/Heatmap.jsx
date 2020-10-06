@@ -1,14 +1,6 @@
-import React, {
-  Fragment,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { Fragment, useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
-import {
-  TableRow,
-  Tooltip,
-} from "@material-ui/core";
+import { TableRow, Tooltip } from "@material-ui/core";
 import getRandomColor from "randomcolor";
 import HeatmapCore, {
   CleanTableCell,

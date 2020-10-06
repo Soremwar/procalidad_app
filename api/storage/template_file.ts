@@ -1,25 +1,13 @@
+import { findById as findTemplate } from "../models/files/template.ts";
 import {
-  findById as findTemplate,
-} from "../models/files/template.ts";
-import {
-  upsert as registerTemplateFileUpload,
   findByTemplateAndUser as getTemplateFileModel,
+  upsert as registerTemplateFileUpload,
 } from "../models/files/template_file.ts";
-import {
-  findById as getUserModel,
-} from "../models/ORGANIZACION/people.ts";
-import {
-  getUploadFile,
-  writeUploadFile,
-} from "../services/storage.js";
-import {
-  extname,
-} from "path";
+import { findById as getUserModel } from "../models/ORGANIZACION/people.ts";
+import { getUploadFile, writeUploadFile } from "../services/storage.js";
+import { extname } from "path";
 import { NotFoundError } from "../../web/exceptions.ts";
-import type {
-  File,
-  FileProps,
-} from "./common.ts";
+import type { File, FileProps } from "./common.ts";
 
 const generateFileProps = async (
   template: number,

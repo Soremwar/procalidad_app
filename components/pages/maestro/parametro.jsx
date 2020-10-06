@@ -1,8 +1,4 @@
-import React, {
-  Fragment,
-  useEffect,
-  useState,
-} from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -10,8 +6,8 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   DialogContentText,
+  DialogTitle,
   Divider,
   Grid,
   List,
@@ -26,9 +22,7 @@ import {
   formatResponseJson,
   requestGenerator,
 } from "../../../lib/api/request.js";
-import {
-  formatDateToStandardString,
-} from "../../../lib/date/mod.js";
+import { formatDateToStandardString } from "../../../lib/date/mod.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";

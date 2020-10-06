@@ -5,16 +5,11 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { DialogContentText, TextField } from "@material-ui/core";
+import { formatResponseJson } from "../../../lib/api/request.js";
 import {
-  DialogContentText,
-  TextField,
-} from "@material-ui/core";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
-import {
-  fetchFormatApi,
   fetchFileTemplateApi,
+  fetchFormatApi,
 } from "../../../lib/api/generator.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";

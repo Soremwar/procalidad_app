@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  Grid,
-  TablePagination,
-} from "@material-ui/core";
+import { Grid, TablePagination } from "@material-ui/core";
 
 export default ({
   length_options,

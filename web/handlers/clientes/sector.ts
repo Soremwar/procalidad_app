@@ -1,12 +1,12 @@
 import type { RouterContext } from "oak";
 import {
+  createNew,
   findAll,
   findById,
-  createNew,
   getTableData,
 } from "../../../api/models/CLIENTES/SECTOR.ts";
-import { TableOrder, Order } from "../../../api/common/table.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
+import { Order, TableOrder } from "../../../api/common/table.ts";
+import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
 

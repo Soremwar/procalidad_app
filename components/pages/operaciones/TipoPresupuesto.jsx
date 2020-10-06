@@ -1,12 +1,5 @@
-import React, {
-  Fragment,
-  useEffect,
-  useState,
-} from "react";
-import {
-  DialogContentText,
-  TextField,
-} from "@material-ui/core";
+import React, { Fragment, useEffect, useState } from "react";
+import { DialogContentText, TextField } from "@material-ui/core";
 import {
   formatResponseJson,
   requestGenerator,

@@ -1,25 +1,11 @@
 import postgres from "../../services/postgres.js";
 import type { PostgresError } from "deno_postgres";
-import {
-  TableOrder,
-  getTableModels,
-  TableResult,
-} from "../../common/table.ts";
-import {
-  TABLE as SECTOR_TABLE,
-} from "./SECTOR.ts";
-import {
-  TABLE as PROJECT_TABLE,
-} from "../OPERACIONES/PROYECTO.ts";
-import {
-  TABLE as SUB_AREA_TABLE,
-} from "../ORGANIZACION/sub_area.ts";
-import {
-  TABLE as ACCESS_TABLE,
-} from "../MAESTRO/access.ts";
-import {
-  Profiles,
-} from "../../common/profiles.ts";
+import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
+import { TABLE as SECTOR_TABLE } from "./SECTOR.ts";
+import { TABLE as PROJECT_TABLE } from "../OPERACIONES/PROYECTO.ts";
+import { TABLE as SUB_AREA_TABLE } from "../ORGANIZACION/sub_area.ts";
+import { TABLE as ACCESS_TABLE } from "../MAESTRO/access.ts";
+import { Profiles } from "../../common/profiles.ts";
 
 export const TABLE = "CLIENTES.CLIENTE";
 

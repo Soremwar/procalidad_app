@@ -1,17 +1,13 @@
 import React from "react";
 import {
   Button,
-  IconButton,
   CircularProgress,
+  IconButton,
   TextField,
   Tooltip,
 } from "@material-ui/core";
-import {
-  makeStyles,
-} from "@material-ui/styles";
-import {
-  Publish as UploadIcon,
-} from "@material-ui/icons";
+import { makeStyles } from "@material-ui/styles";
+import { Publish as UploadIcon } from "@material-ui/icons";
 
 const useStyles = makeStyles(() => ({
   input: {

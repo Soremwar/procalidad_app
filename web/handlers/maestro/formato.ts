@@ -9,9 +9,7 @@ import {
 import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
-import {
-  TRUTHY_INTEGER,
-} from "../../../lib/ajv/types.js";
+import { TRUTHY_INTEGER } from "../../../lib/ajv/types.js";
 
 const put_request = {
   $id: "put",

@@ -1,13 +1,9 @@
-import React, {
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Drawer, IconButton, List } from "@material-ui/core";
 import {
-  Home as HomeIcon,
-  ArrowBack as ArrowBackIcon,
   AccountBox as AccountBoxIcon,
+  ArrowBack as ArrowBackIcon,
+  Home as HomeIcon,
 } from "@material-ui/icons";
 import { useTheme } from "@material-ui/styles";
 import { withRouter } from "react-router-dom";
@@ -20,13 +16,11 @@ import SidebarLink from "./components/sidebar_link/SidebarLink.jsx";
 
 // context
 import {
-  useLayoutState,
-  useLayoutDispatch,
   toggleSidebar,
+  useLayoutDispatch,
+  useLayoutState,
 } from "../../context/Layout.jsx";
-import {
-  UserContext,
-} from "../../context/User.jsx";
+import { UserContext } from "../../context/User.jsx";
 
 //TODO
 //Make profiles constant (shared?)

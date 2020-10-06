@@ -1,13 +1,5 @@
-import React, {
-  Fragment,
-  useContext,
-} from "react";
-import {
-  Redirect,
-  Route,
-  Switch,
-  withRouter,
-} from "react-router-dom";
+import React, { Fragment, useContext } from "react";
+import { Redirect, Route, Switch, withRouter } from "react-router-dom";
 
 import useStyles from "./styles";
 import Header from "./header/Header.jsx";

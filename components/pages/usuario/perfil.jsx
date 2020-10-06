@@ -1,9 +1,5 @@
-import React, {
-  Fragment,
-} from "react";
-import {
-  Grid,
-} from "@material-ui/core";
+import React, { Fragment } from "react";
+import { Grid } from "@material-ui/core";
 import ChildrenForm from "./perfil/ChildrenForm.jsx";
 import ContactForm from "./perfil/ContactForm.jsx";
 import DocumentForm from "./perfil/DocumentForm.jsx";

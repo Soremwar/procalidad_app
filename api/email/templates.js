@@ -1,8 +1,4 @@
-import {
-  address,
-  port,
-  protocol,
-} from "../../config/app_deno.js";
+import { address, port, protocol } from "../../config/app_deno.js";
 import HtmlEncoder from "html-entities";
 import Handlebars from "handlebars";
 

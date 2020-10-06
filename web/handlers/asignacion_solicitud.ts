@@ -36,12 +36,8 @@ import {
   TRUTHY_INTEGER,
   UNSIGNED_NUMBER,
 } from "../../lib/ajv/types.js";
-import {
-  parseStandardNumber,
-} from "../../lib/date/mod.js";
-import {
-  castStringToBoolean,
-} from "../../lib/utils/boolean.js";
+import { parseStandardNumber } from "../../lib/date/mod.js";
+import { castStringToBoolean } from "../../lib/utils/boolean.js";
 
 const post_structure = {
   $id: "post",
@@ -129,13 +125,13 @@ export const createAssignationRequest = async (
   const control_week = await findWeekById(open_control.week);
   const current_week = await getCurrentWeek();
 
-  if(!control_week){
+  if (!control_week) {
     throw new Error("No fue posible calcular la semana de registro solicitada");
   }
 
   if (
-    (parsed_date as Date).getTime() > current_week.end_date.getTime() + ((1000 * 60 * 60 * 24) - 1)
-    ||
+    (parsed_date as Date).getTime() >
+      current_week.end_date.getTime() + ((1000 * 60 * 60 * 24) - 1) ||
     (parsed_date as Date).getTime() < control_week.start_date.getTime()
   ) {
     throw new RequestSyntaxError(

@@ -1,7 +1,5 @@
 import type { RouterContext } from "oak";
-import {
-  PostgresError,
-} from "deno_postgres/error.ts";
+import { PostgresError } from "deno_postgres/error.ts";
 import Ajv from "ajv";
 import * as tecnical_experience_model from "../../../../api/models/users/technical_skill.ts";
 import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
@@ -9,10 +7,7 @@ import { Message } from "../../../http_utils.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
 import { decodeToken } from "../../../../lib/jwt.ts";
 import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
-import {
-  BOOLEAN,
-  TRUTHY_INTEGER,
-} from "../../../../lib/ajv/types.js";
+import { BOOLEAN, TRUTHY_INTEGER } from "../../../../lib/ajv/types.js";
 
 const update_request = {
   $id: "update",

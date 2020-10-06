@@ -1,29 +1,21 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useState } from "react";
+import { AppBar, IconButton, Menu, MenuItem, Toolbar } from "@material-ui/core";
 import {
-  AppBar,
-  Toolbar,
-  IconButton,
-  Menu,
-  MenuItem,
-} from "@material-ui/core";
-import {
+  ArrowBack as ArrowBackIcon,
   Menu as MenuIcon,
   Person as AccountIcon,
-  ArrowBack as ArrowBackIcon,
 } from "@material-ui/icons";
-import {
-  Link,
-} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import useStyles from "./styles.js";
 import { Typography } from "../../common/Wrappers.jsx";
 
 import {
-  useLayoutState,
-  useLayoutDispatch,
   toggleSidebar,
+  useLayoutDispatch,
+  useLayoutState,
 } from "../../context/Layout.jsx";
-import { UserContext, signOutUser } from "../../context/User.jsx";
+import { signOutUser, UserContext } from "../../context/User.jsx";
 
 export default function Header(props) {
   const classes = useStyles();

@@ -4,7 +4,7 @@ import {
   findAll,
   findById,
 } from "../../../api/models/MAESTRO/profile.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
+import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 
 export const getProfiles = async ({ response }: RouterContext) => {

@@ -12,18 +12,14 @@ import {
   Typography,
 } from "@material-ui/core";
 
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
+import { formatResponseJson } from "../../../lib/api/request.js";
 import {
   fetchComputerApi,
   fetchLicenseApi,
-  fetchPersonCostApi,
   fetchPeopleApi,
+  fetchPersonCostApi,
 } from "../../../lib/api/generator.js";
-import {
-  formatDateToStandardString,
-} from "../../../lib/date/mod.js";
+import { formatDateToStandardString } from "../../../lib/date/mod.js";
 
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";

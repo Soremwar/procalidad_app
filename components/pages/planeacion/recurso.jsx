@@ -20,17 +20,9 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-import {
-  makeStyles,
-} from "@material-ui/styles";
-import {
-  FrappeGantt,
-  Task,
-  ViewMode,
-} from "frappe-gantt-react";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
+import { makeStyles } from "@material-ui/styles";
+import { FrappeGantt, Task, ViewMode } from "frappe-gantt-react";
+import { formatResponseJson } from "../../../lib/api/request.js";
 import {
   formatStandardNumberToStandardString,
   formatStandardStringToStandardNumber,

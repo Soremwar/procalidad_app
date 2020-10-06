@@ -3,12 +3,12 @@
 
 import React from "react";
 import {
-  withStyles,
   Badge as BadgeBase,
-  Typography as TypographyBase,
   Button as ButtonBase,
+  Typography as TypographyBase,
+  withStyles,
 } from "@material-ui/core";
-import { useTheme, makeStyles } from "@material-ui/styles";
+import { makeStyles, useTheme } from "@material-ui/styles";
 
 // styles
 var useStyles = makeStyles((theme) => ({

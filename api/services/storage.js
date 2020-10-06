@@ -1,15 +1,7 @@
 import * as config from "../../config/services/storage.js";
-import {
-  ensureDirSync,
-  ensureFileSync,
-} from "fs";
-import {
-  extname,
-  resolve,
-} from "path";
-import {
-  contentType,
-} from "media_types";
+import { ensureDirSync, ensureFileSync } from "fs";
+import { extname, resolve } from "path";
+import { contentType } from "media_types";
 
 const resolveUploadFolder = () => {
   try {

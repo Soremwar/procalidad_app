@@ -2,8 +2,8 @@ import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import {
   create,
-  getAll,
   findById,
+  getAll,
   getTableData,
 } from "../../../api/models/files/template.ts";
 import { TRUTHY_INTEGER } from "../../../lib/ajv/types.js";

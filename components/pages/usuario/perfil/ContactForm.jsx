@@ -1,7 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -18,14 +15,12 @@ import {
 } from "@material-ui/core";
 import {
   Add as AddIcon,
-  Close as CancelIcon,
   Check as ConfirmIcon,
+  Close as CancelIcon,
   Create as EditIcon,
   Remove as RemoveIcon,
 } from "@material-ui/icons";
-import {
-  fetchUserApi,
-} from "../../../../lib/api/generator.js";
+import { fetchUserApi } from "../../../../lib/api/generator.js";
 import SelectField from "../../../common/SelectField.jsx";
 
 const relationships = [

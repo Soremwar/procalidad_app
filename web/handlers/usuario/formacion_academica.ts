@@ -14,11 +14,11 @@ import {
 } from "../../../api/storage/generic_file.ts";
 import {
   BOOLEAN,
+  BOOLEAN_OR_NULL,
   STANDARD_DATE_STRING,
   STANDARD_DATE_STRING_OR_NULL,
   TRUTHY_INTEGER,
 } from "../../../lib/ajv/types.js";
-import { user } from "../../../config/services/postgresql.ts";
 
 const update_request = {
   $id: "update",
@@ -36,6 +36,7 @@ const update_request = {
       maxLength: 50,
       type: "string",
     },
+    "title_is_convalidated": BOOLEAN_OR_NULL,
   },
 };
 
@@ -49,10 +50,10 @@ const create_request = Object.assign({}, update_request, {
     "start_date",
     "status",
     "title",
+    "title_is_convalidated",
   ],
 });
 
-// @ts-ignore
 const request_validator = new Ajv({
   schemas: [
     create_request,
@@ -85,6 +86,9 @@ export const createAcademicFormationTitle = async (
     value.city,
     null,
     castStringToBoolean(value.status),
+    value.title_is_convalidated
+      ? castStringToBoolean(value.title_is_convalidated)
+      : value.title_is_convalidated,
   );
 };
 
@@ -191,6 +195,12 @@ export const updateAcademicFormationTitle = async (
     throw new NotFoundError();
   }
 
+  const title_is_convalidated = value.title_is_convalidated === null
+    ? null
+    : value.title_is_convalidated === undefined
+    ? undefined
+    : castStringToBoolean(value.title_is_convalidated);
+
   response.body = await formation_title.update(
     value.institution,
     value.start_date,
@@ -199,9 +209,9 @@ export const updateAcademicFormationTitle = async (
     undefined,
     null,
     castStringToBoolean(value.status),
+    title_is_convalidated,
   )
     .catch((e) => {
-      console.log();
       throw new Error("No fue posible actualizar el título de formación");
     });
 };

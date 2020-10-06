@@ -1,26 +1,20 @@
-import React, {
-  createContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
 import {
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
 } from "@material-ui/core";
 
 import {
   parseDateToStandardNumber,
   parseStandardNumber,
 } from "../../../../lib/date/mod.js";
-import {
-  months as month_lang,
-} from "../../../../lib/date/lang.js";
+import { months as month_lang } from "../../../../lib/date/lang.js";
 
 export const DateParameters = createContext({
   calendar_dates: [],

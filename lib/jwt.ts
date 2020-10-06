@@ -1,8 +1,6 @@
-import { makeJwt, setExpiration, Jose } from "djwt/create.ts";
+import { Jose, makeJwt, setExpiration } from "djwt/create.ts";
 import { validateJwt } from "djwt/validate.ts";
-import {
-  encryption_key,
-} from "../config/api_deno.js";
+import { encryption_key } from "../config/api_deno.js";
 
 export const algorithm = "HS256";
 

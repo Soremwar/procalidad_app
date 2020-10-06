@@ -6,7 +6,7 @@ import {
   findByProject,
   getTableData,
 } from "../../../api/models/OPERACIONES/ROL.ts";
-import { Status, Message, formatResponse } from "../../http_utils.ts";
+import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
 import { searchByName } from "../../../api/models/MAESTRO/PAIS.ts";

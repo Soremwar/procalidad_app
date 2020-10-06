@@ -1,18 +1,7 @@
-import React, {
-  Fragment,
-  useEffect,
-  useState,
-} from "react";
-import {
-  DialogContentText,
-  TextField,
-} from "@material-ui/core";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
-import {
-  fetchPeopleApi,
-} from "../../../lib/api/generator.js";
+import React, { Fragment, useEffect, useState } from "react";
+import { DialogContentText, TextField } from "@material-ui/core";
+import { formatResponseJson } from "../../../lib/api/request.js";
+import { fetchPeopleApi } from "../../../lib/api/generator.js";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";

@@ -3,24 +3,12 @@ import {
   findById as findControl,
   TABLE as CONTROL_TABLE,
 } from "./control_semana.ts";
-import {
-  TABLE as ASSIGNATION_TABLE,
-} from "./asignacion.ts";
-import {
-  TABLE as BUDGET_TABLE,
-} from "./budget.ts";
-import {
-  TABLE as ROLE_TABLE,
-} from "./ROL.ts";
-import {
-  TABLE as PROJECT_TABLE,
-} from "./PROYECTO.ts";
-import {
-  TABLE as CLIENT_TABLE,
-} from "../CLIENTES/CLIENTE.ts";
-import {
-  TABLE as WEEK_TABLE,
-} from "../MAESTRO/dim_semana.ts";
+import { TABLE as ASSIGNATION_TABLE } from "./asignacion.ts";
+import { TABLE as BUDGET_TABLE } from "./budget.ts";
+import { TABLE as ROLE_TABLE } from "./ROL.ts";
+import { TABLE as PROJECT_TABLE } from "./PROYECTO.ts";
+import { TABLE as CLIENT_TABLE } from "../CLIENTES/CLIENTE.ts";
+import { TABLE as WEEK_TABLE } from "../MAESTRO/dim_semana.ts";
 
 export const TABLE = "OPERACIONES.REGISTRO";
 

@@ -42,7 +42,7 @@ function useLayoutDispatch() {
   return context;
 }
 
-export { LayoutProvider, useLayoutState, useLayoutDispatch, toggleSidebar };
+export { LayoutProvider, toggleSidebar, useLayoutDispatch, useLayoutState };
 
 // ###########################################################
 function toggleSidebar(dispatch) {

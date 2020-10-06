@@ -1,9 +1,5 @@
 import React, { useState } from "react";
-import {
-  FormControl,
-  InputLabel,
-  NativeSelect,
-} from "@material-ui/core";
+import { FormControl, InputLabel, NativeSelect } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import hashGenerator from "../../lib/hash_generator/mod.js";
 
@@ -17,6 +13,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+/**
+ * @callback valueCallback
+ * @param {ChangeEvent} event
+ * */
+
+/**
+ * @param {object} SelectProps
+ * @param {string=} label
+ * @param {string=} name
+ * @param {boolean | valueCallback} [onChange=false]
+ * */
 export default ({
   blank_value = true,
   children,

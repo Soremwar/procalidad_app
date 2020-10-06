@@ -5,14 +5,8 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import {
-  DialogContentText,
-  Grid,
-  TextField,
-} from "@material-ui/core";
-import {
-  formatResponseJson,
-} from "../../../lib/api/request.js";
+import { DialogContentText, Grid, TextField } from "@material-ui/core";
+import { formatResponseJson } from "../../../lib/api/request.js";
 import {
   fetchAreaTypesApi,
   fetchPeopleApi,

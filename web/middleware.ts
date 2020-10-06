@@ -1,9 +1,7 @@
 import { Context, Status } from "oak";
 import { decodeToken } from "../lib/jwt.ts";
 import Ajv from "ajv";
-import {
-  TRUTHY_INTEGER,
-} from "../lib/ajv/types.js";
+import { TRUTHY_INTEGER } from "../lib/ajv/types.js";
 import { formatResponse, Message } from "./http_utils.ts";
 import {
   AuthenticationRejectedError,

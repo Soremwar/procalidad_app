@@ -1,10 +1,6 @@
 import postgres from "../../services/postgres.js";
 import type { PostgresError } from "deno_postgres";
-import {
-  TableOrder,
-  getTableModels,
-  TableResult,
-} from "../../common/table.ts";
+import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { TABLE as PARAMETER_VALUE_TABLE } from "./parametro_definicion.ts";
 
 const TABLE = "MAESTRO.PARAMETRO";

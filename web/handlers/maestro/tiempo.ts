@@ -2,12 +2,8 @@ import type { RouterContext } from "oak";
 import {
   getNonLaboralDaysBetween,
 } from "../../../api/models/MAESTRO/dim_tiempo.ts";
-import {
-  parseStandardNumber,
-} from "../../../lib/date/mod.js";
-import {
-  RequestSyntaxError,
-} from "../../exceptions.ts";
+import { parseStandardNumber } from "../../../lib/date/mod.js";
+import { RequestSyntaxError } from "../../exceptions.ts";
 
 export const getBlacklistedDays = async (
   { response, request }: RouterContext,

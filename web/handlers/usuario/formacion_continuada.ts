@@ -49,7 +49,6 @@ const create_request = Object.assign({}, update_request, {
   ],
 });
 
-// @ts-ignore
 const request_validator = new Ajv({
   schemas: [
     create_request,
@@ -82,6 +81,7 @@ export const createContinuousFormationTitle = async (
     null,
     null,
     castStringToBoolean(value.status),
+    null,
   );
 };
 

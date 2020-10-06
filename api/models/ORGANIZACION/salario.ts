@@ -1,13 +1,7 @@
 import postgres from "../../services/postgres.js";
 import type { PostgresError } from "deno_postgres";
-import {
-  TableOrder,
-  getTableModels,
-  TableResult,
-} from "../../common/table.ts";
-import {
-  TABLE as LICENSE_TABLE,
-} from "./licencia.ts";
+import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
+import { TABLE as LICENSE_TABLE } from "./licencia.ts";
 
 const TABLE = "ORGANIZACION.SALARIO";
 const ERROR_DEPENDENCY =

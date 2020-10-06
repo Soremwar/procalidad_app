@@ -1,14 +1,6 @@
-import React, {
-  Fragment,
-  useEffect,
-  useState,
-} from "react";
-import {
-  InputLabel,
-} from "@material-ui/core";
-import {
-  makeStyles,
-} from "@material-ui/styles";
+import React, { Fragment, useEffect, useState } from "react";
+import { InputLabel } from "@material-ui/core";
+import { makeStyles } from "@material-ui/styles";
 import {
   fetchCityApi,
   fetchCountryApi,
@@ -78,6 +70,20 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+/**
+ * Returns the selected values for city, state and country. Triggered only on city select
+ * @callback setCityValue
+  * @param {string} city
+  * @param {string} state
+  * @param {string} country
+ * */
+
+/**@param {object} props
+ * @param {string} props.label
+ * @param {boolean} props.required
+ * @param {setCityValue} props.setValue
+ * @param {number} props.value
+ */
 export default function CitySelector({
   label,
   required = false,
@@ -124,7 +130,6 @@ export default function CitySelector({
     setState(option);
   };
   const handleCityChange = (option) => {
-    setValue(option?.value || "");
     setCity(option);
   };
 
@@ -138,7 +143,19 @@ export default function CitySelector({
   };
 
   useEffect(() => {
-    if (value) {
+    if (city?.value) {
+      setValue(
+        String(city.value),
+        String(state.value),
+        String(country.value),
+      );
+    } else {
+      setValue("", "", "");
+    }
+  }, [city]);
+
+  useEffect(() => {
+    if (value && value != city?.value) {
       disableSelection();
 
       fetchCityApi(value)

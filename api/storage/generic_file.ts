@@ -3,19 +3,14 @@ import {
   findByIdAndUser as getGenericFileModel,
   GenericFile,
 } from "../models/files/generic_file.ts";
-import {
-  findById as getUserModel,
-} from "../models/ORGANIZACION/people.ts";
+import { findById as getUserModel } from "../models/ORGANIZACION/people.ts";
 import {
   deleteUploadFile,
   getUploadFile,
   writeUploadFile,
 } from "../services/storage.js";
 import { NotFoundError } from "../../web/exceptions.ts";
-import type {
-  File,
-  FileProps,
-} from "./common.ts";
+import type { File, FileProps } from "./common.ts";
 
 const generateFileProps = async (
   path: string,
