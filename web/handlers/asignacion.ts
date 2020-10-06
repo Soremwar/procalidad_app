@@ -16,7 +16,6 @@ import {
 import {
   findByDate as findWeek,
   findById as findWeekById,
-  getCurrentWeek,
 } from "../../api/models/MAESTRO/dim_semana.ts";
 import {
   findOpenWeek as findOpenWeekOfPerson,
@@ -114,15 +113,12 @@ export const createAssignation = async (
       "No fue posible obtener la información de la fecha requerida",
     );
   }
-  const current_week = await getCurrentWeek();
 
   if (
-    (parsed_date as Date).getTime() < open_week.start_date.getTime() ||
-    (parsed_date as Date).getTime() >
-      current_week.end_date.getTime() + ((1000 * 60 * 60 * 24) - 1)
+    (parsed_date as Date).getTime() < open_week.start_date.getTime()
   ) {
     throw new RequestSyntaxError(
-      "La fecha solicitada no se encuentra disponible para asignación",
+      "Debe solicitar una fecha superior a la semana registrada actualmente",
     );
   }
 

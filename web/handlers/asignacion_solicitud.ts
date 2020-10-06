@@ -10,7 +10,6 @@ import {
   createNew as createAssignation,
 } from "../../api/models/OPERACIONES/asignacion.ts";
 import {
-  findById as findWeekControl,
   findOpenWeek as findOpenWeekOfPerson,
 } from "../../api/models/OPERACIONES/control_semana.ts";
 import {
@@ -118,27 +117,34 @@ export const createAssignationRequest = async (
     );
   }
 
-  const control = await findOpenWeekOfPerson(
+  const open_control = await findOpenWeekOfPerson(
     person,
   );
-  if (!control) {
+  if (!open_control) {
     throw new RequestSyntaxError(
       "La persona solicitada no se encuentra habilitada para registrar horas",
     );
   }
 
+  const control_week = await findWeekById(open_control.week);
   const current_week = await getCurrentWeek();
 
+  if(!control_week){
+    throw new Error("No fue posible calcular la semana de registro solicitada");
+  }
+
   if (
-    (parsed_date as Date).getTime() < current_week.start_date.getTime()
+    (parsed_date as Date).getTime() > current_week.end_date.getTime() + ((1000 * 60 * 60 * 24) - 1)
+    ||
+    (parsed_date as Date).getTime() < control_week.start_date.getTime()
   ) {
     throw new RequestSyntaxError(
-      "Debe solicitar una fecha superior a la semana registrada actualmente",
+      "Debe solicitar una fecha superior a la semana registrada y la semana que esta siendo cursada",
     );
   }
 
   const assignation_request = await createNew(
-    control.id,
+    person,
     budget.pk_presupuesto,
     Number(value.role),
     Number(value.date),
