@@ -29,6 +29,7 @@ import {
 import CardForm from "./components/CardForm.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import SelectField from "../../../common/SelectField.jsx";
+import DateField from "../../../common/DateField";
 
 //TODO
 //The fetching of the text warning or any parameters should be globally defined(like generators)
@@ -63,6 +64,7 @@ const setUserInformation = (
   military_passbook,
   personal_email,
   phone,
+  professional_card_expedition,
 ) =>
   fetchUserApi("", {
     body: JSON.stringify({
@@ -74,6 +76,7 @@ const setUserInformation = (
       military_passbook,
       personal_email,
       phone,
+      professional_card_expedition,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -199,10 +202,12 @@ export default function MainForm() {
     civil_status: "",
     gender: "",
     has_military_passbook: false,
+    has_professional_card: false,
     military_passbook: "",
     name: "",
     personal_email: "",
     phone: "",
+    professional_card_expedition: "",
   });
   const [genders, setGenders] = useState([]);
   const [marital_statuses, setMaritalStatuses] = useState([]);
@@ -243,11 +248,13 @@ export default function MainForm() {
           civil_status: information.fk_estado_civil || "",
           gender: information.fk_genero || "",
           has_military_passbook: Boolean(information.libreta_militar),
+          has_professional_card: Boolean(information.expedicion_tarjeta_profesional),
           military_passbook: information.libreta_militar || "",
           name: information.nombre,
           personal_email: information.correo_personal || "",
           phone: information.telefono_fijo || "",
           picture: null,
+          professional_card_expedition: information.expedicion_tarjeta_profesional || "",
         }))
       )
       .catch(() => console.error("could not fetch information"));
@@ -268,6 +275,7 @@ export default function MainForm() {
       fields.has_military_passbook ? fields.military_passbook || null : null,
       fields.personal_email || null,
       fields.phone || null,
+      fields.has_professional_card ? fields.professional_card_expedition || null : null,
     )
       .then((request) => {
         if (!request.ok) {
@@ -401,6 +409,36 @@ export default function MainForm() {
             onChange={handleChange}
             value={fields.personal_email}
           />
+          <SelectField
+            blank_value={false}
+            fullWidth
+            label="Tarjeta profesional"
+            name="has_professional_card"
+            onChange={(event) => {
+              const has_professional_card = Boolean(Number(event.target.value));
+              setFields((prev_state) => ({
+                ...prev_state,
+                has_professional_card,
+              }));
+            }}
+            value={Number(fields.has_professional_card)}
+          >
+            <option value="0">No</option>
+            <option value="1">Si</option>
+          </SelectField>
+          {
+            fields.has_professional_card
+            ? (
+              <DateField
+                fullWidth
+                label="Expedicion de tarjeta profesional"
+                name="professional_card_expedition"
+                onChange={handleChange}
+                value={fields.professional_card_expedition}
+              />
+              )
+            : null
+          }
         </Grid>
       </Grid>
     </CardForm>

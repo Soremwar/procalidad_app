@@ -99,6 +99,7 @@ const information_request = {
       type: ["string", "null"],
     },
     "phone": TRUTHY_INTEGER_OR_NULL,
+    "professional_card_expedition": STANDARD_DATE_STRING_OR_NULL,
     "residence_address": {
       maxLength: 95,
       type: ["string", "null"],
@@ -143,7 +144,6 @@ const support_request = {
   required: [],
 };
 
-//@ts-ignore
 const request_validator = new Ajv({
   schemas: [
     children_request,
@@ -344,6 +344,9 @@ export const updateUserInformation = async (
     value.blood_type,
     value.residence_city,
     value.residence_address,
+    undefined,
+    undefined,
+    value.professional_card_expedition,
   );
 };
 

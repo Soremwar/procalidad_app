@@ -53,6 +53,7 @@ class People {
     public direccion_residencia: string | null,
     public fecha_inicio: string | null,
     public fecha_retiro: string | null,
+    public expedicion_tarjeta_profesional: string | null,
   ) {}
 
   async delete(): Promise<void> {
@@ -89,7 +90,9 @@ class People {
     direccion_residencia: string | null = this.direccion_residencia,
     fecha_inicio: string | null = this.fecha_inicio,
     fecha_retiro: string | null = this.fecha_retiro,
+    expedicion_tarjeta_profesional: string | null = this.expedicion_tarjeta_profesional,
   ): Promise<People> {
+    
     Object.assign(this, {
       tipo_identificacion,
       identificacion,
@@ -109,6 +112,7 @@ class People {
       direccion_residencia,
       fecha_inicio,
       fecha_retiro,
+      expedicion_tarjeta_profesional,
     });
 
     await postgres.query(
@@ -130,7 +134,8 @@ class People {
         FK_CIUDAD_RESIDENCIA = $16,
         DIRECCION_RESIDENCIA = $17,
         FEC_INICIO = $18,
-        FEC_RETIRO = $19
+        FEC_RETIRO = $19,
+        EXPEDICION_TARJETA_PROFESIONAL = $20
       WHERE PK_PERSONA = $1`,
       this.pk_persona,
       this.tipo_identificacion,
@@ -151,6 +156,7 @@ class People {
       this.direccion_residencia,
       this.fecha_inicio,
       this.fecha_retiro,
+      this.expedicion_tarjeta_profesional,
     );
 
     return this;
@@ -212,6 +218,7 @@ export const create = async (
     null,
     fecha_inicio,
     null,
+    null,
   );
 };
 
@@ -241,7 +248,8 @@ export const getAll = async (
       FK_CIUDAD_RESIDENCIA,
       DIRECCION_RESIDENCIA,
       TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
-      TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD')
+      TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD'),
+      TO_CHAR(EXPEDICION_TARJETA_PROFESIONAL, 'YYYY-MM-DD')
     FROM ${TABLE}
     ${
       include_retired
@@ -268,6 +276,7 @@ export const getAll = async (
     number | null,
     TipoSangre | null,
     number | null,
+    string | null,
     string | null,
     string | null,
     string | null,
@@ -298,7 +307,8 @@ export const findById = async (id: number): Promise<People | null> => {
       FK_CIUDAD_RESIDENCIA,
       DIRECCION_RESIDENCIA,
       TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
-      TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD')
+      TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD'),
+      TO_CHAR(EXPEDICION_TARJETA_PROFESIONAL, 'YYYY-MM-DD')
     FROM ${TABLE}
     WHERE PK_PERSONA = $1`,
     id,
@@ -325,6 +335,7 @@ export const findById = async (id: number): Promise<People | null> => {
       number | null,
       TipoSangre | null,
       number | null,
+      string | null,
       string | null,
       string | null,
       string | null,
