@@ -25,10 +25,4 @@ const password: string = postgresql?.password || "";
 const port: number = Number(postgresql?.port) || 5432;
 const user: string = postgresql?.user || "postgres";
 
-export {
-  database,
-  host,
-  password,
-  port,
-  user,
-};
+export { database, host, password, port, user };

@@ -24,9 +24,4 @@ const password = String(smtp?.password) || "";
 const port = Number(smtp?.port) || 1000;
 const username = String(smtp?.username) || "";
 
-export {
-  host,
-  password,
-  port,
-  username,
-};
+export { host, password, port, username };

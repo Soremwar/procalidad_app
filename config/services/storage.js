@@ -21,6 +21,4 @@ const storage = config?.services?.storage;
 
 const upload_folder = String(storage?.upload_folder) || "storage/uploads";
 
-export {
-  upload_folder,
-};
+export { upload_folder };

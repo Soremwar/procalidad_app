@@ -1,9 +1,7 @@
 import { Application, send } from "oak";
-import { routes, allowedMethods } from "./web/routes.ts";
+import { allowedMethods, routes } from "./web/routes.ts";
 import { address, port } from "./config/api_deno.js";
-import {
-  errorHandler,
-} from "./web/middleware.ts";
+import { errorHandler } from "./web/middleware.ts";
 
 //TODO
 //Add a check for database parameters before startup
