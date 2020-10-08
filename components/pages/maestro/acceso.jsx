@@ -6,7 +6,6 @@ import React, {
   useState,
 } from "react";
 import { DialogContentText } from "@material-ui/core";
-
 import { formatResponseJson } from "../../../lib/api/request.js";
 import {
   fetchAccessApi,
@@ -20,8 +19,8 @@ import DialogForm from "../../common/DialogForm.jsx";
 import MultipleSelectField from "../../common/MultipleSelectField.jsx";
 import Title from "../../common/Title.jsx";
 
-const getPeople = () => fetchPeopleApi().then((x) => x.json());
-const getProfiles = () => fetchProfileApi().then((x) => x.json());
+const getPeople = () => fetchPeopleApi();
+const getProfiles = () => fetchProfileApi();
 
 const getAccess = (id) => fetchAccessApi(id).then((x) => x.json());
 
@@ -320,18 +319,38 @@ export default () => {
 
   useEffect(() => {
     updateTable();
-    getPeople().then((people) =>
-      setParameters((prev_state) => ({
-        ...prev_state,
-        people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
-      }))
-    );
-    getProfiles().then((profiles) =>
-      setParameters((prev_state) => ({
-        ...prev_state,
-        profiles: profiles.map(({ id, name }) => [id, name]),
-      }))
-    );
+    getPeople()
+      .then(async (response) => {
+        if(response.ok){
+          /** @type {Array<{pk_persona: number, nombre: string}>} person */
+          const people = await response.json();
+          setParameters((prev_state) => ({
+            ...prev_state,
+            people: people
+              .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+              .sort(([_x,  x], [_y, y]) => x.localeCompare(y)),
+          }));
+        }else{
+          throw  new Error();
+        }
+      })
+      .catch(() => console.error("Coldnt load people"));
+    getProfiles()
+      .then(async (response) => {
+        if(response.ok){
+          /** @type {Array<{id: number, name: string}>} person */
+          const profiles = await response.json();
+          setParameters((prev_state) => ({
+            ...prev_state,
+            profiles: profiles
+              .map(({ id, name }) => [id, name])
+              .sort(([_x,  x], [_y, y]) => x.localeCompare(y)),
+          }));
+        }else{
+          throw new Error();
+        }
+      })
+      .catch(() => console.log("Couldn't load profiles"));
   }, []);
 
   return (

@@ -232,9 +232,9 @@ const AddModal = ({
         required
         value={fields.type}
       >
-        <option value="string">Texto</option>
-        <option value="number">Numero</option>
+        <option value="number">Número</option>
         <option value="percentage">Porcentaje</option>
+        <option value="string">Texto</option>
       </SelectField>
     </DialogForm>
   );
@@ -541,9 +541,9 @@ const EditModal = ({
                     required
                     value={parameter_fields.type}
                   >
-                    <option value="string">Texto</option>
-                    <option value="number">Numero</option>
+                    <option value="number">Número</option>
                     <option value="percentage">Porcentaje</option>
+                    <option value="string">Texto</option>
                   </SelectField>
                 </Fragment>
               )
