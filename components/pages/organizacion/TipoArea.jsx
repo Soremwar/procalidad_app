@@ -153,7 +153,7 @@ const AddModal = ({
             maxLength: 100,
           },
         }}
-        label="Tipo de Area"
+        label="Tipo de área"
         margin="dense"
         name="name"
         onChange={handleChange}
@@ -263,7 +263,7 @@ const EditModal = ({
             maxLength: 100,
           },
         }}
-        label="Tipo de Area"
+        label="Tipo de área"
         margin="dense"
         name="name"
         onChange={handleChange}
@@ -393,7 +393,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Tipo de Area"} />
+      <Title title={"Tipo de área"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}

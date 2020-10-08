@@ -23,7 +23,7 @@ const columns = [
   { id: "role", label: "Rol", orderable: true },
   { id: "supervisor", label: "Responsable", orderable: true },
   { id: "hours", label: "Horas solicitadas", orderable: true },
-  { id: "description", label: "Descripcion", orderable: false },
+  { id: "description", label: "Descripción", orderable: false },
 ];
 
 const useStyles = makeStyles((theme) => ({

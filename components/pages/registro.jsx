@@ -31,6 +31,7 @@ import {
 } from "../../lib/date/mod.js";
 import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
 import AsyncSelectField from "../common/AsyncSelectField.jsx";
+import DateField from "../common/DateField.jsx";
 import DialogForm from "../common/DialogForm.jsx";
 import PlanningModal from "./registro/PlanningModal.jsx";
 import Title from "../common/Title.jsx";
@@ -191,7 +192,7 @@ const AddModal = ({
       is_loading={is_loading}
       is_open={is_open}
       setIsOpen={setModalOpen}
-      title={"Formato de solicitud de horas"}
+      title="Formato de solicitud de horas"
     >
       <AdvancedSelectField
         label="Cliente"
@@ -237,20 +238,19 @@ const AddModal = ({
           setFields((prev_state) => ({ ...prev_state, role: value }))}
         value={fields.role}
       />
-      <TextField
+      <DateField
         fullWidth
-        label="Horas"
-        name="hours"
+        label="Fecha"
+        name="date"
         onChange={(event) => {
           //Dont calculate event.target.value inside hook (asyncronous stuff)
-          const value = event.target.value;
+          const date = formatStandardStringToStandardNumber(event.target.value);
           setFields((prev_state) => ({
             ...prev_state,
-            date: formatStandardStringToStandardNumber(value),
+            date,
           }));
         }}
         required
-        type="date"
         value={formatStandardNumberToStandardString(fields.date)}
       />
       <TextField
@@ -275,7 +275,7 @@ const AddModal = ({
             maxLength: 255,
           },
         }}
-        label="Descripcion"
+        label="Descripción"
         name="description"
         onChange={handleChange}
         required

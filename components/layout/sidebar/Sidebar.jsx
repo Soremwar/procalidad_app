@@ -49,7 +49,7 @@ const structure = [
           Profiles.CONTROLLER,
           Profiles.HUMAN_RESOURCES,
         ],
-        label: "Parámetro",
+        label: "Parámetros",
         link: "/maestro/parametro",
       },
       {
@@ -153,7 +153,7 @@ const structure = [
           Profiles.AREA_MANAGER,
           Profiles.CONTROLLER,
         ],
-        label: "Tipo de Proyecto",
+        label: "Tipo de proyecto",
         link: "/operaciones/tipo_proyecto",
       },
       {
@@ -177,7 +177,7 @@ const structure = [
           Profiles.PROYECT_MANAGER,
           Profiles.SALES,
         ],
-        label: "Tipo de Presupuesto",
+        label: "Tipo de presupuesto",
         link: "/operaciones/tipo_presupuesto",
       },
       {
@@ -300,7 +300,7 @@ const structure = [
           Profiles.CONTROLLER,
           Profiles.HUMAN_RESOURCES,
         ],
-        label: "Costo Empleado",
+        label: "Costo por empleado",
         link: "/organizacion/costo_empleado",
       },
     ],

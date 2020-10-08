@@ -96,7 +96,7 @@ export default function FileForm() {
                 <TableCell align="center">Soporte</TableCell>
                 <TableCell align="center"></TableCell>
                 <TableCell align="center"></TableCell>
-                <TableCell align="center">Ultima Carga</TableCell>
+                <TableCell align="center">Última Carga</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

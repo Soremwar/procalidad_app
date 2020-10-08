@@ -69,7 +69,7 @@ const headers = [
     id: "identification",
     numeric: false,
     disablePadding: false,
-    label: "Identificacion",
+    label: "Identificación",
     searchable: true,
   },
   {
@@ -83,7 +83,7 @@ const headers = [
     id: "phone",
     numeric: false,
     disablePadding: false,
-    label: "Telefono",
+    label: "Teléfono",
     searchable: true,
   },
   {
@@ -164,7 +164,7 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <SelectField
-        label="Tipo de Identificacion"
+        label="Tipo de identificación"
         fullWidth
         name="type"
         onChange={handleChange}
@@ -179,7 +179,7 @@ const AddModal = ({
       </SelectField>
       <TextField
         fullWidth
-        label="Identificacion"
+        label="Identificación"
         margin="dense"
         name="identification"
         onChange={handleChange}
@@ -197,7 +197,7 @@ const AddModal = ({
       />
       <TextField
         fullWidth
-        label="Telefono"
+        label="Teléfono"
         margin="dense"
         name="phone"
         onChange={handleChange}
@@ -300,7 +300,7 @@ const EditModal = ({
       title={"Editar"}
     >
       <SelectField
-        label="Tipo de Identificacion"
+        label="Tipo de identificación"
         fullWidth
         name="type"
         onChange={handleChange}
@@ -315,7 +315,7 @@ const EditModal = ({
       </SelectField>
       <TextField
         fullWidth
-        label="Identificacion"
+        label="Identificación"
         margin="dense"
         name="identification"
         onChange={handleChange}
@@ -333,7 +333,7 @@ const EditModal = ({
       />
       <TextField
         fullWidth
-        label="Telefono"
+        label="Teléfono"
         margin="dense"
         name="phone"
         onChange={handleChange}

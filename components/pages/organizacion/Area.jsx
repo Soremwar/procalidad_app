@@ -68,7 +68,7 @@ const headers = [
     id: "area_type",
     numeric: false,
     disablePadding: false,
-    label: "Tipo de Area",
+    label: "Tipo de área",
     searchable: true,
   },
   {
@@ -157,7 +157,7 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <SelectField
-        label="Tipo de Area"
+        label="Tipo de área"
         fullWidth
         name="area_type"
         onChange={handleChange}
@@ -258,7 +258,7 @@ const EditModal = ({
       title={"Editar"}
     >
       <SelectField
-        label="Tipo de Area"
+        label="Tipo de área"
         fullWidth
         name="area_type"
         onChange={handleChange}

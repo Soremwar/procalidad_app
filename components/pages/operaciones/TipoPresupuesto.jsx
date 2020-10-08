@@ -7,7 +7,6 @@ import {
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
-import Widget from "../../common/Widget.jsx";
 
 const fetchBudgetTypeApi = requestGenerator("operaciones/tipo_presupuesto");
 
@@ -61,7 +60,7 @@ const headers = [
     id: "description",
     numeric: false,
     disablePadding: false,
-    label: "Descripcion",
+    label: "Descripción",
     searchable: true,
   },
 ];
@@ -133,7 +132,7 @@ const AddModal = ({
       />
       <TextField
         fullWidth
-        label="Descripcion"
+        label="Descripción"
         margin="dense"
         name="description"
         onChange={handleChange}
@@ -213,7 +212,7 @@ const EditModal = ({
       />
       <TextField
         fullWidth
-        label="Descripcion"
+        label="Descripción"
         margin="dense"
         name="description"
         onChange={handleChange}
@@ -308,7 +307,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Tipo de Presupuesto"} />
+      <Title title={"Tipo de presupuesto"} />
       <AddModal
         is_open={is_add_modal_open}
         setModalOpen={setAddModalOpen}

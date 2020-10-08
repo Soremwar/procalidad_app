@@ -204,7 +204,7 @@ export default function ResourceHeatmap({
         <Grid item md={3} xs={6}>
           <SelectField
             fullWidth
-            label="SubArea"
+            label="Subárea"
             name="sub_area"
             onChange={handleChange}
             value={parameters.sub_area}

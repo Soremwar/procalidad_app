@@ -135,7 +135,7 @@ const headers = [
     id: "description",
     numeric: false,
     disablePadding: false,
-    label: "Descripcion",
+    label: "Descripción",
     searchable: true,
   },
   {
@@ -217,7 +217,7 @@ const AddModal = ({
       <TextField
         margin="dense"
         name="description"
-        label="Descripcion"
+        label="Descripción"
         fullWidth
         onChange={handleChange}
         required
@@ -226,7 +226,7 @@ const AddModal = ({
       <SelectField
         margin="dense"
         name="type"
-        label="Tipo de Parametro"
+        label="Tipo de parámetro"
         fullWidth
         onChange={handleChange}
         required
@@ -526,7 +526,7 @@ const EditModal = ({
                   <TextField
                     margin="dense"
                     name="description"
-                    label="Descripcion"
+                    label="Descripción"
                     fullWidth
                     onChange={handleParameterChange}
                     required
@@ -535,7 +535,7 @@ const EditModal = ({
                   <SelectField
                     margin="dense"
                     name="type"
-                    label="Tipo de Parametro"
+                    label="Tipo de parámetro"
                     fullWidth
                     onChange={handleParameterChange}
                     required
@@ -554,7 +554,7 @@ const EditModal = ({
                     InputLabelProps={{
                       shrink: true,
                     }}
-                    label="Fecha Inicial"
+                    label="Fecha inicial"
                     margin="dense"
                     name="start_date"
                     onChange={handleDefinitionChange}
@@ -567,7 +567,7 @@ const EditModal = ({
                     InputLabelProps={{
                       shrink: true,
                     }}
-                    label="Fecha Final"
+                    label="Fecha final"
                     margin="dense"
                     name="end_date"
                     onChange={handleDefinitionChange}
@@ -691,7 +691,7 @@ const DeleteModal = ({
       is_loading={is_loading}
       is_open={is_open}
       setIsOpen={setModalOpen}
-      title={"Eliminar"}
+      title="Eliminar"
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
@@ -731,7 +731,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Parametro"} />
+      <Title title="Parámetro" />
       <AddModal
         is_open={is_add_modal_open}
         setModalOpen={setAddModalOpen}

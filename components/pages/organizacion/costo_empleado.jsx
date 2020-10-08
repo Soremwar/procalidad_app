@@ -88,7 +88,7 @@ const headers = [
     id: "salary_type",
     numeric: false,
     disablePadding: false,
-    label: "Tipo de Salario",
+    label: "Tipo de salario",
     searchable: true,
   },
   {
@@ -224,7 +224,7 @@ const AddModal = ({
       <CurrencyField
         currencySymbol="$"
         fullWidth
-        label="Valor Prestacional"
+        label="Valor prestacional"
         minimumValue="0"
         name="labour_cost"
         onChange={(_event, value) =>
@@ -236,7 +236,7 @@ const AddModal = ({
       <CurrencyField
         currencySymbol="$"
         fullWidth
-        label="Valor de Bonos"
+        label="Valor de bonos"
         minimumValue="0"
         name="bonus_cost"
         onChange={(_event, value) =>
@@ -267,7 +267,7 @@ const AddModal = ({
       />
       <SelectField
         fullWidth
-        label="Tipo de Salario"
+        label="Tipo de salario"
         name="salary_type"
         onChange={handleChange}
         required
@@ -313,7 +313,7 @@ const AddModal = ({
         : (
           <Typography>
             Ingrese el modelo de computador y el tipo de salario para realizar
-            el calculo
+            el cálculo
           </Typography>
         )}
     </DialogForm>
@@ -440,7 +440,7 @@ const EditModal = ({
       <CurrencyField
         currencySymbol="$"
         fullWidth
-        label="Valor Prestacional"
+        label="Valor prestacional"
         minimumValue="0"
         name="labour_cost"
         onChange={(_event, value) =>
@@ -452,7 +452,7 @@ const EditModal = ({
       <CurrencyField
         currencySymbol="$"
         fullWidth
-        label="Valor de Bonos"
+        label="Valor de bonos"
         minimumValue="0"
         name="bonus_cost"
         onChange={(_event, value) =>
@@ -483,7 +483,7 @@ const EditModal = ({
       />
       <SelectField
         fullWidth
-        label="Tipo de Salario"
+        label="Tipo de salario"
         name="salary_type"
         onChange={handleChange}
         required
@@ -529,7 +529,7 @@ const EditModal = ({
         : (
           <Typography>
             Ingrese el modelo de computador y el tipo de salario para realizar
-            el calculo
+            el cálculo
           </Typography>
         )}
     </DialogForm>
@@ -643,7 +643,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Costo de Empleado"} />
+      <Title title={"Costo por empleado"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}

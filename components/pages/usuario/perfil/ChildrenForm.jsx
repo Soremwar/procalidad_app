@@ -317,7 +317,7 @@ export default function ChildrenForm() {
                   </IconButton>
                 </TableCell>
                 <TableCell>Nombre</TableCell>
-                <TableCell align="center">Genero</TableCell>
+                <TableCell align="center">Género</TableCell>
                 <TableCell align="center">Edad</TableCell>
               </TableRow>
             </TableHead>

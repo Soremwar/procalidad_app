@@ -93,7 +93,7 @@ const headers = [
     id: "business",
     numeric: false,
     disablePadding: false,
-    label: "Razon Social",
+    label: "Razón social",
     searchable: true,
   },
   {
@@ -203,7 +203,7 @@ const AddModal = ({
             maxLength: "255",
           },
         }}
-        label="Nombre Cliente"
+        label="Nombre cliente"
         name="name"
         onChange={handleChange}
         required
@@ -369,7 +369,7 @@ const EditModal = ({
             maxLength: "255",
           },
         }}
-        label="Nombre Cliente"
+        label="Nombre cliente"
         name="name"
         onChange={handleChange}
         required

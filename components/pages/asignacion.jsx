@@ -377,7 +377,7 @@ const AddModal = ({
         />
         <TextField
           fullWidth
-          label="Fecha de Asignacion"
+          label="Fecha de asignación"
           margin="dense"
           name="date"
           onChange={(event) => {
@@ -556,7 +556,7 @@ const EditModal = ({
         <TextField
           disabled
           fullWidth
-          label="Fecha de Asignacion"
+          label="Fecha de asignación"
           margin="dense"
           name="date"
           onChange={(event) => {
@@ -878,7 +878,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Asignacion"} />
+      <Title title="Asignación" />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           callback={updateAssignationTable}

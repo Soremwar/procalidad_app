@@ -166,14 +166,14 @@ const detail_headers = [
     id: "start_date",
     numeric: false,
     disablePadding: false,
-    label: "Fecha Inicio",
+    label: "Fecha inicio",
     searchable: true,
   },
   {
     id: "end_date",
     numeric: false,
     disablePadding: false,
-    label: "Fecha Fin",
+    label: "Fecha fin",
     searchable: true,
   },
   {
@@ -204,14 +204,14 @@ const resource_headers = [
     id: "start_date",
     numeric: false,
     disablePadding: false,
-    label: "Fecha Inicio",
+    label: "Fecha inicio",
     searchable: true,
   },
   {
     id: "end_date",
     numeric: false,
     disablePadding: false,
-    label: "Fecha Fin",
+    label: "Fecha fin",
     searchable: true,
   },
   {
@@ -462,7 +462,7 @@ const AddModal = ({
             />
             <TextField
               fullWidth
-              label="Fecha Inicio"
+              label="Fecha inicio"
               margin="dense"
               name="start_date"
               onChange={(event) => {
@@ -484,7 +484,7 @@ const AddModal = ({
                   max: 100,
                 },
               }}
-              label="% Asignacion"
+              label="% Asignación"
               margin="dense"
               name="assignation"
               onChange={handleChange}
@@ -693,7 +693,7 @@ const EditModal = ({
             </SelectField>
             <TextField
               fullWidth
-              label="Fecha Inicio"
+              label="Fecha inicio"
               margin="dense"
               name="start_date"
               onChange={(event) => {
@@ -715,7 +715,7 @@ const EditModal = ({
                   max: 100,
                 },
               }}
-              label="% Asignacion"
+              label="% Asignación"
               margin="dense"
               name="assignation"
               onChange={handleChange}
@@ -974,7 +974,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Planeacion por Recurso"} />
+      <Title title={"Planeación por recurso"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           callback={updateTable}
@@ -1015,7 +1015,7 @@ export default () => {
             value={selected_tab}
             onChange={(_event, value) => setSelectedTab(value)}
           >
-            <Tab label="Planeacion" {...a11yProps(0)} />
+            <Tab label="Planeación" {...a11yProps(0)} />
             <Tab label="Gantt" {...a11yProps(1)} />
             <Tab label="Disponibilidad" {...a11yProps(2)} />
           </Tabs>

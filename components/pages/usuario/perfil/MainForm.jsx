@@ -306,14 +306,14 @@ export default function MainForm() {
           />
           <TextField
             fullWidth
-            label="Fecha de Nacimiento"
+            label="Fecha de nacimiento"
             name="birth_date"
             onChange={handleChange}
             type="date"
             value={fields.birth_date}
           />
           <SelectField
-            label="Genero"
+            label="Género"
             fullWidth
             name="gender"
             onChange={handleChange}
@@ -324,7 +324,7 @@ export default function MainForm() {
             ))}
           </SelectField>
           <SelectField
-            label="Estado Civil"
+            label="Estado civil"
             fullWidth
             name="civil_status"
             onChange={handleChange}
@@ -335,7 +335,7 @@ export default function MainForm() {
             ))}
           </SelectField>
           <SelectField
-            label="Tipo de Sangre"
+            label="Tipo de sangre"
             fullWidth
             name="blood_type"
             onChange={handleChange}
@@ -359,7 +359,7 @@ export default function MainForm() {
           />
           <TextField
             fullWidth
-            label="Telefono fijo"
+            label="Teléfono fijo"
             name="phone"
             onChange={handleChange}
             value={fields.phone}
@@ -427,7 +427,7 @@ export default function MainForm() {
             ? (
               <DateField
                 fullWidth
-                label="Expedicion de tarjeta profesional"
+                label="Expedición de tarjeta profesional"
                 name="professional_card_expedition"
                 onChange={handleChange}
                 value={fields.professional_card_expedition}

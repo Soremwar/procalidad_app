@@ -80,7 +80,7 @@ const headers = [
     id: "budget_type",
     numeric: false,
     disablePadding: false,
-    label: "Tipo de Presupuesto",
+    label: "Tipo de presupuesto",
     searchable: true,
   },
   {
@@ -273,7 +273,7 @@ const BudgetDetail = ({
             <TableCell width="30%">Rol</TableCell>
             <TableCell width="15%">Horas</TableCell>
             <TableCell width="25%">Tarifa</TableCell>
-            <TableCell width="20%">Total Costo</TableCell>
+            <TableCell width="20%">Total costo</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -292,7 +292,7 @@ const BudgetDetail = ({
       <Grid container style={{ padding: "10px" }}>
         <Grid item xs={6}>
           <Typography variant="h6" gutterBottom>
-            Total de Horas: {roles.reduce(
+            Total de horas: {roles.reduce(
               (sum, role) => (sum + Number(role.time)),
               0,
             )}
@@ -300,7 +300,7 @@ const BudgetDetail = ({
         </Grid>
         <Grid item xs={6}>
           <Typography variant="h6" gutterBottom>
-            Valor Total: &nbsp; &nbsp;
+            Valor total: &nbsp; &nbsp;
             <CurrencyField
               currencySymbol="$"
               disabled
@@ -449,7 +449,7 @@ const AddModal = ({
       <SelectField
         margin="dense"
         name="budget_type"
-        label="Tipo de Presupuesto"
+        label="Tipo de presupuesto"
         fullWidth
         onChange={handleChange}
         required
@@ -471,7 +471,7 @@ const AddModal = ({
       <TextField
         margin="dense"
         name="description"
-        label="Descripcion"
+        label="Descripción"
         fullWidth
         onChange={handleChange}
         required
@@ -618,7 +618,7 @@ const EditModal = ({
       <SelectField
         margin="dense"
         name="budget_type"
-        label="Tipo de Presupuesto"
+        label="Tipo de presupuesto"
         fullWidth
         onChange={handleChange}
         required
@@ -640,7 +640,7 @@ const EditModal = ({
       <TextField
         margin="dense"
         name="description"
-        label="Descripcion"
+        label="Descripción"
         fullWidth
         onChange={handleChange}
         required

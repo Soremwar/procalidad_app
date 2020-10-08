@@ -311,7 +311,7 @@ export default function ContactForm() {
                   </IconButton>
                 </TableCell>
                 <TableCell>Nombre</TableCell>
-                <TableCell align="center">Telefono</TableCell>
+                <TableCell align="center">Teléfono</TableCell>
                 <TableCell align="center">Parentesco</TableCell>
               </TableRow>
             </TableHead>

@@ -68,7 +68,7 @@ const headers = [
     id: "area",
     numeric: false,
     disablePadding: false,
-    label: "Area",
+    label: "Área",
     searchable: true,
   },
   {
@@ -157,7 +157,7 @@ const AddModal = ({
       title={"Crear Nuevo"}
     >
       <SelectField
-        label="Area"
+        label="Área"
         fullWidth
         name="area"
         onChange={handleChange}
@@ -170,7 +170,7 @@ const AddModal = ({
       </SelectField>
       <TextField
         fullWidth
-        label="SubArea"
+        label="Subárea"
         margin="dense"
         name="name"
         onChange={handleChange}
@@ -258,7 +258,7 @@ const EditModal = ({
       title={"Editar"}
     >
       <SelectField
-        label="Area"
+        label="Área"
         fullWidth
         name="area"
         onChange={handleChange}
@@ -271,7 +271,7 @@ const EditModal = ({
       </SelectField>
       <TextField
         fullWidth
-        label="SubArea"
+        label="Subárea"
         margin="dense"
         name="name"
         onChange={handleChange}
@@ -392,7 +392,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"SubArea"} />
+      <Title title={"Subárea"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}

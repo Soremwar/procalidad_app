@@ -61,7 +61,7 @@ const headers = [
     id: "description",
     numeric: false,
     disablePadding: false,
-    label: "Descripcion",
+    label: "Descripción",
     searchable: true,
   },
 ];
@@ -136,7 +136,7 @@ const AddModal = ({
       />
       <TextField
         fullWidth
-        label="Descripcion"
+        label="Descripción"
         margin="dense"
         name="description"
         onChange={handleChange}
@@ -231,7 +231,7 @@ const EditModal = ({
       />
       <TextField
         fullWidth
-        label="Descripcion"
+        label="Descripción"
         margin="dense"
         name="description"
         onChange={handleChange}

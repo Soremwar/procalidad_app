@@ -109,7 +109,7 @@ const headers = [
     id: "sub_area",
     numeric: false,
     disablePadding: false,
-    label: "Subarea",
+    label: "Subárea",
     searchable: true,
   },
   {
@@ -225,7 +225,7 @@ const AddModal = ({
       </SelectField>
       <SelectField
         fullWidth
-        label="Subarea"
+        label="Subárea"
         name="sub_area"
         onChange={handleChange}
         required
@@ -239,7 +239,7 @@ const AddModal = ({
         autoFocus
         margin="dense"
         name="name"
-        label="Nombre del Proyecto"
+        label="Nombre del proyecto"
         fullWidth
         onChange={handleChange}
         required
@@ -258,7 +258,7 @@ const AddModal = ({
       <TextField
         autoFocus
         fullWidth
-        label="Descripcion"
+        label="Descripción"
         margin="dense"
         multiline
         name="description"
@@ -390,7 +390,7 @@ const EditModal = ({
       </SelectField>
       <SelectField
         fullWidth
-        label="Subarea"
+        label="Subárea"
         name="sub_area"
         onChange={handleChange}
         required
@@ -404,7 +404,7 @@ const EditModal = ({
         autoFocus
         margin="dense"
         name="name"
-        label="Nombre del Proyecto"
+        label="Nombre del proyecto"
         fullWidth
         onChange={handleChange}
         required
@@ -423,7 +423,7 @@ const EditModal = ({
       <TextField
         autoFocus
         fullWidth
-        label="Descripcion"
+        label="Descripción"
         margin="dense"
         multiline
         name="description"

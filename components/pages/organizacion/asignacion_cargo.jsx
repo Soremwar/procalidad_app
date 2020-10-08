@@ -89,7 +89,7 @@ const headers = [
     id: "sub_area",
     numeric: false,
     disablePadding: false,
-    label: "Subarea",
+    label: "Subárea",
     searchable: true,
   },
   {
@@ -204,7 +204,7 @@ const AddModal = ({
       </SelectField>
       <SelectField
         fullWidth
-        label="Subarea"
+        label="Subárea"
         margin="dense"
         name="sub_area"
         onChange={handleChange}
@@ -341,7 +341,7 @@ const EditModal = ({
       </SelectField>
       <SelectField
         fullWidth
-        label="Subarea"
+        label="Subárea"
         margin="dense"
         name="sub_area"
         onChange={handleChange}
@@ -487,7 +487,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Asignacion de Cargo"} />
+      <Title title={"Asignación de cargo"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}

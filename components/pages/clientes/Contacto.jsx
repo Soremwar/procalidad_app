@@ -81,7 +81,7 @@ const headers = [
     id: "phone",
     numeric: false,
     disablePadding: false,
-    label: "Telefono",
+    label: "Teléfono",
     searchable: true,
   },
   {
@@ -176,7 +176,7 @@ const AddModal = ({
         autoFocus
         margin="dense"
         name="name"
-        label="Nombre Completo"
+        label="Nombre completo"
         fullWidth
         onChange={handleChange}
         required
@@ -186,7 +186,7 @@ const AddModal = ({
         autoFocus
         margin="dense"
         name="area"
-        label="Area"
+        label="Área"
         fullWidth
         onChange={handleChange}
         value={fields.area}
@@ -216,7 +216,7 @@ const AddModal = ({
         autoFocus
         margin="dense"
         name="phone"
-        label="Telefono"
+        label="Teléfono"
         fullWidth
         onChange={handleChange}
         required
@@ -226,7 +226,7 @@ const AddModal = ({
         autoFocus
         margin="dense"
         name="phone_2"
-        label="Telefono 2"
+        label="Teléfono 2"
         fullWidth
         onChange={handleChange}
         value={fields.phone_2}
@@ -235,7 +235,7 @@ const AddModal = ({
         autoFocus
         margin="dense"
         name="email"
-        label="Email"
+        label="Correo"
         fullWidth
         onChange={handleChange}
         required
@@ -322,7 +322,7 @@ const EditModal = ({
       <TextField
         autoFocus
         fullWidth
-        label="Nombre Completo"
+        label="Nombre completo"
         margin="dense"
         name="name"
         onChange={handleChange}
@@ -332,7 +332,7 @@ const EditModal = ({
       <TextField
         autoFocus
         fullWidth
-        label="Area"
+        label="Área"
         margin="dense"
         name="area"
         onChange={handleChange}
@@ -362,7 +362,7 @@ const EditModal = ({
       <TextField
         autoFocus
         fullWidth
-        label="Telefono"
+        label="Teléfono"
         margin="dense"
         name="phone"
         onChange={handleChange}
@@ -372,7 +372,7 @@ const EditModal = ({
       <TextField
         autoFocus
         fullWidth
-        label="Telefono 2"
+        label="Teléfono 2"
         margin="dense"
         name="phone_2"
         onChange={handleChange}
@@ -381,7 +381,7 @@ const EditModal = ({
       <TextField
         autoFocus
         fullWidth
-        label="Email"
+        label="Correo"
         margin="dense"
         name="email"
         onChange={handleChange}
