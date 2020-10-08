@@ -107,6 +107,14 @@ const structure = [
         label: "Tipo de certificación",
         link: "/maestro/certificacion/tipo",
       },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ],
+        label: "Proveedor de certificación",
+        link: "/maestro/certificacion/proveedor",
+      },
     ],
   },
   {

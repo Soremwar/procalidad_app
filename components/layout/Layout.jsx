@@ -35,13 +35,14 @@ import PlaneacionProyecto from "../pages/planeacion/proyecto.jsx";
 import PlaneacionRecurso from "../pages/planeacion/recurso.jsx";
 import Plantilla from "../pages/maestro/plantilla.jsx";
 import Presupuesto from "../pages/operaciones/Presupuesto.jsx";
+import ProveedorCertificacion from "../pages/maestro/certificacion/proveedor.jsx";
 import Proyecto from "../pages/operaciones/proyecto.jsx";
 import Registro from "../pages/registro.jsx";
 import Rol from "../pages/operaciones/Rol.jsx";
 import Sector from "../pages/clientes/Sector.jsx";
 import SubArea from "../pages/organizacion/sub_area.jsx";
 import TipoArea from "../pages/organizacion/TipoArea.jsx";
-import TipoCertificacion from "../pages/maestro/certificacion/tipo_certificacion.jsx";
+import TipoCertificacion from "../pages/maestro/certificacion/tipo.jsx";
 import TipoPresupuesto from "../pages/operaciones/TipoPresupuesto.jsx";
 import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
 
@@ -162,6 +163,14 @@ const Layout = (props) => {
               ]}
               component={TipoCertificacion}
               path="/maestro/certificacion/tipo"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+              ]}
+              component={ProveedorCertificacion}
+              path="/maestro/certificacion/proveedor"
             />
             <ProfiledRoute
               allowed_profiles={[
