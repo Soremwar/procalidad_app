@@ -1,6 +1,5 @@
 import postgres from "../../services/postgres.js";
 import { TABLE as GENDER_TABLE } from "../MAESTRO/gender.ts";
-import { formatDateToStandardString } from "../../../lib/date/mod.js";
 
 export const TABLE = "USUARIOS.HIJO";
 

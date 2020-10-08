@@ -41,6 +41,7 @@ import Rol from "../pages/operaciones/Rol.jsx";
 import Sector from "../pages/clientes/Sector.jsx";
 import SubArea from "../pages/organizacion/sub_area.jsx";
 import TipoArea from "../pages/organizacion/TipoArea.jsx";
+import TipoCertificacion from "../pages/maestro/certificacion/tipo_certificacion.jsx";
 import TipoPresupuesto from "../pages/operaciones/TipoPresupuesto.jsx";
 import TipoProyecto from "../pages/operaciones/TipoProyecto.jsx";
 
@@ -153,6 +154,14 @@ const Layout = (props) => {
               ]}
               component={Herramienta}
               path="/maestro/herramienta"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+              ]}
+              component={TipoCertificacion}
+              path="/maestro/certificacion/tipo"
             />
             <ProfiledRoute
               allowed_profiles={[

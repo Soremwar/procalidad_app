@@ -38,6 +38,7 @@ import * as marital_status from "./handlers/maestro/estado_civil.ts";
 import * as file_formats from "./handlers/maestro/formato.ts";
 import * as formation_level from "./handlers/maestro/nivel_formacion.ts";
 import * as tool from "./handlers/maestro/herramienta.ts";
+import * as certification_type from "./handlers/maestro/certificacion/tipo.ts";
 import * as clients from "./handlers/clientes/cliente.ts";
 import {
   createProjectType,
@@ -1199,6 +1200,58 @@ main_router
       Profiles.CONTROLLER,
     ]),
     tool.deleteTool,
+  );
+
+main_router
+  .get(
+    "/api/maestro/certificacion/tipo",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+    ]),
+    certification_type.getTypes,
+  )
+  .post(
+    "/api/maestro/certificacion/tipo/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    certification_type.getTypesTable,
+  )
+  .get<{ id: string }>(
+    "/api/maestro/certificacion/tipo/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+    ]),
+    certification_type.getType,
+  )
+  .post(
+    "/api/maestro/certificacion/tipo",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    certification_type.createType,
+  )
+  .put<{ id: string }>(
+    "/api/maestro/certificacion/tipo/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    certification_type.updateTypes,
+  )
+  .delete<{ id: string }>(
+    "/api/maestro/certificacion/tipo/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    certification_type.deleteType,
   );
 
 main_router

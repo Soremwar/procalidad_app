@@ -99,6 +99,14 @@ const structure = [
         label: "Herramientas",
         link: "/maestro/herramienta",
       },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ],
+        label: "Tipo de certificación",
+        link: "/maestro/certificacion/tipo",
+      },
     ],
   },
   {

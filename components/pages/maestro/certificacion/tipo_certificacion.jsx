@@ -1,87 +1,74 @@
-import React, {
-  createContext,
-  Fragment,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { DialogContentText } from "@material-ui/core";
-import { formatResponseJson } from "../../../lib/api/request.js";
-import {
-  fetchAccessApi,
-  fetchPeopleApi,
-  fetchProfileApi,
-} from "../../../lib/api/generator.js";
+import React, { Fragment, useEffect, useState } from "react";
+import { DialogContentText, TextField } from "@material-ui/core";
+import { formatResponseJson } from "../../../../lib/api/request.js";
+import { fetchCertificationTypeApi } from "../../../../lib/api/generator.js";
+import AsyncTable from "../../../common/AsyncTable/Table.jsx";
+import DialogForm from "../../../common/DialogForm.jsx";
+import Title from "../../../common/Title.jsx";
 
-import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
-import AsyncTable from "../../common/AsyncTable/Table.jsx";
-import DialogForm from "../../common/DialogForm.jsx";
-import MultipleSelectField from "../../common/MultipleSelectField.jsx";
-import Title from "../../common/Title.jsx";
+const getCertificationType = (id) => fetchCertificationTypeApi(id);
 
-const getPeople = () => fetchPeopleApi();
-const getProfiles = () => fetchProfileApi();
-
-const getAccess = (id) => fetchAccessApi(id).then((x) => x.json());
-
-const createAccess = async (form_data) =>
-  fetchAccessApi("", {
-    body: form_data,
+const createCertificacionType = async (
+  description,
+  name,
+) =>
+  fetchCertificationTypeApi("", {
+    body: JSON.stringify({
+      description,
+      name,
+    }),
     headers: {
       "Content-Type": "application/json",
     },
     method: "POST",
   });
 
-const updateAccess = async (id, form_data) =>
-  fetchAccessApi(id, {
-    body: form_data,
+const updateCertificationType = async (
+  id,
+  description,
+  name,
+) =>
+  fetchCertificationTypeApi(id, {
+    body: JSON.stringify({
+      description,
+      name,
+    }),
     headers: {
       "Content-Type": "application/json",
     },
     method: "PUT",
   });
 
-const deleteAccess = async (id) =>
-  fetchAccessApi(id, {
+const deleteLanguage = async (id) =>
+  fetchCertificationTypeApi(id, {
     method: "DELETE",
   });
 
 const headers = [
   {
-    id: "person",
+    id: "name",
     numeric: false,
     disablePadding: false,
-    label: "Persona",
+    label: "Nombre",
     searchable: true,
   },
   {
-    id: "profiles",
+    id: "description",
     numeric: false,
     disablePadding: false,
-    label: "Accesos",
+    label: "Descripción",
     searchable: true,
   },
 ];
-
-const ParameterContext = createContext({
-  people: [],
-  profiles: [],
-});
 
 const AddModal = ({
   is_open,
   setModalOpen,
   updateTable,
 }) => {
-  const {
-    people,
-    profiles,
-  } = useContext(ParameterContext);
-
   const [fields, setFields] = useState({
-    person: "",
-    profiles: [],
+    description: "",
+    name: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -89,8 +76,8 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        person: "",
-        profiles: [],
+        description: "",
+        name: "",
       });
       setLoading(false);
       setError(null);
@@ -106,91 +93,9 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createAccess(JSON.stringify(fields));
-
-    if (request.ok) {
-      setModalOpen(false);
-      updateTable();
-    } else {
-      const { message } = await request.json();
-      setError(message);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Crear Nuevo"}
-    >
-      <AdvancedSelectField
-        name="person"
-        label="Persona"
-        fullWidth
-        onChange={(_e, value) =>
-          setFields((prev_state) => ({ ...prev_state, person: value }))}
-        options={people}
-        required
-        value={fields.person}
-      />
-      <MultipleSelectField
-        name="profiles"
-        label="Accesos"
-        fullWidth
-        onChange={handleChange}
-        data={profiles}
-        required
-        value={fields.profiles}
-      />
-    </DialogForm>
-  );
-};
-
-const EditModal = ({
-  data,
-  is_open,
-  setModalOpen,
-  updateTable,
-}) => {
-  const {
-    people,
-    profiles,
-  } = useContext(ParameterContext);
-
-  const [fields, setFields] = useState({
-    person: "",
-    profiles: [],
-  });
-  const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (is_open) {
-      setFields({
-        person: data.person,
-        profiles: data.profiles,
-      });
-      setLoading(false);
-      setError(null);
-    }
-  }, [is_open]);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFields((prev_state) => ({ ...prev_state, [name]: value }));
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
-
-    const request = await updateAccess(
-      data.person,
-      JSON.stringify(fields),
+    const request = await createCertificacionType(
+      fields.description,
+      fields.name,
     );
 
     if (request.ok) {
@@ -212,24 +117,111 @@ const EditModal = ({
       setIsOpen={setModalOpen}
       title={"Crear Nuevo"}
     >
-      <AdvancedSelectField
-        name="person"
-        label="Persona"
+      <TextField
         fullWidth
-        onChange={(_e, value) =>
-          setFields((prev_state) => ({ ...prev_state, person: value }))}
-        options={people}
-        required
-        value={fields.person}
-      />
-      <MultipleSelectField
-        name="profiles"
-        label="Accesos"
-        fullWidth
+        inputProps={{
+          maxLength: 50,
+        }}
+        label="Nombre"
+        name="name"
         onChange={handleChange}
-        data={profiles}
         required
-        value={fields.profiles}
+        value={fields.name}
+      />
+      <TextField
+        fullWidth
+        inputProps={{
+          maxLength: 255,
+        }}
+        label="Descripción"
+        name="description"
+        onChange={handleChange}
+        required
+        value={fields.description}
+      />
+    </DialogForm>
+  );
+};
+
+const EditModal = ({
+  data,
+  is_open,
+  setModalOpen,
+  updateTable,
+}) => {
+  const [fields, setFields] = useState({
+    description: "",
+    name: "",
+  });
+  const [is_loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
+
+    const request = await updateCertificationType(
+      data.id,
+      fields.description,
+      fields.name,
+    );
+
+    if (request.ok) {
+      setModalOpen(false);
+      updateTable();
+    } else {
+      const { message } = await request.json();
+      setError(message);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        description: data.description,
+        name: data.name,
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [is_open]);
+
+  return (
+    <DialogForm
+      error={error}
+      handleSubmit={handleSubmit}
+      is_loading={is_loading}
+      is_open={is_open}
+      setIsOpen={setModalOpen}
+      title={"Editar"}
+    >
+      <TextField
+        fullWidth
+        inputProps={{
+          maxLength: 50,
+        }}
+        label="Nombre"
+        name="name"
+        onChange={handleChange}
+        required
+        value={fields.name}
+      />
+      <TextField
+        fullWidth
+        inputProps={{
+          maxLength: 255,
+        }}
+        label="Descripción"
+        name="description"
+        onChange={handleChange}
+        required
+        value={fields.description}
       />
     </DialogForm>
   );
@@ -248,7 +240,7 @@ const DeleteModal = ({
     setLoading(true);
     setError(null);
 
-    const delete_progress = selected.map((id) => deleteAccess(id));
+    const delete_progress = selected.map((id) => deleteLanguage(id));
 
     Promise.allSettled(delete_progress)
       .then((results) =>
@@ -279,7 +271,7 @@ const DeleteModal = ({
       is_loading={is_loading}
       is_open={is_open}
       setIsOpen={setModalOpen}
-      title={"Eliminar"}
+      title="Eliminar Elementos"
       confirmButtonText={"Confirmar"}
     >
       <DialogContentText>
@@ -292,20 +284,25 @@ const DeleteModal = ({
 };
 
 export default () => {
-  const [parameters, setParameters] = useState({
-    people: [],
-    profiles: [],
-  });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_access, setSelectedAccess] = useState({});
+  const [selected_support, setSelectedSupport] = useState({});
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    await getAccess(id).then((access) => setSelectedAccess(access));
-    setEditModalOpen(true);
+    await getCertificationType(id)
+      .then(async (response) => {
+        if (response.ok) {
+          const certification_type = await response.json();
+          setSelectedSupport(certification_type);
+          setEditModalOpen(true);
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.log("Couldnt load the requested type"));
   };
 
   const handleDeleteModalOpen = async (selected) => {
@@ -319,56 +316,22 @@ export default () => {
 
   useEffect(() => {
     updateTable();
-    getPeople()
-      .then(async (response) => {
-        if (response.ok) {
-          /** @type {Array<{pk_persona: number, nombre: string}>} person */
-          const people = await response.json();
-          setParameters((prev_state) => ({
-            ...prev_state,
-            people: people
-              .map(({ pk_persona, nombre }) => [pk_persona, nombre])
-              .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
-          }));
-        } else {
-          throw new Error();
-        }
-      })
-      .catch(() => console.error("Coldnt load people"));
-    getProfiles()
-      .then(async (response) => {
-        if (response.ok) {
-          /** @type {Array<{id: number, name: string}>} person */
-          const profiles = await response.json();
-          setParameters((prev_state) => ({
-            ...prev_state,
-            profiles: profiles
-              .map(({ id, name }) => [id, name])
-              .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
-          }));
-        } else {
-          throw new Error();
-        }
-      })
-      .catch(() => console.log("Couldn't load profiles"));
   }, []);
 
   return (
     <Fragment>
-      <Title title={"Acceso"} />
-      <ParameterContext.Provider value={parameters}>
-        <AddModal
-          is_open={is_add_modal_open}
-          setModalOpen={setAddModalOpen}
-          updateTable={updateTable}
-        />
-        <EditModal
-          data={selected_access}
-          is_open={is_edit_modal_open}
-          setModalOpen={setEditModalOpen}
-          updateTable={updateTable}
-        />
-      </ParameterContext.Provider>
+      <Title title="Tipo de certificación" />
+      <AddModal
+        is_open={is_add_modal_open}
+        setModalOpen={setAddModalOpen}
+        updateTable={updateTable}
+      />
+      <EditModal
+        data={selected_support}
+        is_open={is_edit_modal_open}
+        setModalOpen={setEditModalOpen}
+        updateTable={updateTable}
+      />
       <DeleteModal
         is_open={is_delete_modal_open}
         setModalOpen={setDeleteModalOpen}
@@ -382,7 +345,7 @@ export default () => {
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
-        url={"maestro/acceso/table"}
+        url="maestro/certificacion/tipo/table"
       />
     </Fragment>
   );
