@@ -1,23 +1,22 @@
 import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import {
-  CertificationProvider,
+  Certification,
   create,
   findById,
   getAll,
   getTableData,
-} from "../../../../api/models/users/certification_provider.ts";
+} from "../../../../api/models/users/certification.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
 import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
 import { Message } from "../../../http_utils.ts";
+import { STRING, TRUTHY_INTEGER } from "../../../../lib/ajv/types.js";
 
 const update_request = {
   $id: "update",
   properties: {
-    "name": {
-      maxLength: 50,
-      type: "string",
-    },
+    "name": STRING(50),
+    "provider": TRUTHY_INTEGER,
   },
 };
 
@@ -25,6 +24,7 @@ const create_request = Object.assign({}, update_request, {
   $id: "create",
   required: [
     "name",
+    "provider",
   ],
 });
 
@@ -35,7 +35,9 @@ const request_validator = new Ajv({
   ],
 });
 
-export const createProvider = async ({ request, response }: RouterContext) => {
+export const createCertification = async (
+  { request, response }: RouterContext,
+) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const value = await request.body({ type: "json" }).value;
@@ -46,42 +48,43 @@ export const createProvider = async ({ request, response }: RouterContext) => {
 
   const name = (value.name as string).trim().toUpperCase();
 
-  if (await CertificationProvider.nameIsTaken(name)) {
+  if (await Certification.nameIsTaken(name)) {
     throw new RequestSyntaxError("El nombre ya se encuentra tomado");
   }
 
   response.body = await create(
+    value.provider,
     name,
   );
 };
 
-export const deleteProvider = async (
+export const deleteCertification = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  let provider = await findById(id);
-  if (!provider) throw new NotFoundError();
+  let certification = await findById(id);
+  if (!certification) throw new NotFoundError();
 
-  await provider.delete();
+  await certification.delete();
 
   response.body = Message.OK;
 };
 
-export const getProvider = async (
+export const getCertification = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  const provider = await findById(id);
-  if (!provider) throw new NotFoundError();
+  const certification = await findById(id);
+  if (!certification) throw new NotFoundError();
 
-  response.body = provider;
+  response.body = certification;
 };
 
-export const getProviders = async ({ response }: RouterContext) => {
+export const getCertifications = async ({ response }: RouterContext) => {
   response.body = await getAll();
 };
 
@@ -91,14 +94,14 @@ export const getProvidersTable = async (context: RouterContext) =>
     getTableData,
   );
 
-export const updateProviders = async (
+export const updateCertifications = async (
   { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  let provider = await findById(id);
-  if (!provider) throw new NotFoundError();
+  let certification = await findById(id);
+  if (!certification) throw new NotFoundError();
 
   const value = await request.body({ type: "json" }).value;
 
@@ -108,11 +111,12 @@ export const updateProviders = async (
 
   const name = (value.name as string).trim().toUpperCase();
 
-  if (await CertificationProvider.nameIsTaken(name, provider.id)) {
+  if (await Certification.nameIsTaken(name, certification.id)) {
     throw new RequestSyntaxError("El nombre ya se encuentra tomado");
   }
 
-  response.body = await provider.update(
+  response.body = await certification.update(
+    value.provider,
     name,
   );
 };

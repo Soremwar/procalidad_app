@@ -14,6 +14,7 @@ import Asignacion from "../pages/asignacion.jsx";
 import AsignacionCargo from "../pages/organizacion/asignacion_cargo.jsx";
 import Capacitacion from "../pages/usuario/capacitacion.jsx";
 import Cargo from "../pages/organizacion/cargo.jsx";
+import Certificacion from "../pages/maestro/certificacion/certificacion.jsx";
 import Cliente from "../pages/clientes/Cliente.jsx";
 import Computador from "../pages/organizacion/computador.jsx";
 import Contacto from "../pages/clientes/Contacto.jsx";
@@ -171,6 +172,14 @@ const Layout = (props) => {
               ]}
               component={ProveedorCertificacion}
               path="/maestro/certificacion/proveedor"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+              ]}
+              component={Certificacion}
+              path="/maestro/certificacion"
             />
             <ProfiledRoute
               allowed_profiles={[

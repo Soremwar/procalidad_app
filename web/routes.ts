@@ -40,6 +40,7 @@ import * as formation_level from "./handlers/maestro/nivel_formacion.ts";
 import * as tool from "./handlers/maestro/herramienta.ts";
 import * as certification_type from "./handlers/maestro/certificacion/tipo.ts";
 import * as certification_provider from "./handlers/maestro/certificacion/proveedor.ts";
+import * as certification from "./handlers/maestro/certificacion/certificacion.ts";
 import * as clients from "./handlers/clientes/cliente.ts";
 import {
   createProjectType,
@@ -1305,6 +1306,58 @@ main_router
       Profiles.CONTROLLER,
     ]),
     certification_provider.deleteProvider,
+  );
+
+main_router
+  .get(
+    "/api/maestro/certificacion",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+    ]),
+    certification.getCertifications,
+  )
+  .post(
+    "/api/maestro/certificacion/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    certification.getProvidersTable,
+  )
+  .get<{ id: string }>(
+    "/api/maestro/certificacion/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+    ]),
+    certification.getCertification,
+  )
+  .post(
+    "/api/maestro/certificacion",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    certification.createCertification,
+  )
+  .put<{ id: string }>(
+    "/api/maestro/certificacion/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    certification.updateCertifications,
+  )
+  .delete<{ id: string }>(
+    "/api/maestro/certificacion/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+    ]),
+    certification.deleteCertification,
   );
 
 main_router
