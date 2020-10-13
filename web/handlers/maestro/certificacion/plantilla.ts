@@ -6,7 +6,7 @@ import {
   findById,
   getAll,
   getTableData,
-} from "../../../../api/models/users/certification.ts";
+} from "../../../../api/models/users/certification_template.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
 import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
 import { Message } from "../../../http_utils.ts";
@@ -35,7 +35,7 @@ const request_validator = new Ajv({
   ],
 });
 
-export const createCertification = async (
+export const createTemplate = async (
   { request, response }: RouterContext,
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
@@ -58,33 +58,33 @@ export const createCertification = async (
   );
 };
 
-export const deleteCertification = async (
+export const deleteTemplate = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  let certification = await findById(id);
-  if (!certification) throw new NotFoundError();
+  let template = await findById(id);
+  if (!template) throw new NotFoundError();
 
-  await certification.delete();
+  await template.delete();
 
   response.body = Message.OK;
 };
 
-export const getCertification = async (
+export const getTemplate = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  const certification = await findById(id);
-  if (!certification) throw new NotFoundError();
+  const template = await findById(id);
+  if (!template) throw new NotFoundError();
 
-  response.body = certification;
+  response.body = template;
 };
 
-export const getCertifications = async ({ response }: RouterContext) => {
+export const getTemplates = async ({ response }: RouterContext) => {
   response.body = await getAll();
 };
 
@@ -94,14 +94,14 @@ export const getProvidersTable = async (context: RouterContext) =>
     getTableData,
   );
 
-export const updateCertifications = async (
+export const updateTemplates = async (
   { params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  let certification = await findById(id);
-  if (!certification) throw new NotFoundError();
+  let template = await findById(id);
+  if (!template) throw new NotFoundError();
 
   const value = await request.body({ type: "json" }).value;
 
@@ -111,11 +111,11 @@ export const updateCertifications = async (
 
   const name = (value.name as string).trim().toUpperCase();
 
-  if (await Certification.nameIsTaken(name, certification.id)) {
+  if (await Certification.nameIsTaken(name, template.id)) {
     throw new RequestSyntaxError("El nombre ya se encuentra tomado");
   }
 
-  response.body = await certification.update(
+  response.body = await template.update(
     value.provider,
     name,
   );

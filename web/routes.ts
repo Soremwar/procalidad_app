@@ -9,6 +9,7 @@ import * as user_training_title from "./handlers/usuario/formacion_capacitacion.
 import * as user_laboral_experience from "./handlers/usuario/experiencia/laboral.ts";
 import * as user_project_experience from "./handlers/usuario/experiencia/proyecto.ts";
 import * as user_technical_skill from "./handlers/usuario/habilidad/tecnica.ts";
+import * as user_certification from "./handlers/usuario/certificacion.ts";
 import {
   createContact,
   deleteContact,
@@ -40,7 +41,7 @@ import * as formation_level from "./handlers/maestro/nivel_formacion.ts";
 import * as tool from "./handlers/maestro/herramienta.ts";
 import * as certification_type from "./handlers/maestro/certificacion/tipo.ts";
 import * as certification_provider from "./handlers/maestro/certificacion/proveedor.ts";
-import * as certification from "./handlers/maestro/certificacion/certificacion.ts";
+import * as certification_template from "./handlers/maestro/certificacion/plantilla.ts";
 import * as clients from "./handlers/clientes/cliente.ts";
 import {
   createProjectType,
@@ -588,6 +589,57 @@ main_router
       Profiles.CONSULTANT,
     ]),
     user_technical_skill.deleteTechnicalSkill,
+  );
+
+main_router
+  .get(
+    "/api/usuario/certificacion",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_certification.getCertifications,
+  )
+  .post(
+    "/api/usuario/certificacion/table",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_certification.getCertificationsTable,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/certificacion/certificado/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_certification.updateCertificationFile,
+  )
+  .get<{ id: string }>(
+    "/api/usuario/certificacion/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_certification.getCertification,
+  )
+  .post(
+    "/api/usuario/certificacion",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_certification.createCertification,
+  )
+  .put<{ id: string }>(
+    "/api/usuario/certificacion/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_certification.updateCertification,
+  )
+  .delete<{ id: string }>(
+    "/api/usuario/certificacion/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    user_certification.deleteCertification,
   );
 
 main_router
@@ -1310,54 +1362,54 @@ main_router
 
 main_router
   .get(
-    "/api/maestro/certificacion",
+    "/api/maestro/certificacion/plantilla",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONSULTANT,
       Profiles.CONTROLLER,
     ]),
-    certification.getCertifications,
+    certification_template.getTemplates,
   )
   .post(
-    "/api/maestro/certificacion/table",
+    "/api/maestro/certificacion/plantilla/table",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    certification.getProvidersTable,
+    certification_template.getProvidersTable,
   )
   .get<{ id: string }>(
-    "/api/maestro/certificacion/:id",
+    "/api/maestro/certificacion/plantilla/:id",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONSULTANT,
       Profiles.CONTROLLER,
     ]),
-    certification.getCertification,
+    certification_template.getTemplate,
   )
   .post(
-    "/api/maestro/certificacion",
+    "/api/maestro/certificacion/plantilla",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    certification.createCertification,
+    certification_template.createTemplate,
   )
   .put<{ id: string }>(
-    "/api/maestro/certificacion/:id",
+    "/api/maestro/certificacion/plantilla/:id",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    certification.updateCertifications,
+    certification_template.updateTemplates,
   )
   .delete<{ id: string }>(
-    "/api/maestro/certificacion/:id",
+    "/api/maestro/certificacion/plantilla/:id",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
     ]),
-    certification.deleteCertification,
+    certification_template.deleteTemplate,
   );
 
 main_router

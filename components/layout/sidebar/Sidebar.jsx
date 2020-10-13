@@ -121,7 +121,7 @@ const structure = [
           Profiles.CONTROLLER,
         ],
         label: "Certificaciones",
-        link: "/maestro/certificacion",
+        link: "/maestro/certificacion/plantilla",
       },
     ],
   },
@@ -442,6 +442,13 @@ const structure = [
         ],
         label: "Habilidades técnicas",
         link: "/usuario/habilidad/tecnica",
+      },
+      {
+        allowed_profiles: [
+          Profiles.CONSULTANT,
+        ],
+        label: "Certificaciones",
+        link: "/usuario/certificacion",
       },
     ],
   },

@@ -15,6 +15,7 @@ const update_request = {
   $id: "update",
   properties: {
     "name": {
+      minLength: 3,
       maxLength: 50,
       type: "string",
     },
@@ -50,7 +51,9 @@ export const createType = async ({ request, response }: RouterContext) => {
   }
 
   if (await CertificationType.nameIsTaken(value.name)) {
-    throw new RequestSyntaxError("El nombre ya se encuentra tomado");
+    throw new RequestSyntaxError(
+      "El nombre ya se encuentra tomado\nEl nombre no puede iniciar con los mismos tres carácteres a otro",
+    );
   }
 
   response.body = await create(
@@ -111,7 +114,9 @@ export const updateTypes = async (
   }
 
   if (await CertificationType.nameIsTaken(value.name, language.id)) {
-    throw new RequestSyntaxError("El nombre ya se encuentra tomado");
+    throw new RequestSyntaxError(
+      "El nombre ya se encuentra tomado. El nombre no puede iniciar con los mismos tres carácteres a otro",
+    );
   }
 
   response.body = await language.update(

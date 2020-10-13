@@ -14,7 +14,7 @@ import Asignacion from "../pages/asignacion.jsx";
 import AsignacionCargo from "../pages/organizacion/asignacion_cargo.jsx";
 import Capacitacion from "../pages/usuario/capacitacion.jsx";
 import Cargo from "../pages/organizacion/cargo.jsx";
-import Certificacion from "../pages/maestro/certificacion/certificacion.jsx";
+import Certificacion from "../pages/usuario/certificacion.jsx";
 import Cliente from "../pages/clientes/Cliente.jsx";
 import Computador from "../pages/organizacion/computador.jsx";
 import Contacto from "../pages/clientes/Contacto.jsx";
@@ -35,6 +35,7 @@ import Persona from "../pages/organizacion/persona.jsx";
 import PlaneacionProyecto from "../pages/planeacion/proyecto.jsx";
 import PlaneacionRecurso from "../pages/planeacion/recurso.jsx";
 import Plantilla from "../pages/maestro/plantilla.jsx";
+import PlantillaCertificacion from "../pages/maestro/certificacion/plantilla.jsx";
 import Presupuesto from "../pages/operaciones/Presupuesto.jsx";
 import ProveedorCertificacion from "../pages/maestro/certificacion/proveedor.jsx";
 import Proyecto from "../pages/operaciones/proyecto.jsx";
@@ -178,8 +179,8 @@ const Layout = (props) => {
                 Profiles.ADMINISTRATOR,
                 Profiles.CONTROLLER,
               ]}
-              component={Certificacion}
-              path="/maestro/certificacion"
+              component={PlantillaCertificacion}
+              path="/maestro/certificacion/plantilla"
             />
             <ProfiledRoute
               allowed_profiles={[
@@ -458,6 +459,13 @@ const Layout = (props) => {
               ]}
               component={HabilidadTecnica}
               path="/usuario/habilidad/tecnica"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.CONSULTANT,
+              ]}
+              component={Certificacion}
+              path="/usuario/certificacion"
             />
             <Route exact={true} path="/" />
             <Redirect from="*" to="/404" />

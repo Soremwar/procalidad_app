@@ -121,6 +121,7 @@ const AddModal = ({
         fullWidth
         inputProps={{
           maxLength: 50,
+          minLength: 3,
         }}
         label="Nombre"
         name="name"
@@ -205,6 +206,7 @@ const EditModal = ({
         fullWidth
         inputProps={{
           maxLength: 50,
+          minLength: 3,
         }}
         label="Nombre"
         name="name"

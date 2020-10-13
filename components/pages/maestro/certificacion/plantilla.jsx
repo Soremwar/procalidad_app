@@ -8,8 +8,8 @@ import React, {
 import { DialogContentText, TextField } from "@material-ui/core";
 import { formatResponseJson } from "../../../../lib/api/request.js";
 import {
-  fetchCertificationApi,
   fetchCertificationProviderApi,
+  fetchCertificationTemplateApi,
 } from "../../../../lib/api/generator.js";
 import AsyncTable from "../../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
@@ -18,13 +18,13 @@ import Title from "../../../common/Title.jsx";
 
 const getProviders = () => fetchCertificationProviderApi();
 
-const getCertification = (id) => fetchCertificationApi(id);
+const getCertification = (id) => fetchCertificationTemplateApi(id);
 
 const createCertificacion = async (
   name,
   provider,
 ) =>
-  fetchCertificationApi("", {
+  fetchCertificationTemplateApi("", {
     body: JSON.stringify({
       name,
       provider,
@@ -40,7 +40,7 @@ const updateCertification = async (
   name,
   provider,
 ) =>
-  fetchCertificationApi(id, {
+  fetchCertificationTemplateApi(id, {
     body: JSON.stringify({
       name,
       provider,
@@ -52,7 +52,7 @@ const updateCertification = async (
   });
 
 const deleteCertification = async (id) =>
-  fetchCertificationApi(id, {
+  fetchCertificationTemplateApi(id, {
     method: "DELETE",
   });
 
@@ -316,7 +316,7 @@ const DeleteModal = ({
   );
 };
 
-export default function Certificacion() {
+export default function Plantilla() {
   const [parameters, setParameters] = useState(DEFAULT_PARAMETERS);
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
@@ -336,7 +336,7 @@ export default function Certificacion() {
           throw new Error();
         }
       })
-      .catch(() => console.log("Couldnt load the requested type"));
+      .catch(() => console.error("Couldnt load the requested type"));
   };
 
   const handleDeleteModalOpen = async (selected) => {
@@ -367,10 +367,6 @@ export default function Certificacion() {
     updateTable();
   }, []);
 
-  useEffect(() => {
-    console.log(parameters);
-  }, [parameters]);
-
   return (
     <Fragment>
       <Title title="Certificación" />
@@ -400,7 +396,7 @@ export default function Certificacion() {
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
-        url="maestro/certificacion/table"
+        url="maestro/certificacion/plantilla/table"
       />
     </Fragment>
   );

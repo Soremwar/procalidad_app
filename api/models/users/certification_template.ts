@@ -1,32 +1,24 @@
 import postgres from "../../services/postgres.js";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
+import { TABLE as PROVIDER_TABLE } from "./certification_provider.ts";
 
-export const TABLE = "USUARIOS.TIPO_CERTIFICACION";
+export const TABLE = "USUARIOS.PLANTILLA_CERTIFICACION";
 
-export class CertificationType {
+export class Certification {
   constructor(
     public readonly id: number,
+    public provider: number,
     public name: string,
-    public description: string,
   ) {}
 
   async delete() {
     await postgres.query(
       `DELETE FROM ${TABLE}
-      WHERE PK_TIPO = $1`,
+      WHERE PK_PLANTILLA = $1`,
       this.id,
     );
   }
 
-  getCode() {
-    return this.name.slice(0, 3);
-  }
-
-  /**
-   * This only validates the first three caracters passed to it.
-   * The certification type uses only this three characters for its storage
-   * @param {string} name Will be trimmed to the first three characters
-   * */
   static async nameIsTaken(
     name: string,
     exclude?: number,
@@ -35,9 +27,9 @@ export class CertificationType {
       `SELECT
         COUNT(1)
       FROM ${TABLE}
-      WHERE SUBSTRING(NOMBRE, 0, 4) = $1
-      AND PK_TIPO <> $2`,
-      name.slice(0, 3),
+      WHERE NOMBRE = $1
+      AND PK_PLANTILLA <> $2`,
+      name,
       exclude || 0,
     );
 
@@ -45,22 +37,22 @@ export class CertificationType {
   }
 
   async update(
+    provider = this.provider,
     name = this.name,
-    description = this.description,
   ) {
     Object.assign(this, {
+      provider,
       name,
-      description,
     });
 
     await postgres.query(
       `UPDATE ${TABLE} SET
-        NOMBRE = $2,
-        DESCRIPCION = $3
-      WHERE PK_TIPO = $1`,
+        FK_PROVEEDOR = $2,
+        NOMBRE = $3
+      WHERE PK_PLANTILLA = $1`,
       this.id,
+      this.provider,
       this.name,
-      this.description,
     );
 
     return this;
@@ -68,47 +60,47 @@ export class CertificationType {
 }
 
 export const create = async (
+  provider: number,
   name: string,
-  description: string,
 ) => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
-      NOMBRE,
-      DESCRIPCION
+      FK_PROVEEDOR,
+      NOMBRE
     ) VALUES (
       $1,
       $2
-    ) RETURNING PK_TIPO`,
+    ) RETURNING PK_PLANTILLA`,
+    provider,
     name,
-    description,
   );
 
   const id = rows[0][0] as number;
 
-  return new CertificationType(
+  return new Certification(
     id,
+    provider,
     name,
-    description,
   );
 };
 
 export const findById = async (id: number) => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_TIPO,
-      NOMBRE,
-      DESCRIPCION
+      PK_PLANTILLA,
+      FK_PROVEEDOR,
+      NOMBRE
     FROM ${TABLE}
-    WHERE PK_TIPO = $1`,
+    WHERE PK_PLANTILLA = $1`,
     id,
   );
 
   if (!rows.length) return null;
 
-  return new CertificationType(
+  return new Certification(
     ...rows[0] as [
       number,
-      string,
+      number,
       string,
     ],
   );
@@ -117,24 +109,24 @@ export const findById = async (id: number) => {
 export const getAll = async () => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_TIPO,
-      NOMBRE,
-      DESCRIPCION
+      PK_PLANTILLA,
+      FK_PROVEEDOR,
+      NOMBRE
     FROM ${TABLE}`,
   );
 
   return rows.map((row: [
     number,
+    number,
     string,
-    string,
-  ]) => new CertificationType(...row));
+  ]) => new Certification(...row));
 };
 
 class TableData {
   constructor(
     public readonly id: number,
+    public readonly provider: string,
     public readonly name: string,
-    public readonly description: string,
   ) {}
 }
 
@@ -147,9 +139,9 @@ export const getTableData = async (
 ): Promise<TableResult> => {
   const base_query = (
     `SELECT
-      PK_TIPO AS ID,
-      NOMBRE AS NAME,
-      DESCRIPCION AS DESCRIPTION
+      PK_PLANTILLA AS ID,
+      (SELECT NOMBRE FROM ${PROVIDER_TABLE} WHERE PK_PROVEEDOR = FK_PROVEEDOR) AS PROVIDER,
+      NOMBRE AS NAME
     FROM ${TABLE}`
   );
 
