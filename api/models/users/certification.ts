@@ -256,7 +256,7 @@ export const generateTableData = (
       FROM ${TABLE} AS T
       LEFT JOIN ${GENERIC_FILE_TABLE} AS F
         ON F.PK_ARCHIVO = T.FK_ARCHIVO_GENERICO
-      AND T.FK_USUARIO = ${user_id}`
+      WHERE T.FK_USUARIO = ${user_id}`
     );
 
     const { count, data } = await getTableModels(
