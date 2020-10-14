@@ -31,7 +31,6 @@ const getTrainingTitle = (id) => fetchUserTrainingFormation(id);
 const createTrainingTitle = async (
   end_date,
   formation_level,
-  institution,
   start_date,
   status,
   teacher,
@@ -41,7 +40,6 @@ const createTrainingTitle = async (
     body: JSON.stringify({
       end_date,
       formation_level,
-      institution,
       start_date,
       status,
       teacher,
@@ -56,7 +54,6 @@ const createTrainingTitle = async (
 const updateTrainingTitle = async (
   id,
   end_date,
-  institution,
   start_date,
   status,
   teacher,
@@ -64,7 +61,6 @@ const updateTrainingTitle = async (
   fetchUserTrainingFormation(id, {
     body: JSON.stringify({
       end_date,
-      institution,
       start_date,
       status,
       teacher,
@@ -86,13 +82,6 @@ const headers = [
     numeric: false,
     disablePadding: false,
     label: "Nivel de formación",
-    searchable: true,
-  },
-  {
-    id: "institution",
-    numeric: false,
-    disablePadding: false,
-    label: "Institución",
     searchable: true,
   },
   {
@@ -136,7 +125,6 @@ const AddModal = ({
   const [fields, setFields] = useState({
     end_date: "",
     formation_level: "",
-    institution: "",
     start_date: "",
     status: false,
     teacher: "",
@@ -157,7 +145,6 @@ const AddModal = ({
     const request = await createTrainingTitle(
       fields.end_date || null,
       fields.formation_level,
-      fields.institution,
       fields.start_date,
       fields.status,
       fields.teacher || null,
@@ -179,7 +166,6 @@ const AddModal = ({
       setFields({
         end_date: "",
         formation_level: "",
-        institution: "",
         start_date: "",
         status: false,
         teacher: "",
@@ -225,19 +211,6 @@ const AddModal = ({
         onChange={handleChange}
         required
         value={fields.title}
-      />
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            maxLength: "50",
-          },
-        }}
-        label="Institución"
-        name="institution"
-        onChange={handleChange}
-        required
-        value={fields.institution}
       />
       <SelectField
         blank_value={false}
@@ -298,7 +271,6 @@ const EditModal = ({
   const [fields, setFields] = useState({
     end_date: "",
     formation_level: "",
-    institution: "",
     start_date: "",
     status: "",
     teacher: "",
@@ -319,7 +291,6 @@ const EditModal = ({
     const request = await updateTrainingTitle(
       data.id,
       fields.end_date || null,
-      fields.institution,
       fields.start_date,
       fields.status,
       fields.teacher || null,
@@ -340,7 +311,6 @@ const EditModal = ({
       setFields({
         end_date: data.end_date,
         formation_level: data.formation_level,
-        institution: data.institution,
         start_date: data.start_date,
         status: data.status,
         teacher: data.teacher,
@@ -379,19 +349,6 @@ const EditModal = ({
         label="Título"
         name="title"
         value={fields.title}
-      />
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            maxLength: "50",
-          },
-        }}
-        label="Institución"
-        name="institution"
-        onChange={handleChange}
-        required
-        value={fields.institution}
       />
       <SelectField
         blank_value={false}

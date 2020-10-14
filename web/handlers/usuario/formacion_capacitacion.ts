@@ -20,10 +20,6 @@ const update_request = {
   properties: {
     "end_date": STANDARD_DATE_STRING_OR_NULL,
     "formation_level": TRUTHY_INTEGER,
-    "institution": {
-      maxLength: 50,
-      type: "string",
-    },
     "start_date": STANDARD_DATE_STRING,
     "status": BOOLEAN,
     "teacher": TRUTHY_INTEGER_OR_NULL,
@@ -39,7 +35,6 @@ const create_request = Object.assign({}, update_request, {
   required: [
     "end_date",
     "formation_level",
-    "institution",
     "start_date",
     "status",
     "teacher",
@@ -73,7 +68,7 @@ export const createTrainingTitle = async (
     value.formation_level,
     user_id,
     value.title,
-    value.institution,
+    null,
     value.start_date,
     value.end_date,
     null,
@@ -181,7 +176,7 @@ export const updateTrainingTitle = async (
   }
 
   response.body = await training_title.update(
-    value.institution,
+    null,
     value.start_date,
     value.end_date,
     null,

@@ -31,7 +31,7 @@ const update_request = {
     "name": STRING(50),
     "template": TRUTHY_INTEGER,
     "type": TRUTHY_INTEGER,
-    "version": STRING_OR_NULL({ length: 10 }),
+    "version": STRING_OR_NULL({ max: 10 }),
   },
 };
 
