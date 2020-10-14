@@ -55,7 +55,6 @@ const create_request = Object.assign({}, update_request, {
   ],
 });
 
-// @ts-ignore
 const request_validator = new Ajv({
   schemas: [
     create_request,
@@ -118,7 +117,7 @@ export const deleteLaboralExperience = async (
   }
 
   try {
-    let generic_file_id = laboral_experience.generic_file;
+    const generic_file_id = laboral_experience.generic_file;
 
     //Formation title should be deleted first so file constraint doesn't complain
     await laboral_experience.delete();

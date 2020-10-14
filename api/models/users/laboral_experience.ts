@@ -288,6 +288,7 @@ class TableData {
     public readonly id: number,
     public readonly sector: string,
     public readonly company: string,
+    public readonly duration: number,
     public readonly file: {
       id: number;
       extensions: string[];
@@ -310,7 +311,8 @@ export const generateTableData = (
       `SELECT
         E.PK_EXPERIENCIA AS ID,
         (SELECT NOMBRE FROM ${SECTOR_TABLE} WHERE PK_SECTOR = E.FK_SECTOR) AS SECTOR,
-        E.EMPRESA,
+        E.EMPRESA AS COMPANY,
+        DATE_PART('YEAR', FEC_FIN) - DATE_PART('YEAR', FEC_INICIO) AS DURATION,
         E.FK_ARCHIVO_GENERICO,
         F.EXTENSIONES,
         F.FEC_CARGA AS UPLOAD_DATE
@@ -334,6 +336,7 @@ export const generateTableData = (
       string,
       string,
       number,
+      number,
       string[],
       string,
     ]) =>
@@ -341,11 +344,12 @@ export const generateTableData = (
         x[0],
         x[1],
         x[2],
+        x[3],
         {
-          id: x[3],
-          extensions: x[4],
+          id: x[4],
+          extensions: x[5],
         },
-        x[5],
+        x[6],
       )
     );
 

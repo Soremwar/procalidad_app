@@ -144,6 +144,22 @@ const headers = [
     searchable: true,
   },
   {
+    displayAs: (_id, value) => {
+      const years = Number(value) || 0;
+      if(years < 1){
+        return '<1 año';
+      } else if(years === 1){
+        return '1 año';
+      }else {
+        return `${years} años`;
+      }
+    },
+    id: "duration",
+    numeric: false,
+    disablePadding: false,
+    label: "Duracion(años)",
+  },
+  {
     displayAs: (id, value, reloadTable) => (
       <Grid container justify="center">
         <Grid item md={6} xs={12}>
