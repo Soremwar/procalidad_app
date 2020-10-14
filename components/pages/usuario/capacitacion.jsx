@@ -26,11 +26,12 @@ const getFormationLevels = () =>
     },
   });
 
-const getPeople = () => fetchPeopleApi({
-  params: {
-    list_retired: true,
-  },
-});
+const getPeople = () =>
+  fetchPeopleApi({
+    params: {
+      list_retired: true,
+    },
+  });
 
 const getTrainingTitle = (id) => fetchUserTrainingFormation(id);
 

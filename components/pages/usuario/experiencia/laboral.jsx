@@ -146,11 +146,11 @@ const headers = [
   {
     displayAs: (_id, value) => {
       const years = Number(value) || 0;
-      if(years < 1){
-        return '<1 año';
-      } else if(years === 1){
-        return '1 año';
-      }else {
+      if (years < 1) {
+        return "<1 año";
+      } else if (years === 1) {
+        return "1 año";
+      } else {
         return `${years} años`;
       }
     },
