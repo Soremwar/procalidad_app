@@ -28,7 +28,9 @@ import SelectField from "../../common/SelectField.jsx";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
-    formation_type: "Continuada",
+    params: {
+      formation_type: "Continuada",
+    },
   });
 
 const getContinuousTitle = (id) => fetchUserContinuousFormation(id);

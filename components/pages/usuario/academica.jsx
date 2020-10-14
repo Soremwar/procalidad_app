@@ -30,7 +30,9 @@ import SelectField from "../../common/SelectField.jsx";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
-    formation_type: "Academica",
+    params: {
+      formation_type: "Academica",
+    },
   });
 
 const getAcademicTitle = (id) => fetchUserAcademicFormation(id);

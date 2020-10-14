@@ -83,13 +83,14 @@ export const createPerson = async ({ request, response }: RouterContext) => {
     value.start_date,
   );
 };
+
 export const deletePerson = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  let person = await findById(id);
+  const person = await findById(id);
   if (!person) throw new NotFoundError();
 
   await person.delete()
@@ -146,7 +147,7 @@ export const updatePerson = async (
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  let person = await findById(id);
+  const person = await findById(id);
   if (!person) throw new NotFoundError();
 
   const value = await request.body({ type: "json" }).value;

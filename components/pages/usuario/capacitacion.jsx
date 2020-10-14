@@ -21,10 +21,16 @@ import SelectField from "../../common/SelectField.jsx";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
-    formation_type: "Capacitaciones",
+    params: {
+      formation_type: "Capacitaciones",
+    },
   });
 
-const getPeople = () => fetchPeopleApi();
+const getPeople = () => fetchPeopleApi({
+  params: {
+    list_retired: true,
+  },
+});
 
 const getTrainingTitle = (id) => fetchUserTrainingFormation(id);
 
