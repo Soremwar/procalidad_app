@@ -299,6 +299,7 @@ export const updateCertificationFile = async (
       ].join(" "))
         .replaceAll(/[\s_]+/g, "_")
         .replaceAll(/[^\w\.]/g, "")
+        .replace(/_$/, "")
         .toUpperCase() +
         `.${extension}`,
       max_file_size,
