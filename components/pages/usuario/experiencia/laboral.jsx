@@ -489,7 +489,7 @@ const AddModal = ({
         rowsMax={10}
         name="function_description"
         onChange={handleChange}
-        placeholder="Diferentes actividades ejecutadas en el transcurso del proyecto"
+        placeholder="Ej:&#10;Desarrollar los componentes técnicos requeridos (BackEnd y FrontEnd) en la ejecución de los proyectos de BI donde fue asignado"
         required
         value={fields.function_description}
       />
@@ -504,7 +504,7 @@ const AddModal = ({
         rowsMax={10}
         name="achievement_description"
         onChange={handleChange}
-        placeholder="Acontecimientos o logros importantes completados en el transcurso del proyecto"
+        placeholder="Ej:&#10;Conseguimos el distintivo oficial como proveedor preferente&#10;Mi equipo comercial hizo aumentar la facturación de la empresa en un 40%"
         required
         value={fields.achievement_description}
       />
@@ -735,7 +735,7 @@ const EditModal = ({
         rowsMax={10}
         name="function_description"
         onChange={handleChange}
-        placeholder="Diferentes actividades ejecutadas en el transcurso del proyecto"
+        placeholder="Ej:&#10;Desarrollar los componentes técnicos requeridos (BackEnd y FrontEnd) en la ejecución de los proyectos de BI donde fue asignado"
         required
         value={fields.function_description}
       />
@@ -750,7 +750,7 @@ const EditModal = ({
         rowsMax={10}
         name="achievement_description"
         onChange={handleChange}
-        placeholder="Acontecimientos o logros importantes completados en el transcurso del proyecto"
+        placeholder="Ej:&#10;Conseguimos el distintivo oficial como proveedor preferente&#10;Mi equipo comercial hizo aumentar la facturación de la empresa en un 40%"
         required
         value={fields.achievement_description}
       />

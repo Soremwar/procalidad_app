@@ -305,7 +305,7 @@ const AddModal = ({
         multiline
         name="functions"
         onChange={handleChange}
-        placeholder="Actividades ejecutadas en el proyecto"
+        placeholder="Ej:&#10;Entendimiento de los requisitos técnicos, funcionales y su implementación a través del diseño de la capa de visualización y despliegue."
         rows="3"
         rowsMax="10"
         required
@@ -564,7 +564,7 @@ const EditModal = ({
         multiline
         name="functions"
         onChange={handleChange}
-        placeholder="Actividades ejecutadas en el proyecto"
+        placeholder="Ej:&#10;Entendimiento de los requisitos técnicos, funcionales y su implementación a través del diseño de la capa de visualización y despliegue."
         rows="3"
         rowsMax="10"
         required
