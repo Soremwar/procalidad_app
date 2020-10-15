@@ -104,14 +104,19 @@ export const findById = async (id: number): Promise<AssignationRequest> => {
   return new AssignationRequest(...result);
 };
 
-export const getRequestedHoursByWeek = async (week: number) => {
+export const getPersonRequestedHoursByWeek = async (
+  person: number,
+  week: number
+) => {
   const { rows } = await postgres.query(
     `SELECT
       SUM(A.HORAS)
     FROM ${TABLE} A 
     JOIN ${WEEK_TABLE} DS
       ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN DS.FECHA_INICIO AND DS.FECHA_FIN
-    WHERE DS.PK_SEMANA = $1`,
+    WHERE A.FK_PERSONA = $1
+    AND DS.PK_SEMANA = $2`,
+    person,
     week,
   );
 
