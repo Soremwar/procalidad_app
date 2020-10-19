@@ -23,26 +23,39 @@ const setUserResidence = (
 export default function ResidenceForm() {
   const [fields, setFields] = useState({
     address: "",
+    approved: false,
     city: "",
+    comments: "",
   });
+  const [reload_data, setReloadData] = useState(true);
 
   useEffect(() => {
+    let active = true;
+
     getUserResidence()
       .then(async (request) => {
         if (request.ok) {
-          return await request.json();
+          const document = await request.json();
+          if(active){
+            setFields((prev_state) => ({
+              ...prev_state,
+              address: document.direccion_residencia || "",
+              approved: document.residencia_aprobada,
+              city: document.fk_ciudad_residencia || "",
+              comments: document.residencia_observaciones || "",
+            }));
+          }
+        }else{
+          throw new Error();
         }
-        throw new Error();
       })
-      .then((document) =>
-        setFields((prev_state) => ({
-          ...prev_state,
-          address: document.direccion_residencia || "",
-          city: document.fk_ciudad_residencia || "",
-        }))
-      )
-      .catch(() => console.error("couldnt fetch document"));
-  }, []);
+      .catch(() => console.error("couldnt fetch document"))
+      .finally(() => setReloadData(false));
+
+    return () => {
+      active = false;
+    };
+  }, [reload_data]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -60,15 +73,17 @@ export default function ResidenceForm() {
         }
       })
       .catch(() => {
-        console.error("uncatched error");
-      });
+        console.error("couldnt submit residence data");
+      })
+      .finally(() => setReloadData(true))
   };
 
   return (
     <CardForm
+      approved={fields.approved}
+      helper_text={fields.comments}
       onSubmit={handleSubmit}
       title="Residencia"
-      variant="outlined"
     >
       <CitySelector
         label="Ciudad de residencia"

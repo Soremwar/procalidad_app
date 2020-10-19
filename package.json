@@ -2,15 +2,9 @@
   "name": "procalidad_app",
   "version": "0.15.0",
   "description": "Esta es una app empresarial para realizar planeación y asignación de recursos",
-  "main": "app.js",
-  "directories": {
-    "lib": "lib",
-    "test": "tests"
-  },
   "scripts": {
-    "compile": "parcel build components/App.jsx --out-dir public/resources --out-file app.js --no-source-maps",
-    "compile-dev": "parcel watch components/App.jsx --out-dir public/resources --out-file app.js --no-source-maps",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "parcel build --dist-dir=public/resources --no-source-maps components/App.jsx",
+    "compile-dev": "parcel watch --dist-dir=public/resources components/App.jsx"
   },
   "repository": {
     "type": "git",
@@ -31,19 +25,18 @@
     "@unicef/material-ui-currency-textfield": "0.8.6",
     "frappe-gantt-react": "0.2.2",
     "jwt-decode": "2.2.0",
-    "parcel-bundler": "1.12.4",
     "randomcolor": "0.6.2",
     "react": "16.13.1",
     "react-cookie": "4.0.3",
     "react-dom": "16.13.1",
     "react-google-login": "5.1.20",
-    "react-hot-loader": "4.12.20",
     "react-router-dom": "5.1.2",
+    "sass": "^1.27.0",
     "tinycolor2": "1.4.1"
   },
   "devDependencies": {
-    "@babel/core": "7.9.0",
-    "@babel/plugin-transform-runtime": "7.9.0"
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "parcel": "^2.0.0-beta.1"
   },
   "resolutions": {
     "@material-ui/styles": "4.9.10"

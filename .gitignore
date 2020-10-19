@@ -1,6 +1,6 @@
 .vscode/
 .idea/
-.cache/
+.parcel-cache/
 node_modules/
 /storage
 config.json

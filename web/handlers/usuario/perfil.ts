@@ -5,6 +5,13 @@ import * as children_model from "../../../api/models/users/children.ts";
 import * as contact_model from "../../../api/models/users/contact.ts";
 import * as file_model from "../../../api/models/files/template_file.ts";
 import * as language_model from "../../../api/models/users/language_experience.ts";
+import {requestReview as requestDocumentsReview} from "../../../api/reviews/user_documents.ts";
+import {requestReview as requestIdentificationReview} from "../../../api/reviews/user_identification.ts";
+import {requestReview as requestPersonalDataReview} from "../../../api/reviews/user_personal_data.ts";
+import {requestReview as requestResidenceReview} from "../../../api/reviews/user_residence.ts";
+import {
+  findPersonalInformation,
+} from "./perfil/informacion_personal.ts";
 import {
   findById as findPerson,
   TipoSangre,
@@ -304,7 +311,7 @@ export const getUserInformation = async (
   { cookies, response }: RouterContext,
 ) => {
   const { id } = await decodeToken(cookies.get("PA_AUTH") || "");
-  const user = await findPerson(id);
+  const user = await findPersonalInformation(id);
   if (!user) throw new NotFoundError();
 
   response.body = user;
@@ -315,7 +322,7 @@ export const updateUserInformation = async (
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
   const { id } = await decodeToken(cookies.get("PA_AUTH") || "");
-  const user = await findPerson(id);
+  let user = await findPersonalInformation(id);
   if (!user) throw new NotFoundError();
 
   const value = await request.body({ type: "json" }).value;
@@ -325,13 +332,9 @@ export const updateUserInformation = async (
     throw new RequestSyntaxError();
   }
 
-  response.body = await user.update(
-    undefined,
-    undefined,
+  user = await user.updateInformation(
     value.document_expedition_date,
     value.document_expedition_city,
-    undefined,
-    undefined,
     value.birth_date,
     value.birth_city,
     value.military_passbook,
@@ -342,10 +345,40 @@ export const updateUserInformation = async (
     value.blood_type,
     value.residence_city,
     value.residence_address,
-    undefined,
-    undefined,
     value.professional_card_expedition,
   );
+
+  // TODO
+  // Refactor this, obviously
+  if(
+    value.birth_date !== undefined ||
+    value.birth_city !== undefined ||
+    value.military_passbook !== undefined ||
+    value.gender !== undefined ||
+    value.civil_status !== undefined ||
+    value.personal_email !== undefined ||
+    value.phone !== undefined ||
+    value.blood_type !== undefined ||
+    value.professional_card_expedition !== undefined
+  ){
+    await requestPersonalDataReview(user.pk_persona);
+  }
+
+  if(
+    value.document_expedition_date !== undefined ||
+    value.document_expedition_city !== undefined
+  ){
+    await requestIdentificationReview(user.pk_persona);
+  }
+
+  if(
+    value.residence_city !== undefined ||
+    value.residence_address !== undefined
+  ){
+    await requestResidenceReview(user.pk_persona);
+  }
+
+  response.body = user;
 };
 
 export const getLanguageExperience = async (

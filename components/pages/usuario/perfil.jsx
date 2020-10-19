@@ -12,7 +12,6 @@ import Title from "../../common/Title.jsx";
 export default function Perfil() {
   return (
     <Fragment>
-      <Title title={"Datos personales"} />
       <MainForm />
       <br />
       <br />

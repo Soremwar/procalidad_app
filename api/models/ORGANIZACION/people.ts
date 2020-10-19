@@ -27,7 +27,7 @@ export enum TipoSangre {
   "O-" = "O-",
 }
 
-class People {
+export class People {
   constructor(
     public readonly pk_persona: number,
     public tipo_identificacion: TipoIdentificacion,

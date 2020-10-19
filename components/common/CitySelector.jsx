@@ -161,13 +161,25 @@ export default function CitySelector({
       fetchCityApi(value)
         .then(async (response) => {
           if (response.ok) {
-            const city = await response.json();
+            const city_data = await response.json();
 
-            if (city.fk_estado == state?.value) {
+            if (city_data.fk_estado == state?.value) {
               return;
             }
 
-            const state = await fetchStateApi(city.fk_estado)
+            const state_data = await fetchStateApi(city_data.fk_estado)
+              .then(async (response) => {
+                if (response.ok) {
+                  return await response.json();
+                } else {
+                  throw new Error();
+                }
+              });
+            if (state_data.fk_pais == country?.value) {
+              return;
+            }
+
+            const country_data = await fetchCountryApi(state_data.fk_pais)
               .then(async (response) => {
                 if (response.ok) {
                   return await response.json();
@@ -176,27 +188,15 @@ export default function CitySelector({
                 }
               });
 
-            if (state.fk_pais == country?.value) {
-              return;
-            }
-
-            const country = await fetchCountryApi(state.fk_pais)
-              .then(async (response) => {
-                if (response.ok) {
-                  return await response.json();
-                } else {
-                  throw new Error();
-                }
-              });
-
-            setCountry({ text: country.nombre, value: country.pk_pais });
-            setState({ text: state.nombre, value: state.pk_estado });
-            setCity({ text: city.nombre, value: city.pk_ciudad });
+            setCountry({ text: country_data.nombre, value: country_data.pk_pais });
+            setState({ text: state_data.nombre, value: state_data.pk_estado });
+            setCity({ text: city_data.nombre, value: city_data.pk_ciudad });
           } else {
             throw new Error();
           }
         })
-        .catch(() => {
+        .catch((e) => {
+          console.log(e)
           console.error(
             "The toast component should throw on couldnt recover city data",
           );

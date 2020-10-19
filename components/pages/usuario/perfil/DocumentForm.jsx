@@ -23,31 +23,44 @@ const setUserDocument = (
 
 export default function DocumentForm() {
   const [fields, setFields] = useState({
+    approved: false,
     city: "",
+    comments: "",
     date: "",
     number: "",
     type: "",
   });
+  const [reload_data, setReloadData] = useState(true);
 
   useEffect(() => {
+    let active = true;
+
     getUserDocument()
-      .then(async (request) => {
-        if (request.ok) {
-          return await request.json();
+      .then(async (response) => {
+        if(response.ok){
+          const document = await response.json();
+          if(active){
+            setFields((prev_state) => ({
+              ...prev_state,
+              approved: document.identificacion_aprobada,
+              city: document.fk_ciudad_expedicion_identificacion || "",
+              comments: document.identificacion_observaciones || "",
+              date: document.fec_expedicion_identificacion || "",
+              number: document.identificacion,
+              type: document.tipo_identificacion,
+            }));
+          }
+        }else{
+          throw new Error();
         }
-        throw new Error();
       })
-      .then((document) =>
-        setFields((prev_state) => ({
-          ...prev_state,
-          city: document.fk_ciudad_expedicion_identificacion || "",
-          date: document.fec_expedicion_identificacion || "",
-          number: document.identificacion,
-          type: document.tipo_identificacion,
-        }))
-      )
-      .catch(() => console.error("couldnt fetch document"));
-  }, []);
+      .catch(() => console.error("couldnt fetch document"))
+      .finally(() => setReloadData(false));
+
+    return () => {
+      active = false;
+    };
+  }, [reload_data]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -64,16 +77,16 @@ export default function DocumentForm() {
           throw new Error();
         }
       })
-      .catch(() => {
-        console.error("uncatched error");
-      });
+      .catch(() => console.error("couldnt submit document data"))
+      .finally(() => setReloadData(true));
   };
 
   return (
     <CardForm
+      approved={fields.approved}
+      helper_text={fields.comments}
       onSubmit={handleSubmit}
       title="Identificación"
-      variant="outlined"
     >
       <TextField
         disabled

@@ -187,11 +187,13 @@ const ProfilePicture = () => {
 
 export default function MainForm() {
   const [fields, setFields] = useState({
+    approved: false,
     birth_city: "",
     birth_date: "",
     blood_type: "",
     cellphone: "",
     civil_status: "",
+    comments: "",
     gender: "",
     has_military_passbook: false,
     has_professional_card: false,
@@ -203,6 +205,7 @@ export default function MainForm() {
   });
   const [genders, setGenders] = useState([]);
   const [marital_statuses, setMaritalStatuses] = useState([]);
+  const [reload_data, setReloadData] = useState(true);
 
   useEffect(() => {
     getGenders()
@@ -223,37 +226,51 @@ export default function MainForm() {
       })
       .then((marital_statuses) => setMaritalStatuses(marital_statuses))
       .catch(() => console.error("couldnt fetch marital status"));
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
     getUserInformation()
       .then(async (response) => {
         if (response.ok) {
-          return await response.json();
+          const information = await response.json();
+
+          if(active){
+            setFields((prev_state) => ({
+              ...prev_state,
+              approved: information.informacion_principal_aprobada,
+              birth_city: information.fk_ciudad_nacimiento || "",
+              birth_date: information.fec_nacimiento || "",
+              blood_type: information.tipo_sangre || "",
+              cellphone: information.telefono,
+              civil_status: information.fk_estado_civil || "",
+              comments: information.informacion_principal_observaciones || "",
+              gender: information.fk_genero || "",
+              has_military_passbook: Boolean(information.libreta_militar),
+              has_professional_card: Boolean(
+                information.expedicion_tarjeta_profesional,
+              ),
+              military_passbook: information.libreta_militar || "",
+              name: information.nombre,
+              personal_email: information.correo_personal || "",
+              phone: information.telefono_fijo || "",
+              picture: null,
+              professional_card_expedition:
+                information.expedicion_tarjeta_profesional || "",
+            }));
+          }
+        }else{
+          throw new Error();
         }
-        throw new Error();
       })
-      .then((information) =>
-        setFields((prev_state) => ({
-          ...prev_state,
-          birth_city: information.fk_ciudad_nacimiento || "",
-          birth_date: information.fec_nacimiento || "",
-          blood_type: information.tipo_sangre || "",
-          cellphone: information.telefono,
-          civil_status: information.fk_estado_civil || "",
-          gender: information.fk_genero || "",
-          has_military_passbook: Boolean(information.libreta_militar),
-          has_professional_card: Boolean(
-            information.expedicion_tarjeta_profesional,
-          ),
-          military_passbook: information.libreta_militar || "",
-          name: information.nombre,
-          personal_email: information.correo_personal || "",
-          phone: information.telefono_fijo || "",
-          picture: null,
-          professional_card_expedition:
-            information.expedicion_tarjeta_profesional || "",
-        }))
-      )
-      .catch(() => console.error("could not fetch information"));
-  }, []);
+      .catch(() => console.error("could not fetch information"))
+      .finally(() => setReloadData(false));
+
+    return () => {
+      active = false;
+    }
+  }, [reload_data]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -279,15 +296,16 @@ export default function MainForm() {
           throw new Error();
         }
       })
-      .catch(() => {
-        console.error("uncatched error");
-      });
+      .catch(() => console.error("couldnt submit personal data"))
+      .finally(() => setReloadData(true));
   };
 
   return (
     <CardForm
+      approved={fields.approved}
+      helper_text={fields.comments}
       onSubmit={handleSubmit}
-      variant="outlined"
+      title="Datos personales"
     >
       <Grid container spacing={10}>
         <Grid item md={6} xs={12}>
