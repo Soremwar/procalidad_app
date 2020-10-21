@@ -188,7 +188,9 @@ export default function CitySelector({
                 }
               });
 
-            setCountry({ text: country_data.nombre, value: country_data.pk_pais });
+            setCountry(
+              { text: country_data.nombre, value: country_data.pk_pais },
+            );
             setState({ text: state_data.nombre, value: state_data.pk_estado });
             setCity({ text: city_data.nombre, value: city_data.pk_ciudad });
           } else {
@@ -196,7 +198,7 @@ export default function CitySelector({
           }
         })
         .catch((e) => {
-          console.log(e)
+          console.log(e);
           console.error(
             "The toast component should throw on couldnt recover city data",
           );

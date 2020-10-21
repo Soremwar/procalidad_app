@@ -44,7 +44,7 @@ class PersonalInformation extends People {
     fecha_inicio: string | null,
     fecha_retiro: string | null,
     expedicion_tarjeta_profesional: string | null,
-  ){
+  ) {
     super(
       pk_persona,
       tipo_identificacion,
@@ -70,8 +70,10 @@ class PersonalInformation extends People {
     );
   }
 
-  async refreshReviewStatus(){
-    const identification_review = await getIdentificationReview(this.pk_persona);
+  async refreshReviewStatus() {
+    const identification_review = await getIdentificationReview(
+      this.pk_persona,
+    );
     const personal_data_review = await getPersonalDataReview(this.pk_persona);
     const residence_review = await getResidenceReview(this.pk_persona);
 
@@ -79,7 +81,8 @@ class PersonalInformation extends People {
     this.identificacion_observaciones = identification_review?.comments || null;
 
     this.informacion_principal_aprobada = !!personal_data_review?.approved;
-    this.informacion_principal_observaciones = personal_data_review?.comments || null;
+    this.informacion_principal_observaciones = personal_data_review?.comments ||
+      null;
 
     this.residencia_aprobada = !!residence_review?.approved;
     this.residencia_observaciones = residence_review?.comments || null;
@@ -87,7 +90,8 @@ class PersonalInformation extends People {
 
   async updateInformation(
     fec_expedicion_identificacion = this.fec_expedicion_identificacion,
-    fk_ciudad_expedicion_identificacion = this.fk_ciudad_expedicion_identificacion,
+    fk_ciudad_expedicion_identificacion =
+      this.fk_ciudad_expedicion_identificacion,
     fec_nacimiento = this.fec_nacimiento,
     fk_ciudad_nacimiento = this.fk_ciudad_nacimiento,
     libreta_militar = this.libreta_militar,
@@ -99,7 +103,7 @@ class PersonalInformation extends People {
     fk_ciudad_residencia = this.fk_ciudad_residencia,
     direccion_residencia = this.direccion_residencia,
     expedicion_tarjeta_profesional = this.expedicion_tarjeta_profesional,
-  ){
+  ) {
     await super.update(
       undefined,
       undefined,
@@ -129,7 +133,7 @@ class PersonalInformation extends People {
 
 export const findPersonalInformation = async (person: number) => {
   const user_data = await findById(person);
-  if(!user_data){
+  if (!user_data) {
     return null;
   }
 

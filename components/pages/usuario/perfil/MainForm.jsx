@@ -236,7 +236,7 @@ export default function MainForm() {
         if (response.ok) {
           const information = await response.json();
 
-          if(active){
+          if (active) {
             setFields((prev_state) => ({
               ...prev_state,
               approved: information.informacion_principal_aprobada,
@@ -260,7 +260,7 @@ export default function MainForm() {
                 information.expedicion_tarjeta_profesional || "",
             }));
           }
-        }else{
+        } else {
           throw new Error();
         }
       })
@@ -269,7 +269,7 @@ export default function MainForm() {
 
     return () => {
       active = false;
-    }
+    };
   }, [reload_data]);
 
   const handleChange = (event) => {

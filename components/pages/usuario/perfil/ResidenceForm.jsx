@@ -36,7 +36,7 @@ export default function ResidenceForm() {
       .then(async (request) => {
         if (request.ok) {
           const document = await request.json();
-          if(active){
+          if (active) {
             setFields((prev_state) => ({
               ...prev_state,
               address: document.direccion_residencia || "",
@@ -45,7 +45,7 @@ export default function ResidenceForm() {
               comments: document.residencia_observaciones || "",
             }));
           }
-        }else{
+        } else {
           throw new Error();
         }
       })
@@ -75,7 +75,7 @@ export default function ResidenceForm() {
       .catch(() => {
         console.error("couldnt submit residence data");
       })
-      .finally(() => setReloadData(true))
+      .finally(() => setReloadData(true));
   };
 
   return (

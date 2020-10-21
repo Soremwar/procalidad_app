@@ -45,7 +45,6 @@ const useStyles = makeStyles((theme) => ({
   },
   helper_text: {
     color: colors.red[500],
-
   },
   icon_approved: {
     backgroundColor: colors.green[500],
@@ -78,24 +77,24 @@ const useStyles = makeStyles((theme) => ({
 export default function CardForm({
   approved,
   children,
- helper_text,
+  helper_text,
   onSubmit,
   title,
 }) {
   const classes = useStyles();
-  const rejected = !approved  && helper_text;
+  const rejected = !approved && helper_text;
 
   const card_class_status = approved
     ? classes.container_approved
     : rejected
-      ? classes.container_rejected
-      : classes.container_pending;
+    ? classes.container_rejected
+    : classes.container_pending;
 
   const icon_class_status = approved
     ? classes.icon_approved
     : rejected
-      ? classes.icon_rejected
-      : classes.icon_pending;
+    ? classes.icon_rejected
+    : classes.icon_pending;
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -104,7 +103,11 @@ export default function CardForm({
 
   return (
     <Fragment>
-      <Grid container className={`${classes.container} ${card_class_status}`} spacing={3}>
+      <Grid
+        container
+        className={`${classes.container} ${card_class_status}`}
+        spacing={3}
+      >
         <Card
           className={classes.card}
         >
@@ -125,13 +128,11 @@ export default function CardForm({
                 </Grid>
                 <Grid container item md={6} justify="flex-end">
                   <Avatar className={icon_class_status}>
-                    {
-                      approved
-                        ? <ApprovedIcon/>
-                        : rejected
-                          ? <RejectedIcon/>
-                          : <PendingIcon/>
-                    }
+                    {approved
+                      ? <ApprovedIcon />
+                      : rejected
+                      ? <RejectedIcon />
+                      : <PendingIcon />}
                   </Avatar>
                 </Grid>
               </Grid>
@@ -151,7 +152,9 @@ export default function CardForm({
                   </Button>
                 </Grid>
                 <Grid container item md={8} justify="flex-end">
-                  <Typography className={classes.helper_text} variant="body2">{helper_text}</Typography>
+                  <Typography className={classes.helper_text} variant="body2">
+                    {helper_text}
+                  </Typography>
                 </Grid>
               </Grid>
             </CardActions>

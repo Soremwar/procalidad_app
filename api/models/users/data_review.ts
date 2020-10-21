@@ -19,7 +19,7 @@ class DataReview {
     public approved: boolean,
     public creation: Date,
     public last_update: Date,
-  ){ }
+  ) {}
 
   /**
    * Clears comments, marks as approved and sets the update date
@@ -27,8 +27,8 @@ class DataReview {
    */
   async approve(
     reviewer: number,
-  ){
-    const {rows} = await postgres.query(
+  ) {
+    const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
         FK_RESPONSABLE_REVISION = $2,
         OBSERVACION = NULL,
@@ -48,8 +48,8 @@ class DataReview {
   /**
    * Clears the comments and the reviewer, marks as not approved and sets the update date
    */
-  async requestReview(){
-    const {rows} = await postgres.query(
+  async requestReview() {
+    const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
         FK_RESPONSABLE_REVISION = NULL,
         OBSERVACION = NULL,
@@ -73,8 +73,8 @@ class DataReview {
   async updateComments(
     reviewer: number,
     comments: string,
-  ){
-    const {rows} = await postgres.query(
+  ) {
+    const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
         FK_RESPONSABLE_REVISION = $2,
         OBSERVACION = $3,
@@ -101,7 +101,7 @@ export const create = async (
   type: DataType,
   data_reference: number,
 ) => {
-  const {rows} = await postgres.query(
+  const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       TIPO_FORMULARIO,
       FK_DATOS,
@@ -142,7 +142,7 @@ export const findByTypeAndData = async (
   type: DataType,
   data_reference: number,
 ) => {
-  const {rows} = await postgres.query(
+  const { rows } = await postgres.query(
     `SELECT
       PK_REVISION,
       TIPO_FORMULARIO::VARCHAR,
@@ -159,16 +159,18 @@ export const findByTypeAndData = async (
     data_reference,
   );
 
-  if(!rows.length) return null;
+  if (!rows.length) return null;
 
-  return new DataReview(...rows[0] as [
-    number,
-    DataType,
-    number,
-    number,
-    string,
-    boolean,
-    Date,
-    Date,
-  ]);
+  return new DataReview(
+    ...rows[0] as [
+      number,
+      DataType,
+      number,
+      number,
+      string,
+      boolean,
+      Date,
+      Date,
+    ],
+  );
 };

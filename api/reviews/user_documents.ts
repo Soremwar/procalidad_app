@@ -1,6 +1,6 @@
 import {
-  DataType,
   create,
+  DataType,
   findByTypeAndData,
 } from "../models/users/data_review.ts";
 
@@ -14,9 +14,9 @@ export const requestReview = async (
     data_reference,
   );
 
-  if(review){
+  if (review) {
     await review.requestReview();
-  }else{
+  } else {
     review = await create(
       REVIEW_TYPE,
       data_reference,
@@ -24,4 +24,4 @@ export const requestReview = async (
   }
 
   //Enviar correo
-}
+};

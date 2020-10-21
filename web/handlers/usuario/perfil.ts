@@ -5,13 +5,11 @@ import * as children_model from "../../../api/models/users/children.ts";
 import * as contact_model from "../../../api/models/users/contact.ts";
 import * as file_model from "../../../api/models/files/template_file.ts";
 import * as language_model from "../../../api/models/users/language_experience.ts";
-import {requestReview as requestDocumentsReview} from "../../../api/reviews/user_documents.ts";
-import {requestReview as requestIdentificationReview} from "../../../api/reviews/user_identification.ts";
-import {requestReview as requestPersonalDataReview} from "../../../api/reviews/user_personal_data.ts";
-import {requestReview as requestResidenceReview} from "../../../api/reviews/user_residence.ts";
-import {
-  findPersonalInformation,
-} from "./perfil/informacion_personal.ts";
+import { requestReview as requestDocumentsReview } from "../../../api/reviews/user_documents.ts";
+import { requestReview as requestIdentificationReview } from "../../../api/reviews/user_identification.ts";
+import { requestReview as requestPersonalDataReview } from "../../../api/reviews/user_personal_data.ts";
+import { requestReview as requestResidenceReview } from "../../../api/reviews/user_residence.ts";
+import { findPersonalInformation } from "./perfil/informacion_personal.ts";
 import {
   findById as findPerson,
   TipoSangre,
@@ -350,7 +348,7 @@ export const updateUserInformation = async (
 
   // TODO
   // Refactor this, obviously
-  if(
+  if (
     value.birth_date !== undefined ||
     value.birth_city !== undefined ||
     value.military_passbook !== undefined ||
@@ -360,21 +358,21 @@ export const updateUserInformation = async (
     value.phone !== undefined ||
     value.blood_type !== undefined ||
     value.professional_card_expedition !== undefined
-  ){
+  ) {
     await requestPersonalDataReview(user.pk_persona);
   }
 
-  if(
+  if (
     value.document_expedition_date !== undefined ||
     value.document_expedition_city !== undefined
-  ){
+  ) {
     await requestIdentificationReview(user.pk_persona);
   }
 
-  if(
+  if (
     value.residence_city !== undefined ||
     value.residence_address !== undefined
-  ){
+  ) {
     await requestResidenceReview(user.pk_persona);
   }
 

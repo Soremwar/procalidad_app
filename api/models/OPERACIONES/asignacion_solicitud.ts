@@ -106,7 +106,7 @@ export const findById = async (id: number): Promise<AssignationRequest> => {
 
 export const getPersonRequestedHoursByWeek = async (
   person: number,
-  week: number
+  week: number,
 ) => {
   const { rows } = await postgres.query(
     `SELECT

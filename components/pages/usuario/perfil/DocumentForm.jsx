@@ -37,9 +37,9 @@ export default function DocumentForm() {
 
     getUserDocument()
       .then(async (response) => {
-        if(response.ok){
+        if (response.ok) {
           const document = await response.json();
-          if(active){
+          if (active) {
             setFields((prev_state) => ({
               ...prev_state,
               approved: document.identificacion_aprobada,
@@ -50,7 +50,7 @@ export default function DocumentForm() {
               type: document.tipo_identificacion,
             }));
           }
-        }else{
+        } else {
           throw new Error();
         }
       })
