@@ -5,8 +5,10 @@ import {
   Card,
   CardActions,
   CardContent,
+  CircularProgress,
   colors,
   Grid,
+  Tooltip,
   Typography,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
@@ -46,6 +48,9 @@ const useStyles = makeStyles((theme) => ({
   helper_text: {
     color: colors.red[500],
   },
+  loading_icon: {
+    marginLeft: theme.spacing(4),
+  },
   icon_approved: {
     backgroundColor: colors.green[500],
     color: "white",
@@ -70,7 +75,8 @@ const useStyles = makeStyles((theme) => ({
 
 /**@param {object} props
  * @param {boolean} props.approved
- * @param {string} props.helper_text Conne
+ * @param {string} props.helper_text Comments to be displayed regarding the formularty data
+ * @param {boolean} props.loading
  * @param {formSubmit} props.onSubmit
  * @param {string} [props.title=]
  */
@@ -78,6 +84,7 @@ export default function CardForm({
   approved,
   children,
   helper_text,
+  loading,
   onSubmit,
   title,
 }) {
@@ -89,6 +96,12 @@ export default function CardForm({
     : rejected
     ? classes.container_rejected
     : classes.container_pending;
+
+  const icon_text = approved
+    ? "Aprobado"
+    : rejected
+    ? "Rechazado"
+    : "En revisión";
 
   const icon_class_status = approved
     ? classes.icon_approved
@@ -127,13 +140,15 @@ export default function CardForm({
                   </Typography>
                 </Grid>
                 <Grid container item md={6} justify="flex-end">
-                  <Avatar className={icon_class_status}>
-                    {approved
-                      ? <ApprovedIcon />
-                      : rejected
-                      ? <RejectedIcon />
-                      : <PendingIcon />}
-                  </Avatar>
+                  <Tooltip title={icon_text}>
+                    <Avatar className={icon_class_status}>
+                      {approved
+                        ? <ApprovedIcon />
+                        : rejected
+                        ? <RejectedIcon />
+                        : <PendingIcon />}
+                    </Avatar>
+                  </Tooltip>
                 </Grid>
               </Grid>
               <div className={classes.form_content}>
@@ -143,13 +158,22 @@ export default function CardForm({
             <CardActions>
               <Grid container>
                 <Grid item md={4}>
-                  <Button
-                    type="submit"
-                    color="primary"
-                    onClick={((event) => event.stopPropagation())}
-                  >
-                    Confirmar
-                  </Button>
+                  {loading
+                    ? (
+                      <CircularProgress
+                        className={classes.loading_icon}
+                        size={26}
+                      />
+                    )
+                    : (
+                      <Button
+                        color="primary"
+                        onClick={(event) => event.stopPropagation()}
+                        type="submit"
+                      >
+                        Confirmar
+                      </Button>
+                    )}
                 </Grid>
                 <Grid container item md={8} justify="flex-end">
                   <Typography className={classes.helper_text} variant="body2">

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { TextField } from "@material-ui/core";
 import { fetchUserApi } from "../../../../lib/api/generator.js";
 import CardForm from "./components/CardForm.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import SelectField from "../../../common/SelectField.jsx";
+import ReviewDialog from "../common/ReviewDialog.jsx";
 
 const getUserDocument = () => fetchUserApi();
 const setUserDocument = (
@@ -31,9 +32,12 @@ export default function DocumentForm() {
     type: "",
   });
   const [reload_data, setReloadData] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [confirm_modal_open, setConfirmModalOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
 
     getUserDocument()
       .then(async (response) => {
@@ -55,7 +59,10 @@ export default function DocumentForm() {
         }
       })
       .catch(() => console.error("couldnt fetch document"))
-      .finally(() => setReloadData(false));
+      .finally(() => {
+        setLoading(false);
+        setReloadData(false);
+      });
 
     return () => {
       active = false;
@@ -68,6 +75,8 @@ export default function DocumentForm() {
   };
 
   const handleSubmit = () => {
+    setLoading(true);
+
     setUserDocument(
       fields.city || null,
       fields.date || null,
@@ -78,52 +87,64 @@ export default function DocumentForm() {
         }
       })
       .catch(() => console.error("couldnt submit document data"))
-      .finally(() => setReloadData(true));
+      .finally(() => {
+        setLoading(false);
+        setReloadData(true);
+      });
   };
 
   return (
-    <CardForm
-      approved={fields.approved}
-      helper_text={fields.comments}
-      onSubmit={handleSubmit}
-      title="Identificación"
-    >
-      <TextField
-        disabled
-        fullWidth
-        label="Identificación"
-        name="number"
-        onChange={handleChange}
-        value={fields.number}
-      />
-      <SelectField
-        disabled
-        label="Tipo de identificación"
-        fullWidth
-        name="type"
-        onChange={handleChange}
-        value={fields.type}
+    <Fragment>
+      <CardForm
+        approved={fields.approved}
+        helper_text={fields.comments}
+        loading={loading}
+        onSubmit={() => setConfirmModalOpen(true)}
+        title="Identificación"
       >
-        <option value="CC">Cedula de Ciudadania</option>
-        <option value="CE">Cedula de Extranjeria</option>
-        <option value="PA">Pasaporte</option>
-        <option value="RC">Registro Civil</option>
-        <option value="TI">Tarjeta de Identidad</option>
-      </SelectField>
-      <CitySelector
-        label="Ciudad de expedición"
-        setValue={(value) =>
-          setFields((prev_state) => ({ ...prev_state, city: value }))}
-        value={fields.city}
+        <TextField
+          disabled
+          fullWidth
+          label="Identificación"
+          name="number"
+          onChange={handleChange}
+          value={fields.number}
+        />
+        <SelectField
+          disabled
+          label="Tipo de identificación"
+          fullWidth
+          name="type"
+          onChange={handleChange}
+          value={fields.type}
+        >
+          <option value="CC">Cedula de Ciudadania</option>
+          <option value="CE">Cedula de Extranjeria</option>
+          <option value="PA">Pasaporte</option>
+          <option value="RC">Registro Civil</option>
+          <option value="TI">Tarjeta de Identidad</option>
+        </SelectField>
+        <CitySelector
+          label="Ciudad de expedición"
+          setValue={(value) =>
+            setFields((prev_state) => ({ ...prev_state, city: value }))}
+          value={fields.city}
+        />
+        <TextField
+          fullWidth
+          label="Fecha de expedición"
+          name="date"
+          onChange={handleChange}
+          type="date"
+          value={fields.date}
+        />
+      </CardForm>
+      <ReviewDialog
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={confirm_modal_open}
+        reviewed={fields.approved}
       />
-      <TextField
-        fullWidth
-        label="Fecha de expedición"
-        name="date"
-        onChange={handleChange}
-        type="date"
-        value={fields.date}
-      />
-    </CardForm>
+    </Fragment>
   );
 }

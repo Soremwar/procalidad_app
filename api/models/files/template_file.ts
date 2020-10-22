@@ -89,7 +89,7 @@ export const getFileHistory = async (
   format?: number,
   person?: number,
 ): Promise<FileHistory[]> => {
-  const { rows, query } = await postgres.query(
+  const { rows } = await postgres.query(
     `SELECT
       T.PK_PLANTILLA,
       T.NOMBRE,

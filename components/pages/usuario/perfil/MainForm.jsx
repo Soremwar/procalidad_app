@@ -20,8 +20,9 @@ import {
 } from "../../../../lib/api/generator.js";
 import CardForm from "./components/CardForm.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
-import SelectField from "../../../common/SelectField.jsx";
 import DateField from "../../../common/DateField";
+import SelectField from "../../../common/SelectField.jsx";
+import ReviewDialog from "../common/ReviewDialog.jsx";
 
 //TODO
 //The fetching of the text warning or any parameters should be globally defined(like generators)
@@ -206,6 +207,8 @@ export default function MainForm() {
   const [genders, setGenders] = useState([]);
   const [marital_statuses, setMaritalStatuses] = useState([]);
   const [reload_data, setReloadData] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [confirm_modal_open, setConfirmModalOpen] = useState(false);
 
   useEffect(() => {
     getGenders()
@@ -230,6 +233,7 @@ export default function MainForm() {
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
 
     getUserInformation()
       .then(async (response) => {
@@ -265,7 +269,10 @@ export default function MainForm() {
         }
       })
       .catch(() => console.error("could not fetch information"))
-      .finally(() => setReloadData(false));
+      .finally(() => {
+        setReloadData(false);
+        setLoading(false);
+      });
 
     return () => {
       active = false;
@@ -278,6 +285,8 @@ export default function MainForm() {
   };
 
   const handleSubmit = () => {
+    setLoading(true);
+
     setUserInformation(
       fields.birth_city || null,
       fields.birth_date || null,
@@ -297,163 +306,182 @@ export default function MainForm() {
         }
       })
       .catch(() => console.error("couldnt submit personal data"))
-      .finally(() => setReloadData(true));
+      .finally(() => {
+        setLoading(false);
+        setReloadData(true);
+      });
   };
 
   return (
-    <CardForm
-      approved={fields.approved}
-      helper_text={fields.comments}
-      onSubmit={handleSubmit}
-      title="Datos personales"
-    >
-      <Grid container spacing={10}>
-        <Grid item md={6} xs={12}>
-          <TextField
-            disabled
-            fullWidth
-            label="Nombre"
-            name="birth_date"
-            value={fields.name}
-          />
-          <CitySelector
-            label="Ciudad de nacimiento"
-            setValue={(value) =>
-              setFields((prev_state) => ({ ...prev_state, birth_city: value }))}
-            value={fields.birth_city}
-          />
-          <TextField
-            fullWidth
-            label="Fecha de nacimiento"
-            name="birth_date"
-            onChange={handleChange}
-            type="date"
-            value={fields.birth_date}
-          />
-          <SelectField
-            label="Género"
-            fullWidth
-            name="gender"
-            onChange={handleChange}
-            value={fields.gender}
-          >
-            {genders.map(({ id, name }) => (
-              <option key={id} value={id}>{name}</option>
-            ))}
-          </SelectField>
-          <SelectField
-            label="Estado civil"
-            fullWidth
-            name="civil_status"
-            onChange={handleChange}
-            value={fields.civil_status}
-          >
-            {marital_statuses.map(({ id, name }) => (
-              <option key={id} value={id}>{name}</option>
-            ))}
-          </SelectField>
-          <SelectField
-            label="Tipo de sangre"
-            fullWidth
-            name="blood_type"
-            onChange={handleChange}
-            value={fields.blood_type}
-          >
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
-          </SelectField>
-          <TextField
-            disabled
-            fullWidth
-            label="Celular"
-            name="cellphone"
-            value={fields.cellphone}
-          />
-          <TextField
-            fullWidth
-            label="Teléfono fijo"
-            name="phone"
-            onChange={handleChange}
-            value={fields.phone}
-          />
-        </Grid>
-        <Grid item md={6} xs={12}>
-          <ProfilePicture />
-          <br />
-          <SelectField
-            blank_value={false}
-            fullWidth
-            label="Libreta militar"
-            name="has_military_passbook"
-            onChange={(event) => {
-              const has_military_passbook = Boolean(Number(event.target.value));
-              setFields((prev_state) => ({
-                ...prev_state,
-                has_military_passbook,
-              }));
-            }}
-            value={Number(fields.has_military_passbook)}
-          >
-            <option value="0">No</option>
-            <option value="1">Si</option>
-          </SelectField>
-          {fields.has_military_passbook && (
+    <Fragment>
+      <CardForm
+        approved={fields.approved}
+        helper_text={fields.comments}
+        loading={loading}
+        onSubmit={() => setConfirmModalOpen(true)}
+        title="Datos personales"
+      >
+        <Grid container spacing={10}>
+          <Grid item md={6} xs={12}>
+            <TextField
+              disabled
+              fullWidth
+              label="Nombre"
+              name="birth_date"
+              value={fields.name}
+            />
+            <CitySelector
+              label="Ciudad de nacimiento"
+              setValue={(value) =>
+                setFields((prev_state) => ({
+                  ...prev_state,
+                  birth_city: value,
+                }))}
+              value={fields.birth_city}
+            />
             <TextField
               fullWidth
-              label="Numero libreta militar"
-              name="military_passbook"
+              label="Fecha de nacimiento"
+              name="birth_date"
               onChange={handleChange}
-              value={fields.military_passbook}
+              type="date"
+              value={fields.birth_date}
             />
-          )}
-          <TextField
-            fullWidth
-            InputProps={{
-              inputProps: {
-                maxLength: "320",
-              },
-            }}
-            label="Correo personal"
-            name="personal_email"
-            onChange={handleChange}
-            value={fields.personal_email}
-          />
-          <SelectField
-            blank_value={false}
-            fullWidth
-            label="Tarjeta profesional"
-            name="has_professional_card"
-            onChange={(event) => {
-              const has_professional_card = Boolean(Number(event.target.value));
-              setFields((prev_state) => ({
-                ...prev_state,
-                has_professional_card,
-              }));
-            }}
-            value={Number(fields.has_professional_card)}
-          >
-            <option value="0">No</option>
-            <option value="1">Si</option>
-          </SelectField>
-          {fields.has_professional_card
-            ? (
-              <DateField
+            <SelectField
+              label="Género"
+              fullWidth
+              name="gender"
+              onChange={handleChange}
+              value={fields.gender}
+            >
+              {genders.map(({ id, name }) => (
+                <option key={id} value={id}>{name}</option>
+              ))}
+            </SelectField>
+            <SelectField
+              label="Estado civil"
+              fullWidth
+              name="civil_status"
+              onChange={handleChange}
+              value={fields.civil_status}
+            >
+              {marital_statuses.map(({ id, name }) => (
+                <option key={id} value={id}>{name}</option>
+              ))}
+            </SelectField>
+            <SelectField
+              label="Tipo de sangre"
+              fullWidth
+              name="blood_type"
+              onChange={handleChange}
+              value={fields.blood_type}
+            >
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </SelectField>
+            <TextField
+              disabled
+              fullWidth
+              label="Celular"
+              name="cellphone"
+              value={fields.cellphone}
+            />
+            <TextField
+              fullWidth
+              label="Teléfono fijo"
+              name="phone"
+              onChange={handleChange}
+              value={fields.phone}
+            />
+          </Grid>
+          <Grid item md={6} xs={12}>
+            <ProfilePicture />
+            <br />
+            <SelectField
+              blank_value={false}
+              fullWidth
+              label="Libreta militar"
+              name="has_military_passbook"
+              onChange={(event) => {
+                const has_military_passbook = Boolean(
+                  Number(event.target.value),
+                );
+                setFields((prev_state) => ({
+                  ...prev_state,
+                  has_military_passbook,
+                }));
+              }}
+              value={Number(fields.has_military_passbook)}
+            >
+              <option value="0">No</option>
+              <option value="1">Si</option>
+            </SelectField>
+            {fields.has_military_passbook && (
+              <TextField
                 fullWidth
-                label="Expedición de tarjeta profesional"
-                name="professional_card_expedition"
+                label="Numero libreta militar"
+                name="military_passbook"
                 onChange={handleChange}
-                value={fields.professional_card_expedition}
+                value={fields.military_passbook}
               />
-            )
-            : null}
+            )}
+            <TextField
+              fullWidth
+              InputProps={{
+                inputProps: {
+                  maxLength: "320",
+                },
+              }}
+              label="Correo personal"
+              name="personal_email"
+              onChange={handleChange}
+              value={fields.personal_email}
+            />
+            <SelectField
+              blank_value={false}
+              fullWidth
+              label="Tarjeta profesional"
+              name="has_professional_card"
+              onChange={(event) => {
+                const has_professional_card = Boolean(
+                  Number(event.target.value),
+                );
+                setFields((prev_state) => ({
+                  ...prev_state,
+                  has_professional_card,
+                }));
+              }}
+              value={Number(fields.has_professional_card)}
+            >
+              <option value="0">No</option>
+              <option value="1">Si</option>
+            </SelectField>
+            {fields.has_professional_card
+              ? (
+                <DateField
+                  fullWidth
+                  label="Expedición de tarjeta profesional"
+                  name="professional_card_expedition"
+                  onChange={handleChange}
+                  value={fields.professional_card_expedition}
+                />
+              )
+              : null}
+          </Grid>
         </Grid>
-      </Grid>
-    </CardForm>
+      </CardForm>
+      <ReviewDialog
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={confirm_modal_open}
+        reviewed={fields.approved}
+      />
+    </Fragment>
   );
 }

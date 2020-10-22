@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { TextField } from "@material-ui/core";
 import { fetchUserApi } from "../../../../lib/api/generator.js";
 import CitySelector from "../../../common/CitySelector.jsx";
 import CardForm from "./components/CardForm.jsx";
+import ReviewDialog from "../common/ReviewDialog";
 
 const getUserResidence = () => fetchUserApi();
 const setUserResidence = (
@@ -28,9 +29,12 @@ export default function ResidenceForm() {
     comments: "",
   });
   const [reload_data, setReloadData] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [confirm_modal_open, setConfirmModalOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
 
     getUserResidence()
       .then(async (request) => {
@@ -50,7 +54,10 @@ export default function ResidenceForm() {
         }
       })
       .catch(() => console.error("couldnt fetch document"))
-      .finally(() => setReloadData(false));
+      .finally(() => {
+        setLoading(false);
+        setReloadData(false);
+      });
 
     return () => {
       active = false;
@@ -63,6 +70,8 @@ export default function ResidenceForm() {
   };
 
   const handleSubmit = () => {
+    setLoading(true);
+
     setUserResidence(
       fields.city || null,
       fields.address || null,
@@ -75,29 +84,41 @@ export default function ResidenceForm() {
       .catch(() => {
         console.error("couldnt submit residence data");
       })
-      .finally(() => setReloadData(true));
+      .finally(() => {
+        setLoading(false);
+        setReloadData(true);
+      });
   };
 
   return (
-    <CardForm
-      approved={fields.approved}
-      helper_text={fields.comments}
-      onSubmit={handleSubmit}
-      title="Residencia"
-    >
-      <CitySelector
-        label="Ciudad de residencia"
-        setValue={(value) =>
-          setFields((prev_state) => ({ ...prev_state, city: value }))}
-        value={fields.city}
+    <Fragment>
+      <CardForm
+        approved={fields.approved}
+        helper_text={fields.comments}
+        loading={loading}
+        onSubmit={() => setConfirmModalOpen(true)}
+        title="Residencia"
+      >
+        <CitySelector
+          label="Ciudad de residencia"
+          setValue={(value) =>
+            setFields((prev_state) => ({ ...prev_state, city: value }))}
+          value={fields.city}
+        />
+        <TextField
+          fullWidth
+          label="Direccion"
+          name="address"
+          onChange={handleChange}
+          value={fields.address}
+        />
+      </CardForm>
+      <ReviewDialog
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={confirm_modal_open}
+        reviewed={fields.approved}
       />
-      <TextField
-        fullWidth
-        label="Direccion"
-        name="address"
-        onChange={handleChange}
-        value={fields.address}
-      />
-    </CardForm>
+    </Fragment>
   );
 }
