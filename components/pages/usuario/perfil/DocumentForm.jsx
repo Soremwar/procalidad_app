@@ -140,10 +140,10 @@ export default function DocumentForm() {
         />
       </CardForm>
       <ReviewDialog
+        approved={fields.approved}
         onClose={() => setConfirmModalOpen(false)}
         onConfirm={handleSubmit}
         open={confirm_modal_open}
-        reviewed={fields.approved}
       />
     </Fragment>
   );

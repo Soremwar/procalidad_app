@@ -17,21 +17,38 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+/**
+ * @typedef SelectOptions
+ * @type Array
+ * @property {number | string} 0 Value to be set on selection
+ * @property {string} 1 Label to be displayed
+ * */
+
+/**
+ * @callback changeCallback
+ * @param {React.ChangeEvent} event
+ * @param {number | string} value
+ * */
+
 //TODO
 //Disabled doesnt do anything
-export default ({
+/**
+ * @param {object} props
+ * @param {changeCallback} props.onChange
+ * @param {SelectOptions} props.options
+ * */
+export default function AdvancedSelectField ({
   disabled = false,
   fullWidth = false,
   label = null,
   name,
-  onChange = false,
+  onChange ,
   onInputChange = false,
   options = [],
   required = false,
   variant = "standard",
   value: external_value = null,
-  ...props
-}) => {
+}) {
   const classes = useStyles();
 
   const [value, setValue] = useState(external_value);
@@ -69,7 +86,6 @@ export default ({
         renderInput={(params) => (
           <TextField
             {...params}
-            {...props}
             label={label}
             name={name}
             required={required}

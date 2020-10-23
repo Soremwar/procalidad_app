@@ -1,19 +1,18 @@
 import type { RouterContext } from "oak";
 import Ajv from "ajv";
-import { FormationType } from "../../../api/models/users/formation_level.ts";
-import * as formation_title_model from "../../../api/models/users/formation_title.ts";
-import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import { Message } from "../../http_utils.ts";
-import { tableRequestHandler } from "../../../api/common/table.ts";
-import { decodeToken } from "../../../lib/jwt.ts";
-import { castStringToBoolean } from "../../../lib/utils/boolean.js";
+import { FormationType } from "../../../../api/models/users/formation_level.ts";
+import * as formation_title_model from "../../../../api/models/users/formation_title.ts";
+import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
+import { Message } from "../../../http_utils.ts";
+import { tableRequestHandler } from "../../../../api/common/table.ts";
+import { requestReview } from "../../../../api/reviews/user_formation.ts";
+import { decodeToken } from "../../../../lib/jwt.ts";
 import {
-  BOOLEAN,
   STANDARD_DATE_STRING,
   STANDARD_DATE_STRING_OR_NULL,
   TRUTHY_INTEGER,
   TRUTHY_INTEGER_OR_NULL,
-} from "../../../lib/ajv/types.js";
+} from "../../../../lib/ajv/types.js";
 
 const update_request = {
   $id: "update",
@@ -21,7 +20,6 @@ const update_request = {
     "end_date": STANDARD_DATE_STRING_OR_NULL,
     "formation_level": TRUTHY_INTEGER,
     "start_date": STANDARD_DATE_STRING,
-    "status": BOOLEAN,
     "teacher": TRUTHY_INTEGER_OR_NULL,
     "title": {
       maxLength: 50,
@@ -36,7 +34,6 @@ const create_request = Object.assign({}, update_request, {
     "end_date",
     "formation_level",
     "start_date",
-    "status",
     "teacher",
     "title",
   ],
@@ -64,7 +61,7 @@ export const createTrainingTitle = async (
     throw new RequestSyntaxError();
   }
 
-  response.body = await formation_title_model.create(
+  const formation_title = await formation_title_model.create(
     value.formation_level,
     user_id,
     value.title,
@@ -73,9 +70,12 @@ export const createTrainingTitle = async (
     value.end_date,
     null,
     value.teacher,
-    castStringToBoolean(value.status),
     null,
   );
+
+  await requestReview(formation_title.id);
+
+  response.body = formation_title;
 };
 
 export const deleteTrainingTitle = async (
@@ -175,16 +175,19 @@ export const updateTrainingTitle = async (
     throw new NotFoundError();
   }
 
-  response.body = await training_title.update(
+  await training_title.update(
     null,
     value.start_date,
     value.end_date,
     null,
     undefined,
     value.teacher,
-    castStringToBoolean(value.status),
   )
     .catch(() => {
       throw new Error("No fue posible actualizar el título de formación");
     });
+
+  await requestReview(training_title.id);
+
+  response.body = training_title;
 };

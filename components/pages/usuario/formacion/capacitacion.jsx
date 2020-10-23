@@ -6,18 +6,19 @@ import React, {
   useState,
 } from "react";
 import { DialogContentText, TextField } from "@material-ui/core";
-import { formatResponseJson } from "../../../lib/api/request.js";
+import { formatResponseJson } from "../../../../lib/api/request.js";
 import {
   fetchFormationLevelApi,
   fetchPeopleApi,
   fetchUserTrainingFormation,
-} from "../../../lib/api/generator.js";
-import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
-import AsyncTable from "../../common/AsyncTable/Table.jsx";
-import DateField from "../../common/DateField.jsx";
-import DialogForm from "../../common/DialogForm.jsx";
-import Title from "../../common/Title.jsx";
-import SelectField from "../../common/SelectField.jsx";
+} from "../../../../lib/api/generator.js";
+import AdvancedSelectField from "../../../common/AdvancedSelectField.jsx";
+import AsyncTable from "../../../common/AsyncTable/Table.jsx";
+import DateField from "../../../common/DateField.jsx";
+import DialogForm from "../../../common/DialogForm.jsx";
+import Title from "../../../common/Title.jsx";
+import SelectField from "../../../common/SelectField.jsx";
+import ReviewBadge from "../common/ReviewBadge";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
@@ -39,7 +40,6 @@ const createTrainingTitle = async (
   end_date,
   formation_level,
   start_date,
-  status,
   teacher,
   title,
 ) =>
@@ -48,7 +48,6 @@ const createTrainingTitle = async (
       end_date,
       formation_level,
       start_date,
-      status,
       teacher,
       title,
     }),
@@ -62,14 +61,12 @@ const updateTrainingTitle = async (
   id,
   end_date,
   start_date,
-  status,
   teacher,
 ) =>
   fetchUserTrainingFormation(id, {
     body: JSON.stringify({
       end_date,
       start_date,
-      status,
       teacher,
     }),
     headers: {
@@ -112,6 +109,16 @@ const headers = [
     label: "Instructor",
     searchable: true,
   },
+  {
+    displayAs: (_, value) => (
+      <ReviewBadge status={Number(value) || 0} />
+    ),
+    id: "review_status",
+    numeric: false,
+    disablePadding: false,
+    searchable: false,
+    orderable: false,
+  },
 ];
 
 const ParameterContext = createContext({
@@ -153,7 +160,6 @@ const AddModal = ({
       fields.end_date || null,
       fields.formation_level,
       fields.start_date,
-      fields.status,
       fields.teacher || null,
       fields.title,
     );
@@ -231,8 +237,8 @@ const AddModal = ({
         required
         value={Number(fields.status)}
       >
-        <option value="0">Finalizado</option>
-        <option value="1">En curso</option>
+        <option value="0">En curso</option>
+        <option value="1">Finalizado</option>
       </SelectField>
       <DateField
         fullWidth
@@ -242,15 +248,18 @@ const AddModal = ({
         required
         value={fields.start_date}
       />
-      <DateField
-        disabled={fields.status}
-        fullWidth
-        label="Fecha de finalización"
-        name="end_date"
-        onChange={handleChange}
-        required
-        value={fields.end_date}
-      />
+      {fields.status
+        ? (
+          <DateField
+            fullWidth
+            label="Fecha de finalización"
+            name="end_date"
+            onChange={handleChange}
+            required
+            value={fields.end_date}
+          />
+        )
+        : null}
       <AdvancedSelectField
         fullWidth
         name="teacher"
@@ -279,7 +288,7 @@ const EditModal = ({
     end_date: "",
     formation_level: "",
     start_date: "",
-    status: "",
+    status: false,
     teacher: "",
     title: "",
   });
@@ -299,7 +308,6 @@ const EditModal = ({
       data.id,
       fields.end_date || null,
       fields.start_date,
-      fields.status,
       fields.teacher || null,
     );
 
@@ -319,7 +327,7 @@ const EditModal = ({
         end_date: data.end_date,
         formation_level: data.formation_level,
         start_date: data.start_date,
-        status: data.status,
+        status: !!data.end_date,
         teacher: data.teacher,
         title: data.title,
       });
@@ -359,6 +367,7 @@ const EditModal = ({
       />
       <SelectField
         blank_value={false}
+        disabled={!!data.end_date}
         fullWidth
         label="Estado"
         name="status"
@@ -369,8 +378,8 @@ const EditModal = ({
         required
         value={Number(fields.status)}
       >
-        <option value="0">Finalizado</option>
-        <option value="1">En curso</option>
+        <option value="0">En curso</option>
+        <option value="1">Finalizado</option>
       </SelectField>
       <DateField
         fullWidth
@@ -380,15 +389,18 @@ const EditModal = ({
         required
         value={fields.start_date}
       />
-      <DateField
-        disabled={fields.status}
-        fullWidth
-        label="Fecha de finalización"
-        name="end_date"
-        onChange={handleChange}
-        required
-        value={fields.end_date}
-      />
+      {fields.status
+        ? (
+          <DateField
+            fullWidth
+            label="Fecha de finalización"
+            name="end_date"
+            onChange={handleChange}
+            required
+            value={fields.end_date}
+          />
+        )
+        : null}
       <AdvancedSelectField
         fullWidth
         name="teacher"
@@ -458,7 +470,7 @@ const DeleteModal = ({
   );
 };
 
-export default () => {
+export default function Capacitacion() {
   const [parameters, setParameters] = useState({
     formation_levels: [],
     people: [],
@@ -552,4 +564,4 @@ export default () => {
       />
     </Fragment>
   );
-};
+}

@@ -13,44 +13,49 @@ import {
   Tooltip,
 } from "@material-ui/core";
 import { GetApp as DownloadIcon } from "@material-ui/icons";
-import { formatResponseJson } from "../../../lib/api/request.js";
+import { formatResponseJson } from "../../../../lib/api/request.js";
 import {
+  fetchCountryApi,
   fetchFormationLevelApi,
-  fetchUserContinuousFormation,
-} from "../../../lib/api/generator.js";
-import { formatDateToStringDatetime } from "../../../lib/date/mod.js";
-import AsyncTable from "../../common/AsyncTable/Table.jsx";
-import DateField from "../../common/DateField.jsx";
-import DialogForm from "../../common/DialogForm.jsx";
-import FileField from "../../common/FileField.jsx";
-import Title from "../../common/Title.jsx";
-import SelectField from "../../common/SelectField.jsx";
+  fetchUserAcademicFormation,
+} from "../../../../lib/api/generator.js";
+import { formatDateToStringDatetime } from "../../../../lib/date/mod.js";
+import AsyncTable from "../../../common/AsyncTable/Table.jsx";
+import CitySelector from "../../../common/CitySelector.jsx";
+import DateField from "../../../common/DateField.jsx";
+import DialogForm from "../../../common/DialogForm.jsx";
+import FileField from "../../../common/FileField.jsx";
+import Title from "../../../common/Title.jsx";
+import ReviewBadge from "../common/ReviewBadge.jsx";
+import SelectField from "../../../common/SelectField.jsx";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
     params: {
-      formation_type: "Continuada",
+      formation_type: "Academica",
     },
   });
 
-const getContinuousTitle = (id) => fetchUserContinuousFormation(id);
+const getAcademicTitle = (id) => fetchUserAcademicFormation(id);
 
-const createContinuousTitle = async (
+const createAcademicTitle = async (
+  city,
   end_date,
   formation_level,
   institution,
   start_date,
-  status,
   title,
+  title_is_convalidated,
 ) =>
-  fetchUserContinuousFormation("", {
+  fetchUserAcademicFormation("", {
     body: JSON.stringify({
+      city,
       end_date,
       formation_level,
       institution,
       start_date,
-      status,
       title,
+      title_is_convalidated,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -58,19 +63,21 @@ const createContinuousTitle = async (
     method: "POST",
   });
 
-const updateContinuousTitle = async (
+const updateAcademicTitle = async (
   id,
+  city,
   end_date,
   institution,
   start_date,
-  status,
+  title_is_convalidated,
 ) =>
-  fetchUserContinuousFormation(id, {
+  fetchUserAcademicFormation(id, {
     body: JSON.stringify({
+      city,
       end_date,
       institution,
       start_date,
-      status,
+      title_is_convalidated,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -78,8 +85,8 @@ const updateContinuousTitle = async (
     method: "PUT",
   });
 
-const deleteContinuousTitle = async (id) =>
-  fetchUserContinuousFormation(id, {
+const deleteAcademicFormation = async (id) =>
+  fetchUserAcademicFormation(id, {
     method: "DELETE",
   });
 
@@ -90,11 +97,13 @@ const uploadCertificate = async (
 ) => {
   const data = new FormData();
   data.append(name, file);
-  return fetchUserContinuousFormation(`certificado/${id}`, {
+  return fetchUserAcademicFormation(`certificado/${id}`, {
     body: data,
     method: "PUT",
   });
 };
+
+const getCurrentCountry = () => fetchCountryApi("Colombia");
 
 const headers = [
   {
@@ -154,7 +163,7 @@ const headers = [
     id: "file",
     numeric: false,
     disablePadding: false,
-    label: "Certificado",
+    label: "Cargar certificado",
     searchable: false,
     orderable: false,
   },
@@ -170,9 +179,20 @@ const headers = [
     label: "Fecha de carga",
     searchable: true,
   },
+  {
+    displayAs: (_, value) => (
+      <ReviewBadge status={Number(value) || 0} />
+    ),
+    id: "review_status",
+    numeric: false,
+    disablePadding: false,
+    searchable: false,
+    orderable: false,
+  },
 ];
 
 const ParameterContext = createContext({
+  current_country: null,
   formation_levels: [],
 });
 
@@ -220,16 +240,20 @@ const AddModal = ({
   updateTable,
 }) => {
   const {
+    current_country,
     formation_levels,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
+    city: "",
+    country: "",
     end_date: "",
     formation_level: "",
     institution: "",
     start_date: "",
     status: false,
     title: "",
+    title_is_convalidated: false,
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -243,13 +267,14 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createContinuousTitle(
+    const request = await createAcademicTitle(
+      fields.city,
       fields.end_date || null,
       fields.formation_level,
       fields.institution,
       fields.start_date,
-      fields.status,
       fields.title,
+      fields.country != current_country ? fields.title_is_convalidated : null,
     );
 
     if (request.ok) {
@@ -265,12 +290,15 @@ const AddModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
+        country: "",
+        city: "",
         end_date: "",
         formation_level: "",
         institution: "",
         start_date: "",
         status: false,
         title: "",
+        title_is_convalidated: false,
       });
       setLoading(false);
       setError(null);
@@ -338,8 +366,8 @@ const AddModal = ({
         required
         value={Number(fields.status)}
       >
-        <option value="0">Finalizado</option>
-        <option value="1">En curso</option>
+        <option value="0">En curso</option>
+        <option value="1">Finalizado</option>
       </SelectField>
       <DateField
         fullWidth
@@ -349,15 +377,46 @@ const AddModal = ({
         required
         value={fields.start_date}
       />
-      <DateField
-        disabled={fields.status}
-        fullWidth
-        label="Fecha de finalización"
-        name="end_date"
-        onChange={handleChange}
+      {fields.status
+        ? (
+          <DateField
+            fullWidth
+            label="Fecha de finalización"
+            name="end_date"
+            onChange={handleChange}
+            required
+            value={fields.end_date}
+          />
+        )
+        : null}
+      <CitySelector
+        label="Lugar de cursado"
         required
-        value={fields.end_date}
+        setValue={(city, _state, country) =>
+          setFields((prev_state) => ({ ...prev_state, city, country }))}
+        value={fields.city}
       />
+      {fields.country && fields.country != current_country
+        ? (
+          <SelectField
+            blank_value={false}
+            fullWidth
+            label="Título convalidado"
+            name="title_is_convalidated"
+            onChange={(event) => {
+              const title_is_convalidated = Boolean(Number(event.target.value));
+              setFields((prevState) => ({
+                ...prevState,
+                title_is_convalidated,
+              }));
+            }}
+            value={Number(fields.title_is_convalidated)}
+          >
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+          </SelectField>
+        )
+        : null}
     </DialogForm>
   );
 };
@@ -369,16 +428,20 @@ const EditModal = ({
   updateTable,
 }) => {
   const {
+    current_country,
     formation_levels,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
+    city: "",
+    country: "",
     end_date: "",
     formation_level: "",
     institution: "",
     start_date: "",
     status: "",
     title: "",
+    title_is_convalidated: false,
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -392,12 +455,13 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await updateContinuousTitle(
+    const request = await updateAcademicTitle(
       data.id,
+      fields.city,
       fields.end_date || null,
       fields.institution,
       fields.start_date,
-      fields.status,
+      fields.country != current_country ? fields.title_is_convalidated : null,
     );
 
     if (request.ok) {
@@ -413,12 +477,14 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
-        end_date: data.end_date,
+        city: data.city,
+        end_date: data.end_date || "",
         formation_level: data.formation_level,
         institution: data.institution,
         start_date: data.start_date,
-        status: data.status,
+        status: !!data.end_date,
         title: data.title,
+        title_is_convalidated: data.title_is_convalidated || false,
       });
       setLoading(false);
       setError(null);
@@ -469,6 +535,7 @@ const EditModal = ({
       />
       <SelectField
         blank_value={false}
+        disabled={!!data.end_date}
         fullWidth
         label="Estado"
         name="status"
@@ -479,8 +546,8 @@ const EditModal = ({
         required
         value={Number(fields.status)}
       >
-        <option value="0">Finalizado</option>
-        <option value="1">En curso</option>
+        <option value="0">En curso</option>
+        <option value="1">Finalizado</option>
       </SelectField>
       <DateField
         fullWidth
@@ -490,15 +557,46 @@ const EditModal = ({
         required
         value={fields.start_date}
       />
-      <DateField
-        disabled={fields.status}
-        fullWidth
-        label="Fecha de finalización"
-        name="end_date"
-        onChange={handleChange}
+      {fields.status
+        ? (
+          <DateField
+            fullWidth
+            label="Fecha de finalización"
+            name="end_date"
+            onChange={handleChange}
+            required
+            value={fields.end_date}
+          />
+        )
+        : null}
+      <CitySelector
+        label="Lugar de cursado"
         required
-        value={fields.end_date}
+        setValue={(city, _state, country) =>
+          setFields((prev_state) => ({ ...prev_state, city, country }))}
+        value={fields.city}
       />
+      {fields.country && fields.country != current_country
+        ? (
+          <SelectField
+            blank_value={false}
+            fullWidth
+            label="Título convalidado"
+            name="title_is_convalidated"
+            onChange={(event) => {
+              const title_is_convalidated = Boolean(Number(event.target.value));
+              setFields((prevState) => ({
+                ...prevState,
+                title_is_convalidated,
+              }));
+            }}
+            value={Number(fields.title_is_convalidated)}
+          >
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+          </SelectField>
+        )
+        : null}
     </DialogForm>
   );
 };
@@ -516,7 +614,7 @@ const DeleteModal = ({
     setLoading(true);
     setError(null);
 
-    const delete_progress = selected.map((id) => deleteContinuousTitle(id));
+    const delete_progress = selected.map((id) => deleteAcademicFormation(id));
 
     Promise.allSettled(delete_progress)
       .then((results) =>
@@ -559,28 +657,29 @@ const DeleteModal = ({
   );
 };
 
-export default () => {
+export default function Academica() {
   const [parameters, setParameters] = useState({
+    current_country: null,
     formation_levels: [],
   });
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
-  const [selected_continuous_title, setSelectedContinuousTitle] = useState({});
+  const [selected_academic_title, setSelectedAcademicTitle] = useState({});
   const [selected, setSelected] = useState([]);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    await getContinuousTitle(id)
+    await getAcademicTitle(id)
       .then(async (response) => {
         if (response.ok) {
-          setSelectedContinuousTitle(await response.json());
+          setSelectedAcademicTitle(await response.json());
           setEditModalOpen(true);
         } else {
           throw new Error();
         }
       })
-      .catch((e) => console.error("Couldnt load the continuous title"));
+      .catch(() => console.error("Couldnt load the academic title"));
   };
 
   const handleDeleteModalOpen = async (selected) => {
@@ -593,6 +692,25 @@ export default () => {
   };
 
   useEffect(() => {
+    getCurrentCountry()
+      .then(async (response) => {
+        if (response.ok) {
+          /**
+           * @type {object}
+           * @property {number} pk_pais
+           * */
+          const current_country = await response.json();
+          setParameters(
+            ((prevState) => ({
+              ...prevState,
+              current_country: current_country.pk_pais,
+            })),
+          );
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("Couldnt fetch current country"));
     getFormationLevels()
       .then(async (response) => {
         if (response.ok) {
@@ -608,7 +726,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Formación continuada"} />
+      <Title title={"Formación académica"} />
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}
@@ -616,7 +734,7 @@ export default () => {
           updateTable={updateTable}
         />
         <EditModal
-          data={selected_continuous_title}
+          data={selected_academic_title}
           is_open={is_edit_modal_open}
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
@@ -635,8 +753,8 @@ export default () => {
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
-        url={"usuario/formacion/continuada/table"}
+        url={"usuario/formacion/academica/table"}
       />
     </Fragment>
   );
-};
+}

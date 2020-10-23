@@ -6,6 +6,7 @@ import {
   TABLE as FORMATION_LEVEL_TABLE,
 } from "./formation_level.ts";
 import { TABLE as PEOPLE_TABLE } from "../ORGANIZACION/people.ts";
+import { DataType, TABLE as REVIEW_TABLE } from "./data_review.ts";
 
 export const TABLE = "USUARIOS.FORMACION";
 
@@ -21,8 +22,11 @@ class FormationTitle {
     public city: number | null,
     public generic_file: number | null,
     public teacher: number | null,
-    public status: boolean,
     public title_is_convalidated: boolean | null,
+    //Both these fields don't exist in database
+    //They are indicators for the approval status of the record
+    protected approved: boolean,
+    protected observations: string | null,
   ) {}
 
   async delete(): Promise<void> {
@@ -40,9 +44,18 @@ class FormationTitle {
     city: number | null = this.city,
     generic_file: number | null = this.generic_file,
     teacher: number | null = this.teacher,
-    status: boolean = this.status,
     title_is_convalidated: boolean | null = this.title_is_convalidated,
   ): Promise<FormationTitle> {
+    /**
+     * IMPORTANT CONSTRAINT
+     * Once end_date has been set it can be changed, but not nullified
+     * If an update is attempted not following this condition, postgres
+     * will fail on constraint
+     */
+    if (!end_date && this.end_date) {
+      end_date = this.end_date;
+    }
+
     Object.assign(this, {
       institution,
       start_date,
@@ -50,7 +63,6 @@ class FormationTitle {
       city,
       generic_file,
       teacher,
-      status,
       title_is_convalidated,
     });
 
@@ -62,8 +74,7 @@ class FormationTitle {
         FK_CIUDAD = $5,
         FK_ARCHIVO_GENERICO = $6,
         FK_INSTRUCTOR = $7,
-        ESTADO = $8,
-        BAN_TITULO_CONVALIDADO = $9
+        BAN_TITULO_CONVALIDADO = $8
       WHERE PK_FORMACION = $1`,
       this.id,
       this.institution,
@@ -72,7 +83,6 @@ class FormationTitle {
       this.city,
       this.generic_file,
       this.teacher,
-      this.status,
       this.title_is_convalidated,
     );
 
@@ -89,7 +99,6 @@ export const create = async (
   end_date: string | null,
   city: number | null,
   teacher: number | null,
-  status: boolean,
   title_is_convalidated: boolean | null,
 ): Promise<FormationTitle> => {
   const { rows } = await postgres.query(
@@ -102,7 +111,6 @@ export const create = async (
       FECHA_FIN,
       FK_CIUDAD,
       FK_INSTRUCTOR,
-      ESTADO,
       BAN_TITULO_CONVALIDADO
     ) VALUES (
       $1,
@@ -113,8 +121,7 @@ export const create = async (
       $6,
       $7,
       $8,
-      $9,
-      $10
+      $9
     ) RETURNING PK_FORMACION`,
     formation_level,
     user,
@@ -124,7 +131,6 @@ export const create = async (
     end_date,
     city,
     teacher,
-    status,
     title_is_convalidated,
   );
 
@@ -141,8 +147,9 @@ export const create = async (
     city,
     null,
     teacher,
-    status,
     title_is_convalidated,
+    false,
+    null,
   );
 };
 
@@ -162,13 +169,17 @@ export const getAll = async (
       T.FK_CIUDAD,
       T.FK_ARCHIVO_GENERICO,
       T.FK_INSTRUCTOR,
-      T.ESTADO,
-      T.BAN_TITULO_CONVALIDADO
-     FROM ${TABLE} T
-     JOIN ${FORMATION_LEVEL_TABLE} L
-       ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
-     WHERE L.TIPO_FORMACION = '${formation_type}'
-     ${user ? `AND T.FK_USUARIO = ${user}` : ""}`,
+      T.BAN_TITULO_CONVALIDADO,
+      R.BAN_APROBADO,
+      R.OBSERVACION
+    FROM ${TABLE} T
+    JOIN ${FORMATION_LEVEL_TABLE} L
+      ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
+    JOIN ${REVIEW_TABLE} R
+      ON T.PK_FORMACION = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
+    WHERE L.TIPO_FORMACION = '${formation_type}'
+    ${user ? `AND T.FK_USUARIO = ${user}` : ""}`,
   );
 
   return rows.map((row: [
@@ -182,50 +193,10 @@ export const getAll = async (
     number | null,
     number,
     number | null,
-    boolean,
     boolean | null,
+    boolean,
+    string | null,
   ]) => new FormationTitle(...row));
-};
-
-export const findById = async (
-  id: number,
-): Promise<FormationTitle | null> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      PK_FORMACION,
-      FK_NIVEL_FORMACION,
-      TITULO,
-      INSTITUCION,
-      TO_CHAR(FECHA_INICIO, 'YYYY-MM-DD'),
-      TO_CHAR(FECHA_FIN, 'YYYY-MM-DD'),
-      FK_CIUDAD,
-      FK_ARCHIVO_GENERICO,
-      FK_INSTRUCTOR,
-      ESTADO,
-      BAN_TITULO_CONVALIDADO
-     FROM ${TABLE}
-     WHERE PK_FORMACION = $1`,
-    id,
-  );
-
-  if (!rows.length) return null;
-
-  return new FormationTitle(
-    ...rows[0] as [
-      number,
-      number,
-      number,
-      string,
-      string | null,
-      string,
-      string | null,
-      number | null,
-      number,
-      number | null,
-      boolean,
-      boolean | null,
-    ],
-  );
 };
 
 export const findByIdAndUser = async (
@@ -234,21 +205,25 @@ export const findByIdAndUser = async (
 ): Promise<FormationTitle | null> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_FORMACION,
-      FK_NIVEL_FORMACION,
-      FK_USUARIO,
-      TITULO,
-      INSTITUCION,
-      TO_CHAR(FECHA_INICIO, 'YYYY-MM-DD'),
-      TO_CHAR(FECHA_FIN, 'YYYY-MM-DD'),
-      FK_CIUDAD,
-      FK_ARCHIVO_GENERICO,
-      FK_INSTRUCTOR,
-      ESTADO,
-      BAN_TITULO_CONVALIDADO
-     FROM ${TABLE}
-     WHERE PK_FORMACION = $1
-     AND FK_USUARIO = $2`,
+      T.PK_FORMACION,
+      T.FK_NIVEL_FORMACION,
+      T.FK_USUARIO,
+      T.TITULO,
+      T.INSTITUCION,
+      TO_CHAR(T.FECHA_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(T.FECHA_FIN, 'YYYY-MM-DD'),
+      T.FK_CIUDAD,
+      T.FK_ARCHIVO_GENERICO,
+      T.FK_INSTRUCTOR,
+      T.BAN_TITULO_CONVALIDADO,
+      R.BAN_APROBADO,
+      R.OBSERVACION
+    FROM ${TABLE} T
+    JOIN ${REVIEW_TABLE} R
+      ON T.PK_FORMACION = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
+    WHERE T.PK_FORMACION = $1
+    AND T.FK_USUARIO = $2`,
     id,
     user,
   );
@@ -267,8 +242,9 @@ export const findByIdAndUser = async (
       number | null,
       number,
       number | null,
-      boolean,
       boolean | null,
+      boolean,
+      string | null,
     ],
   );
 };
@@ -286,6 +262,7 @@ class TableData {
       extensions: string[];
     },
     public readonly upload_date: string,
+    public readonly review_status: number,
   ) {}
 }
 
@@ -302,22 +279,30 @@ export const generateTableData = (
   ): Promise<TableResult> => {
     const base_query = (
       `SELECT
-      T.PK_FORMACION AS ID,
-      L.NOMBRE AS FORMATION_LEVEL,
-      T.INSTITUCION AS INSTITUTION,
-      T.TITULO AS TITLE,
-      CASE WHEN T.ESTADO = TRUE THEN 'En curso' ELSE 'Finalizado' END AS STATUS,
-      (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_INSTRUCTOR) AS TEACHER,
-      T.FK_ARCHIVO_GENERICO,
-      F.EXTENSIONES,
-      F.FEC_CARGA AS UPLOAD_DATE
-    FROM ${TABLE} AS T
-    JOIN ${FORMATION_LEVEL_TABLE} AS L
-      ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
-    LEFT JOIN ${GENERIC_FILE_TABLE} AS F
-      ON F.PK_ARCHIVO = T.FK_ARCHIVO_GENERICO
-    WHERE L.TIPO_FORMACION = '${formation_type}'
-    AND T.FK_USUARIO = ${user_id}`
+        T.PK_FORMACION AS ID,
+        L.NOMBRE AS FORMATION_LEVEL,
+        T.INSTITUCION AS INSTITUTION,
+        T.TITULO AS TITLE,
+        CASE WHEN T.FECHA_FIN IS NOT NULL AND T.FECHA_FIN < CURRENT_DATE THEN 'Finalizado' ELSE 'En curso' END AS STATUS,
+        (SELECT NOMBRE FROM ${PEOPLE_TABLE} WHERE PK_PERSONA = FK_INSTRUCTOR) AS TEACHER,
+        T.FK_ARCHIVO_GENERICO,
+        F.EXTENSIONES,
+        F.FEC_CARGA AS UPLOAD_DATE,
+        CASE
+          WHEN R.BAN_APROBADO = FALSE AND R.OBSERVACION IS NOT NULL THEN 0
+          WHEN R.BAN_APROBADO = TRUE THEN 1
+          ELSE 2
+        END AS REVIEW_STATUS
+      FROM ${TABLE} AS T
+      JOIN ${FORMATION_LEVEL_TABLE} AS L
+        ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
+      LEFT JOIN ${GENERIC_FILE_TABLE} AS F
+        ON F.PK_ARCHIVO = T.FK_ARCHIVO_GENERICO
+      JOIN ${REVIEW_TABLE} AS R
+        ON T.PK_FORMACION = R.FK_DATOS
+        AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
+      WHERE L.TIPO_FORMACION = '${formation_type}'
+      AND T.FK_USUARIO = ${user_id}`
     );
 
     const { count, data } = await getTableModels(
@@ -339,6 +324,7 @@ export const generateTableData = (
       number,
       string[],
       string,
+      number,
     ]) =>
       new TableData(
         x[0],
@@ -352,6 +338,7 @@ export const generateTableData = (
           extensions: x[7],
         },
         x[8],
+        x[9],
       )
     );
 

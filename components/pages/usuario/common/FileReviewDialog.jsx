@@ -7,11 +7,6 @@ import {
   DialogContentText,
 } from "@material-ui/core";
 
-const ALREADY_APPROVED_WARNING =
-  "Esta información ya se encuentra aprobada por el equipo de recursos humanos.\n Al modificarla, esta será revisada nuevamente antes de ser incluida en su hoja de vida";
-const TO_BE_REVIEWED_WARNING =
-  "La información en este formulario será revisada por el equipo de recursos humanos antes de ser incluida en su hoja de vida";
-
 /**
  * @callback voidCallback
  * @return {void}
@@ -19,13 +14,11 @@ const TO_BE_REVIEWED_WARNING =
 
 /**
  * @param {object} props
- * @param {boolean} props.approved This prop indicates if data was already reviewed, it will change the text displayed
  * @param {voidCallback} props.onClose Will be called when the dialog is cancelled or clicked outside
  * @param {voidCallback} props.onConfirm Will be called when the dialog is confirmed
  * @param {boolean} props.open
  * */
-export default function ReviewDialog({
-  approved,
+export default function FileReviewDialog({
   onClose,
   onConfirm,
   open,
@@ -42,7 +35,8 @@ export default function ReviewDialog({
     >
       <DialogContent>
         <DialogContentText style={{ whiteSpace: "pre-line" }}>
-          {approved ? ALREADY_APPROVED_WARNING : TO_BE_REVIEWED_WARNING}
+          Este formulario solo será revisado por recursos humanos después de que
+          usted cargue el soporte correspondiente
           <br />
           <br />
           ¿Desea continuar?

@@ -452,6 +452,21 @@ const structure = [
       },
     ],
   },
+  {
+    label: "Recursos humanos",
+    icon: <AccountBoxIcon />,
+    children: [
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Datos personales",
+        link: "/recursos_humanos/perfil",
+      },
+    ],
+  },
 ];
 
 const Sidebar = ({ location }) => {

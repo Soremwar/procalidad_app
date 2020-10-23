@@ -75,6 +75,7 @@ const useStyles = makeStyles((theme) => ({
 
 /**@param {object} props
  * @param {boolean} props.approved
+ * @param {boolean} [props.disabled = false]
  * @param {string} props.helper_text Comments to be displayed regarding the formularty data
  * @param {boolean} props.loading
  * @param {formSubmit} props.onSubmit
@@ -83,6 +84,7 @@ const useStyles = makeStyles((theme) => ({
 export default function CardForm({
   approved,
   children,
+  disabled= false,
   helper_text,
   loading,
   onSubmit,
@@ -152,7 +154,9 @@ export default function CardForm({
                 </Grid>
               </Grid>
               <div className={classes.form_content}>
-                {children}
+                <fieldset disabled={disabled}>
+                  {children}
+                </fieldset>
               </div>
             </CardContent>
             <CardActions>

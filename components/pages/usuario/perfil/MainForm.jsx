@@ -16,6 +16,7 @@ import {
   fetchGenderApi,
   fetchMaritalStatus,
   fetchParameterApi,
+  fetchPeopleApi,
   fetchUserApi,
 } from "../../../../lib/api/generator.js";
 import CardForm from "./components/CardForm.jsx";
@@ -46,6 +47,7 @@ let AVATAR_UPLOAD_WARNING = (
 
 const getGenders = () => fetchGenderApi();
 const getMaritalStatuses = () => fetchMaritalStatus();
+const getPerson = id => fetchPeopleApi(id);
 
 const getUserInformation = () => fetchUserApi();
 const setUserInformation = (
@@ -186,7 +188,15 @@ const ProfilePicture = () => {
   );
 };
 
-export default function MainForm() {
+/**
+ * @param {object} props
+ * @param {number=} props.person Will only be used when review_mode is enabled
+ * @param {boolean} [props.review_mode = false]
+ * */
+export default function MainForm({
+  person,
+  review_mode = false,
+}) {
   const [fields, setFields] = useState({
     approved: false,
     birth_city: "",
@@ -206,7 +216,7 @@ export default function MainForm() {
   });
   const [genders, setGenders] = useState([]);
   const [marital_statuses, setMaritalStatuses] = useState([]);
-  const [reload_data, setReloadData] = useState(true);
+  const [reload_data, setReloadData] = useState(false);
   const [loading, setLoading] = useState(false);
   const [confirm_modal_open, setConfirmModalOpen] = useState(false);
 
@@ -232,10 +242,25 @@ export default function MainForm() {
   }, []);
 
   useEffect(() => {
+    if(!reload_data){
+      return;
+    }
+
     let active = true;
     setLoading(true);
 
-    getUserInformation()
+    /**
+     * @type Promise<Response>
+     * */
+    let person_data_request;
+
+    if(review_mode){
+      person_data_request = getPerson(person);
+    }else{
+      person_data_request = getUserInformation();
+    }
+
+    person_data_request
       .then(async (response) => {
         if (response.ok) {
           const information = await response.json();
@@ -279,6 +304,16 @@ export default function MainForm() {
     };
   }, [reload_data]);
 
+  // If in review mode, wait 'til a person is selected
+  // Load instantly if not in review mode
+  useEffect(() => {
+    if(review_mode && person){
+      setReloadData(true);
+    }else if(!review_mode){
+      setReloadData(true);
+    }
+  }, [person]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFields((prev_state) => ({ ...prev_state, [name]: value }));
@@ -316,6 +351,7 @@ export default function MainForm() {
     <Fragment>
       <CardForm
         approved={fields.approved}
+        disabled={review_mode}
         helper_text={fields.comments}
         loading={loading}
         onSubmit={() => setConfirmModalOpen(true)}
@@ -477,10 +513,10 @@ export default function MainForm() {
         </Grid>
       </CardForm>
       <ReviewDialog
+        approved={fields.approved}
         onClose={() => setConfirmModalOpen(false)}
         onConfirm={handleSubmit}
         open={confirm_modal_open}
-        reviewed={fields.approved}
       />
     </Fragment>
   );

@@ -12,7 +12,6 @@ import Acceso from "../pages/maestro/acceso.jsx";
 import Area from "../pages/organizacion/Area.jsx";
 import Asignacion from "../pages/asignacion.jsx";
 import AsignacionCargo from "../pages/organizacion/asignacion_cargo.jsx";
-import Capacitacion from "../pages/usuario/capacitacion.jsx";
 import Cargo from "../pages/organizacion/cargo.jsx";
 import Certificacion from "../pages/usuario/certificacion.jsx";
 import Cliente from "../pages/clientes/Cliente.jsx";
@@ -21,8 +20,9 @@ import Contacto from "../pages/clientes/Contacto.jsx";
 import CostoEmpleado from "../pages/organizacion/costo_empleado.jsx";
 import ExperienciaLaboral from "../pages/usuario/experiencia/laboral.jsx";
 import ExperienciaProyecto from "../pages/usuario/experiencia/proyecto.jsx";
-import FormacionAcademica from "../pages/usuario/academica.jsx";
-import FormacionContinuada from "../pages/usuario/continuada.jsx";
+import FormacionAcademica from "../pages/usuario/formacion/academica.jsx";
+import FormacionCapacitacion from "../pages/usuario/formacion/capacitacion.jsx";
+import FormacionContinuada from "../pages/usuario/formacion/continuada.jsx";
 import Formato from "../pages/maestro/formato.jsx";
 import HabilidadTecnica from "../pages/usuario/habilidad/tecnica.jsx";
 import Herramienta from "../pages/maestro/herramienta.jsx";
@@ -436,7 +436,7 @@ const Layout = (props) => {
               allowed_profiles={[
                 Profiles.CONSULTANT,
               ]}
-              component={Capacitacion}
+              component={FormacionCapacitacion}
               path="/usuario/formacion/capacitacion"
             />
             <ProfiledRoute
@@ -466,6 +466,15 @@ const Layout = (props) => {
               ]}
               component={Certificacion}
               path="/usuario/certificacion"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={() => <Perfil review_mode={true}/>}
+              path="/recursos_humanos/perfil"
             />
             <Route exact={true} path="/" />
             <Redirect from="*" to="/404" />

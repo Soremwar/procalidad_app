@@ -1,27 +1,29 @@
 import type { RouterContext } from "oak";
-import Ajv from "ajv";
 import removeAccents from "remove-accents";
-import { FormationType } from "../../../api/models/users/formation_level.ts";
-import * as formation_title_model from "../../../api/models/users/formation_title.ts";
-import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import { Message } from "../../http_utils.ts";
-import { tableRequestHandler } from "../../../api/common/table.ts";
-import { decodeToken } from "../../../lib/jwt.ts";
-import { castStringToBoolean } from "../../../lib/utils/boolean.js";
-import {
-  BOOLEAN,
-  STANDARD_DATE_STRING,
-  STANDARD_DATE_STRING_OR_NULL,
-  TRUTHY_INTEGER,
-} from "../../../lib/ajv/types.js";
+import Ajv from "ajv";
+import { FormationType } from "../../../../api/models/users/formation_level.ts";
+import * as formation_title_model from "../../../../api/models/users/formation_title.ts";
+import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
+import { Message } from "../../../http_utils.ts";
+import { tableRequestHandler } from "../../../../api/common/table.ts";
+import { requestReview } from "../../../../api/reviews/user_formation.ts";
+import { decodeToken } from "../../../../lib/jwt.ts";
+import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
 import {
   deleteFile as deleteGenericFile,
   writeFile as writeGenericFile,
-} from "../../../api/storage/generic_file.ts";
+} from "../../../../api/storage/generic_file.ts";
+import {
+  BOOLEAN_OR_NULL,
+  STANDARD_DATE_STRING,
+  STANDARD_DATE_STRING_OR_NULL,
+  TRUTHY_INTEGER,
+} from "../../../../lib/ajv/types.js";
 
 const update_request = {
   $id: "update",
   properties: {
+    "city": TRUTHY_INTEGER,
     "end_date": STANDARD_DATE_STRING_OR_NULL,
     "formation_level": TRUTHY_INTEGER,
     "institution": {
@@ -29,23 +31,24 @@ const update_request = {
       type: "string",
     },
     "start_date": STANDARD_DATE_STRING,
-    "status": BOOLEAN,
     "title": {
       maxLength: 50,
       type: "string",
     },
+    "title_is_convalidated": BOOLEAN_OR_NULL,
   },
 };
 
 const create_request = Object.assign({}, update_request, {
   $id: "create",
   required: [
+    "city",
     "end_date",
     "formation_level",
     "institution",
     "start_date",
-    "status",
     "title",
+    "title_is_convalidated",
   ],
 });
 
@@ -56,7 +59,7 @@ const request_validator = new Ajv({
   ],
 });
 
-export const createContinuousFormationTitle = async (
+export const createAcademicFormationTitle = async (
   { cookies, request, response }: RouterContext,
 ) => {
   const session_cookie = cookies.get("PA_AUTH") || "";
@@ -71,21 +74,30 @@ export const createContinuousFormationTitle = async (
     throw new RequestSyntaxError();
   }
 
-  response.body = await formation_title_model.create(
+  const formation_title = await formation_title_model.create(
     value.formation_level,
     user_id,
     value.title,
     value.institution,
     value.start_date,
     value.end_date,
+    value.city,
     null,
-    null,
-    castStringToBoolean(value.status),
-    null,
+    value.title_is_convalidated
+      ? castStringToBoolean(value.title_is_convalidated)
+      : value.title_is_convalidated,
   );
+
+  // If the certificate has not yet been provided (formation has not finished)
+  // Lock the form and request review
+  if (!formation_title.end_date) {
+    await requestReview(formation_title.id);
+  }
+
+  response.body = formation_title;
 };
 
-export const deleteContinuousFormationTitle = async (
+export const deleteAcademicFormationTitle = async (
   { cookies, params, response }: RouterContext<{ id: string }>,
 ) => {
   const session_cookie = cookies.get("PA_AUTH") || "";
@@ -95,30 +107,30 @@ export const deleteContinuousFormationTitle = async (
     throw new RequestSyntaxError();
   }
 
-  const continuous_title = await formation_title_model.findByIdAndUser(
+  const formation_title = await formation_title_model.findByIdAndUser(
     id,
     user_id,
   );
-  if (!continuous_title) {
+  if (!formation_title) {
     throw new NotFoundError();
   }
 
   try {
-    let generic_file_id = continuous_title.generic_file;
+    const generic_file_id = formation_title.generic_file;
 
     //Formation title should be deleted first so file constraint doesn't complain
-    await continuous_title.delete();
+    await formation_title.delete();
     if (generic_file_id) {
       await deleteGenericFile(generic_file_id);
     }
   } catch (_e) {
-    throw new Error("No fue posible eliminar el título de formacion");
+    throw new Error("No fue posible eliminar el título de formación");
   }
 
   response.body = Message.OK;
 };
 
-export const getContinuousFormationTitle = async (
+export const getAcademicFormationTitle = async (
   { cookies, params, response }: RouterContext<{ id: string }>,
 ) => {
   const session_cookie = cookies.get("PA_AUTH") || "";
@@ -137,19 +149,19 @@ export const getContinuousFormationTitle = async (
   response.body = formation_title;
 };
 
-export const getContinuousFormationTitles = async (
+export const getAcademicFormationTitles = async (
   { cookies, response }: RouterContext,
 ) => {
   const session_cookie = cookies.get("PA_AUTH") || "";
   const { id: user_id } = await decodeToken(session_cookie);
 
   response.body = await formation_title_model.getAll(
-    FormationType.Continuada,
+    FormationType.Academica,
     user_id,
   );
 };
 
-export const getContinuousFormationTitlesTable = async (
+export const getAcademicFormationTitlesTable = async (
   context: RouterContext,
 ) => {
   const session_cookie = context.cookies.get("PA_AUTH") || "";
@@ -158,13 +170,13 @@ export const getContinuousFormationTitlesTable = async (
   return tableRequestHandler(
     context,
     formation_title_model.generateTableData(
-      FormationType.Continuada,
+      FormationType.Academica,
       id,
     ),
   );
 };
 
-export const updateContinuousFormationTitle = async (
+export const updateAcademicFormationTitle = async (
   { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const session_cookie = cookies.get("PA_AUTH") || "";
@@ -188,21 +200,35 @@ export const updateContinuousFormationTitle = async (
     throw new NotFoundError();
   }
 
-  response.body = await formation_title.update(
+  const title_is_convalidated = value.title_is_convalidated === null
+    ? null
+    : value.title_is_convalidated === undefined
+    ? undefined
+    : castStringToBoolean(value.title_is_convalidated);
+
+  await formation_title.update(
     value.institution,
     value.start_date,
     value.end_date,
-    null,
+    value.city,
     undefined,
     null,
-    castStringToBoolean(value.status),
+    title_is_convalidated,
   )
     .catch(() => {
       throw new Error("No fue posible actualizar el título de formación");
     });
+
+  // If the certificate has not yet been provided (formation has not finished)
+  // Lock the form and request review
+  if (!formation_title.end_date) {
+    await requestReview(formation_title.id);
+  }
+
+  response.body = formation_title;
 };
 
-export const updateContinuousFormationTitleCertificate = async (
+export const updateAcademicFormationTitleCertificate = async (
   { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const session_cookie = cookies.get("PA_AUTH") || "";
@@ -261,7 +287,7 @@ export const updateContinuousFormationTitleCertificate = async (
       undefined,
       user_id,
       content,
-      "FORMACION_CONTINUADA",
+      "FORMACION_ACADEMICA",
       removeAccents(formation_title.title)
         .replaceAll(/[\s_]+/g, "_")
         .replaceAll(/\W/g, "")
@@ -273,6 +299,9 @@ export const updateContinuousFormationTitleCertificate = async (
     formation_title.generic_file = file_id;
     formation_title = await formation_title.update();
   }
+
+  //Always lock and request review
+  await requestReview(formation_title.id);
 
   response.body = formation_title;
 };
