@@ -37,19 +37,6 @@ const LOCKED_FORM_WARNING =
  * */
 
 /**
- * @callback beforeSubmit
- * @param {voidCallback} callback
- * @return {void}
- * */
-
-/**
- * Default value, simply skips all operations and directly calls the main function
- * */
-const DEFAULT_BEFORE_SUBMIT = (call_me) => {
-  call_me();
-};
-
-/**
  * @callback formHandler
  * @param {React.FormEvent} event
  * @return {void}
@@ -61,9 +48,9 @@ const DEFAULT_BEFORE_SUBMIT = (call_me) => {
  * @param {string} props.comments
  * @param {string} props.helper_text
  * @param {boolean} props.loading
- * @param {beforeSubmit} props.onBeforeSubmit This function will be called once the formulary has been validated and right before the approval dialog is shown
+ * @param {voidCallback=} props.onBeforeSubmit This function will be called once the formulary has been validated. By default this opens the ReviewForm
  * @param {voidCallback} props.onClose
- * @param {formHandler} props.onSubmit This function will be called after the approval dialog is shown and confirmed
+ * @param {formHandler=} props.onSubmit By default, this function will be called after the approval dialog is shown and confirmed. If onBeforeSubmit is provided, this behaviour is overriden
  * @param {boolean} props.open
  * @param {"xs" | "sm" | "md" | "lg" | "xl"} props.size
  * */
@@ -73,7 +60,7 @@ export default function ReviewForm({
   comments,
   helper_text,
   loading = false,
-  onBeforeSubmit = DEFAULT_BEFORE_SUBMIT,
+  onBeforeSubmit ,
   onClose,
   onSubmit,
   open,
@@ -82,19 +69,22 @@ export default function ReviewForm({
 }) {
   const classes = useStyles();
   const [review_modal_open, setReviewModalOpen] = useState(false);
-  const [form_event, setFormEvent] = useState(null);
 
   const pending = !approved && !comments;
+
+  /**
+   * Default behaviour, will fire the reviewModal
+   * */
+  onBeforeSubmit ||= () => {
+    setReviewModalOpen(true);
+  };
 
   /**
    * @param {React.FormEvent} event
    * */
   const handleSubmit = (event) => {
     event.preventDefault();
-    onBeforeSubmit(() => {
-      setFormEvent(event);
-      setReviewModalOpen(true);
-    });
+    onBeforeSubmit();
   };
 
   return (
@@ -158,7 +148,7 @@ export default function ReviewForm({
       <ReviewDialog
         approved={approved}
         onClose={() => setReviewModalOpen(false)}
-        onConfirm={() => onSubmit(form_event)}
+        onConfirm={onSubmit}
         open={review_modal_open}
       />
     </Fragment>

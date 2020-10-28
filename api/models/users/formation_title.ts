@@ -175,7 +175,7 @@ export const getAll = async (
     FROM ${TABLE} T
     JOIN ${FORMATION_LEVEL_TABLE} L
       ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
-    JOIN ${REVIEW_TABLE} R
+    LEFT JOIN ${REVIEW_TABLE} R
       ON T.PK_FORMACION = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
     WHERE L.TIPO_FORMACION = '${formation_type}'
@@ -219,7 +219,7 @@ export const findByIdAndUser = async (
       R.BAN_APROBADO,
       R.OBSERVACION
     FROM ${TABLE} T
-    JOIN ${REVIEW_TABLE} R
+    LEFT JOIN ${REVIEW_TABLE} R
       ON T.PK_FORMACION = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
     WHERE T.PK_FORMACION = $1
@@ -291,6 +291,7 @@ export const generateTableData = (
         CASE
           WHEN R.BAN_APROBADO = FALSE AND R.OBSERVACION IS NOT NULL THEN 0
           WHEN R.BAN_APROBADO = TRUE THEN 1
+          WHEN T.FECHA_FIN IS NOT NULL AND T.FK_ARCHIVO_GENERICO IS NULL THEN 3
           ELSE 2
         END AS REVIEW_STATUS
       FROM ${TABLE} AS T
@@ -298,7 +299,7 @@ export const generateTableData = (
         ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
       LEFT JOIN ${GENERIC_FILE_TABLE} AS F
         ON F.PK_ARCHIVO = T.FK_ARCHIVO_GENERICO
-      JOIN ${REVIEW_TABLE} AS R
+      LEFT JOIN ${REVIEW_TABLE} AS R
         ON T.PK_FORMACION = R.FK_DATOS
         AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
       WHERE L.TIPO_FORMACION = '${formation_type}'

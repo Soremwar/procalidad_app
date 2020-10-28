@@ -25,9 +25,12 @@ import CitySelector from "../../../common/CitySelector.jsx";
 import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
 import FileField from "../../../common/FileField.jsx";
-import Title from "../../../common/Title.jsx";
+import FileReviewDialog from "../common/FileReviewDialog.jsx";
 import ReviewBadge from "../common/ReviewBadge.jsx";
+import ReviewDialog from "../common/ReviewDialog.jsx";
 import SelectField from "../../../common/SelectField.jsx";
+import Title from "../../../common/Title.jsx";
+import ReviewForm from "../common/ReviewForm";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
@@ -181,7 +184,7 @@ const headers = [
   },
   {
     displayAs: (_, value) => (
-      <ReviewBadge status={Number(value) || 0} />
+      <ReviewBadge status={value} />
     ),
     id: "review_status",
     numeric: false,
@@ -257,6 +260,8 @@ const AddModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [file_review_modal_open, setFileReviewModalOpen] = useState(false);
+  const [review_modal_open, setReviewModalOpen] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -306,13 +311,22 @@ const AddModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Crear Nuevo"}
+    <Fragment>
+    <ReviewForm
+      approved={false}
+      comments="&nbsp;"
+      helper_text={error}
+      loading={is_loading}
+      onBeforeSubmit={() => {
+        if (fields.end_date) {
+          setFileReviewModalOpen(true);
+        } else {
+          setReviewModalOpen(true);
+        }
+      }}
+      onClose={() => setModalOpen(false)}
+      open={is_open}
+      title="Crear Nuevo"
     >
       <SelectField
         fullWidth
@@ -417,7 +431,19 @@ const AddModal = ({
           </SelectField>
         )
         : null}
-    </DialogForm>
+    </ReviewForm>
+      <FileReviewDialog
+        onClose={() => setFileReviewModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={file_review_modal_open}
+      />
+      <ReviewDialog
+        approved={false}
+        onClose={() => setReviewModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={review_modal_open}
+      />
+    </Fragment>
   );
 };
 
@@ -433,7 +459,9 @@ const EditModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
+    approved: false,
     city: "",
+    comments: "",
     country: "",
     end_date: "",
     formation_level: "",
@@ -445,6 +473,8 @@ const EditModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [file_review_modal_open, setFileReviewModalOpen] = useState(false);
+  const [review_modal_open, setReviewModalOpen] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -477,7 +507,9 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
+        approved: data.approved,
         city: data.city,
+        comments: data.observations,
         end_date: data.end_date || "",
         formation_level: data.formation_level,
         institution: data.institution,
@@ -492,13 +524,22 @@ const EditModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Editar"}
+    <Fragment>
+    <ReviewForm
+      approved={fields.approved}
+      comments={fields.comments}
+      helper_text={error}
+      loading={is_loading}
+      onBeforeSubmit={() => {
+        if (fields.end_date) {
+          setFileReviewModalOpen(true);
+        } else {
+          setReviewModalOpen(true);
+        }
+      }}
+      onClose={() => setModalOpen(false)}
+      open={is_open}
+      title="Editar"
     >
       <SelectField
         disabled
@@ -597,7 +638,19 @@ const EditModal = ({
           </SelectField>
         )
         : null}
-    </DialogForm>
+    </ReviewForm>
+      <FileReviewDialog
+        onClose={() => setFileReviewModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={file_review_modal_open}
+      />
+      <ReviewDialog
+        approved={false}
+        onClose={() => setReviewModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={review_modal_open}
+      />
+    </Fragment>
   );
 };
 
@@ -668,6 +721,7 @@ export default function Academica() {
   const [selected_academic_title, setSelectedAcademicTitle] = useState({});
   const [selected, setSelected] = useState([]);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
+  const [review_dialog_open, setReviewDialogOpen] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     await getAcademicTitle(id)
@@ -754,6 +808,12 @@ export default function Academica() {
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
         url={"usuario/formacion/academica/table"}
+      />
+      <ReviewDialog
+        approved={false}
+        onConfirm={() => console.log('this should allow us to load files now')}
+        onClose={() => setReviewDialogOpen(false)}
+        open={review_dialog_open}
       />
     </Fragment>
   );

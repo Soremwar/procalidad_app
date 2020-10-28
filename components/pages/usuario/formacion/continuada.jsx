@@ -23,11 +23,12 @@ import AsyncTable from "../../../common/AsyncTable/Table.jsx";
 import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
 import FileField from "../../../common/FileField.jsx";
-import Title from "../../../common/Title.jsx";
-import SelectField from "../../../common/SelectField.jsx";
-import ReviewBadge from "../common/ReviewBadge";
 import FileReviewDialog from "../common/FileReviewDialog.jsx";
+import SelectField from "../../../common/SelectField.jsx";
+import ReviewBadge from "../common/ReviewBadge.jsx";
+import ReviewDialog from "../common/ReviewDialog.jsx";
 import ReviewForm from "../common/ReviewForm.jsx";
+import Title from "../../../common/Title.jsx";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
@@ -171,7 +172,7 @@ const headers = [
   },
   {
     displayAs: (_, value) => (
-      <ReviewBadge status={Number(value) || 0} />
+      <ReviewBadge status={value} />
     ),
     id: "review_status",
     numeric: false,
@@ -242,8 +243,8 @@ const AddModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [fileReviewCallback, setFileReviewCallback] = useState(() => {});
   const [file_review_modal_open, setFileReviewModalOpen] = useState(false);
+  const [review_modal_open, setReviewModalOpen] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -294,16 +295,14 @@ const AddModal = ({
         comments="&nbsp;"
         helper_text={error}
         loading={is_loading}
-        onBeforeSubmit={(callback) => {
+        onBeforeSubmit={() => {
           if (fields.end_date) {
-            setFileReviewCallback(() => callback);
             setFileReviewModalOpen(true);
           } else {
-            callback();
+            setReviewModalOpen(true);
           }
         }}
         onClose={() => setModalOpen(false)}
-        onSubmit={handleSubmit}
         open={is_open}
         title="Crear nuevo"
       >
@@ -385,8 +384,14 @@ const AddModal = ({
       </ReviewForm>
       <FileReviewDialog
         onClose={() => setFileReviewModalOpen(false)}
-        onConfirm={fileReviewCallback}
+        onConfirm={handleSubmit}
         open={file_review_modal_open}
+      />
+      <ReviewDialog
+        approved={false}
+        onClose={() => setReviewModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={review_modal_open}
       />
     </Fragment>
   );
@@ -414,8 +419,8 @@ const EditModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [fileReviewCallback, setFileReviewCallback] = useState(() => {});
   const [file_review_modal_open, setFileReviewModalOpen] = useState(false);
+  const [review_modal_open, setReviewModalOpen] = useState(false);
 
   const pending = !fields.approved && !fields.comments;
 
@@ -469,18 +474,16 @@ const EditModal = ({
         comments={fields.comments}
         helper_text={error}
         loading={is_loading}
-        onBeforeSubmit={(callback) => {
+        onBeforeSubmit={() => {
           if (fields.end_date) {
-            setFileReviewCallback(() => callback);
             setFileReviewModalOpen(true);
           } else {
-            callback();
+            setReviewModalOpen(true);
           }
         }}
         onClose={() => setModalOpen(false)}
-        onSubmit={handleSubmit}
         open={is_open}
-        title={"Editar"}
+        title="Editar"
       >
         <fieldset disabled={pending}>
           <SelectField
@@ -556,8 +559,14 @@ const EditModal = ({
       </ReviewForm>
       <FileReviewDialog
         onClose={() => setFileReviewModalOpen(false)}
-        onConfirm={fileReviewCallback}
+        onConfirm={handleSubmit}
         open={file_review_modal_open}
+      />
+      <ReviewDialog
+        approved={false}
+        onClose={() => setReviewModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={review_modal_open}
       />
     </Fragment>
   );
@@ -629,6 +638,7 @@ export default function Continuada() {
   const [selected_continuous_title, setSelectedContinuousTitle] = useState({});
   const [selected, setSelected] = useState([]);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
+  const [review_dialog_open, setReviewDialogOpen] = useState(false);
 
   const handleEditModalOpen = async (id) => {
     await getContinuousTitle(id)
@@ -696,6 +706,12 @@ export default function Continuada() {
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
         url={"usuario/formacion/continuada/table"}
+      />
+      <ReviewDialog
+        approved={false}
+        onConfirm={() => console.log('this should allow us to load files now')}
+        onClose={() => setReviewDialogOpen(false)}
+        open={review_dialog_open}
       />
     </Fragment>
   );
