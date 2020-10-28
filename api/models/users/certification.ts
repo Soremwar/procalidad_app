@@ -3,6 +3,7 @@ import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { TABLE as GENERIC_FILE_TABLE } from "../files/generic_file.ts";
 import { TABLE as TYPE_TABLE } from "./certification_type.ts";
 import { TABLE as TEMPLATE_TABLE } from "./certification_template.ts";
+import { DataType, TABLE as REVIEW_TABLE } from "./data_review.ts";
 
 export const TABLE = "USUARIOS.CERTIFICACION";
 
@@ -19,6 +20,8 @@ export class Certification {
     /** YYYY-MM-DD date string */
     public expiration_date: string | null,
     public generic_file: number | null,
+    protected approved: boolean | null,
+    protected observations: string | null,
   ) {}
 
   async delete(): Promise<void> {
@@ -145,6 +148,8 @@ export const create = async (
     expedition_date,
     expiration_date,
     null,
+    null,
+    null,
   );
 };
 
@@ -153,17 +158,20 @@ export const getAll = async (
 ): Promise<Certification[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_CERTIFICACION,
-      FK_USUARIO,
-      FK_PLANTILLA,
-      FK_TIPO,
-      NOMBRE,
-      VERSION,
-      TO_CHAR(FEC_CERTIFICACION, 'YYYY-MM-DD'),
-      TO_CHAR(FEC_EXPIRACION, 'YYYY-MM-DD'),
-      FK_ARCHIVO_GENERICO
-    FROM ${TABLE}
-    ${user ? `WHERE FK_USUARIO = ${user}` : ""}`,
+      C.PK_CERTIFICACION,
+      C.FK_USUARIO,
+      C.FK_PLANTILLA,
+      C.FK_TIPO,
+      C.NOMBRE,
+      C.VERSION,
+      TO_CHAR(C.FEC_CERTIFICACION, 'YYYY-MM-DD'),
+      TO_CHAR(C.FEC_EXPIRACION, 'YYYY-MM-DD'),
+      C.FK_ARCHIVO_GENERICO
+    FROM ${TABLE} C
+    LEFT JOIN ${REVIEW_TABLE} R
+      ON C.PK_CERTIFICACION = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.CERTIFICACION}'
+    ${user ? `WHERE C.FK_USUARIO = ${user}` : ""}`,
   );
 
   return rows.map((row: [
@@ -176,6 +184,8 @@ export const getAll = async (
     string,
     string | null,
     number | null,
+    boolean | null,
+    string | null,
   ]) => new Certification(...row));
 };
 
@@ -185,18 +195,21 @@ export const findByIdAndUser = async (
 ): Promise<Certification | null> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_CERTIFICACION,
-      FK_USUARIO,
-      FK_PLANTILLA,
-      FK_TIPO,
-      NOMBRE,
-      VERSION,
-      TO_CHAR(FEC_CERTIFICACION, 'YYYY-MM-DD'),
-      TO_CHAR(FEC_EXPIRACION, 'YYYY-MM-DD'),
-      FK_ARCHIVO_GENERICO
-    FROM ${TABLE}
-    WHERE PK_CERTIFICACION = $1
-    AND FK_USUARIO = $2`,
+      C.PK_CERTIFICACION,
+      C.FK_USUARIO,
+      C.FK_PLANTILLA,
+      C.FK_TIPO,
+      C.NOMBRE,
+      C.VERSION,
+      TO_CHAR(C.FEC_CERTIFICACION, 'YYYY-MM-DD'),
+      TO_CHAR(C.FEC_EXPIRACION, 'YYYY-MM-DD'),
+      C.FK_ARCHIVO_GENERICO
+    FROM ${TABLE} C
+    LEFT JOIN ${REVIEW_TABLE} R
+      ON C.PK_CERTIFICACION = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.CERTIFICACION}'
+    WHERE C.PK_CERTIFICACION = $1
+    AND C.FK_USUARIO = $2`,
     id,
     user,
   );
@@ -214,6 +227,8 @@ export const findByIdAndUser = async (
       string,
       string | null,
       number | null,
+      boolean | null,
+      string | null,
     ],
   );
 };
@@ -230,6 +245,7 @@ class TableData {
       extensions: string[];
     },
     public readonly upload_date: string,
+    public readonly review_status: number,
   ) {}
 }
 
@@ -245,18 +261,27 @@ export const generateTableData = (
   ): Promise<TableResult> => {
     const base_query = (
       `SELECT
-        T.PK_CERTIFICACION AS ID,
-        (SELECT NOMBRE FROM ${TEMPLATE_TABLE} WHERE PK_PLANTILLA = T.FK_PLANTILLA) AS TEMPLATE,
-        (SELECT NOMBRE FROM ${TYPE_TABLE} WHERE PK_TIPO = T.FK_TIPO) AS TYPE,
-        T.NOMBRE AS NAME,
-        T.VERSION AS VERSION,
-        T.FK_ARCHIVO_GENERICO,
+        C.PK_CERTIFICACION AS ID,
+        (SELECT NOMBRE FROM ${TEMPLATE_TABLE} WHERE PK_PLANTILLA = C.FK_PLANTILLA) AS TEMPLATE,
+        (SELECT NOMBRE FROM ${TYPE_TABLE} WHERE PK_TIPO = C.FK_TIPO) AS TYPE,
+        C.NOMBRE AS NAME,
+        C.VERSION AS VERSION,
+        C.FK_ARCHIVO_GENERICO,
         F.EXTENSIONES,
-        F.FEC_CARGA AS UPLOAD_DATE
-      FROM ${TABLE} AS T
+        F.FEC_CARGA AS UPLOAD_DATE,
+        CASE
+          WHEN R.BAN_APROBADO = FALSE AND R.OBSERVACION IS NOT NULL THEN 0
+          WHEN R.BAN_APROBADO = TRUE THEN 1
+          WHEN C.FK_ARCHIVO_GENERICO IS NULL THEN 3
+          ELSE 2
+        END AS REVIEW_STATUS
+      FROM ${TABLE} AS C
       LEFT JOIN ${GENERIC_FILE_TABLE} AS F
-        ON F.PK_ARCHIVO = T.FK_ARCHIVO_GENERICO
-      WHERE T.FK_USUARIO = ${user_id}`
+        ON F.PK_ARCHIVO = C.FK_ARCHIVO_GENERICO
+      LEFT JOIN ${REVIEW_TABLE} R
+        ON C.PK_CERTIFICACION = R.FK_DATOS
+        AND R.TIPO_FORMULARIO = '${DataType.CERTIFICACION}'
+      WHERE C.FK_USUARIO = ${user_id}`
     );
 
     const { count, data } = await getTableModels(
@@ -277,6 +302,7 @@ export const generateTableData = (
       number,
       string[],
       string,
+      number,
     ]) =>
       new TableData(
         x[0],
@@ -289,6 +315,7 @@ export const generateTableData = (
           extensions: x[6],
         },
         x[7],
+        x[8],
       )
     );
 

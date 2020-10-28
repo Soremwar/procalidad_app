@@ -25,8 +25,12 @@ import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import FileField from "../../common/FileField.jsx";
-import Title from "../../common/Title.jsx";
+import FileReviewDialog from "./common/FileReviewDialog.jsx";
+import ReviewBadge from "./common/ReviewBadge.jsx";
+import ReviewDialog from "./common/ReviewDialog.jsx";
+import ReviewForm from "./common/ReviewForm.jsx";
 import SelectField from "../../common/SelectField.jsx";
+import Title from "../../common/Title.jsx";
 
 const getProviders = () => fetchCertificationProviderApi();
 const getTemplates = () => fetchCertificationTemplateApi();
@@ -175,6 +179,16 @@ const headers = [
     label: "Fecha de carga",
     searchable: true,
   },
+  {
+    displayAs: (_, value) => (
+      <ReviewBadge status={value} />
+    ),
+    id: "review_status",
+    numeric: false,
+    disablePadding: false,
+    searchable: false,
+    orderable: false,
+  },
 ];
 
 const INITIAL_PARAMETER_STATE = {
@@ -245,6 +259,7 @@ const AddModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [file_review_dialog_open, setFileReviewDialogOpen] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -293,114 +308,125 @@ const AddModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Crear Nuevo"}
-    >
-      <SelectField
-        fullWidth
-        label="Proveedor"
-        name="provider"
-        onChange={handleChange}
-        required
-        value={fields.provider}
-      >
-        {providers
-          .map(({ id, name }) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-      </SelectField>
-      <SelectField
-        disabled={!fields.provider}
-        fullWidth
-        label="Certificación"
-        name="template"
-        onChange={handleChange}
-        required
-        value={fields.template}
-      >
-        {templates
-          .filter(({ provider }) => provider == fields.provider)
-          .map(({ id, name }) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-      </SelectField>
-      <SelectField
-        fullWidth
-        label="Tipo de certificación"
-        name="type"
-        onChange={handleChange}
-        required
-        value={fields.type}
-      >
-        {types
-          .map(({ id, name }) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-      </SelectField>
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "50",
+    <Fragment>
+      <ReviewForm
+        approved={false}
+        comments="&nbsp;"
+        helper_text={error}
+        loading={is_loading}
+        onClose={() => setModalOpen(false)}
+        onSubmit={() => {
+          setFileReviewDialogOpen(true);
         }}
-        label="Nombre"
-        name="name"
-        onChange={handleChange}
-        required
-        value={fields.name}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "10",
-        }}
-        label="Versión"
-        name="version"
-        onChange={handleChange}
-        value={fields.version}
-      />
-      <DateField
-        fullWidth
-        label="Fecha de expedición"
-        name="expedition_date"
-        onChange={handleChange}
-        required
-        value={fields.expedition_date}
-      />
-      <SelectField
-        blank_value={false}
-        fullWidth
-        label="Expiración certificación"
-        name="certification_expires"
-        onChange={(event) => {
-          const certification_expires = Boolean(Number(event.target.value));
-          setFields((prevState) => ({
-            ...prevState,
-            certification_expires,
-          }));
-        }}
-        value={Number(fields.certification_expires)}
+        open={is_open}
+        title="Crear Nuevo"
       >
-        <option value="0">No</option>
-        <option value="1">Sí</option>
-      </SelectField>
-      {fields.certification_expires
-        ? (
-          <DateField
-            fullWidth
-            label="Fecha de expiración"
-            name="expiration_date"
-            onChange={handleChange}
-            required
-            value={fields.expiration_date}
-          />
-        )
-        : null}
-    </DialogForm>
+        <SelectField
+          fullWidth
+          label="Proveedor"
+          name="provider"
+          onChange={handleChange}
+          required
+          value={fields.provider}
+        >
+          {providers
+            .map(({ id, name }) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+        </SelectField>
+        <SelectField
+          disabled={!fields.provider}
+          fullWidth
+          label="Certificación"
+          name="template"
+          onChange={handleChange}
+          required
+          value={fields.template}
+        >
+          {templates
+            .filter(({ provider }) => provider == fields.provider)
+            .map(({ id, name }) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+        </SelectField>
+        <SelectField
+          fullWidth
+          label="Tipo de certificación"
+          name="type"
+          onChange={handleChange}
+          required
+          value={fields.type}
+        >
+          {types
+            .map(({ id, name }) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+        </SelectField>
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "50",
+          }}
+          label="Nombre"
+          name="name"
+          onChange={handleChange}
+          required
+          value={fields.name}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "10",
+          }}
+          label="Versión"
+          name="version"
+          onChange={handleChange}
+          value={fields.version}
+        />
+        <DateField
+          fullWidth
+          label="Fecha de expedición"
+          name="expedition_date"
+          onChange={handleChange}
+          required
+          value={fields.expedition_date}
+        />
+        <SelectField
+          blank_value={false}
+          fullWidth
+          label="Expiración certificación"
+          name="certification_expires"
+          onChange={(event) => {
+            const certification_expires = Boolean(Number(event.target.value));
+            setFields((prevState) => ({
+              ...prevState,
+              certification_expires,
+            }));
+          }}
+          value={Number(fields.certification_expires)}
+        >
+          <option value="0">No</option>
+          <option value="1">Sí</option>
+        </SelectField>
+        {fields.certification_expires
+          ? (
+            <DateField
+              fullWidth
+              label="Fecha de expiración"
+              name="expiration_date"
+              onChange={handleChange}
+              required
+              value={fields.expiration_date}
+            />
+          )
+          : null}
+      </ReviewForm>
+      <FileReviewDialog
+        onClose={() => setFileReviewDialogOpen(false)}
+        onConfirm={handleSubmit}
+        open={file_review_dialog_open}
+      />
+    </Fragment>
   );
 };
 
@@ -417,7 +443,9 @@ const EditModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
+    approved: false,
     certification_expires: false,
+    comments: "",
     expedition_date: "",
     expiration_date: "",
     name: "",
@@ -428,6 +456,7 @@ const EditModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [file_review_dialog_open, setFileReviewDialogOpen] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -462,7 +491,9 @@ const EditModal = ({
     const template = templates.find(({ id }) => id == data.template);
     if (is_open) {
       setFields({
+        approved: data.approved,
         certification_expires: !!data.expiration_date,
+        comments: data.observations,
         expedition_date: data.expedition_date,
         expiration_date: data.expiration_date || "",
         name: data.name,
@@ -477,115 +508,124 @@ const EditModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Editar"}
-    >
-      <SelectField
-        fullWidth
-        label="Proveedor"
-        name="provider"
-        onChange={handleChange}
-        required
-        value={fields.provider}
+    <Fragment>
+      <ReviewForm
+        approved={fields.approved}
+        comments={fields.comments}
+        helper_text={error}
+        loading={is_loading}
+        onClose={() => setModalOpen(false)}
+        onSubmit={() => setFileReviewDialogOpen(true)}
+        open={is_open}
+        title="Editar"
       >
-        {providers
-          .map(({ id, name }) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-      </SelectField>
-      <SelectField
-        disabled={!fields.provider}
-        fullWidth
-        label="Certificación"
-        name="template"
-        onChange={handleChange}
-        required
-        value={fields.template}
-      >
-        {templates
-          .filter(({ provider }) => provider == fields.provider)
-          .map(({ id, name }) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-      </SelectField>
-      <SelectField
-        fullWidth
-        label="Tipo de certificación"
-        name="type"
-        onChange={handleChange}
-        required
-        value={fields.type}
-      >
-        {types
-          .map(({ id, name }) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-      </SelectField>
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "50",
-        }}
-        label="Nombre"
-        name="name"
-        onChange={handleChange}
-        required
-        value={fields.name}
+        <SelectField
+          fullWidth
+          label="Proveedor"
+          name="provider"
+          onChange={handleChange}
+          required
+          value={fields.provider}
+        >
+          {providers
+            .map(({ id, name }) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+        </SelectField>
+        <SelectField
+          disabled={!fields.provider}
+          fullWidth
+          label="Certificación"
+          name="template"
+          onChange={handleChange}
+          required
+          value={fields.template}
+        >
+          {templates
+            .filter(({ provider }) => provider == fields.provider)
+            .map(({ id, name }) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+        </SelectField>
+        <SelectField
+          fullWidth
+          label="Tipo de certificación"
+          name="type"
+          onChange={handleChange}
+          required
+          value={fields.type}
+        >
+          {types
+            .map(({ id, name }) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+        </SelectField>
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "50",
+          }}
+          label="Nombre"
+          name="name"
+          onChange={handleChange}
+          required
+          value={fields.name}
+        />
+        <TextField
+          disabled
+          fullWidth
+          inputProps={{
+            maxLength: "10",
+          }}
+          label="Versión"
+          name="version"
+          onChange={handleChange}
+          value={fields.version}
+        />
+        <DateField
+          fullWidth
+          label="Fecha de expedición"
+          name="expedition_date"
+          onChange={handleChange}
+          required
+          value={fields.expedition_date}
+        />
+        <SelectField
+          blank_value={false}
+          fullWidth
+          label="Expiración certificación"
+          name="certification_expires"
+          onChange={(event) => {
+            const certification_expires = Boolean(Number(event.target.value));
+            setFields((prevState) => ({
+              ...prevState,
+              certification_expires,
+            }));
+          }}
+          value={Number(fields.certification_expires)}
+        >
+          <option value="0">No</option>
+          <option value="1">Sí</option>
+        </SelectField>
+        {fields.certification_expires
+          ? (
+            <DateField
+              fullWidth
+              label="Fecha de expiración"
+              name="expiration_date"
+              onChange={handleChange}
+              required
+              value={fields.expiration_date}
+            />
+          )
+          : null}
+      </ReviewForm>
+      <FileReviewDialog
+        onClose={() => setFileReviewDialogOpen(false)}
+        onConfirm={handleSubmit}
+        open={file_review_dialog_open}
       />
-      <TextField
-        disabled
-        fullWidth
-        inputProps={{
-          maxLength: "10",
-        }}
-        label="Versión"
-        name="version"
-        onChange={handleChange}
-        value={fields.version}
-      />
-      <DateField
-        fullWidth
-        label="Fecha de expedición"
-        name="expedition_date"
-        onChange={handleChange}
-        required
-        value={fields.expedition_date}
-      />
-      <SelectField
-        blank_value={false}
-        fullWidth
-        label="Expiración certificación"
-        name="certification_expires"
-        onChange={(event) => {
-          const certification_expires = Boolean(Number(event.target.value));
-          setFields((prevState) => ({
-            ...prevState,
-            certification_expires,
-          }));
-        }}
-        value={Number(fields.certification_expires)}
-      >
-        <option value="0">No</option>
-        <option value="1">Sí</option>
-      </SelectField>
-      {fields.certification_expires
-        ? (
-          <DateField
-            fullWidth
-            label="Fecha de expiración"
-            name="expiration_date"
-            onChange={handleChange}
-            required
-            value={fields.expiration_date}
-          />
-        )
-        : null}
-    </DialogForm>
+    </Fragment>
   );
 };
 

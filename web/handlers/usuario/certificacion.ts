@@ -3,10 +3,13 @@ import removeAccents from "remove-accents";
 import Ajv from "ajv";
 import * as certification_model from "../../../api/models/users/certification.ts";
 import {
-  Certification,
   findById as findTemplate,
 } from "../../../api/models/users/certification_template.ts";
 import { findById as findType } from "../../../api/models/users/certification_type.ts";
+import {
+  deleteReview,
+  requestReview,
+} from "../../../api/reviews/user_certification.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { Message } from "../../http_utils.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
@@ -114,6 +117,7 @@ export const deleteCertification = async (
   }
 
   try {
+    await deleteReview(certification.id);
     const generic_file_id = certification.generic_file;
 
     //Parent should be deleted first so file constraint doesn't complain
@@ -211,7 +215,7 @@ export const updateCertification = async (
     );
   }
 
-  response.body = await certification.update(
+  await certification.update(
     value.type,
     value.name,
     value.expedition_date,
@@ -220,6 +224,12 @@ export const updateCertification = async (
     .catch(() => {
       throw new Error("No fue posible actualizar el certificado");
     });
+
+  if (certification.generic_file) {
+    await requestReview(certification.id);
+  }
+
+  response.body = certification;
 };
 
 export const updateCertificationFile = async (
@@ -308,6 +318,8 @@ export const updateCertificationFile = async (
     certification.generic_file = file_id;
     certification = await certification.update();
   }
+
+  await requestReview(certification.id);
 
   response.body = certification;
 };
