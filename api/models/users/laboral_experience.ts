@@ -1,8 +1,8 @@
 import postgres from "../../services/postgres.js";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { TABLE as GENERIC_FILE_TABLE } from "../files/generic_file.ts";
-import { TABLE as POSITION_TABLE } from "../ORGANIZACION/cargo.ts";
 import { TABLE as SECTOR_TABLE } from "../CLIENTES/SECTOR.ts";
+import { DataType, TABLE as REVIEW_TABLE } from "./data_review.ts";
 
 export const TABLE = "USUARIOS.EXPERIENCIA_LABORAL";
 
@@ -24,6 +24,8 @@ class LaboralExperience {
     public function_description: string,
     public achievement_description: string,
     public generic_file: number | null,
+    public approved: boolean | null,
+    public observations: string | null,
   ) {}
 
   async delete() {
@@ -184,6 +186,8 @@ export const create = async (
     function_description,
     achievement_description,
     null,
+    null,
+    null,
   );
 };
 
@@ -192,24 +196,29 @@ export const getAll = async (
 ): Promise<LaboralExperience[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_EXPERIENCIA,
-      FK_USUARIO,
-      EMPRESA,
-      NIT,
-      D_VERIFICACION,
-      FK_SECTOR,
-      FK_CIUDAD,
-      DIRECCION,
-      TELEFONO,
-      CONTACTO,
-      TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
-      TO_CHAR(FEC_FIN, 'YYYY-MM-DD'),
-      CARGO,
-      DES_FUNCIONES,
-      DES_LOGROS,
-      FK_ARCHIVO_GENERICO
-    FROM ${TABLE}
-    ${user ? `WHERE FK_USUARIO = ${user}` : ""}`,
+      E.PK_EXPERIENCIA,
+      E.FK_USUARIO,
+      E.EMPRESA,
+      E.NIT,
+      E.D_VERIFICACION,
+      E.FK_SECTOR,
+      E.FK_CIUDAD,
+      E.DIRECCION,
+      E.TELEFONO,
+      E.CONTACTO,
+      TO_CHAR(E.FEC_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(E.FEC_FIN, 'YYYY-MM-DD'),
+      E.CARGO,
+      E.DES_FUNCIONES,
+      E.DES_LOGROS,
+      E.FK_ARCHIVO_GENERICO,
+      R.BAN_APROBADO,
+      R.OBSERVACION
+    FROM ${TABLE} E
+    LEFT JOIN ${REVIEW_TABLE} AS R
+      ON E.PK_EXPERIENCIA = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_LABORAL}'
+    ${user ? `WHERE E.FK_USUARIO = ${user}` : ""}`,
   );
 
   return rows.map((row: [
@@ -229,6 +238,8 @@ export const getAll = async (
     string,
     string,
     number | null,
+    boolean | null,
+    string | null,
   ]) => new LaboralExperience(...row));
 };
 
@@ -238,25 +249,30 @@ export const findByIdAndUser = async (
 ): Promise<LaboralExperience | null> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_EXPERIENCIA,
-      FK_USUARIO,
-      EMPRESA,
-      NIT,
-      D_VERIFICACION,
-      FK_SECTOR,
-      FK_CIUDAD,
-      DIRECCION,
-      TELEFONO,
-      CONTACTO,
-      TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
-      TO_CHAR(FEC_FIN, 'YYYY-MM-DD'),
-      CARGO,
-      DES_FUNCIONES,
-      DES_LOGROS,
-      FK_ARCHIVO_GENERICO
-    FROM ${TABLE}
-    WHERE PK_EXPERIENCIA = $1
-    AND FK_USUARIO = $2`,
+      E.PK_EXPERIENCIA,
+      E.FK_USUARIO,
+      E.EMPRESA,
+      E.NIT,
+      E.D_VERIFICACION,
+      E.FK_SECTOR,
+      E.FK_CIUDAD,
+      E.DIRECCION,
+      E.TELEFONO,
+      E.CONTACTO,
+      TO_CHAR(E.FEC_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(E.FEC_FIN, 'YYYY-MM-DD'),
+      E.CARGO,
+      E.DES_FUNCIONES,
+      E.DES_LOGROS,
+      E.FK_ARCHIVO_GENERICO,
+      R.BAN_APROBADO,
+      R.OBSERVACION
+    FROM ${TABLE} E
+    LEFT JOIN ${REVIEW_TABLE} AS R
+      ON E.PK_EXPERIENCIA = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_LABORAL}'
+    WHERE E.PK_EXPERIENCIA = $1
+    AND E.FK_USUARIO = $2`,
     id,
     user,
   );
@@ -279,6 +295,8 @@ export const findByIdAndUser = async (
       string,
       string,
       number | null,
+      boolean | null,
+      string | null,
     ],
   );
 };
@@ -294,6 +312,7 @@ class TableData {
       extensions: string[];
     },
     public readonly upload_date: string,
+    public readonly review_status: number,
   ) {}
 }
 
@@ -315,10 +334,19 @@ export const generateTableData = (
         DATE_PART('YEAR', FEC_FIN) - DATE_PART('YEAR', FEC_INICIO) AS DURATION,
         E.FK_ARCHIVO_GENERICO,
         F.EXTENSIONES,
-        F.FEC_CARGA AS UPLOAD_DATE
+        F.FEC_CARGA AS UPLOAD_DATE,
+        CASE
+          WHEN R.BAN_APROBADO = FALSE AND R.OBSERVACION IS NOT NULL THEN 0
+          WHEN R.BAN_APROBADO = TRUE THEN 1
+          WHEN E.FK_ARCHIVO_GENERICO IS NULL THEN 3
+          ELSE 2
+        END AS REVIEW_STATUS
       FROM ${TABLE} AS E
       LEFT JOIN ${GENERIC_FILE_TABLE} AS F
         ON F.PK_ARCHIVO = E.FK_ARCHIVO_GENERICO
+      LEFT JOIN ${REVIEW_TABLE} AS R
+        ON E.PK_EXPERIENCIA = R.FK_DATOS
+        AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_LABORAL}'
       WHERE E.FK_USUARIO = ${user_id}`
     );
 
@@ -339,6 +367,7 @@ export const generateTableData = (
       number,
       string[],
       string,
+      number,
     ]) =>
       new TableData(
         x[0],
@@ -350,6 +379,7 @@ export const generateTableData = (
           extensions: x[5],
         },
         x[6],
+        x[7],
       )
     );
 

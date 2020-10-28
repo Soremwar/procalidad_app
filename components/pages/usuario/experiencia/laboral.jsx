@@ -27,7 +27,10 @@ import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
 import FileField from "../../../common/FileField.jsx";
 import Title from "../../../common/Title.jsx";
+import ReviewBadge from "../common/ReviewBadge.jsx";
+import ReviewForm from "../common/ReviewForm.jsx";
 import SelectField from "../../../common/SelectField.jsx";
+import FileReviewDialog from "../common/FileReviewDialog";
 
 const getClients = () => fetchClientApi();
 const getLaboralExperiences = () => fetchUserLaboralExperience();
@@ -204,6 +207,16 @@ const headers = [
     label: "Fecha de carga",
     searchable: true,
   },
+  {
+    displayAs: (_, value) => (
+      <ReviewBadge status={value} />
+    ),
+    id: "review_status",
+    numeric: false,
+    disablePadding: false,
+    searchable: false,
+    orderable: false,
+  },
 ];
 
 const ParameterContext = createContext({
@@ -279,6 +292,7 @@ const AddModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [file_review_modal_open, setFileReviewModalOpen] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -339,13 +353,18 @@ const AddModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Crear Nuevo"}
+    <Fragment>
+    <ReviewForm
+      approved={false}
+      comments="&nbsp;"
+      helper_text={error}
+      loading={is_loading}
+      onBeforeSubmit={() => {
+        setFileReviewModalOpen(true);
+      }}
+      onClose={() => setModalOpen(false)}
+      open={is_open}
+      title="Crear nuevo"
     >
       <Autocomplete
         fetchOptions={async () => {
@@ -508,7 +527,13 @@ const AddModal = ({
         required
         value={fields.achievement_description}
       />
-    </DialogForm>
+    </ReviewForm>
+      <FileReviewDialog
+        onClose={() => setFileReviewModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={file_review_modal_open}
+      />
+    </Fragment>
   );
 };
 
@@ -524,6 +549,8 @@ const EditModal = ({
 
   const [fields, setFields] = useState({
     achievement_description: "",
+    approved: false,
+    comments: "",
     company_address: "",
     company_city: "",
     company_name: "",
@@ -539,6 +566,7 @@ const EditModal = ({
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [file_review_modal_open, setFileReviewModalOpen] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -580,6 +608,8 @@ const EditModal = ({
     if (is_open) {
       setFields({
         achievement_description: data.achievement_description,
+        approved: data.approved,
+        comments: data.observations,
         company_address: data.company_address,
         company_city: data.company_city,
         company_name: data.company_name,
@@ -599,13 +629,16 @@ const EditModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Editar"}
+    <Fragment>
+    <ReviewForm
+      approved={fields.approved}
+      comments={fields.comments}
+      helper_text={error}
+      loading={is_loading}
+      onBeforeSubmit={() => setFileReviewModalOpen(true)}
+      onClose={() => setModalOpen(false)}
+      open={is_open}
+      title="Editar"
     >
       <TextField
         disabled
@@ -754,7 +787,13 @@ const EditModal = ({
         required
         value={fields.achievement_description}
       />
-    </DialogForm>
+    </ReviewForm>
+      <FileReviewDialog
+        onClose={() => setFileReviewModalOpen(false)}
+        onConfirm={handleSubmit}
+        open={file_review_modal_open}
+      />
+    </Fragment>
   );
 };
 

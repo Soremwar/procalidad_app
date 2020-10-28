@@ -2,6 +2,10 @@ import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import removeAccents from "remove-accents";
 import * as laboral_experience_modal from "../../../../api/models/users/laboral_experience.ts";
+import {
+  deleteReview,
+  requestReview,
+} from "../../../../api/reviews/user_laboral_experience.ts";
 import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
 import { Message } from "../../../http_utils.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
@@ -117,6 +121,8 @@ export const deleteLaboralExperience = async (
   }
 
   try {
+    deleteReview(laboral_experience.id);
+
     const generic_file_id = laboral_experience.generic_file;
 
     //Formation title should be deleted first so file constraint doesn't complain
@@ -213,9 +219,15 @@ export const updateLaboralExperience = async (
     value.function_description,
     value.achievement_description,
   )
-    .catch((e) => {
+    .catch(() => {
       throw new Error("No fue posible actualizar la experiencia laboral");
     });
+
+  if(laboral_experience.generic_file){
+    requestReview(laboral_experience.id);
+  }
+
+  response.body = await laboral_experience
 };
 
 export const updateLaboralExperienceCertificate = async (
@@ -289,6 +301,8 @@ export const updateLaboralExperienceCertificate = async (
     laboral_experience.generic_file = file_id;
     laboral_experience = await laboral_experience.update();
   }
+
+  requestReview(laboral_experience.id);
 
   response.body = laboral_experience;
 };

@@ -8,6 +8,10 @@ export enum DataType {
   DATOS_IDENTIFICACION = "DATOS_IDENTIFICACION",
   DATOS_SOPORTES = "DATOS_SOPORTES",
   FORMACION = "FORMACION",
+  EXPERIENCIA_LABORAL = "EXPERIENCIA_LABORAL",
+  EXPERIENCIA_PROYECTO = "EXPERIENCIA_PROYECTO",
+  HABILIDAD_TECNICA = "HABILIDAD_TECNICA",
+  CERTIFICACION = "CERTIFICACION",
 }
 
 class DataReview {
@@ -44,6 +48,13 @@ class DataReview {
     this.last_update = new Date(rows[0][0]);
 
     return this;
+  }
+
+  async delete(){
+    await postgres.query(
+      `DELETE FROM ${TABLE} WHERE PK_REVISION = $1`,
+      this.id,
+    );
   }
 
   /**

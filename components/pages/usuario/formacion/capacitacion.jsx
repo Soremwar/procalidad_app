@@ -103,6 +103,7 @@ const headers = [
     searchable: true,
   },
   {
+    displayAs: (_, value) => value ? value : "No hay instructor registrado",
     id: "teacher",
     numeric: false,
     disablePadding: false,
