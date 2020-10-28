@@ -709,7 +709,7 @@ export default function Continuada() {
       />
       <ReviewDialog
         approved={false}
-        onConfirm={() => console.log('this should allow us to load files now')}
+        onConfirm={() => console.log("this should allow us to load files now")}
         onClose={() => setReviewDialogOpen(false)}
         open={review_dialog_open}
       />

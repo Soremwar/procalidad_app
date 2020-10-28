@@ -312,126 +312,128 @@ const AddModal = ({
 
   return (
     <Fragment>
-    <ReviewForm
-      approved={false}
-      comments="&nbsp;"
-      helper_text={error}
-      loading={is_loading}
-      onBeforeSubmit={() => {
-        if (fields.end_date) {
-          setFileReviewModalOpen(true);
-        } else {
-          setReviewModalOpen(true);
-        }
-      }}
-      onClose={() => setModalOpen(false)}
-      open={is_open}
-      title="Crear Nuevo"
-    >
-      <SelectField
-        fullWidth
-        label="Nivel de formación"
-        name="formation_level"
-        onChange={handleChange}
-        required
-        value={fields.formation_level}
+      <ReviewForm
+        approved={false}
+        comments="&nbsp;"
+        helper_text={error}
+        loading={is_loading}
+        onBeforeSubmit={() => {
+          if (fields.end_date) {
+            setFileReviewModalOpen(true);
+          } else {
+            setReviewModalOpen(true);
+          }
+        }}
+        onClose={() => setModalOpen(false)}
+        open={is_open}
+        title="Crear Nuevo"
       >
-        {formation_levels
-          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
-          .map(({ id, name }) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-      </SelectField>
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            maxLength: "50",
-          },
-        }}
-        label="Título"
-        name="title"
-        onChange={handleChange}
-        required
-        value={fields.title}
-      />
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            maxLength: "50",
-          },
-        }}
-        label="Institución"
-        name="institution"
-        onChange={handleChange}
-        required
-        value={fields.institution}
-      />
-      <SelectField
-        blank_value={false}
-        fullWidth
-        label="Estado"
-        name="status"
-        onChange={(event) => {
-          const status = Boolean(Number(event.target.value));
-          setFields((prev_state) => ({ ...prev_state, status }));
-        }}
-        required
-        value={Number(fields.status)}
-      >
-        <option value="0">En curso</option>
-        <option value="1">Finalizado</option>
-      </SelectField>
-      <DateField
-        fullWidth
-        label="Fecha de inicio"
-        name="start_date"
-        onChange={handleChange}
-        required
-        value={fields.start_date}
-      />
-      {fields.status
-        ? (
-          <DateField
-            fullWidth
-            label="Fecha de finalización"
-            name="end_date"
-            onChange={handleChange}
-            required
-            value={fields.end_date}
-          />
-        )
-        : null}
-      <CitySelector
-        label="Lugar de cursado"
-        required
-        setValue={(city, _state, country) =>
-          setFields((prev_state) => ({ ...prev_state, city, country }))}
-        value={fields.city}
-      />
-      {fields.country && fields.country != current_country
-        ? (
-          <SelectField
-            blank_value={false}
-            fullWidth
-            label="Título convalidado"
-            name="title_is_convalidated"
-            onChange={(event) => {
-              const title_is_convalidated = Boolean(Number(event.target.value));
-              setFields((prevState) => ({
-                ...prevState,
-                title_is_convalidated,
-              }));
-            }}
-            value={Number(fields.title_is_convalidated)}
-          >
-            <option value="0">No</option>
-            <option value="1">Sí</option>
-          </SelectField>
-        )
-        : null}
-    </ReviewForm>
+        <SelectField
+          fullWidth
+          label="Nivel de formación"
+          name="formation_level"
+          onChange={handleChange}
+          required
+          value={fields.formation_level}
+        >
+          {formation_levels
+            .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+            .map(({ id, name }) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+        </SelectField>
+        <TextField
+          fullWidth
+          InputProps={{
+            inputProps: {
+              maxLength: "50",
+            },
+          }}
+          label="Título"
+          name="title"
+          onChange={handleChange}
+          required
+          value={fields.title}
+        />
+        <TextField
+          fullWidth
+          InputProps={{
+            inputProps: {
+              maxLength: "50",
+            },
+          }}
+          label="Institución"
+          name="institution"
+          onChange={handleChange}
+          required
+          value={fields.institution}
+        />
+        <SelectField
+          blank_value={false}
+          fullWidth
+          label="Estado"
+          name="status"
+          onChange={(event) => {
+            const status = Boolean(Number(event.target.value));
+            setFields((prev_state) => ({ ...prev_state, status }));
+          }}
+          required
+          value={Number(fields.status)}
+        >
+          <option value="0">En curso</option>
+          <option value="1">Finalizado</option>
+        </SelectField>
+        <DateField
+          fullWidth
+          label="Fecha de inicio"
+          name="start_date"
+          onChange={handleChange}
+          required
+          value={fields.start_date}
+        />
+        {fields.status
+          ? (
+            <DateField
+              fullWidth
+              label="Fecha de finalización"
+              name="end_date"
+              onChange={handleChange}
+              required
+              value={fields.end_date}
+            />
+          )
+          : null}
+        <CitySelector
+          label="Lugar de cursado"
+          required
+          setValue={(city, _state, country) =>
+            setFields((prev_state) => ({ ...prev_state, city, country }))}
+          value={fields.city}
+        />
+        {fields.country && fields.country != current_country
+          ? (
+            <SelectField
+              blank_value={false}
+              fullWidth
+              label="Título convalidado"
+              name="title_is_convalidated"
+              onChange={(event) => {
+                const title_is_convalidated = Boolean(
+                  Number(event.target.value),
+                );
+                setFields((prevState) => ({
+                  ...prevState,
+                  title_is_convalidated,
+                }));
+              }}
+              value={Number(fields.title_is_convalidated)}
+            >
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </SelectField>
+          )
+          : null}
+      </ReviewForm>
       <FileReviewDialog
         onClose={() => setFileReviewModalOpen(false)}
         onConfirm={handleSubmit}
@@ -525,120 +527,122 @@ const EditModal = ({
 
   return (
     <Fragment>
-    <ReviewForm
-      approved={fields.approved}
-      comments={fields.comments}
-      helper_text={error}
-      loading={is_loading}
-      onBeforeSubmit={() => {
-        if (fields.end_date) {
-          setFileReviewModalOpen(true);
-        } else {
-          setReviewModalOpen(true);
-        }
-      }}
-      onClose={() => setModalOpen(false)}
-      open={is_open}
-      title="Editar"
-    >
-      <SelectField
-        disabled
-        fullWidth
-        label="Nivel de formación"
-        name="formation_level"
-        value={fields.formation_level}
-      >
-        {formation_levels
-          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
-          .map(({ id, name }) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-      </SelectField>
-      <TextField
-        disabled
-        fullWidth
-        label="Título"
-        name="title"
-        value={fields.title}
-      />
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            maxLength: "50",
-          },
+      <ReviewForm
+        approved={fields.approved}
+        comments={fields.comments}
+        helper_text={error}
+        loading={is_loading}
+        onBeforeSubmit={() => {
+          if (fields.end_date) {
+            setFileReviewModalOpen(true);
+          } else {
+            setReviewModalOpen(true);
+          }
         }}
-        label="Institución"
-        name="institution"
-        onChange={handleChange}
-        required
-        value={fields.institution}
-      />
-      <SelectField
-        blank_value={false}
-        disabled={!!data.end_date}
-        fullWidth
-        label="Estado"
-        name="status"
-        onChange={(event) => {
-          const status = Boolean(Number(event.target.value));
-          setFields((prev_state) => ({ ...prev_state, status }));
-        }}
-        required
-        value={Number(fields.status)}
+        onClose={() => setModalOpen(false)}
+        open={is_open}
+        title="Editar"
       >
-        <option value="0">En curso</option>
-        <option value="1">Finalizado</option>
-      </SelectField>
-      <DateField
-        fullWidth
-        label="Fecha de inicio"
-        name="start_date"
-        onChange={handleChange}
-        required
-        value={fields.start_date}
-      />
-      {fields.status
-        ? (
-          <DateField
-            fullWidth
-            label="Fecha de finalización"
-            name="end_date"
-            onChange={handleChange}
-            required
-            value={fields.end_date}
-          />
-        )
-        : null}
-      <CitySelector
-        label="Lugar de cursado"
-        required
-        setValue={(city, _state, country) =>
-          setFields((prev_state) => ({ ...prev_state, city, country }))}
-        value={fields.city}
-      />
-      {fields.country && fields.country != current_country
-        ? (
-          <SelectField
-            blank_value={false}
-            fullWidth
-            label="Título convalidado"
-            name="title_is_convalidated"
-            onChange={(event) => {
-              const title_is_convalidated = Boolean(Number(event.target.value));
-              setFields((prevState) => ({
-                ...prevState,
-                title_is_convalidated,
-              }));
-            }}
-            value={Number(fields.title_is_convalidated)}
-          >
-            <option value="0">No</option>
-            <option value="1">Sí</option>
-          </SelectField>
-        )
-        : null}
-    </ReviewForm>
+        <SelectField
+          disabled
+          fullWidth
+          label="Nivel de formación"
+          name="formation_level"
+          value={fields.formation_level}
+        >
+          {formation_levels
+            .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+            .map(({ id, name }) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+        </SelectField>
+        <TextField
+          disabled
+          fullWidth
+          label="Título"
+          name="title"
+          value={fields.title}
+        />
+        <TextField
+          fullWidth
+          InputProps={{
+            inputProps: {
+              maxLength: "50",
+            },
+          }}
+          label="Institución"
+          name="institution"
+          onChange={handleChange}
+          required
+          value={fields.institution}
+        />
+        <SelectField
+          blank_value={false}
+          disabled={!!data.end_date}
+          fullWidth
+          label="Estado"
+          name="status"
+          onChange={(event) => {
+            const status = Boolean(Number(event.target.value));
+            setFields((prev_state) => ({ ...prev_state, status }));
+          }}
+          required
+          value={Number(fields.status)}
+        >
+          <option value="0">En curso</option>
+          <option value="1">Finalizado</option>
+        </SelectField>
+        <DateField
+          fullWidth
+          label="Fecha de inicio"
+          name="start_date"
+          onChange={handleChange}
+          required
+          value={fields.start_date}
+        />
+        {fields.status
+          ? (
+            <DateField
+              fullWidth
+              label="Fecha de finalización"
+              name="end_date"
+              onChange={handleChange}
+              required
+              value={fields.end_date}
+            />
+          )
+          : null}
+        <CitySelector
+          label="Lugar de cursado"
+          required
+          setValue={(city, _state, country) =>
+            setFields((prev_state) => ({ ...prev_state, city, country }))}
+          value={fields.city}
+        />
+        {fields.country && fields.country != current_country
+          ? (
+            <SelectField
+              blank_value={false}
+              fullWidth
+              label="Título convalidado"
+              name="title_is_convalidated"
+              onChange={(event) => {
+                const title_is_convalidated = Boolean(
+                  Number(event.target.value),
+                );
+                setFields((prevState) => ({
+                  ...prevState,
+                  title_is_convalidated,
+                }));
+              }}
+              value={Number(fields.title_is_convalidated)}
+            >
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </SelectField>
+          )
+          : null}
+      </ReviewForm>
       <FileReviewDialog
         onClose={() => setFileReviewModalOpen(false)}
         onConfirm={handleSubmit}
@@ -811,7 +815,7 @@ export default function Academica() {
       />
       <ReviewDialog
         approved={false}
-        onConfirm={() => console.log('this should allow us to load files now')}
+        onConfirm={() => console.log("this should allow us to load files now")}
         onClose={() => setReviewDialogOpen(false)}
         open={review_dialog_open}
       />

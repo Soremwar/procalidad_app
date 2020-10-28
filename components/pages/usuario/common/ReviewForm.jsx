@@ -60,7 +60,7 @@ export default function ReviewForm({
   comments,
   helper_text,
   loading = false,
-  onBeforeSubmit ,
+  onBeforeSubmit,
   onClose,
   onSubmit,
   open,

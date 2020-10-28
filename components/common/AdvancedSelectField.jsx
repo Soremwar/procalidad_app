@@ -37,12 +37,12 @@ const useStyles = makeStyles(() => ({
  * @param {changeCallback} props.onChange
  * @param {SelectOptions} props.options
  * */
-export default function AdvancedSelectField ({
+export default function AdvancedSelectField({
   disabled = false,
   fullWidth = false,
   label = null,
   name,
-  onChange ,
+  onChange,
   onInputChange = false,
   options = [],
   required = false,
@@ -97,4 +97,4 @@ export default function AdvancedSelectField ({
       />
     </FormControl>
   );
-};
+}

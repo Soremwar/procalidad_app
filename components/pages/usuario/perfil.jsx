@@ -1,11 +1,6 @@
-import React, {
-  Fragment, useEffect,
-  useState,
-} from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Grid } from "@material-ui/core";
-import {
-  fetchPeopleApi,
-} from "../../../lib/api/generator.js"
+import { fetchPeopleApi } from "../../../lib/api/generator.js";
 import ChildrenForm from "./perfil/ChildrenForm.jsx";
 import ContactForm from "./perfil/ContactForm.jsx";
 import DocumentForm from "./perfil/DocumentForm.jsx";
@@ -22,25 +17,25 @@ const getPeople = () => fetchPeopleApi();
  * @param {boolean} [props.review_mode = false]
  * */
 export default function Perfil({
-  review_mode= false,
+  review_mode = false,
 }) {
   const [people, setPeople] = useState([]);
   const [selected_person, setSelectedPerson] = useState();
 
   useEffect(() => {
-    if(review_mode){
+    if (review_mode) {
       getPeople()
-        .then(async response => {
-          if(response.ok){
+        .then(async (response) => {
+          if (response.ok) {
             /** @type Array<{pk_persona: number, nombre: string }>|*/
             const people = await response.json();
 
             setPeople(
               people
-                .map(({pk_persona, nombre}) => [pk_persona, nombre])
+                .map(({ pk_persona, nombre }) => [pk_persona, nombre])
                 .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
             );
-          }else{
+          } else {
             throw new Error();
           }
         })
@@ -50,8 +45,7 @@ export default function Perfil({
 
   return (
     <Fragment>
-      {
-        review_mode
+      {review_mode
         ? (
           <Fragment>
             <Grid container>
@@ -65,12 +59,11 @@ export default function Perfil({
                 />
               </Grid>
             </Grid>
-          <br />
-        <br />
+            <br />
+            <br />
           </Fragment>
-          )
-        : null
-      }
+        )
+        : null}
       <MainForm
         person={selected_person}
         review_mode={review_mode}

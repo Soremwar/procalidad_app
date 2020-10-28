@@ -47,7 +47,7 @@ let AVATAR_UPLOAD_WARNING = (
 
 const getGenders = () => fetchGenderApi();
 const getMaritalStatuses = () => fetchMaritalStatus();
-const getPerson = id => fetchPeopleApi(id);
+const getPerson = (id) => fetchPeopleApi(id);
 
 const getUserInformation = () => fetchUserApi();
 const setUserInformation = (
@@ -242,7 +242,7 @@ export default function MainForm({
   }, []);
 
   useEffect(() => {
-    if(!reload_data){
+    if (!reload_data) {
       return;
     }
 
@@ -254,9 +254,9 @@ export default function MainForm({
      * */
     let person_data_request;
 
-    if(review_mode){
+    if (review_mode) {
       person_data_request = getPerson(person);
-    }else{
+    } else {
       person_data_request = getUserInformation();
     }
 
@@ -307,9 +307,9 @@ export default function MainForm({
   // If in review mode, wait 'til a person is selected
   // Load instantly if not in review mode
   useEffect(() => {
-    if(review_mode && person){
+    if (review_mode && person) {
       setReloadData(true);
-    }else if(!review_mode){
+    } else if (!review_mode) {
       setReloadData(true);
     }
   }, [person]);

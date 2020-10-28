@@ -473,7 +473,7 @@ const Layout = (props) => {
                 Profiles.CONTROLLER,
                 Profiles.HUMAN_RESOURCES,
               ]}
-              component={() => <Perfil review_mode={true}/>}
+              component={() => <Perfil review_mode={true} />}
               path="/recursos_humanos/perfil"
             />
             <Route exact={true} path="/" />

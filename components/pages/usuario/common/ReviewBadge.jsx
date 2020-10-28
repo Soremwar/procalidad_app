@@ -53,7 +53,7 @@ export default function ReviewBadge({
   let Icon;
   let icon_class_status;
 
-  switch(status){
+  switch (status) {
     case 0:
       Icon = RejectedIcon;
       icon_class_status = classes.icon_rejected;
@@ -77,7 +77,7 @@ export default function ReviewBadge({
   return (
     <Tooltip title={icon_text}>
       <Avatar className={icon_class_status}>
-        <Icon/>
+        <Icon />
       </Avatar>
     </Tooltip>
   );
