@@ -50,7 +50,7 @@ class DataReview {
     return this;
   }
 
-  async delete(){
+  async delete() {
     await postgres.query(
       `DELETE FROM ${TABLE} WHERE PK_REVISION = $1`,
       this.id,

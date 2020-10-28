@@ -354,180 +354,180 @@ const AddModal = ({
 
   return (
     <Fragment>
-    <ReviewForm
-      approved={false}
-      comments="&nbsp;"
-      helper_text={error}
-      loading={is_loading}
-      onBeforeSubmit={() => {
-        setFileReviewModalOpen(true);
-      }}
-      onClose={() => setModalOpen(false)}
-      open={is_open}
-      title="Crear nuevo"
-    >
-      <Autocomplete
-        fetchOptions={async () => {
-          return [
-            ...new Set(
-              clients
-                .map((x) => x.razon_social.toUpperCase())
-                .concat(companies)
-                .sort((a, b) => a.localeCompare(b)),
-            ),
-          ];
+      <ReviewForm
+        approved={false}
+        comments="&nbsp;"
+        helper_text={error}
+        loading={is_loading}
+        onBeforeSubmit={() => {
+          setFileReviewModalOpen(true);
         }}
-        label="Razón social de la empresa"
-        max={50}
-        name="company_name"
-        setValue={(value) =>
-          setFields((prev_state) => ({
-            ...prev_state,
-            company_name: value.toUpperCase(),
-          }))}
-        value={fields.company_name}
-      />
-      <Grid container spacing={1}>
-        <Grid item md={7} xs={12}>
-          <TextField
-            fullWidth
-            inputProps={{
-              min: "1",
-              max: "999999999",
-            }}
-            label="NIT"
-            name="company_nit"
-            onChange={handleChange}
-            required
-            type="number"
-            value={fields.company_nit}
-          />
-        </Grid>
-        <Grid item md={5} xs={12}>
-          <TextField
-            fullWidth
-            inputProps={{
-              min: "0",
-              max: "9",
-            }}
-            label="Dígito de verificación"
-            name="company_verification_digit"
-            onChange={handleChange}
-            required
-            type="number"
-            value={fields.company_verification_digit}
-          />
-        </Grid>
-      </Grid>
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "100",
-        }}
-        label="Dirección"
-        name="company_address"
-        onChange={handleChange}
-        required
-        value={fields.company_address}
-      />
-      <SelectField
-        fullWidth
-        label="Sector"
-        name="company_sector"
-        onChange={handleChange}
-        required
-        value={fields.company_sector}
+        onClose={() => setModalOpen(false)}
+        open={is_open}
+        title="Crear nuevo"
       >
-        {sectors
-          .map(({ pk_sector, nombre }) => (
-            <option key={pk_sector} value={pk_sector}>{nombre}</option>
-          ))}
-      </SelectField>
-      <DateField
-        fullWidth
-        label="Fecha de inicio"
-        name="start_date"
-        onChange={handleChange}
-        required
-        value={fields.start_date}
-      />
-      <DateField
-        fullWidth
-        label="Fecha de finalización"
-        name="end_date"
-        onChange={handleChange}
-        required
-        value={fields.end_date}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "50",
-        }}
-        label="Cargo"
-        name="position"
-        onChange={handleChange}
-        required
-        value={fields.position}
-      />
-      <CitySelector
-        label="Lugar de Trabajo"
-        setValue={(company_city) => {
-          setFields((prev_state) => ({ ...prev_state, company_city }));
-        }}
-        value={fields.company_city}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "255",
-        }}
-        label="Contacto"
-        name="contact"
-        onChange={handleChange}
-        required
-        value={fields.contact}
-      />
-      <TextField
-        fullWidth
-        label="Teléfono"
-        name="company_phone"
-        onChange={handleChange}
-        required
-        type="number"
-        value={fields.company_phone}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "1000",
-        }}
-        label="Funciones"
-        multiline
-        rows={3}
-        rowsMax={10}
-        name="function_description"
-        onChange={handleChange}
-        placeholder="Ej:&#10;Desarrollar los componentes técnicos requeridos (BackEnd y FrontEnd) en la ejecución de los proyectos de BI donde fue asignado"
-        required
-        value={fields.function_description}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "1000",
-        }}
-        label="Logros a resaltar"
-        multiline
-        rows={3}
-        rowsMax={10}
-        name="achievement_description"
-        onChange={handleChange}
-        placeholder="Ej:&#10;Conseguimos el distintivo oficial como proveedor preferente&#10;Mi equipo comercial hizo aumentar la facturación de la empresa en un 40%"
-        required
-        value={fields.achievement_description}
-      />
-    </ReviewForm>
+        <Autocomplete
+          fetchOptions={async () => {
+            return [
+              ...new Set(
+                clients
+                  .map((x) => x.razon_social.toUpperCase())
+                  .concat(companies)
+                  .sort((a, b) => a.localeCompare(b)),
+              ),
+            ];
+          }}
+          label="Razón social de la empresa"
+          max={50}
+          name="company_name"
+          setValue={(value) =>
+            setFields((prev_state) => ({
+              ...prev_state,
+              company_name: value.toUpperCase(),
+            }))}
+          value={fields.company_name}
+        />
+        <Grid container spacing={1}>
+          <Grid item md={7} xs={12}>
+            <TextField
+              fullWidth
+              inputProps={{
+                min: "1",
+                max: "999999999",
+              }}
+              label="NIT"
+              name="company_nit"
+              onChange={handleChange}
+              required
+              type="number"
+              value={fields.company_nit}
+            />
+          </Grid>
+          <Grid item md={5} xs={12}>
+            <TextField
+              fullWidth
+              inputProps={{
+                min: "0",
+                max: "9",
+              }}
+              label="Dígito de verificación"
+              name="company_verification_digit"
+              onChange={handleChange}
+              required
+              type="number"
+              value={fields.company_verification_digit}
+            />
+          </Grid>
+        </Grid>
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "100",
+          }}
+          label="Dirección"
+          name="company_address"
+          onChange={handleChange}
+          required
+          value={fields.company_address}
+        />
+        <SelectField
+          fullWidth
+          label="Sector"
+          name="company_sector"
+          onChange={handleChange}
+          required
+          value={fields.company_sector}
+        >
+          {sectors
+            .map(({ pk_sector, nombre }) => (
+              <option key={pk_sector} value={pk_sector}>{nombre}</option>
+            ))}
+        </SelectField>
+        <DateField
+          fullWidth
+          label="Fecha de inicio"
+          name="start_date"
+          onChange={handleChange}
+          required
+          value={fields.start_date}
+        />
+        <DateField
+          fullWidth
+          label="Fecha de finalización"
+          name="end_date"
+          onChange={handleChange}
+          required
+          value={fields.end_date}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "50",
+          }}
+          label="Cargo"
+          name="position"
+          onChange={handleChange}
+          required
+          value={fields.position}
+        />
+        <CitySelector
+          label="Lugar de Trabajo"
+          setValue={(company_city) => {
+            setFields((prev_state) => ({ ...prev_state, company_city }));
+          }}
+          value={fields.company_city}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "255",
+          }}
+          label="Contacto"
+          name="contact"
+          onChange={handleChange}
+          required
+          value={fields.contact}
+        />
+        <TextField
+          fullWidth
+          label="Teléfono"
+          name="company_phone"
+          onChange={handleChange}
+          required
+          type="number"
+          value={fields.company_phone}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "1000",
+          }}
+          label="Funciones"
+          multiline
+          rows={3}
+          rowsMax={10}
+          name="function_description"
+          onChange={handleChange}
+          placeholder="Ej:&#10;Desarrollar los componentes técnicos requeridos (BackEnd y FrontEnd) en la ejecución de los proyectos de BI donde fue asignado"
+          required
+          value={fields.function_description}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "1000",
+          }}
+          label="Logros a resaltar"
+          multiline
+          rows={3}
+          rowsMax={10}
+          name="achievement_description"
+          onChange={handleChange}
+          placeholder="Ej:&#10;Conseguimos el distintivo oficial como proveedor preferente&#10;Mi equipo comercial hizo aumentar la facturación de la empresa en un 40%"
+          required
+          value={fields.achievement_description}
+        />
+      </ReviewForm>
       <FileReviewDialog
         onClose={() => setFileReviewModalOpen(false)}
         onConfirm={handleSubmit}
@@ -630,164 +630,164 @@ const EditModal = ({
 
   return (
     <Fragment>
-    <ReviewForm
-      approved={fields.approved}
-      comments={fields.comments}
-      helper_text={error}
-      loading={is_loading}
-      onBeforeSubmit={() => setFileReviewModalOpen(true)}
-      onClose={() => setModalOpen(false)}
-      open={is_open}
-      title="Editar"
-    >
-      <TextField
-        disabled
-        fullWidth
-        label="Razón social de la empresa"
-        name="company_name"
-        value={fields.company_name}
-      />
-      <Grid container spacing={1}>
-        <Grid item md={7} xs={12}>
-          <TextField
-            fullWidth
-            inputProps={{
-              min: "1",
-              max: "999999999",
-            }}
-            label="NIT"
-            name="company_nit"
-            onChange={handleChange}
-            required
-            type="number"
-            value={fields.company_nit}
-          />
-        </Grid>
-        <Grid item md={5} xs={12}>
-          <TextField
-            fullWidth
-            inputProps={{
-              min: "0",
-              max: "9",
-            }}
-            label="Dígito de verificación"
-            name="company_verification_digit"
-            onChange={handleChange}
-            required
-            type="number"
-            value={fields.company_verification_digit}
-          />
-        </Grid>
-      </Grid>
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "100",
-        }}
-        label="Dirección"
-        name="company_address"
-        onChange={handleChange}
-        required
-        value={fields.company_address}
-      />
-      <SelectField
-        fullWidth
-        label="Sector"
-        name="company_sector"
-        onChange={handleChange}
-        required
-        value={fields.company_sector}
+      <ReviewForm
+        approved={fields.approved}
+        comments={fields.comments}
+        helper_text={error}
+        loading={is_loading}
+        onBeforeSubmit={() => setFileReviewModalOpen(true)}
+        onClose={() => setModalOpen(false)}
+        open={is_open}
+        title="Editar"
       >
-        {sectors
-          .map(({ pk_sector, nombre }) => (
-            <option key={pk_sector} value={pk_sector}>{nombre}</option>
-          ))}
-      </SelectField>
-      <DateField
-        fullWidth
-        label="Fecha de inicio"
-        name="start_date"
-        onChange={handleChange}
-        required
-        value={fields.start_date}
-      />
-      <DateField
-        fullWidth
-        label="Fecha de finalización"
-        name="end_date"
-        onChange={handleChange}
-        required
-        value={fields.end_date}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "50",
-        }}
-        label="Cargo"
-        name="position"
-        onChange={handleChange}
-        required
-        value={fields.position}
-      />
-      <CitySelector
-        label="Lugar de Trabajo"
-        setValue={(company_city) => {
-          setFields((prev_state) => ({ ...prev_state, company_city }));
-        }}
-        value={fields.company_city}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "255",
-        }}
-        label="Contacto"
-        name="contact"
-        onChange={handleChange}
-        required
-        value={fields.contact}
-      />
-      <TextField
-        fullWidth
-        label="Teléfono"
-        name="company_phone"
-        onChange={handleChange}
-        required
-        type="number"
-        value={fields.company_phone}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "1000",
-        }}
-        label="Funciones"
-        multiline
-        rows={3}
-        rowsMax={10}
-        name="function_description"
-        onChange={handleChange}
-        placeholder="Ej:&#10;Desarrollar los componentes técnicos requeridos (BackEnd y FrontEnd) en la ejecución de los proyectos de BI donde fue asignado"
-        required
-        value={fields.function_description}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          maxLength: "1000",
-        }}
-        label="Logros a resaltar"
-        multiline
-        rows={3}
-        rowsMax={10}
-        name="achievement_description"
-        onChange={handleChange}
-        placeholder="Ej:&#10;Conseguimos el distintivo oficial como proveedor preferente&#10;Mi equipo comercial hizo aumentar la facturación de la empresa en un 40%"
-        required
-        value={fields.achievement_description}
-      />
-    </ReviewForm>
+        <TextField
+          disabled
+          fullWidth
+          label="Razón social de la empresa"
+          name="company_name"
+          value={fields.company_name}
+        />
+        <Grid container spacing={1}>
+          <Grid item md={7} xs={12}>
+            <TextField
+              fullWidth
+              inputProps={{
+                min: "1",
+                max: "999999999",
+              }}
+              label="NIT"
+              name="company_nit"
+              onChange={handleChange}
+              required
+              type="number"
+              value={fields.company_nit}
+            />
+          </Grid>
+          <Grid item md={5} xs={12}>
+            <TextField
+              fullWidth
+              inputProps={{
+                min: "0",
+                max: "9",
+              }}
+              label="Dígito de verificación"
+              name="company_verification_digit"
+              onChange={handleChange}
+              required
+              type="number"
+              value={fields.company_verification_digit}
+            />
+          </Grid>
+        </Grid>
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "100",
+          }}
+          label="Dirección"
+          name="company_address"
+          onChange={handleChange}
+          required
+          value={fields.company_address}
+        />
+        <SelectField
+          fullWidth
+          label="Sector"
+          name="company_sector"
+          onChange={handleChange}
+          required
+          value={fields.company_sector}
+        >
+          {sectors
+            .map(({ pk_sector, nombre }) => (
+              <option key={pk_sector} value={pk_sector}>{nombre}</option>
+            ))}
+        </SelectField>
+        <DateField
+          fullWidth
+          label="Fecha de inicio"
+          name="start_date"
+          onChange={handleChange}
+          required
+          value={fields.start_date}
+        />
+        <DateField
+          fullWidth
+          label="Fecha de finalización"
+          name="end_date"
+          onChange={handleChange}
+          required
+          value={fields.end_date}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "50",
+          }}
+          label="Cargo"
+          name="position"
+          onChange={handleChange}
+          required
+          value={fields.position}
+        />
+        <CitySelector
+          label="Lugar de Trabajo"
+          setValue={(company_city) => {
+            setFields((prev_state) => ({ ...prev_state, company_city }));
+          }}
+          value={fields.company_city}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "255",
+          }}
+          label="Contacto"
+          name="contact"
+          onChange={handleChange}
+          required
+          value={fields.contact}
+        />
+        <TextField
+          fullWidth
+          label="Teléfono"
+          name="company_phone"
+          onChange={handleChange}
+          required
+          type="number"
+          value={fields.company_phone}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "1000",
+          }}
+          label="Funciones"
+          multiline
+          rows={3}
+          rowsMax={10}
+          name="function_description"
+          onChange={handleChange}
+          placeholder="Ej:&#10;Desarrollar los componentes técnicos requeridos (BackEnd y FrontEnd) en la ejecución de los proyectos de BI donde fue asignado"
+          required
+          value={fields.function_description}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            maxLength: "1000",
+          }}
+          label="Logros a resaltar"
+          multiline
+          rows={3}
+          rowsMax={10}
+          name="achievement_description"
+          onChange={handleChange}
+          placeholder="Ej:&#10;Conseguimos el distintivo oficial como proveedor preferente&#10;Mi equipo comercial hizo aumentar la facturación de la empresa en un 40%"
+          required
+          value={fields.achievement_description}
+        />
+      </ReviewForm>
       <FileReviewDialog
         onClose={() => setFileReviewModalOpen(false)}
         onConfirm={handleSubmit}

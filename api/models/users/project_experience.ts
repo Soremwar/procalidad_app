@@ -1,5 +1,6 @@
 import postgres from "../../services/postgres.js";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
+import { DataType, TABLE as REVIEW_TABLE } from "./data_review.ts";
 
 export const TABLE = "USUARIOS.EXPERIENCIA_PROYECTO";
 
@@ -20,6 +21,8 @@ class LaboralExperience {
     public project_contact_name: string,
     public project_contact_phone: number,
     public project_participation: number,
+    public approved: boolean | null,
+    public observations: string | null,
   ) {}
 
   async delete() {
@@ -175,6 +178,8 @@ export const create = async (
     project_contact_name,
     project_contact_phone,
     project_participation,
+    null,
+    null,
   );
 };
 
@@ -183,23 +188,28 @@ export const getAll = async (
 ): Promise<LaboralExperience[]> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_EXPERIENCIA,
-      FK_USUARIO,
-      CLIENTE,
-      FK_CIUDAD,
-      PROYECTO,
-      DESCRIPCION,
-      ENTORNO_TECNOLOGICO,
-      ROLES,
-      FUNCIONES,
-      TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
-      TO_CHAR(FEC_FIN, 'YYYY-MM-DD'),
-      BAN_PROYECTO_INTERNO,
-      NOMBRE_CONTACTO,
-      TELEFONO_CONTACTO,
-      PORCENTAJE_PARTICIPACION
-    FROM ${TABLE}
-    ${user ? `WHERE FK_USUARIO = ${user}` : ""}`,
+      E.PK_EXPERIENCIA,
+      E.FK_USUARIO,
+      E.CLIENTE,
+      E.FK_CIUDAD,
+      E.PROYECTO,
+      E.DESCRIPCION,
+      E.ENTORNO_TECNOLOGICO,
+      E.ROLES,
+      E.FUNCIONES,
+      TO_CHAR(E.FEC_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(E.FEC_FIN, 'YYYY-MM-DD'),
+      E.BAN_PROYECTO_INTERNO,
+      E.NOMBRE_CONTACTO,
+      E.TELEFONO_CONTACTO,
+      E.PORCENTAJE_PARTICIPACION,
+      R.BAN_APROBADO,
+      R.OBSERVACION
+    FROM ${TABLE} E
+    LEFT JOIN ${REVIEW_TABLE} AS R
+      ON E.PK_EXPERIENCIA = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_PROYECTO}'
+    ${user ? `WHERE E.FK_USUARIO = ${user}` : ""}`,
   );
 
   return rows.map((row: [
@@ -218,6 +228,8 @@ export const getAll = async (
     string,
     number,
     number,
+    boolean | null,
+    string | null,
   ]) => new LaboralExperience(...row));
 };
 
@@ -227,24 +239,29 @@ export const findByIdAndUser = async (
 ): Promise<LaboralExperience | null> => {
   const { rows } = await postgres.query(
     `SELECT
-      PK_EXPERIENCIA,
-      FK_USUARIO,
-      CLIENTE,
-      FK_CIUDAD,
-      PROYECTO,
-      DESCRIPCION,
-      ENTORNO_TECNOLOGICO,
-      ROLES,
-      FUNCIONES,
-      TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
-      TO_CHAR(FEC_FIN, 'YYYY-MM-DD'),
-      BAN_PROYECTO_INTERNO,
-      NOMBRE_CONTACTO,
-      TELEFONO_CONTACTO,
-      PORCENTAJE_PARTICIPACION
-    FROM ${TABLE}
-    WHERE PK_EXPERIENCIA = $1
-    AND FK_USUARIO = $2`,
+      E.PK_EXPERIENCIA,
+      E.FK_USUARIO,
+      E.CLIENTE,
+      E.FK_CIUDAD,
+      E.PROYECTO,
+      E.DESCRIPCION,
+      E.ENTORNO_TECNOLOGICO,
+      E.ROLES,
+      E.FUNCIONES,
+      TO_CHAR(E.FEC_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(E.FEC_FIN, 'YYYY-MM-DD'),
+      E.BAN_PROYECTO_INTERNO,
+      E.NOMBRE_CONTACTO,
+      E.TELEFONO_CONTACTO,
+      E.PORCENTAJE_PARTICIPACION,
+      R.BAN_APROBADO,
+      R.OBSERVACION
+    FROM ${TABLE} E
+    LEFT JOIN ${REVIEW_TABLE} AS R
+      ON E.PK_EXPERIENCIA = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_PROYECTO}'
+    WHERE E.PK_EXPERIENCIA = $1
+    AND E.FK_USUARIO = $2`,
     id,
     user,
   );
@@ -266,6 +283,8 @@ export const findByIdAndUser = async (
       string,
       number,
       number,
+      boolean | null,
+      string | null,
     ],
   );
 };
@@ -277,6 +296,7 @@ class TableData {
     public readonly project: string,
     public readonly duration: string,
     public readonly participation: number,
+    public readonly review_status: number,
   ) {}
 }
 
@@ -292,13 +312,21 @@ export const generateTableData = (
   ): Promise<TableResult> => {
     const base_query = (
       `SELECT
-        PK_EXPERIENCIA AS ID,
-        CLIENTE AS CLIENT,
-        PROYECTO AS PROJECT,
-        ROUND((FEC_FIN - FEC_INICIO) / 30.0) AS DURATION,
-        PORCENTAJE_PARTICIPACION AS PARTICIPATION
-      FROM ${TABLE}
-      WHERE FK_USUARIO = ${user_id}`
+        E.PK_EXPERIENCIA AS ID,
+        E.CLIENTE AS CLIENT,
+        E.PROYECTO AS PROJECT,
+        ROUND((E.FEC_FIN - E.FEC_INICIO) / 30.0) AS DURATION,
+        E.PORCENTAJE_PARTICIPACION AS PARTICIPATION,
+        CASE
+          WHEN R.BAN_APROBADO = FALSE AND R.OBSERVACION IS NOT NULL THEN 0
+          WHEN R.BAN_APROBADO = TRUE THEN 1
+          ELSE 2
+        END AS REVIEW_STATUS
+      FROM ${TABLE} E
+      LEFT JOIN ${REVIEW_TABLE} AS R
+        ON E.PK_EXPERIENCIA = R.FK_DATOS
+        AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_LABORAL}'
+      WHERE E.FK_USUARIO = ${user_id}`
     );
 
     const { count, data } = await getTableModels(
@@ -315,6 +343,7 @@ export const generateTableData = (
       string,
       string,
       string,
+      number,
       number,
     ]) => new TableData(...x));
 

@@ -223,11 +223,11 @@ export const updateLaboralExperience = async (
       throw new Error("No fue posible actualizar la experiencia laboral");
     });
 
-  if(laboral_experience.generic_file){
+  if (laboral_experience.generic_file) {
     requestReview(laboral_experience.id);
   }
 
-  response.body = await laboral_experience
+  response.body = await laboral_experience;
 };
 
 export const updateLaboralExperienceCertificate = async (

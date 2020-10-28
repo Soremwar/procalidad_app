@@ -3,6 +3,10 @@ import Ajv from "ajv";
 import * as project_experience_model from "../../../../api/models/users/project_experience.ts";
 import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
 import { Message } from "../../../http_utils.ts";
+import {
+  deleteReview,
+  requestReview,
+} from "../../../../api/reviews/user_project_experience.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
 import { decodeToken } from "../../../../lib/jwt.ts";
 import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
@@ -91,7 +95,7 @@ export const createProjectExperience = async (
     throw new RequestSyntaxError();
   }
 
-  response.body = await project_experience_model.create(
+  const project_experience = await project_experience_model.create(
     user_id,
     value.client_name.toUpperCase(),
     value.client_city,
@@ -107,10 +111,13 @@ export const createProjectExperience = async (
     value.project_contact_phone,
     value.project_participation,
   )
-    .catch((e) => {
-      console.log(e);
+    .catch(() => {
       throw new Error("No fue posible crear la experiencia de proyecto");
     });
+
+  await requestReview(project_experience.id);
+
+  response.body = project_experience;
 };
 
 export const deleteProjectExperience = async (
@@ -132,6 +139,7 @@ export const deleteProjectExperience = async (
   }
 
   try {
+    await deleteReview(project_experience.id);
     await project_experience.delete();
   } catch (_e) {
     throw new Error("No fue posible eliminar la experiencia de proyecto");
@@ -208,7 +216,7 @@ export const updateProjectExperience = async (
     throw new NotFoundError();
   }
 
-  response.body = await project_experience.update(
+  await project_experience.update(
     value.client_name.toUpperCase(),
     value.client_city,
     value.project_name,
@@ -223,7 +231,11 @@ export const updateProjectExperience = async (
     value.project_contact_phone,
     value.project_participation,
   )
-    .catch((e) => {
+    .catch(() => {
       throw new Error("No fue posible actualizar la experiencia de proyecto");
     });
+
+  await requestReview(project_experience.id);
+
+  response.body = project_experience;
 };

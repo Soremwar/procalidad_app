@@ -16,8 +16,10 @@ import CitySelector from "../../../common/CitySelector.jsx";
 import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
 import MultipleTextField from "../../../common/MultipleTextField.jsx";
-import Title from "../../../common/Title.jsx";
+import ReviewBadge from "../common/ReviewBadge.jsx";
+import ReviewForm from "../common/ReviewForm.jsx";
 import SelectField from "../../../common/SelectField.jsx";
+import Title from "../../../common/Title.jsx";
 
 const getRoles = () => fetchRoleApi();
 
@@ -134,6 +136,16 @@ const headers = [
     label: "Participación",
     searchable: true,
   },
+  {
+    displayAs: (_, value) => (
+      <ReviewBadge status={value} />
+    ),
+    id: "review_status",
+    numeric: false,
+    disablePadding: false,
+    searchable: false,
+    orderable: false,
+  },
 ];
 
 const ParameterContext = createContext({
@@ -243,13 +255,15 @@ const AddModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Crear Nuevo"}
+    <ReviewForm
+      approved={false}
+      comments="&nbsp;"
+      helper_text={error}
+      loading={is_loading}
+      onClose={() => setModalOpen(false)}
+      onSubmit={handleSubmit}
+      open={is_open}
+      title="Crear Nuevo"
     >
       <TextField
         fullWidth
@@ -395,7 +409,7 @@ const AddModal = ({
         }}
         value={fields.client_city}
       />
-    </DialogForm>
+    </ReviewForm>
   );
 };
 
@@ -410,8 +424,10 @@ const EditModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
+    approved: false,
     client_city: "",
     client_name: "",
+    comments: "",
     functions: "",
     project_contact_name: "",
     project_contact_phone: "",
@@ -482,8 +498,10 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
+        approved: data.approved,
         client_city: data.client_city,
         client_name: data.client_name,
+        comments: data.observations,
         functions: data.functions,
         project_contact_name: data.project_contact_name,
         project_contact_phone: data.project_contact_phone,
@@ -502,13 +520,15 @@ const EditModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Editar"}
+    <ReviewForm
+      approved={fields.approved}
+      comments={fields.comments}
+      helper_text={error}
+      loading={is_loading}
+      onClose={() => setModalOpen(false)}
+      onSubmit={handleSubmit}
+      open={is_open}
+      title="Editar"
     >
       <TextField
         fullWidth
@@ -654,7 +674,7 @@ const EditModal = ({
         }}
         value={fields.client_city}
       />
-    </DialogForm>
+    </ReviewForm>
   );
 };
 

@@ -4,7 +4,7 @@ import {
   findByTypeAndData,
 } from "../models/users/data_review.ts";
 
-const REVIEW_TYPE = DataType.EXPERIENCIA_LABORAL;
+const REVIEW_TYPE = DataType.EXPERIENCIA_PROYECTO;
 
 export const requestReview = async (
   data_reference: number,
