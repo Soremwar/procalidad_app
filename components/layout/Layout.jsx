@@ -476,6 +476,69 @@ const Layout = (props) => {
               component={() => <Perfil review_mode={true} />}
               path="/recursos_humanos/perfil"
             />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={() => <FormacionAcademica review_mode={true} />}
+              path="/recursos_humanos/formacion/academica"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={FormacionContinuada}
+              path="/recursos_humanos/formacion/continuada"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={FormacionCapacitacion}
+              path="/recursos_humanos/formacion/capacitacion"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={ExperienciaLaboral}
+              path="/recursos_humanos/experiencia/laboral"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={ExperienciaProyecto}
+              path="/recursos_humanos/experiencia/proyecto"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={HabilidadTecnica}
+              path="/recursos_humanos/habilidad/tecnica"
+            />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={Certificacion}
+              path="/recursos_humanos/certificacion"
+            />
             <Route exact={true} path="/" />
             <Redirect from="*" to="/404" />
           </Switch>

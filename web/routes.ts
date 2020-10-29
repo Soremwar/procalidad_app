@@ -198,6 +198,7 @@ import {
 } from "./handlers/asignacion_solicitud.ts";
 import * as people_supports from "./handlers/maestro/plantilla.ts";
 import * as file from "./handlers/archivo.ts";
+import * as hr_academic_formation from "./handlers/humanos/formacion/academica.ts";
 
 const main_router = new Router();
 
@@ -2860,16 +2861,51 @@ main_router
   .get<{ id: string }>(
     "/api/archivos/generico/:id",
     checkUserAccess([
+      Profiles.ADMINISTRATOR,
       Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
     ]),
     file.getGenericFile,
   )
   .get<{ id: string }>(
     "/api/archivos/plantilla/:id",
     checkUserAccess([
+      Profiles.ADMINISTRATOR,
       Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
     ]),
     file.getTemplateFile,
+  );
+
+main_router
+  .post(
+    "/api/humanos/formacion/academica/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_academic_formation.getTitlesTable,
+  )
+  .get<{ id: string }>(
+    "/api/humanos/formacion/academica/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_academic_formation.getTitle,
+  )
+  .put<{ id: string }>(
+    "/api/humanos/formacion/academica/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_academic_formation.updateTitleReview,
   );
 
 export const routes = main_router.routes();

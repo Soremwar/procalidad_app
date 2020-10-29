@@ -5,18 +5,13 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import {
-  DialogContentText,
-  Grid,
-  IconButton,
-  TextField,
-  Tooltip,
-} from "@material-ui/core";
-import { GetApp as DownloadIcon } from "@material-ui/icons";
+import { DialogContentText, Grid, TextField } from "@material-ui/core";
 import { formatResponseJson } from "../../../../lib/api/request.js";
 import {
   fetchCountryApi,
   fetchFormationLevelApi,
+  fetchHRAcademicFormation,
+  fetchPeopleApi,
   fetchUserAcademicFormation,
 } from "../../../../lib/api/generator.js";
 import { formatDateToStringDatetime } from "../../../../lib/date/mod.js";
@@ -24,13 +19,16 @@ import AsyncTable from "../../../common/AsyncTable/Table.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
+import DownloadButton from "../../../common/DownloadButton.jsx";
 import FileField from "../../../common/FileField.jsx";
 import FileReviewDialog from "../common/FileReviewDialog.jsx";
 import ReviewBadge from "../common/ReviewBadge.jsx";
 import ReviewDialog from "../common/ReviewDialog.jsx";
+import ReviewerForm from "../common/ReviewerForm.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 import Title from "../../../common/Title.jsx";
 import ReviewForm from "../common/ReviewForm";
+import AdvancedSelectField from "../../../common/AdvancedSelectField";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
@@ -39,7 +37,10 @@ const getFormationLevels = () =>
     },
   });
 
-const getAcademicTitle = (id) => fetchUserAcademicFormation(id);
+const getPeople = () => fetchPeopleApi();
+
+const getUserAcademicTitle = (id) => fetchUserAcademicFormation(id);
+const getPersonAcademicTitle = (id) => fetchHRAcademicFormation(id);
 
 const createAcademicTitle = async (
   city,
@@ -93,6 +94,22 @@ const deleteAcademicFormation = async (id) =>
     method: "DELETE",
   });
 
+const reviewAcademicTitle = async (
+  id,
+  approved,
+  observations,
+) =>
+  fetchHRAcademicFormation(id, {
+    body: JSON.stringify({
+      approved,
+      observations,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
 const uploadCertificate = async (
   id,
   name,
@@ -108,7 +125,7 @@ const uploadCertificate = async (
 
 const getCurrentCountry = () => fetchCountryApi("Colombia");
 
-const headers = [
+const common_headers = [
   {
     id: "formation_level",
     numeric: false,
@@ -137,6 +154,10 @@ const headers = [
     label: "Estado",
     searchable: true,
   },
+];
+
+const person_headers = [
+  ...common_headers,
   {
     displayAs: (id, value, reloadTable) => (
       <Grid container justify="center">
@@ -148,18 +169,10 @@ const headers = [
           />
         </Grid>
         <Grid item md={6} xs={12}>
-          <Tooltip title="Descargar">
-            <IconButton
-              color="primary"
-              component={"a"}
-              disabled={!value.id}
-              href={`/api/archivos/generico/${value.id}`}
-              target={"_blank"}
-              variant="contained"
-            >
-              <DownloadIcon />
-            </IconButton>
-          </Tooltip>
+          <DownloadButton
+            disabled={!value.id}
+            href={`/api/archivos/generico/${value.id}`}
+          />
         </Grid>
       </Grid>
     ),
@@ -189,6 +202,24 @@ const headers = [
     id: "review_status",
     numeric: false,
     disablePadding: false,
+    searchable: false,
+    orderable: false,
+  },
+];
+
+const review_headers = [
+  ...common_headers,
+  {
+    displayAs: (id, value) => (
+      <DownloadButton
+        disabled={!value?.id}
+        href={`/api/archivos/generico/${value.id}`}
+      />
+    ),
+    id: "file",
+    numeric: false,
+    disablePadding: false,
+    label: "Certificado",
     searchable: false,
     orderable: false,
   },
@@ -658,6 +689,151 @@ const EditModal = ({
   );
 };
 
+const ReviewModal = ({
+  data,
+  onClose,
+  open,
+  updateTable,
+}) => {
+  const {
+    current_country,
+    formation_levels,
+  } = useContext(ParameterContext);
+
+  const [fields, setFields] = useState({
+    city: "",
+    country: "",
+    end_date: "",
+    formation_level: "",
+    institution: "",
+    start_date: "",
+    status: "",
+    title: "",
+    title_is_convalidated: false,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (open) {
+      setFields({
+        city: data.city,
+        end_date: data.end_date || "",
+        formation_level: data.formation_level,
+        institution: data.institution,
+        start_date: data.start_date,
+        status: !!data.end_date,
+        title: data.title,
+        title_is_convalidated: data.title_is_convalidated || false,
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [open]);
+
+  const handleReview = (approved, observations) => {
+    setLoading(true);
+    setError(null);
+    reviewAcademicTitle(
+      data.id,
+      approved,
+      observations,
+    )
+      .then((response) => {
+        if (response.ok) {
+          updateTable();
+          onClose();
+          setError(null);
+        } else {
+          throw new Error();
+        }
+      })
+      .catch((e) => {
+        console.error("An error ocurred when reviewing item", e);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  return (
+    <ReviewerForm
+      helper_text={error}
+      loading={loading}
+      open={open}
+      onReview={handleReview}
+      onClose={onClose}
+    >
+      <SelectField
+        fullWidth
+        label="Nivel de formación"
+        name="formation_level"
+        value={fields.formation_level}
+      >
+        {formation_levels
+          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
+      </SelectField>
+      <TextField
+        fullWidth
+        label="Título"
+        name="title"
+        value={fields.title}
+      />
+      <TextField
+        fullWidth
+        label="Institución"
+        name="institution"
+        value={fields.institution}
+      />
+      <SelectField
+        fullWidth
+        label="Estado"
+        name="status"
+        value={Number(fields.status)}
+      >
+        <option value="0">En curso</option>
+        <option value="1">Finalizado</option>
+      </SelectField>
+      <DateField
+        fullWidth
+        label="Fecha de inicio"
+        name="start_date"
+        value={fields.start_date}
+      />
+      {fields.status
+        ? (
+          <DateField
+            fullWidth
+            label="Fecha de finalización"
+            name="end_date"
+            value={fields.end_date}
+          />
+        )
+        : null}
+      <CitySelector
+        label="Lugar de cursado"
+        setValue={() => {}}
+        value={fields.city}
+      />
+      {fields.country && fields.country != current_country
+        ? (
+          <SelectField
+            fullWidth
+            label="Título convalidado"
+            name="title_is_convalidated"
+            value={Number(fields.title_is_convalidated)}
+          >
+            <option value="0">No</option>
+            <option value="1">Sí</option>
+          </SelectField>
+        )
+        : null}
+    </ReviewerForm>
+  );
+};
+
 const DeleteModal = ({
   is_open,
   selected,
@@ -714,7 +890,30 @@ const DeleteModal = ({
   );
 };
 
-export default function Academica() {
+const getAcademicTitle = async (
+  id,
+  review_mode = false,
+) => {
+  let request;
+  if (review_mode) {
+    request = getPersonAcademicTitle(id);
+  } else {
+    request = getUserAcademicTitle(id);
+  }
+  return await request
+    .then(async (response) => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error();
+      }
+    })
+    .catch(() => console.error("Couldnt load the academic title"));
+};
+
+export default function Academica({
+  review_mode = false,
+}) {
   const [parameters, setParameters] = useState({
     current_country: null,
     formation_levels: [],
@@ -726,21 +925,27 @@ export default function Academica() {
   const [selected, setSelected] = useState([]);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
   const [review_dialog_open, setReviewDialogOpen] = useState(false);
+  const [people, setPeople] = useState([]);
+  const [selected_person, setSelectedPerson] = useState(null);
+  const [review_modal_open, setReviewModalOpen] = useState(false);
 
-  const handleEditModalOpen = async (id) => {
-    await getAcademicTitle(id)
-      .then(async (response) => {
-        if (response.ok) {
-          setSelectedAcademicTitle(await response.json());
-          setEditModalOpen(true);
-        } else {
-          throw new Error();
-        }
-      })
-      .catch(() => console.error("Couldnt load the academic title"));
+  const handleEditModalOpen = (id) => {
+    getAcademicTitle(id)
+      .then((title) => {
+        setSelectedAcademicTitle(title);
+        setEditModalOpen(true);
+      });
   };
 
-  const handleDeleteModalOpen = async (selected) => {
+  const handleReviewModal = (selected) => {
+    getAcademicTitle(selected)
+      .then((title) => {
+        setSelectedAcademicTitle(title);
+        setReviewModalOpen(true);
+      });
+  };
+
+  const handleDeleteModalOpen = (selected) => {
     setSelected(selected);
     setDeleteModalOpen(true);
   };
@@ -779,12 +984,46 @@ export default function Academica() {
         }
       })
       .catch(() => console.error("Couldnt load the formation levels"));
-    updateTable();
+    if (review_mode) {
+      getPeople()
+        .then(async (response) => {
+          /** @type Array<{pk_persona: number, nombre: string}>*/
+          const people = await response.json();
+          setPeople(
+            people
+              .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+              .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
+          );
+        });
+    } else {
+      updateTable();
+    }
   }, []);
+
+  useEffect(() => {
+    if (review_mode && selected_person) {
+      updateTable();
+    }
+  }, [selected_person]);
 
   return (
     <Fragment>
       <Title title={"Formación académica"} />
+      {review_mode
+        ? (
+          <Fragment>
+            <AdvancedSelectField
+              fullWidth
+              label="Persona"
+              onChange={(_event, value) => setSelectedPerson(value)}
+              options={people}
+              value={selected_person}
+            />
+            <br />
+            <br />
+          </Fragment>
+        )
+        : null}
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}
@@ -797,6 +1036,12 @@ export default function Academica() {
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
         />
+        <ReviewModal
+          data={selected_academic_title}
+          open={review_modal_open}
+          onClose={() => setReviewModalOpen(false)}
+          updateTable={updateTable}
+        />
       </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
@@ -805,13 +1050,25 @@ export default function Academica() {
         updateTable={updateTable}
       />
       <AsyncTable
-        columns={headers}
+        columns={review_mode ? review_headers : person_headers}
         onAddClick={() => setAddModalOpen(true)}
-        onEditClick={(id) => handleEditModalOpen(id)}
+        onEditClick={(id) => {
+          if (review_mode) {
+            handleReviewModal(id);
+          } else {
+            handleEditModalOpen(id);
+          }
+        }}
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
-        url={"usuario/formacion/academica/table"}
+        search={review_mode
+          ? {
+            person: selected_person,
+            review_status: 2,
+          }
+          : {}}
+        url="humanos/formacion/academica/table"
       />
       <ReviewDialog
         approved={false}

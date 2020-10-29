@@ -465,6 +465,69 @@ const structure = [
         label: "Datos personales",
         link: "/recursos_humanos/perfil",
       },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Formación académica",
+        link: "/recursos_humanos/formacion/academica",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Formación continuada",
+        link: "/recursos_humanos/formacion/continuada",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Capacitaciones internas",
+        link: "/recursos_humanos/formacion/capacitacion",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Experiencia laboral",
+        link: "/recursos_humanos/experiencia/laboral",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Experiencia en proyecto",
+        link: "/recursos_humanos/experiencia/proyecto",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Habilidades técnicas",
+        link: "/recursos_humanos/habilidad/tecnica",
+      },
+      {
+        allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+        ],
+        label: "Certificaciones",
+        link: "/recursos_humanos/certificacion",
+      },
     ],
   },
 ];

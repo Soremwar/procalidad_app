@@ -199,6 +199,53 @@ export const getAll = async (
   ]) => new FormationTitle(...row));
 };
 
+export const findById = async (
+  id: number,
+): Promise<FormationTitle | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      T.PK_FORMACION,
+      T.FK_NIVEL_FORMACION,
+      T.FK_USUARIO,
+      T.TITULO,
+      T.INSTITUCION,
+      TO_CHAR(T.FECHA_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(T.FECHA_FIN, 'YYYY-MM-DD'),
+      T.FK_CIUDAD,
+      T.FK_ARCHIVO_GENERICO,
+      T.FK_INSTRUCTOR,
+      T.BAN_TITULO_CONVALIDADO,
+      R.BAN_APROBADO,
+      R.OBSERVACION
+    FROM ${TABLE} T
+    LEFT JOIN ${REVIEW_TABLE} R
+      ON T.PK_FORMACION = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
+    WHERE T.PK_FORMACION = $1`,
+    id,
+  );
+
+  if (!rows.length) return null;
+
+  return new FormationTitle(
+    ...rows[0] as [
+      number,
+      number,
+      number,
+      string,
+      string | null,
+      string,
+      string | null,
+      number | null,
+      number,
+      number | null,
+      boolean | null,
+      boolean,
+      string | null,
+    ],
+  );
+};
+
 export const findByIdAndUser = async (
   id: number,
   user: number,
@@ -252,6 +299,7 @@ export const findByIdAndUser = async (
 class TableData {
   constructor(
     public readonly id: number,
+    public readonly person: number,
     public readonly formation_level: string,
     public readonly institution: string,
     public readonly title: string,
@@ -268,7 +316,7 @@ class TableData {
 
 export const generateTableData = (
   formation_type: FormationType,
-  user_id: number,
+  user_id?: number,
 ) => {
   return async (
     order: TableOrder,
@@ -280,6 +328,7 @@ export const generateTableData = (
     const base_query = (
       `SELECT
         T.PK_FORMACION AS ID,
+        T.FK_USUARIO AS PERSON,
         L.NOMBRE AS FORMATION_LEVEL,
         T.INSTITUCION AS INSTITUTION,
         T.TITULO AS TITLE,
@@ -303,7 +352,7 @@ export const generateTableData = (
         ON T.PK_FORMACION = R.FK_DATOS
         AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
       WHERE L.TIPO_FORMACION = '${formation_type}'
-      AND T.FK_USUARIO = ${user_id}`
+      ${user_id ? `AND T.FK_USUARIO = ${user_id}` : ""}`
     );
 
     const { count, data } = await getTableModels(
@@ -316,6 +365,7 @@ export const generateTableData = (
     );
 
     const models = data.map((x: [
+      number,
       number,
       string,
       string,
@@ -334,12 +384,13 @@ export const generateTableData = (
         x[3],
         x[4],
         x[5],
+        x[6],
         {
-          id: x[6],
-          extensions: x[7],
+          id: x[7],
+          extensions: x[8],
         },
-        x[8],
         x[9],
+        x[10],
       )
     );
 
