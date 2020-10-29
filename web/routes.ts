@@ -202,6 +202,7 @@ import * as hr_academic_formation from "./handlers/humanos/formacion/academica.t
 import * as hr_continuous_formation from "./handlers/humanos/formacion/continuada.ts";
 import * as hr_training_formation from "./handlers/humanos/formacion/capacitacion.ts";
 import * as hr_laboral_experience from "./handlers/humanos/experiencia/laboral.ts";
+import * as hr_project_experience from "./handlers/humanos/experiencia/proyecto.ts";
 
 const main_router = new Router();
 
@@ -2996,6 +2997,35 @@ main_router
       Profiles.HUMAN_RESOURCES,
     ]),
     hr_laboral_experience.updateExperienceReview,
+  );
+
+main_router
+  .post(
+    "/api/humanos/experiencia/proyecto/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_project_experience.getExperienceTable,
+  )
+  .get<{ id: string }>(
+    "/api/humanos/experiencia/proyecto/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_project_experience.getExperience,
+  )
+  .put<{ id: string }>(
+    "/api/humanos/experiencia/proyecto/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_project_experience.updateExperienceReview,
   );
 
 export const routes = main_router.routes();

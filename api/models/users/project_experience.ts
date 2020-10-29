@@ -233,6 +233,59 @@ export const getAll = async (
   ]) => new LaboralExperience(...row));
 };
 
+export const findById = async (
+  id: number,
+): Promise<LaboralExperience | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      E.PK_EXPERIENCIA,
+      E.FK_USUARIO,
+      E.CLIENTE,
+      E.FK_CIUDAD,
+      E.PROYECTO,
+      E.DESCRIPCION,
+      E.ENTORNO_TECNOLOGICO,
+      E.ROLES,
+      E.FUNCIONES,
+      TO_CHAR(E.FEC_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(E.FEC_FIN, 'YYYY-MM-DD'),
+      E.BAN_PROYECTO_INTERNO,
+      E.NOMBRE_CONTACTO,
+      E.TELEFONO_CONTACTO,
+      E.PORCENTAJE_PARTICIPACION,
+      R.BAN_APROBADO,
+      R.OBSERVACION
+    FROM ${TABLE} E
+    LEFT JOIN ${REVIEW_TABLE} AS R
+      ON E.PK_EXPERIENCIA = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_PROYECTO}'
+    WHERE E.PK_EXPERIENCIA = $1`,
+    id,
+  );
+
+  return new LaboralExperience(
+    ...rows[0] as [
+      number,
+      number,
+      string,
+      number,
+      string,
+      string,
+      string[],
+      string[],
+      string,
+      string,
+      string,
+      boolean,
+      string,
+      number,
+      number,
+      boolean | null,
+      string | null,
+    ],
+  );
+};
+
 export const findByIdAndUser = async (
   id: number,
   user: number,
@@ -292,6 +345,7 @@ export const findByIdAndUser = async (
 class TableData {
   constructor(
     public readonly id: number,
+    public readonly person: number,
     public readonly client: string,
     public readonly project: string,
     public readonly duration: string,
@@ -301,7 +355,7 @@ class TableData {
 }
 
 export const generateTableData = (
-  user_id: number,
+  user_id?: number,
 ) => {
   return async (
     order: TableOrder,
@@ -313,6 +367,7 @@ export const generateTableData = (
     const base_query = (
       `SELECT
         E.PK_EXPERIENCIA AS ID,
+        E.FK_USUARIO AS PERSON,
         E.CLIENTE AS CLIENT,
         E.PROYECTO AS PROJECT,
         ROUND((E.FEC_FIN - E.FEC_INICIO) / 30.0) AS DURATION,
@@ -326,7 +381,7 @@ export const generateTableData = (
       LEFT JOIN ${REVIEW_TABLE} AS R
         ON E.PK_EXPERIENCIA = R.FK_DATOS
         AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_LABORAL}'
-      WHERE E.FK_USUARIO = ${user_id}`
+      ${user_id ? `WHERE E.FK_USUARIO = ${user_id}` : ""}`
     );
 
     const { count, data } = await getTableModels(
@@ -339,6 +394,7 @@ export const generateTableData = (
     );
 
     const models = data.map((x: [
+      number,
       number,
       string,
       string,

@@ -518,7 +518,7 @@ const Layout = (props) => {
                 Profiles.CONTROLLER,
                 Profiles.HUMAN_RESOURCES,
               ]}
-              component={ExperienciaProyecto}
+              component={() => <ExperienciaProyecto review_mode={true} />}
               path="/recursos_humanos/experiencia/proyecto"
             />
             <ProfiledRoute
