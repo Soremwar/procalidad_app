@@ -6,6 +6,19 @@ import {
 
 const REVIEW_TYPE = DataType.FORMACION;
 
+export const deleteReview = async (
+  data_reference: number,
+) => {
+  let review = await findByTypeAndData(
+    REVIEW_TYPE,
+    data_reference,
+  );
+
+  if (review) {
+    review.delete();
+  }
+};
+
 export const requestReview = async (
   data_reference: number,
 ) => {

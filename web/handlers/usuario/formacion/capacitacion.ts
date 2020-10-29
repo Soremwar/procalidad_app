@@ -3,7 +3,6 @@ import Ajv from "ajv";
 import { FormationType } from "../../../../api/models/users/formation_level.ts";
 import * as formation_title_model from "../../../../api/models/users/formation_title.ts";
 import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
-import { Message } from "../../../http_utils.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
 import { requestReview } from "../../../../api/reviews/user_formation.ts";
 import { decodeToken } from "../../../../lib/jwt.ts";
@@ -13,6 +12,10 @@ import {
   TRUTHY_INTEGER,
   TRUTHY_INTEGER_OR_NULL,
 } from "../../../../lib/ajv/types.js";
+export {
+  deleteTitle as deleteTrainingTitle,
+  getTitle as getTrainingTitle,
+} from "./formacion.ts";
 
 const update_request = {
   $id: "update",
@@ -76,52 +79,6 @@ export const createTrainingTitle = async (
   await requestReview(formation_title.id);
 
   response.body = formation_title;
-};
-
-export const deleteTrainingTitle = async (
-  { cookies, params, response }: RouterContext<{ id: string }>,
-) => {
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id: user_id } = await decodeToken(session_cookie);
-  const id = Number(params.id);
-  if (!id) {
-    throw new RequestSyntaxError();
-  }
-
-  const continuous_title = await formation_title_model.findByIdAndUser(
-    id,
-    user_id,
-  );
-  if (!continuous_title) {
-    throw new NotFoundError();
-  }
-
-  try {
-    await continuous_title.delete();
-  } catch (_e) {
-    throw new Error("No fue posible eliminar el título de formacion");
-  }
-
-  response.body = Message.OK;
-};
-
-export const getTrainingTitle = async (
-  { cookies, params, response }: RouterContext<{ id: string }>,
-) => {
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id: user_id } = await decodeToken(session_cookie);
-  const id = Number(params.id);
-  if (!id) {
-    throw new RequestSyntaxError();
-  }
-
-  const training_title = await formation_title_model.findByIdAndUser(
-    id,
-    user_id,
-  );
-  if (!training_title) throw new NotFoundError();
-
-  response.body = training_title;
 };
 
 export const getTrainingTitles = async (

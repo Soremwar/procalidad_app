@@ -4,13 +4,11 @@ import Ajv from "ajv";
 import { FormationType } from "../../../../api/models/users/formation_level.ts";
 import * as formation_title_model from "../../../../api/models/users/formation_title.ts";
 import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
-import { Message } from "../../../http_utils.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
 import { requestReview } from "../../../../api/reviews/user_formation.ts";
 import { decodeToken } from "../../../../lib/jwt.ts";
 import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
 import {
-  deleteFile as deleteGenericFile,
   writeFile as writeGenericFile,
 } from "../../../../api/storage/generic_file.ts";
 import {
@@ -19,6 +17,10 @@ import {
   STANDARD_DATE_STRING_OR_NULL,
   TRUTHY_INTEGER,
 } from "../../../../lib/ajv/types.js";
+export {
+  deleteTitle as deleteAcademicFormationTitle,
+  getTitle as getAcademicFormationTitle,
+} from "./formacion.ts";
 
 const update_request = {
   $id: "update",
@@ -93,58 +95,6 @@ export const createAcademicFormationTitle = async (
   if (!formation_title.end_date) {
     await requestReview(formation_title.id);
   }
-
-  response.body = formation_title;
-};
-
-export const deleteAcademicFormationTitle = async (
-  { cookies, params, response }: RouterContext<{ id: string }>,
-) => {
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id: user_id } = await decodeToken(session_cookie);
-  const id = Number(params.id);
-  if (!id) {
-    throw new RequestSyntaxError();
-  }
-
-  const formation_title = await formation_title_model.findByIdAndUser(
-    id,
-    user_id,
-  );
-  if (!formation_title) {
-    throw new NotFoundError();
-  }
-
-  try {
-    const generic_file_id = formation_title.generic_file;
-
-    //Formation title should be deleted first so file constraint doesn't complain
-    await formation_title.delete();
-    if (generic_file_id) {
-      await deleteGenericFile(generic_file_id);
-    }
-  } catch (_e) {
-    throw new Error("No fue posible eliminar el título de formación");
-  }
-
-  response.body = Message.OK;
-};
-
-export const getAcademicFormationTitle = async (
-  { cookies, params, response }: RouterContext<{ id: string }>,
-) => {
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id: user_id } = await decodeToken(session_cookie);
-  const id = Number(params.id);
-  if (!id) {
-    throw new RequestSyntaxError();
-  }
-
-  const formation_title = await formation_title_model.findByIdAndUser(
-    id,
-    user_id,
-  );
-  if (!formation_title) throw new NotFoundError();
 
   response.body = formation_title;
 };
