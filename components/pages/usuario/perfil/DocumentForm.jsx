@@ -1,12 +1,19 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { TextField } from "@material-ui/core";
-import { fetchUserApi } from "../../../../lib/api/generator.js";
+import {
+  fetchHRPerson,
+  fetchPeopleApi,
+  fetchUserApi,
+} from "../../../../lib/api/generator.js";
 import CardForm from "./components/CardForm.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 import ReviewDialog from "../common/ReviewDialog.jsx";
+import ReviewerCardForm from "./components/ReviewerCardForm";
 
-const getUserDocument = () => fetchUserApi();
+const getUserInformation = () => fetchUserApi();
+const getPerson = (id) => fetchPeopleApi(id);
+
 const setUserDocument = (
   city,
   date,
@@ -22,24 +29,58 @@ const setUserDocument = (
     method: "PUT",
   });
 
-export default function DocumentForm() {
+const updatePersonReview = async (
+  id,
+  approved,
+  observations,
+) =>
+  fetchHRPerson(`documentos/${id}`, {
+    body: JSON.stringify({
+      approved,
+      observations,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
+/**
+ * @param {object} props
+ * @param {number=} props.person Will only be used when review_mode is enabled
+ * @param {boolean} [props.review_mode = false]
+ * */
+export default function DocumentForm({
+  person,
+  review_mode = false,
+}) {
   const [fields, setFields] = useState({
     approved: false,
     city: "",
     comments: "",
     date: "",
+    id: "",
     number: "",
     type: "",
   });
   const [reload_data, setReloadData] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [confirm_modal_open, setConfirmModalOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
 
-    getUserDocument()
+    let person_data_request;
+
+    if (review_mode) {
+      person_data_request = getPerson(person);
+    } else {
+      person_data_request = getUserInformation();
+    }
+
+    person_data_request
       .then(async (response) => {
         if (response.ok) {
           const document = await response.json();
@@ -50,6 +91,7 @@ export default function DocumentForm() {
               city: document.fk_ciudad_expedicion_identificacion || "",
               comments: document.identificacion_observaciones || "",
               date: document.fec_expedicion_identificacion || "",
+              id: document.pk_persona,
               number: document.identificacion,
               type: document.tipo_identificacion,
             }));
@@ -92,6 +134,66 @@ export default function DocumentForm() {
         setReloadData(true);
       });
   };
+
+  const handleReview = (approved, observations) => {
+    setLoading(true);
+    setError(null);
+
+    updatePersonReview(fields.id, approved, observations)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error();
+        }
+      })
+      .catch((e) => {
+        console.error("Couldnt update review", e);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  if (review_mode) {
+    return (
+      <ReviewerCardForm
+        disabled={!person}
+        helper_text={error}
+        loading={loading}
+        title="Datos personales"
+        onReview={handleReview}
+      >
+        <TextField
+          fullWidth
+          label="Identificación"
+          name="number"
+          value={fields.number}
+        />
+        <SelectField
+          label="Tipo de identificación"
+          fullWidth
+          name="type"
+          value={fields.type}
+        >
+          <option value="CC">Cedula de Ciudadania</option>
+          <option value="CE">Cedula de Extranjeria</option>
+          <option value="PA">Pasaporte</option>
+          <option value="RC">Registro Civil</option>
+          <option value="TI">Tarjeta de Identidad</option>
+        </SelectField>
+        <CitySelector
+          label="Ciudad de expedición"
+          setValue={() => {}}
+          value={fields.city}
+        />
+        <TextField
+          fullWidth
+          label="Fecha de expedición"
+          name="date"
+          type="date"
+          value={fields.date}
+        />
+      </ReviewerCardForm>
+    );
+  }
 
   return (
     <Fragment>

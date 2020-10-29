@@ -72,10 +72,16 @@ export default function Perfil({
       <br />
       <Grid container spacing={10}>
         <Grid item md={6} xs={12}>
-          <DocumentForm />
+          <DocumentForm
+            person={selected_person}
+            review_mode={review_mode}
+          />
         </Grid>
         <Grid item md={6} xs={12}>
-          <ResidenceForm />
+          <ResidenceForm
+            person={selected_person}
+            review_mode={review_mode}
+          />
         </Grid>
       </Grid>
       <br />

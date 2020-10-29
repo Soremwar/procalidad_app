@@ -1,7 +1,7 @@
 import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import { RequestSyntaxError } from "../../exceptions.ts";
-import { setReview as setDocumentsReview } from "../../../api/reviews/user_documents.ts";
+import { setReview as setIdentificationReview } from "../../../api/reviews/user_identification.ts";
 import { setReview as setPersonalDataReview } from "../../../api/reviews/user_personal_data.ts";
 import { setReview as setResidenceReview } from "../../../api/reviews/user_residence.ts";
 import { castStringToBoolean } from "../../../lib/utils/boolean.js";
@@ -57,7 +57,7 @@ export const updatePersonReview = async (
   let setReview;
   switch (params.tipo) {
     case PersonDataType.documentos:
-      setReview = setDocumentsReview;
+      setReview = setIdentificationReview;
       break;
     case PersonDataType.personal:
       setReview = setPersonalDataReview;
