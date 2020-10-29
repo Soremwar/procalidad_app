@@ -75,7 +75,7 @@ export default function ReviewForm({
   /**
    * Default behaviour, will fire the reviewModal
    * */
-  if(!onBeforeSubmit){
+  if (!onBeforeSubmit) {
     onBeforeSubmit = () => {
       setReviewModalOpen(true);
     };

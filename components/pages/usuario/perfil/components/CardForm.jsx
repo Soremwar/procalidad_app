@@ -75,7 +75,6 @@ const useStyles = makeStyles((theme) => ({
 
 /**@param {object} props
  * @param {boolean} props.approved
- * @param {boolean} [props.disabled = false]
  * @param {string} props.helper_text Comments to be displayed regarding the formularty data
  * @param {boolean} props.loading
  * @param {formSubmit} props.onSubmit
@@ -84,14 +83,14 @@ const useStyles = makeStyles((theme) => ({
 export default function CardForm({
   approved,
   children,
-  disabled = false,
   helper_text,
   loading,
   onSubmit,
   title,
 }) {
   const classes = useStyles();
-  const rejected = !approved && helper_text;
+  const rejected = !approved && !!helper_text;
+  const pending = !approved && !rejected;
 
   const card_class_status = approved
     ? classes.container_approved
@@ -154,7 +153,7 @@ export default function CardForm({
                 </Grid>
               </Grid>
               <div className={classes.form_content}>
-                <fieldset disabled={disabled}>
+                <fieldset disabled={pending}>
                   {children}
                 </fieldset>
               </div>
@@ -172,6 +171,7 @@ export default function CardForm({
                     : (
                       <Button
                         color="primary"
+                        disabled={pending}
                         onClick={(event) => event.stopPropagation()}
                         type="submit"
                       >

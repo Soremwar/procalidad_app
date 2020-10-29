@@ -198,6 +198,7 @@ import {
 } from "./handlers/asignacion_solicitud.ts";
 import * as people_supports from "./handlers/maestro/plantilla.ts";
 import * as file from "./handlers/archivo.ts";
+import * as hr_person from "./handlers/humanos/persona.ts";
 import * as hr_academic_formation from "./handlers/humanos/formacion/academica.ts";
 import * as hr_continuous_formation from "./handlers/humanos/formacion/continuada.ts";
 import * as hr_training_formation from "./handlers/humanos/formacion/capacitacion.ts";
@@ -2881,6 +2882,17 @@ main_router
       Profiles.HUMAN_RESOURCES,
     ]),
     file.getTemplateFile,
+  );
+
+main_router
+  .put<{ tipo: string; id: string }>(
+    "/api/humanos/persona/:tipo/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_person.updatePersonReview,
   );
 
 main_router

@@ -14,6 +14,7 @@ import { makeStyles } from "@material-ui/styles";
 import { CloudUpload as UploadIcon } from "@material-ui/icons";
 import {
   fetchGenderApi,
+  fetchHRPerson,
   fetchMaritalStatus,
   fetchParameterApi,
   fetchPeopleApi,
@@ -24,6 +25,7 @@ import CitySelector from "../../../common/CitySelector.jsx";
 import DateField from "../../../common/DateField";
 import SelectField from "../../../common/SelectField.jsx";
 import ReviewDialog from "../common/ReviewDialog.jsx";
+import ReviewerCardForm from "./components/ReviewerCardForm.jsx";
 
 //TODO
 //The fetching of the text warning or any parameters should be globally defined(like generators)
@@ -90,6 +92,22 @@ const setUserPicture = async (
     method: "PUT",
   });
 };
+
+const updatePersonReview = async (
+  id,
+  approved,
+  observations,
+) =>
+  fetchHRPerson(`personal/${id}`, {
+    body: JSON.stringify({
+      approved,
+      observations,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
 
 const useProfilePictureStyles = makeStyles(() => ({
   card: {
@@ -208,6 +226,7 @@ export default function MainForm({
     gender: "",
     has_military_passbook: false,
     has_professional_card: false,
+    id: "",
     military_passbook: "",
     name: "",
     personal_email: "",
@@ -218,6 +237,7 @@ export default function MainForm({
   const [marital_statuses, setMaritalStatuses] = useState([]);
   const [reload_data, setReloadData] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [confirm_modal_open, setConfirmModalOpen] = useState(false);
 
   useEffect(() => {
@@ -276,6 +296,7 @@ export default function MainForm({
               civil_status: information.fk_estado_civil || "",
               comments: information.informacion_principal_observaciones || "",
               gender: information.fk_genero || "",
+              id: information.pk_persona,
               has_military_passbook: Boolean(information.libreta_militar),
               has_professional_card: Boolean(
                 information.expedicion_tarjeta_profesional,
@@ -346,6 +367,151 @@ export default function MainForm({
         setReloadData(true);
       });
   };
+
+  const handleReview = (approved, observations) => {
+    setLoading(true);
+    setError(null);
+
+    updatePersonReview(fields.id, approved, observations)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error();
+        }
+      })
+      .catch((e) => {
+        console.error("Couldnt update review", e);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  if (review_mode) {
+    return (
+      <ReviewerCardForm
+        disabled={!person}
+        helper_text={error}
+        loading={loading}
+        title="Datos personales"
+        onReview={handleReview}
+      >
+        <Grid container spacing={10}>
+          <Grid item md={6} xs={12}>
+            <TextField
+              fullWidth
+              label="Nombre"
+              name="birth_date"
+              value={fields.name}
+            />
+            <CitySelector
+              label="Ciudad de nacimiento"
+              setValue={() => {}}
+              value={fields.birth_city}
+            />
+            <TextField
+              fullWidth
+              label="Fecha de nacimiento"
+              name="birth_date"
+              type="date"
+              value={fields.birth_date}
+            />
+            <SelectField
+              label="Género"
+              fullWidth
+              name="gender"
+              value={fields.gender}
+            >
+              {genders.map(({ id, name }) => (
+                <option key={id} value={id}>{name}</option>
+              ))}
+            </SelectField>
+            <SelectField
+              label="Estado civil"
+              fullWidth
+              name="civil_status"
+              value={fields.civil_status}
+            >
+              {marital_statuses.map(({ id, name }) => (
+                <option key={id} value={id}>{name}</option>
+              ))}
+            </SelectField>
+            <SelectField
+              label="Tipo de sangre"
+              fullWidth
+              name="blood_type"
+              value={fields.blood_type}
+            >
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </SelectField>
+            <TextField
+              fullWidth
+              label="Celular"
+              name="cellphone"
+              value={fields.cellphone}
+            />
+            <TextField
+              fullWidth
+              label="Teléfono fijo"
+              name="phone"
+              value={fields.phone}
+            />
+          </Grid>
+          <Grid item md={6} xs={12}>
+            <ProfilePicture />
+            <br />
+            <SelectField
+              fullWidth
+              label="Libreta militar"
+              name="has_military_passbook"
+              value={Number(fields.has_military_passbook)}
+            >
+              <option value="0">No</option>
+              <option value="1">Si</option>
+            </SelectField>
+            {fields.has_military_passbook && (
+              <TextField
+                fullWidth
+                label="Numero libreta militar"
+                name="military_passbook"
+                value={fields.military_passbook}
+              />
+            )}
+            <TextField
+              fullWidth
+              label="Correo personal"
+              name="personal_email"
+              value={fields.personal_email}
+            />
+            <SelectField
+              fullWidth
+              label="Tarjeta profesional"
+              name="has_professional_card"
+              value={Number(fields.has_professional_card)}
+            >
+              <option value="0">No</option>
+              <option value="1">Si</option>
+            </SelectField>
+            {fields.has_professional_card
+              ? (
+                <DateField
+                  fullWidth
+                  label="Expedición de tarjeta profesional"
+                  name="professional_card_expedition"
+                  value={fields.professional_card_expedition}
+                />
+              )
+              : null}
+          </Grid>
+        </Grid>
+      </ReviewerCardForm>
+    );
+  }
 
   return (
     <Fragment>
