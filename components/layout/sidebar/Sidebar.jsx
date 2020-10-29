@@ -516,15 +516,6 @@ const structure = [
           Profiles.CONTROLLER,
           Profiles.HUMAN_RESOURCES,
         ],
-        label: "Habilidades técnicas",
-        link: "/recursos_humanos/habilidad/tecnica",
-      },
-      {
-        allowed_profiles: [
-          Profiles.ADMINISTRATOR,
-          Profiles.CONTROLLER,
-          Profiles.HUMAN_RESOURCES,
-        ],
         label: "Certificaciones",
         link: "/recursos_humanos/certificacion",
       },
