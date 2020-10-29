@@ -75,9 +75,11 @@ export default function ReviewForm({
   /**
    * Default behaviour, will fire the reviewModal
    * */
-  onBeforeSubmit ||= () => {
-    setReviewModalOpen(true);
-  };
+  if(!onBeforeSubmit){
+    onBeforeSubmit = () => {
+      setReviewModalOpen(true);
+    };
+  }
 
   /**
    * @param {React.FormEvent} event
