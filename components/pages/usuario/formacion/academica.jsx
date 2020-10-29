@@ -940,8 +940,8 @@ export default function Academica({
       });
   };
 
-  const handleReviewModal = (selected) => {
-    getAcademicTitle(selected)
+  const handleReviewModal = (id) => {
+    getAcademicTitle(id, true)
       .then((title) => {
         setSelectedAcademicTitle(title);
         setReviewModalOpen(true);
