@@ -243,6 +243,61 @@ export const getAll = async (
   ]) => new LaboralExperience(...row));
 };
 
+export const findById = async (
+  id: number,
+): Promise<LaboralExperience | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      E.PK_EXPERIENCIA,
+      E.FK_USUARIO,
+      E.EMPRESA,
+      E.NIT,
+      E.D_VERIFICACION,
+      E.FK_SECTOR,
+      E.FK_CIUDAD,
+      E.DIRECCION,
+      E.TELEFONO,
+      E.CONTACTO,
+      TO_CHAR(E.FEC_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(E.FEC_FIN, 'YYYY-MM-DD'),
+      E.CARGO,
+      E.DES_FUNCIONES,
+      E.DES_LOGROS,
+      E.FK_ARCHIVO_GENERICO,
+      R.BAN_APROBADO,
+      R.OBSERVACION
+    FROM ${TABLE} E
+    LEFT JOIN ${REVIEW_TABLE} AS R
+      ON E.PK_EXPERIENCIA = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_LABORAL}'
+    WHERE E.PK_EXPERIENCIA = $1`,
+    id,
+  );
+
+  return new LaboralExperience(
+    ...rows[0] as [
+      number,
+      number,
+      string,
+      number,
+      number,
+      number,
+      number,
+      string,
+      number,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      number | null,
+      boolean | null,
+      string | null,
+    ],
+  );
+};
+
 export const findByIdAndUser = async (
   id: number,
   user: number,
@@ -304,6 +359,7 @@ export const findByIdAndUser = async (
 class TableData {
   constructor(
     public readonly id: number,
+    public readonly person: number,
     public readonly sector: string,
     public readonly company: string,
     public readonly duration: number,
@@ -317,7 +373,7 @@ class TableData {
 }
 
 export const generateTableData = (
-  user_id: number,
+  user_id?: number,
 ) => {
   return async (
     order: TableOrder,
@@ -329,6 +385,7 @@ export const generateTableData = (
     const base_query = (
       `SELECT
         E.PK_EXPERIENCIA AS ID,
+        E.FK_USUARIO AS PERSON,
         (SELECT NOMBRE FROM ${SECTOR_TABLE} WHERE PK_SECTOR = E.FK_SECTOR) AS SECTOR,
         E.EMPRESA AS COMPANY,
         DATE_PART('YEAR', FEC_FIN) - DATE_PART('YEAR', FEC_INICIO) AS DURATION,
@@ -347,7 +404,7 @@ export const generateTableData = (
       LEFT JOIN ${REVIEW_TABLE} AS R
         ON E.PK_EXPERIENCIA = R.FK_DATOS
         AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_LABORAL}'
-      WHERE E.FK_USUARIO = ${user_id}`
+      ${user_id ? `WHERE E.FK_USUARIO = ${user_id}` : ""}`
     );
 
     const { count, data } = await getTableModels(
@@ -360,6 +417,7 @@ export const generateTableData = (
     );
 
     const models = data.map((x: [
+      number,
       number,
       string,
       string,
@@ -374,12 +432,13 @@ export const generateTableData = (
         x[1],
         x[2],
         x[3],
+        x[4],
         {
-          id: x[4],
-          extensions: x[5],
+          id: x[5],
+          extensions: x[6],
         },
-        x[6],
         x[7],
+        x[8],
       )
     );
 

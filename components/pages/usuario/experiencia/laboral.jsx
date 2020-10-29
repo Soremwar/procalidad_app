@@ -16,27 +16,34 @@ import { GetApp as DownloadIcon } from "@material-ui/icons";
 import { formatResponseJson } from "../../../../lib/api/request.js";
 import {
   fetchClientApi,
+  fetchHRLaboralExperience,
+  fetchPeopleApi,
   fetchSectorApi,
   fetchUserLaboralExperience,
 } from "../../../../lib/api/generator.js";
 import { formatDateToStringDatetime } from "../../../../lib/date/mod.js";
+import AdvancedSelectField from "../../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../../common/AsyncTable/Table.jsx";
 import Autocomplete from "../../../common/Autocomplete.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
+import DownloadButton from "../../../common/DownloadButton.jsx";
 import FileField from "../../../common/FileField.jsx";
+import FileReviewDialog from "../common/FileReviewDialog.jsx";
 import Title from "../../../common/Title.jsx";
 import ReviewBadge from "../common/ReviewBadge.jsx";
 import ReviewForm from "../common/ReviewForm.jsx";
+import ReviewerForm from "../common/ReviewerForm.jsx";
 import SelectField from "../../../common/SelectField.jsx";
-import FileReviewDialog from "../common/FileReviewDialog";
 
 const getClients = () => fetchClientApi();
 const getLaboralExperiences = () => fetchUserLaboralExperience();
+const getPeople = () => fetchPeopleApi();
 const getSectors = () => fetchSectorApi();
 
-const getLaboralExperience = (id) => fetchUserLaboralExperience(id);
+const getUserLaboralExperience = (id) => fetchUserLaboralExperience(id);
+const getPersonLaboralExperience = (id) => fetchHRLaboralExperience(id);
 
 const createLaboralExperience = async (
   achievement_description,
@@ -118,6 +125,22 @@ const deleteLaboralExperience = async (id) =>
     method: "DELETE",
   });
 
+const reviewLaboralExperience = async (
+  id,
+  approved,
+  observations,
+) =>
+  fetchHRLaboralExperience(id, {
+    body: JSON.stringify({
+      approved,
+      observations,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
 const uploadCertificate = async (
   id,
   name,
@@ -131,7 +154,7 @@ const uploadCertificate = async (
   });
 };
 
-const headers = [
+const common_headers = [
   {
     id: "sector",
     numeric: false,
@@ -162,6 +185,10 @@ const headers = [
     disablePadding: false,
     label: "Duracion(años)",
   },
+];
+
+const person_headers = [
+  ...common_headers,
   {
     displayAs: (id, value, reloadTable) => (
       <Grid container justify="center">
@@ -173,18 +200,10 @@ const headers = [
           />
         </Grid>
         <Grid item md={6} xs={12}>
-          <Tooltip title="Descargar">
-            <IconButton
-              color="primary"
-              component={"a"}
-              disabled={!value.id}
-              href={`/api/archivos/generico/${value.id}`}
-              target={"_blank"}
-              variant="contained"
-            >
-              <DownloadIcon />
-            </IconButton>
-          </Tooltip>
+          <DownloadButton
+            disabled={!value.id}
+            href={`/api/archivos/generico/${value.id}`}
+          />
         </Grid>
       </Grid>
     ),
@@ -214,6 +233,24 @@ const headers = [
     id: "review_status",
     numeric: false,
     disablePadding: false,
+    searchable: false,
+    orderable: false,
+  },
+];
+
+const review_headers = [
+  ...common_headers,
+  {
+    displayAs: (id, value) => (
+      <DownloadButton
+        disabled={!value.id}
+        href={`/api/archivos/generico/${value.id}`}
+      />
+    ),
+    id: "file",
+    numeric: false,
+    disablePadding: false,
+    label: "Certificado",
     searchable: false,
     orderable: false,
   },
@@ -797,6 +834,189 @@ const EditModal = ({
   );
 };
 
+const ReviewModal = ({
+  data,
+  onClose,
+  open,
+  updateTable,
+}) => {
+  const {
+    sectors,
+  } = useContext(ParameterContext);
+
+  const [fields, setFields] = useState({
+    achievement_description: "",
+    company_address: "",
+    company_city: "",
+    company_name: "",
+    company_nit: "",
+    company_phone: "",
+    company_sector: "",
+    company_verification_digit: "",
+    contact: "",
+    end_date: "",
+    function_description: "",
+    position: "",
+    start_date: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (open) {
+      setFields({
+        achievement_description: data.achievement_description,
+        company_address: data.company_address,
+        company_city: data.company_city,
+        company_name: data.company_name,
+        company_nit: data.company_nit,
+        company_phone: data.company_phone,
+        company_sector: data.company_sector,
+        company_verification_digit: data.company_verification_digit,
+        contact: data.contact,
+        end_date: data.end_date,
+        function_description: data.function_description,
+        position: data.position,
+        start_date: data.start_date,
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [open]);
+
+  const handleReview = (approved, observations) => {
+    setLoading(true);
+    setError(null);
+    reviewLaboralExperience(
+      data.id,
+      approved,
+      observations,
+    )
+      .then((response) => {
+        if (response.ok) {
+          updateTable();
+          onClose();
+          setError(null);
+        } else {
+          throw new Error();
+        }
+      })
+      .catch((e) => {
+        console.error("An error ocurred when reviewing item", e);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  return (
+    <ReviewerForm
+      helper_text={error}
+      loading={loading}
+      open={open}
+      onReview={handleReview}
+      onClose={onClose}
+    >
+      <TextField
+        fullWidth
+        label="Razón social de la empresa"
+        name="company_name"
+        value={fields.company_name}
+      />
+      <Grid container spacing={1}>
+        <Grid item md={7} xs={12}>
+          <TextField
+            fullWidth
+            label="NIT"
+            name="company_nit"
+            type="number"
+            value={fields.company_nit}
+          />
+        </Grid>
+        <Grid item md={5} xs={12}>
+          <TextField
+            fullWidth
+            label="Dígito de verificación"
+            name="company_verification_digit"
+            type="number"
+            value={fields.company_verification_digit}
+          />
+        </Grid>
+      </Grid>
+      <TextField
+        fullWidth
+        label="Dirección"
+        name="company_address"
+        value={fields.company_address}
+      />
+      <SelectField
+        fullWidth
+        label="Sector"
+        name="company_sector"
+        value={fields.company_sector}
+      >
+        {sectors
+          .map(({ pk_sector, nombre }) => (
+            <option key={pk_sector} value={pk_sector}>{nombre}</option>
+          ))}
+      </SelectField>
+      <DateField
+        fullWidth
+        label="Fecha de inicio"
+        name="start_date"
+        value={fields.start_date}
+      />
+      <DateField
+        fullWidth
+        label="Fecha de finalización"
+        name="end_date"
+        value={fields.end_date}
+      />
+      <TextField
+        fullWidth
+        label="Cargo"
+        name="position"
+        value={fields.position}
+      />
+      <CitySelector
+        label="Lugar de Trabajo"
+        setValue={() => {}}
+        value={fields.company_city}
+      />
+      <TextField
+        fullWidth
+        label="Contacto"
+        name="contact"
+        value={fields.contact}
+      />
+      <TextField
+        fullWidth
+        label="Teléfono"
+        name="company_phone"
+        type="number"
+        value={fields.company_phone}
+      />
+      <TextField
+        fullWidth
+        label="Funciones"
+        multiline
+        rows={3}
+        rowsMax={10}
+        name="function_description"
+        value={fields.function_description}
+      />
+      <TextField
+        fullWidth
+        label="Logros a resaltar"
+        multiline
+        rows={3}
+        rowsMax={10}
+        name="achievement_description"
+        value={fields.achievement_description}
+      />
+    </ReviewerForm>
+  );
+};
+
 const DeleteModal = ({
   is_open,
   selected,
@@ -853,7 +1073,30 @@ const DeleteModal = ({
   );
 };
 
-export default () => {
+const getLaboralExperience = (id, review_mode = false) => {
+  let request;
+  if (review_mode) {
+    request = getPersonLaboralExperience(id);
+  } else {
+    request = getUserLaboralExperience(id);
+  }
+
+  return request
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error();
+    })
+    .catch((e) => {
+      console.log("Couldnt load the laboral experience", e);
+      throw e;
+    });
+};
+
+export default function Laboral({
+  review_mode = false,
+}) {
   const [parameters, setParameters] = useState({
     clients: [],
     companies: [],
@@ -865,18 +1108,18 @@ export default () => {
   const [laboral_experience, setSelectedLaboralExperience] = useState({});
   const [selected, setSelected] = useState([]);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
+  const [people, setPeople] = useState([]);
+  const [selected_person, setSelectedPerson] = useState(null);
+  const [review_modal_open, setReviewModalOpen] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    await getLaboralExperience(id)
-      .then(async (response) => {
-        if (response.ok) {
-          setSelectedLaboralExperience(await response.json());
-          setEditModalOpen(true);
-        } else {
-          throw new Error();
-        }
-      })
-      .catch((e) => console.error("Couldnt load the laboral experience"));
+    setSelectedLaboralExperience(await getLaboralExperience(id));
+    setEditModalOpen(true);
+  };
+
+  const handleReviewModalOpen = async (id) => {
+    setSelectedLaboralExperience(await getLaboralExperience(id));
+    setReviewModalOpen(true);
   };
 
   const handleDeleteModalOpen = async (selected) => {
@@ -927,12 +1170,46 @@ export default () => {
       })
       .catch(() => console.error("Couldnt load the sectors"));
     updateCompanies();
-    updateTable();
+    if (review_mode) {
+      getPeople()
+        .then(async (response) => {
+          /** @type Array<{pk_persona: number, nombre: string}>*/
+          const people = await response.json();
+          setPeople(
+            people
+              .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+              .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
+          );
+        });
+    } else {
+      updateTable();
+    }
   }, []);
+
+  useEffect(() => {
+    if (review_mode && selected_person) {
+      updateTable();
+    }
+  }, [selected_person]);
 
   return (
     <Fragment>
-      <Title title={"Experiencia laboral"} />
+      <Title title="Experiencia laboral" />
+      {review_mode
+        ? (
+          <Fragment>
+            <AdvancedSelectField
+              fullWidth
+              label="Persona"
+              onChange={(_event, value) => setSelectedPerson(value)}
+              options={people}
+              value={selected_person}
+            />
+            <br />
+            <br />
+          </Fragment>
+        )
+        : null}
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}
@@ -946,6 +1223,12 @@ export default () => {
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
         />
+        <ReviewModal
+          data={laboral_experience}
+          open={review_modal_open}
+          onClose={() => setReviewModalOpen(false)}
+          updateTable={updateTable}
+        />
       </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
@@ -954,14 +1237,23 @@ export default () => {
         updateTable={updateTable}
       />
       <AsyncTable
-        columns={headers}
+        columns={review_mode ? review_headers : person_headers}
         onAddClick={() => setAddModalOpen(true)}
-        onEditClick={(id) => handleEditModalOpen(id)}
+        onEditClick={(id) =>
+          review_mode ? handleReviewModalOpen(id) : handleEditModalOpen(id)}
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
+        search={review_mode
+          ? {
+            person: selected_person,
+            review_status: 2,
+          }
+          : {}}
         update_table={tableShouldUpdate}
-        url={"usuario/experiencia/laboral/table"}
+        url={review_mode
+          ? "humanos/experiencia/laboral/table"
+          : "usuario/experiencia/laboral/table"}
       />
     </Fragment>
   );
-};
+}

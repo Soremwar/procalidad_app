@@ -771,6 +771,12 @@ export default function Capacitacion({
           review_mode ? handleReviewModalOpen(id) : handleEditModalOpen(id)}
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
+        search={review_mode
+          ? {
+            person: selected_person,
+            review_status: 2,
+          }
+          : {}}
         update_table={tableShouldUpdate}
         url={review_mode
           ? "humanos/formacion/capacitacion/table"
