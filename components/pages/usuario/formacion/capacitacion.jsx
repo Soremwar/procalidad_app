@@ -9,6 +9,7 @@ import { DialogContentText, TextField } from "@material-ui/core";
 import { formatResponseJson } from "../../../../lib/api/request.js";
 import {
   fetchFormationLevelApi,
+  fetchHRTrainingFormation,
   fetchPeopleApi,
   fetchUserTrainingFormation,
 } from "../../../../lib/api/generator.js";
@@ -18,7 +19,9 @@ import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
 import Title from "../../../common/Title.jsx";
 import SelectField from "../../../common/SelectField.jsx";
-import ReviewBadge from "../common/ReviewBadge";
+import ReviewBadge from "../common/ReviewBadge.jsx";
+import ReviewForm from "../common/ReviewForm.jsx";
+import ReviewerForm from "../common/ReviewerForm.jsx";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
@@ -27,14 +30,18 @@ const getFormationLevels = () =>
     },
   });
 
-const getPeople = () =>
+/**
+ * @param {boolean} list_retired
+ * */
+const getPeople = (list_retired = false) =>
   fetchPeopleApi({
     params: {
-      list_retired: true,
+      list_retired,
     },
   });
 
-const getTrainingTitle = (id) => fetchUserTrainingFormation(id);
+const getUserTrainingTitle = (id) => fetchUserTrainingFormation(id);
+const getPersonTrainingTitle = (id) => fetchHRTrainingFormation(id);
 
 const createTrainingTitle = async (
   end_date,
@@ -80,7 +87,23 @@ const deleteTrainingTitle = async (id) =>
     method: "DELETE",
   });
 
-const headers = [
+const reviewTrainingTitle = async (
+  id,
+  approved,
+  observations,
+) =>
+  fetchHRTrainingFormation(id, {
+    body: JSON.stringify({
+      approved,
+      observations,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
+const common_headers = [
   {
     id: "formation_level",
     numeric: false,
@@ -110,6 +133,10 @@ const headers = [
     label: "Instructor",
     searchable: true,
   },
+];
+
+const person_headers = [
+  ...common_headers,
   {
     displayAs: (_, value) => (
       <ReviewBadge status={Number(value) || 0} />
@@ -191,13 +218,15 @@ const AddModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Crear Nuevo"}
+    <ReviewForm
+      approved={false}
+      comments="&nbsp;"
+      helper_text={error}
+      loading={is_loading}
+      onClose={() => setModalOpen(false)}
+      onSubmit={handleSubmit}
+      open={is_open}
+      title="Crear nuevo"
     >
       <SelectField
         fullWidth
@@ -270,7 +299,7 @@ const AddModal = ({
         options={people.sort(([_a, x], [_b, y]) => x.localeCompare(y))}
         value={fields.teacher}
       />
-    </DialogForm>
+    </ReviewForm>
   );
 };
 
@@ -286,6 +315,8 @@ const EditModal = ({
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
+    approved: false,
+    comments: "",
     end_date: "",
     formation_level: "",
     start_date: "",
@@ -325,6 +356,8 @@ const EditModal = ({
   useEffect(() => {
     if (is_open) {
       setFields({
+        approved: data.approved,
+        comments: data.observations,
         end_date: data.end_date,
         formation_level: data.formation_level,
         start_date: data.start_date,
@@ -338,13 +371,15 @@ const EditModal = ({
   }, [is_open]);
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Editar"}
+    <ReviewForm
+      approved={fields.approved}
+      comments={fields.comments}
+      helper_text={error}
+      loading={is_loading}
+      onClose={() => setModalOpen(false)}
+      onSubmit={handleSubmit}
+      open={is_open}
+      title="Editar"
     >
       <SelectField
         disabled
@@ -411,7 +446,130 @@ const EditModal = ({
         options={people.sort(([_a, x], [_b, y]) => x.localeCompare(y))}
         value={fields.teacher}
       />
-    </DialogForm>
+    </ReviewForm>
+  );
+};
+
+const ReviewModal = ({
+  data,
+  onClose,
+  open,
+  updateTable,
+}) => {
+  const {
+    formation_levels,
+    people,
+  } = useContext(ParameterContext);
+
+  const [fields, setFields] = useState({
+    end_date: "",
+    formation_level: "",
+    start_date: "",
+    status: false,
+    teacher: "",
+    title: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (open) {
+      setFields({
+        end_date: data.end_date,
+        formation_level: data.formation_level,
+        start_date: data.start_date,
+        status: !!data.end_date,
+        teacher: data.teacher,
+        title: data.title,
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [open]);
+
+  const handleReview = (approved, observations) => {
+    setLoading(true);
+    setError(null);
+    reviewTrainingTitle(
+      data.id,
+      approved,
+      observations,
+    )
+      .then((response) => {
+        if (response.ok) {
+          updateTable();
+          onClose();
+          setError(null);
+        } else {
+          throw new Error();
+        }
+      })
+      .catch((e) => {
+        console.error("An error ocurred when reviewing item", e);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  return (
+    <ReviewerForm
+      helper_text={error}
+      loading={loading}
+      open={open}
+      onReview={handleReview}
+      onClose={onClose}
+    >
+      <SelectField
+        fullWidth
+        label="Nivel de formación"
+        name="formation_level"
+        value={fields.formation_level}
+      >
+        {formation_levels
+          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
+      </SelectField>
+      <TextField
+        fullWidth
+        label="Título"
+        name="title"
+        value={fields.title}
+      />
+      <SelectField
+        fullWidth
+        label="Estado"
+        name="status"
+        value={Number(fields.status)}
+      >
+        <option value="0">En curso</option>
+        <option value="1">Finalizado</option>
+      </SelectField>
+      <DateField
+        fullWidth
+        label="Fecha de inicio"
+        name="start_date"
+        value={fields.start_date}
+      />
+      {fields.status
+        ? (
+          <DateField
+            fullWidth
+            label="Fecha de finalización"
+            name="end_date"
+            value={fields.end_date}
+          />
+        )
+        : null}
+      <AdvancedSelectField
+        fullWidth
+        name="teacher"
+        label="Instructor"
+        options={people.sort(([_a, x], [_b, y]) => x.localeCompare(y))}
+        value={fields.teacher}
+      />
+    </ReviewerForm>
   );
 };
 
@@ -471,7 +629,30 @@ const DeleteModal = ({
   );
 };
 
-export default function Capacitacion() {
+const getTrainingTitle = (id, review_mode = false) => {
+  let request;
+  if (review_mode) {
+    request = getPersonTrainingTitle(id);
+  } else {
+    request = getUserTrainingTitle(id);
+  }
+
+  return request
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error();
+    })
+    .catch((e) => {
+      console.log("Couldn't load training title", e);
+      throw e;
+    });
+};
+
+export default function Capacitacion({
+  review_mode = false,
+}) {
   const [parameters, setParameters] = useState({
     formation_levels: [],
     people: [],
@@ -482,18 +663,17 @@ export default function Capacitacion() {
   const [selected_training_title, setSelectedTrainingTitle] = useState({});
   const [selected, setSelected] = useState([]);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
+  const [selected_person, setSelectedPerson] = useState(null);
+  const [review_modal_open, setReviewModalOpen] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    await getTrainingTitle(id)
-      .then(async (response) => {
-        if (response.ok) {
-          setSelectedTrainingTitle(await response.json());
-          setEditModalOpen(true);
-        } else {
-          throw new Error();
-        }
-      })
-      .catch((e) => console.error("Couldnt load the training title"));
+    setSelectedTrainingTitle(await getTrainingTitle(id));
+    setEditModalOpen(true);
+  };
+
+  const handleReviewModalOpen = async (id) => {
+    setSelectedTrainingTitle(await getTrainingTitle(id, true));
+    setReviewModalOpen(true);
   };
 
   const handleDeleteModalOpen = async (selected) => {
@@ -516,7 +696,7 @@ export default function Capacitacion() {
         }
       })
       .catch(() => console.error("Couldnt load the formation levels"));
-    getPeople()
+    getPeople(true)
       .then(async (response) => {
         if (response.ok) {
           const people = await response.json()
@@ -529,12 +709,36 @@ export default function Capacitacion() {
         }
       })
       .catch(() => console.error("Couldnt load the formation levels"));
-    updateTable();
+
+    if (!review_mode) {
+      updateTable();
+    }
   }, []);
+
+  useEffect(() => {
+    if (review_mode && selected_person) {
+      updateTable();
+    }
+  }, [selected_person]);
 
   return (
     <Fragment>
-      <Title title={"Capacitaciones internas"} />
+      <Title title="Capacitaciones internas" />
+      {review_mode
+        ? (
+          <Fragment>
+            <AdvancedSelectField
+              fullWidth
+              label="Persona"
+              onChange={(_event, value) => setSelectedPerson(value)}
+              options={parameters.people}
+              value={selected_person}
+            />
+            <br />
+            <br />
+          </Fragment>
+        )
+        : null}
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}
@@ -547,6 +751,12 @@ export default function Capacitacion() {
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
         />
+        <ReviewModal
+          data={selected_training_title}
+          open={review_modal_open}
+          onClose={() => setReviewModalOpen(false)}
+          updateTable={updateTable}
+        />
       </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
@@ -555,13 +765,16 @@ export default function Capacitacion() {
         updateTable={updateTable}
       />
       <AsyncTable
-        columns={headers}
+        columns={review_mode ? common_headers : person_headers}
         onAddClick={() => setAddModalOpen(true)}
-        onEditClick={(id) => handleEditModalOpen(id)}
+        onEditClick={(id) =>
+          review_mode ? handleReviewModalOpen(id) : handleEditModalOpen(id)}
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
-        url={"usuario/formacion/capacitacion/table"}
+        url={review_mode
+          ? "humanos/formacion/capacitacion/table"
+          : "usuario/formacion/capacitacion/table"}
       />
     </Fragment>
   );

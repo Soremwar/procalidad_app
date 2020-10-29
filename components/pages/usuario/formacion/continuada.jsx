@@ -14,6 +14,7 @@ import {
   fetchUserContinuousFormation,
 } from "../../../../lib/api/generator.js";
 import { formatDateToStringDatetime } from "../../../../lib/date/mod.js";
+import AdvancedSelectField from "../../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../../common/AsyncTable/Table.jsx";
 import DownloadButton from "../../../common/DownloadButton.jsx";
 import DateField from "../../../common/DateField.jsx";
@@ -26,7 +27,6 @@ import ReviewForm from "../common/ReviewForm.jsx";
 import ReviewerForm from "../common/ReviewerForm.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 import Title from "../../../common/Title.jsx";
-import AdvancedSelectField from "../../../common/AdvancedSelectField";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
@@ -923,7 +923,9 @@ export default function Continuada({
           }
           : {}}
         update_table={tableShouldUpdate}
-        url="humanos/formacion/continuada/table"
+        url={review_mode
+          ? "humanos/formacion/continuada/table"
+          : "usuario/formacion/continuada/table"}
       />
       <ReviewDialog
         approved={false}

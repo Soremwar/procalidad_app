@@ -500,7 +500,7 @@ const Layout = (props) => {
                 Profiles.CONTROLLER,
                 Profiles.HUMAN_RESOURCES,
               ]}
-              component={FormacionCapacitacion}
+              component={() => <FormacionCapacitacion review_mode={true} />}
               path="/recursos_humanos/formacion/capacitacion"
             />
             <ProfiledRoute

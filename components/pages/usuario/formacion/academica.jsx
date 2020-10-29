@@ -15,6 +15,7 @@ import {
   fetchUserAcademicFormation,
 } from "../../../../lib/api/generator.js";
 import { formatDateToStringDatetime } from "../../../../lib/date/mod.js";
+import AdvancedSelectField from "../../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../../common/AsyncTable/Table.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
 import DateField from "../../../common/DateField.jsx";
@@ -24,11 +25,10 @@ import FileField from "../../../common/FileField.jsx";
 import FileReviewDialog from "../common/FileReviewDialog.jsx";
 import ReviewBadge from "../common/ReviewBadge.jsx";
 import ReviewDialog from "../common/ReviewDialog.jsx";
+import ReviewForm from "../common/ReviewForm.jsx";
 import ReviewerForm from "../common/ReviewerForm.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 import Title from "../../../common/Title.jsx";
-import ReviewForm from "../common/ReviewForm";
-import AdvancedSelectField from "../../../common/AdvancedSelectField";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
@@ -1071,7 +1071,9 @@ export default function Academica({
             review_status: 2,
           }
           : {}}
-        url="humanos/formacion/academica/table"
+        url={review_mode
+          ? "humanos/formacion/academica/table"
+          : "usuario/formacion/academica/table"}
       />
       <ReviewDialog
         approved={false}
