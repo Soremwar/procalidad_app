@@ -111,7 +111,9 @@ export default function ReviewForm({
           onSubmit={handleSubmit}
         >
           <DialogContent>
-            {children}
+            <fieldset disabled={pending}>
+              {children}
+            </fieldset>
             {helper_text && (
               <Typography
                 align="right"

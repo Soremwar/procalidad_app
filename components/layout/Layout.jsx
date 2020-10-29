@@ -491,7 +491,7 @@ const Layout = (props) => {
                 Profiles.CONTROLLER,
                 Profiles.HUMAN_RESOURCES,
               ]}
-              component={FormacionContinuada}
+              component={() => <FormacionContinuada review_mode={true} />}
               path="/recursos_humanos/formacion/continuada"
             />
             <ProfiledRoute

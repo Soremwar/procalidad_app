@@ -908,7 +908,10 @@ const getAcademicTitle = async (
         throw new Error();
       }
     })
-    .catch(() => console.error("Couldnt load the academic title"));
+    .catch((e) => {
+      console.error("Couldnt load the academic title");
+      throw e;
+    });
 };
 
 export default function Academica({

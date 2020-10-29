@@ -10,6 +10,6 @@ export const getTitlesTable = async (
   tableRequestHandler(
     context,
     formation_title_model.generateTableData(
-      FormationType.Academica,
+      FormationType.Continuada,
     ),
   );

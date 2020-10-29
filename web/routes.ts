@@ -199,6 +199,8 @@ import {
 import * as people_supports from "./handlers/maestro/plantilla.ts";
 import * as file from "./handlers/archivo.ts";
 import * as hr_academic_formation from "./handlers/humanos/formacion/academica.ts";
+import * as hr_continuous_formation from "./handlers/humanos/formacion/continuada.ts";
+import * as hr_training_formation from "./handlers/humanos/formacion/capacitacion.ts";
 
 const main_router = new Router();
 
@@ -2906,6 +2908,64 @@ main_router
       Profiles.HUMAN_RESOURCES,
     ]),
     hr_academic_formation.updateTitleReview,
+  );
+
+main_router
+  .post(
+    "/api/humanos/formacion/continuada/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_continuous_formation.getTitlesTable,
+  )
+  .get<{ id: string }>(
+    "/api/humanos/formacion/continuada/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_continuous_formation.getTitle,
+  )
+  .put<{ id: string }>(
+    "/api/humanos/formacion/continuada/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_continuous_formation.updateTitleReview,
+  );
+
+main_router
+  .post(
+    "/api/humanos/formacion/capacitacion/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_training_formation.getTitlesTable,
+  )
+  .get<{ id: string }>(
+    "/api/humanos/formacion/capacitacion/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_training_formation.getTitle,
+  )
+  .put<{ id: string }>(
+    "/api/humanos/formacion/capacitacion/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_training_formation.updateTitleReview,
   );
 
 export const routes = main_router.routes();

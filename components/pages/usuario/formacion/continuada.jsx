@@ -5,30 +5,28 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import {
-  DialogContentText,
-  Grid,
-  IconButton,
-  TextField,
-  Tooltip,
-} from "@material-ui/core";
-import { GetApp as DownloadIcon } from "@material-ui/icons";
+import { DialogContentText, Grid, TextField } from "@material-ui/core";
 import { formatResponseJson } from "../../../../lib/api/request.js";
 import {
   fetchFormationLevelApi,
+  fetchHRContinuousFormation,
+  fetchPeopleApi,
   fetchUserContinuousFormation,
 } from "../../../../lib/api/generator.js";
 import { formatDateToStringDatetime } from "../../../../lib/date/mod.js";
 import AsyncTable from "../../../common/AsyncTable/Table.jsx";
+import DownloadButton from "../../../common/DownloadButton.jsx";
 import DateField from "../../../common/DateField.jsx";
 import DialogForm from "../../../common/DialogForm.jsx";
 import FileField from "../../../common/FileField.jsx";
 import FileReviewDialog from "../common/FileReviewDialog.jsx";
-import SelectField from "../../../common/SelectField.jsx";
 import ReviewBadge from "../common/ReviewBadge.jsx";
 import ReviewDialog from "../common/ReviewDialog.jsx";
 import ReviewForm from "../common/ReviewForm.jsx";
+import ReviewerForm from "../common/ReviewerForm.jsx";
+import SelectField from "../../../common/SelectField.jsx";
 import Title from "../../../common/Title.jsx";
+import AdvancedSelectField from "../../../common/AdvancedSelectField";
 
 const getFormationLevels = () =>
   fetchFormationLevelApi({
@@ -37,7 +35,10 @@ const getFormationLevels = () =>
     },
   });
 
-const getContinuousTitle = (id) => fetchUserContinuousFormation(id);
+const getPeople = () => fetchPeopleApi();
+
+const getUserContinuousTitle = (id) => fetchUserContinuousFormation(id);
+const getPersonContinuousTitle = (id) => fetchHRContinuousFormation(id);
 
 const createContinuousTitle = async (
   end_date,
@@ -83,6 +84,22 @@ const deleteContinuousTitle = async (id) =>
     method: "DELETE",
   });
 
+const reviewContinuousTitle = async (
+  id,
+  approved,
+  observations,
+) =>
+  fetchHRContinuousFormation(id, {
+    body: JSON.stringify({
+      approved,
+      observations,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
 const uploadCertificate = async (
   id,
   name,
@@ -96,7 +113,7 @@ const uploadCertificate = async (
   });
 };
 
-const headers = [
+const common_headers = [
   {
     id: "formation_level",
     numeric: false,
@@ -125,6 +142,10 @@ const headers = [
     label: "Estado",
     searchable: true,
   },
+];
+
+const person_headers = [
+  ...common_headers,
   {
     displayAs: (id, value, reloadTable) => (
       <Grid container justify="center">
@@ -136,18 +157,10 @@ const headers = [
           />
         </Grid>
         <Grid item md={6} xs={12}>
-          <Tooltip title="Descargar">
-            <IconButton
-              color="primary"
-              component={"a"}
-              disabled={!value.id}
-              href={`/api/archivos/generico/${value.id}`}
-              target={"_blank"}
-              variant="contained"
-            >
-              <DownloadIcon />
-            </IconButton>
-          </Tooltip>
+          <DownloadButton
+            disabled={!value.id}
+            href={`/api/archivos/generico/${value.id}`}
+          />
         </Grid>
       </Grid>
     ),
@@ -177,6 +190,24 @@ const headers = [
     id: "review_status",
     numeric: false,
     disablePadding: false,
+    searchable: false,
+    orderable: false,
+  },
+];
+
+const review_headers = [
+  ...common_headers,
+  {
+    displayAs: (id, value) => (
+      <DownloadButton
+        disabled={!value.id}
+        href={`/api/archivos/generico/${value.id}`}
+      />
+    ),
+    id: "file",
+    numeric: false,
+    disablePadding: false,
+    label: "Certificado",
     searchable: false,
     orderable: false,
   },
@@ -422,8 +453,6 @@ const EditModal = ({
   const [file_review_modal_open, setFileReviewModalOpen] = useState(false);
   const [review_modal_open, setReviewModalOpen] = useState(false);
 
-  const pending = !fields.approved && !fields.comments;
-
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFields((prev_state) => ({ ...prev_state, [name]: value }));
@@ -485,77 +514,75 @@ const EditModal = ({
         open={is_open}
         title="Editar"
       >
-        <fieldset disabled={pending}>
-          <SelectField
-            disabled
-            fullWidth
-            label="Nivel de formación"
-            name="formation_level"
-            value={fields.formation_level}
-          >
-            {formation_levels
-              .sort(({ name: x }, { name: y }) => x.localeCompare(y))
-              .map(({ id, name }) => (
-                <option key={id} value={id}>{name}</option>
-              ))}
-          </SelectField>
-          <TextField
-            disabled
-            fullWidth
-            label="Título"
-            name="title"
-            value={fields.title}
-          />
-          <TextField
-            fullWidth
-            InputProps={{
-              inputProps: {
-                maxLength: "50",
-              },
-            }}
-            label="Institución"
-            name="institution"
-            onChange={handleChange}
-            required
-            value={fields.institution}
-          />
-          <SelectField
-            blank_value={false}
-            disabled={!!data.end_date}
-            fullWidth
-            label="Estado"
-            name="status"
-            onChange={(event) => {
-              const status = Boolean(Number(event.target.value));
-              setFields((prev_state) => ({ ...prev_state, status }));
-            }}
-            required
-            value={Number(fields.status)}
-          >
-            <option value="0">En curso</option>
-            <option value="1">Finalizado</option>
-          </SelectField>
-          <DateField
-            fullWidth
-            label="Fecha de inicio"
-            name="start_date"
-            onChange={handleChange}
-            required
-            value={fields.start_date}
-          />
-          {fields.status
-            ? (
-              <DateField
-                fullWidth
-                label="Fecha de finalización"
-                name="end_date"
-                onChange={handleChange}
-                required
-                value={fields.end_date}
-              />
-            )
-            : null}
-        </fieldset>
+        <SelectField
+          disabled
+          fullWidth
+          label="Nivel de formación"
+          name="formation_level"
+          value={fields.formation_level}
+        >
+          {formation_levels
+            .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+            .map(({ id, name }) => (
+              <option key={id} value={id}>{name}</option>
+            ))}
+        </SelectField>
+        <TextField
+          disabled
+          fullWidth
+          label="Título"
+          name="title"
+          value={fields.title}
+        />
+        <TextField
+          fullWidth
+          InputProps={{
+            inputProps: {
+              maxLength: "50",
+            },
+          }}
+          label="Institución"
+          name="institution"
+          onChange={handleChange}
+          required
+          value={fields.institution}
+        />
+        <SelectField
+          blank_value={false}
+          disabled={!!data.end_date}
+          fullWidth
+          label="Estado"
+          name="status"
+          onChange={(event) => {
+            const status = Boolean(Number(event.target.value));
+            setFields((prev_state) => ({ ...prev_state, status }));
+          }}
+          required
+          value={Number(fields.status)}
+        >
+          <option value="0">En curso</option>
+          <option value="1">Finalizado</option>
+        </SelectField>
+        <DateField
+          fullWidth
+          label="Fecha de inicio"
+          name="start_date"
+          onChange={handleChange}
+          required
+          value={fields.start_date}
+        />
+        {fields.status
+          ? (
+            <DateField
+              fullWidth
+              label="Fecha de finalización"
+              name="end_date"
+              onChange={handleChange}
+              required
+              value={fields.end_date}
+            />
+          )
+          : null}
       </ReviewForm>
       <FileReviewDialog
         onClose={() => setFileReviewModalOpen(false)}
@@ -569,6 +596,127 @@ const EditModal = ({
         open={review_modal_open}
       />
     </Fragment>
+  );
+};
+
+const ReviewModal = ({
+  data,
+  onClose,
+  open,
+  updateTable,
+}) => {
+  const {
+    formation_levels,
+  } = useContext(ParameterContext);
+
+  const [fields, setFields] = useState({
+    end_date: "",
+    formation_level: "",
+    institution: "",
+    start_date: "",
+    status: false,
+    title: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (open) {
+      setFields({
+        end_date: data.end_date,
+        formation_level: data.formation_level,
+        institution: data.institution,
+        start_date: data.start_date,
+        status: !!data.end_date,
+        title: data.title,
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [open]);
+
+  const handleReview = (approved, observations) => {
+    setLoading(true);
+    setError(null);
+    reviewContinuousTitle(
+      data.id,
+      approved,
+      observations,
+    )
+      .then((response) => {
+        if (response.ok) {
+          updateTable();
+          onClose();
+          setError(null);
+        } else {
+          throw new Error();
+        }
+      })
+      .catch((e) => {
+        console.error("An error ocurred when reviewing item", e);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  return (
+    <ReviewerForm
+      helper_text={error}
+      loading={loading}
+      open={open}
+      onReview={handleReview}
+      onClose={onClose}
+    >
+      <SelectField
+        fullWidth
+        label="Nivel de formación"
+        name="formation_level"
+        value={fields.formation_level}
+      >
+        {formation_levels
+          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
+      </SelectField>
+      <TextField
+        fullWidth
+        label="Título"
+        name="title"
+        value={fields.title}
+      />
+      <TextField
+        fullWidth
+        label="Institución"
+        name="institution"
+        value={fields.institution}
+      />
+      <SelectField
+        fullWidth
+        label="Estado"
+        name="status"
+        value={Number(fields.status)}
+      >
+        <option value="0">En curso</option>
+        <option value="1">Finalizado</option>
+      </SelectField>
+      <DateField
+        fullWidth
+        label="Fecha de inicio"
+        name="start_date"
+        value={fields.start_date}
+      />
+      {fields.status
+        ? (
+          <DateField
+            fullWidth
+            label="Fecha de finalización"
+            name="end_date"
+            value={fields.end_date}
+          />
+        )
+        : null}
+    </ReviewerForm>
   );
 };
 
@@ -628,7 +776,30 @@ const DeleteModal = ({
   );
 };
 
-export default function Continuada() {
+const getContinuousTitle = (id, review_mode) => {
+  let request;
+  if (review_mode) {
+    request = getUserContinuousTitle(id);
+  } else {
+    request = getPersonContinuousTitle(id);
+  }
+
+  return request
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error();
+    })
+    .catch((e) => {
+      console.log("Couldnt load the continuous title");
+      throw e;
+    });
+};
+
+export default function Continuada({
+  review_mode = false,
+}) {
   const [parameters, setParameters] = useState({
     formation_levels: [],
   });
@@ -639,18 +810,18 @@ export default function Continuada() {
   const [selected, setSelected] = useState([]);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
   const [review_dialog_open, setReviewDialogOpen] = useState(false);
+  const [review_modal_open, setReviewModalOpen] = useState(false);
+  const [people, setPeople] = useState([]);
+  const [selected_person, setSelectedPerson] = useState(null);
 
   const handleEditModalOpen = async (id) => {
-    await getContinuousTitle(id)
-      .then(async (response) => {
-        if (response.ok) {
-          setSelectedContinuousTitle(await response.json());
-          setEditModalOpen(true);
-        } else {
-          throw new Error();
-        }
-      })
-      .catch((e) => console.error("Couldnt load the continuous title"));
+    setSelectedContinuousTitle(await getContinuousTitle(id, false));
+    setEditModalOpen(true);
+  };
+
+  const handleReviewModalOpen = async (id) => {
+    setSelectedContinuousTitle(await getContinuousTitle(id, false));
+    setReviewModalOpen(true);
   };
 
   const handleDeleteModalOpen = async (selected) => {
@@ -673,12 +844,46 @@ export default function Continuada() {
         }
       })
       .catch(() => console.error("Couldnt load the formation levels"));
-    updateTable();
+    if (review_mode) {
+      getPeople()
+        .then(async (response) => {
+          /** @type Array<{pk_persona: number, nombre: string}>*/
+          const people = await response.json();
+          setPeople(
+            people
+              .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+              .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
+          );
+        });
+    } else {
+      updateTable();
+    }
   }, []);
+
+  useEffect(() => {
+    if (review_mode && selected_person) {
+      updateTable();
+    }
+  }, [selected_person]);
 
   return (
     <Fragment>
       <Title title={"Formación continuada"} />
+      {review_mode
+        ? (
+          <Fragment>
+            <AdvancedSelectField
+              fullWidth
+              label="Persona"
+              onChange={(_event, value) => setSelectedPerson(value)}
+              options={people}
+              value={selected_person}
+            />
+            <br />
+            <br />
+          </Fragment>
+        )
+        : null}
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}
@@ -691,6 +896,12 @@ export default function Continuada() {
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
         />
+        <ReviewModal
+          data={selected_continuous_title}
+          open={review_modal_open}
+          onClose={() => setReviewModalOpen(false)}
+          updateTable={updateTable}
+        />
       </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
@@ -699,13 +910,20 @@ export default function Continuada() {
         updateTable={updateTable}
       />
       <AsyncTable
-        columns={headers}
+        columns={review_mode ? review_headers : person_headers}
         onAddClick={() => setAddModalOpen(true)}
-        onEditClick={(id) => handleEditModalOpen(id)}
+        onEditClick={(id) =>
+          review_mode ? handleReviewModalOpen(id) : handleEditModalOpen(id)}
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
+        search={review_mode
+          ? {
+            person: selected_person,
+            review_status: 2,
+          }
+          : {}}
         update_table={tableShouldUpdate}
-        url={"usuario/formacion/continuada/table"}
+        url="humanos/formacion/continuada/table"
       />
       <ReviewDialog
         approved={false}
