@@ -521,6 +521,15 @@ const Layout = (props) => {
               component={() => <ExperienciaProyecto review_mode={true} />}
               path="/humanos/experiencia/proyecto"
             />
+            <ProfiledRoute
+              allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
+                Profiles.HUMAN_RESOURCES,
+              ]}
+              component={() => <Certificacion review_mode={true} />}
+              path="/humanos/certificacion"
+            />
             <Route exact={true} path="/" />
             <Redirect from="*" to="/404" />
           </Switch>

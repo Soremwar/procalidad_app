@@ -189,6 +189,47 @@ export const getAll = async (
   ]) => new Certification(...row));
 };
 
+export const findById = async (
+  id: number,
+): Promise<Certification | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      C.PK_CERTIFICACION,
+      C.FK_USUARIO,
+      C.FK_PLANTILLA,
+      C.FK_TIPO,
+      C.NOMBRE,
+      C.VERSION,
+      TO_CHAR(C.FEC_CERTIFICACION, 'YYYY-MM-DD'),
+      TO_CHAR(C.FEC_EXPIRACION, 'YYYY-MM-DD'),
+      C.FK_ARCHIVO_GENERICO
+    FROM ${TABLE} C
+    LEFT JOIN ${REVIEW_TABLE} R
+      ON C.PK_CERTIFICACION = R.FK_DATOS
+      AND R.TIPO_FORMULARIO = '${DataType.CERTIFICACION}'
+    WHERE C.PK_CERTIFICACION = $1`,
+    id,
+  );
+
+  if (!rows.length) return null;
+
+  return new Certification(
+    ...rows[0] as [
+      number,
+      number,
+      number,
+      number,
+      string,
+      string | null,
+      string,
+      string | null,
+      number | null,
+      boolean | null,
+      string | null,
+    ],
+  );
+};
+
 export const findByIdAndUser = async (
   id: number,
   user: number,
@@ -236,6 +277,7 @@ export const findByIdAndUser = async (
 class TableData {
   constructor(
     public readonly id: number,
+    public readonly person: number,
     public readonly template: string,
     public readonly type: string,
     public readonly name: string,
@@ -250,7 +292,7 @@ class TableData {
 }
 
 export const generateTableData = (
-  user_id: number,
+  user_id?: number,
 ) => {
   return async (
     order: TableOrder,
@@ -262,6 +304,7 @@ export const generateTableData = (
     const base_query = (
       `SELECT
         C.PK_CERTIFICACION AS ID,
+        C.FK_USUARIO AS PERSON,
         (SELECT NOMBRE FROM ${TEMPLATE_TABLE} WHERE PK_PLANTILLA = C.FK_PLANTILLA) AS TEMPLATE,
         (SELECT NOMBRE FROM ${TYPE_TABLE} WHERE PK_TIPO = C.FK_TIPO) AS TYPE,
         C.NOMBRE AS NAME,
@@ -281,7 +324,7 @@ export const generateTableData = (
       LEFT JOIN ${REVIEW_TABLE} R
         ON C.PK_CERTIFICACION = R.FK_DATOS
         AND R.TIPO_FORMULARIO = '${DataType.CERTIFICACION}'
-      WHERE C.FK_USUARIO = ${user_id}`
+      ${user_id ? `WHERE C.FK_USUARIO = ${user_id}` : ""}`
     );
 
     const { count, data } = await getTableModels(
@@ -294,6 +337,7 @@ export const generateTableData = (
     );
 
     const models = data.map((x: [
+      number,
       number,
       string,
       string,
@@ -310,12 +354,13 @@ export const generateTableData = (
         x[2],
         x[3],
         x[4],
+        x[5],
         {
-          id: x[5],
-          extensions: x[6],
+          id: x[6],
+          extensions: x[7],
         },
-        x[7],
         x[8],
+        x[9],
       )
     );
 

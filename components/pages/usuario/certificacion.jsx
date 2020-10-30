@@ -18,25 +18,31 @@ import {
   fetchCertificationProviderApi,
   fetchCertificationTemplateApi,
   fetchCertificationTypeApi,
+  fetchHRCertification,
+  fetchPeopleApi,
   fetchUserCertification,
 } from "../../../lib/api/generator.js";
 import { formatDateToStringDatetime } from "../../../lib/date/mod.js";
+import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
+import DownloadButton from "../../common/DownloadButton.jsx";
 import FileField from "../../common/FileField.jsx";
 import FileReviewDialog from "./common/FileReviewDialog.jsx";
 import ReviewBadge from "./common/ReviewBadge.jsx";
-import ReviewDialog from "./common/ReviewDialog.jsx";
 import ReviewForm from "./common/ReviewForm.jsx";
+import ReviewerForm from "./common/ReviewerForm.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
 
+const getPeople = () => fetchPeopleApi();
 const getProviders = () => fetchCertificationProviderApi();
 const getTemplates = () => fetchCertificationTemplateApi();
 const getTypes = () => fetchCertificationTypeApi();
 
-const getCertification = (id) => fetchUserCertification(id);
+const getUserCertification = (id) => fetchUserCertification(id);
+const getPersonCertification = (id) => fetchHRCertification(id);
 
 const createCertification = async (
   expedition_date,
@@ -105,7 +111,23 @@ const uploadCertificate = async (
   });
 };
 
-const headers = [
+const reviewTrainingTitle = async (
+  id,
+  approved,
+  observations,
+) =>
+  fetchHRCertification(id, {
+    body: JSON.stringify({
+      approved,
+      observations,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
+const common_headers = [
   {
     id: "name",
     numeric: false,
@@ -134,6 +156,10 @@ const headers = [
     label: "Version",
     searchable: true,
   },
+];
+
+const person_headers = [
+  ...common_headers,
   {
     displayAs: (id, value, reloadTable) => (
       <Grid container justify="center">
@@ -145,18 +171,10 @@ const headers = [
           />
         </Grid>
         <Grid item md={6} xs={12}>
-          <Tooltip title="Descargar">
-            <IconButton
-              color="primary"
-              component={"a"}
-              disabled={!value.id}
-              href={`/api/archivos/generico/${value.id}`}
-              target={"_blank"}
-              variant="contained"
-            >
-              <DownloadIcon />
-            </IconButton>
-          </Tooltip>
+          <DownloadButton
+            disabled={!value.id}
+            href={`/api/archivos/generico/${value.id}`}
+          />
         </Grid>
       </Grid>
     ),
@@ -186,6 +204,24 @@ const headers = [
     id: "review_status",
     numeric: false,
     disablePadding: false,
+    searchable: false,
+    orderable: false,
+  },
+];
+
+const review_headers = [
+  ...common_headers,
+  {
+    displayAs: (id, value) => (
+      <DownloadButton
+        disabled={!value.id}
+        href={`/api/archivos/generico/${value.id}`}
+      />
+    ),
+    id: "file",
+    numeric: false,
+    disablePadding: false,
+    label: "Cargar certificado",
     searchable: false,
     orderable: false,
   },
@@ -629,6 +665,157 @@ const EditModal = ({
   );
 };
 
+const ReviewModal = ({
+  data,
+  onClose,
+  open,
+  updateTable,
+}) => {
+  const {
+    providers,
+    templates,
+    types,
+  } = useContext(ParameterContext);
+
+  const [fields, setFields] = useState({
+    certification_expires: false,
+    expedition_date: "",
+    expiration_date: "",
+    name: "",
+    provider: "",
+    template: "",
+    type: "",
+    version: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (open) {
+      const template = templates.find(({ id }) => id == data.template);
+      setFields({
+        certification_expires: !!data.expiration_date,
+        expedition_date: data.expedition_date,
+        expiration_date: data.expiration_date || "",
+        name: data.name,
+        provider: template?.provider || "",
+        template: data.template,
+        type: data.type,
+        version: data.version || "",
+      });
+      setLoading(false);
+      setError(null);
+    }
+  }, [open]);
+
+  const handleReview = (approved, observations) => {
+    setLoading(true);
+    setError(null);
+    reviewTrainingTitle(
+      data.id,
+      approved,
+      observations,
+    )
+      .then((response) => {
+        if (response.ok) {
+          updateTable();
+          onClose();
+          setError(null);
+        } else {
+          throw new Error();
+        }
+      })
+      .catch((e) => {
+        console.error("An error ocurred when reviewing item", e);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  return (
+    <ReviewerForm
+      helper_text={error}
+      loading={loading}
+      open={open}
+      onReview={handleReview}
+      onClose={onClose}
+    >
+      <SelectField
+        fullWidth
+        label="Proveedor"
+        name="provider"
+        value={fields.provider}
+      >
+        {providers
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
+      </SelectField>
+      <SelectField
+        disabled={!fields.provider}
+        fullWidth
+        label="Certificación"
+        name="template"
+        value={fields.template}
+      >
+        {templates
+          .filter(({ provider }) => provider == fields.provider)
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
+      </SelectField>
+      <SelectField
+        fullWidth
+        label="Tipo de certificación"
+        name="type"
+        value={fields.type}
+      >
+        {types
+          .map(({ id, name }) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
+      </SelectField>
+      <TextField
+        fullWidth
+        label="Nombre"
+        name="name"
+        value={fields.name}
+      />
+      <TextField
+        fullWidth
+        label="Versión"
+        name="version"
+        value={fields.version}
+      />
+      <DateField
+        fullWidth
+        label="Fecha de expedición"
+        name="expedition_date"
+        value={fields.expedition_date}
+      />
+      <SelectField
+        fullWidth
+        label="Expiración certificación"
+        name="certification_expires"
+        value={Number(fields.certification_expires)}
+      >
+        <option value="0">No</option>
+        <option value="1">Sí</option>
+      </SelectField>
+      {fields.certification_expires
+        ? (
+          <DateField
+            fullWidth
+            label="Fecha de expiración"
+            name="expiration_date"
+            value={fields.expiration_date}
+          />
+        )
+        : null}
+    </ReviewerForm>
+  );
+};
+
 const DeleteModal = ({
   is_open,
   selected,
@@ -685,7 +872,34 @@ const DeleteModal = ({
   );
 };
 
-export default function Certificacion() {
+const getCertification = (
+  id,
+  review_mode = false,
+) => {
+  let request;
+  if (review_mode) {
+    request = getUserCertification(id);
+  } else {
+    request = getPersonCertification(id);
+  }
+
+  return request
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error();
+      }
+    })
+    .catch((e) => {
+      console.error("Couldnt load the academic title", e);
+      throw e;
+    });
+};
+
+export default function Certificacion({
+  review_mode = false,
+}) {
   const [parameters, setParameters] = useState(INITIAL_PARAMETER_STATE);
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
@@ -693,18 +907,18 @@ export default function Certificacion() {
   const [selected_academic_title, setSelectedAcademicTitle] = useState({});
   const [selected, setSelected] = useState([]);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
+  const [review_modal_open, setReviewModalOpen] = useState(false);
+  const [people, setPeople] = useState([]);
+  const [selected_person, setSelectedPerson] = useState();
 
   const handleEditModalOpen = async (id) => {
-    await getCertification(id)
-      .then(async (response) => {
-        if (response.ok) {
-          setSelectedAcademicTitle(await response.json());
-          setEditModalOpen(true);
-        } else {
-          throw new Error();
-        }
-      })
-      .catch((e) => console.error("Couldnt load the academic title"));
+    setSelectedAcademicTitle(await getCertification(id));
+    setEditModalOpen(true);
+  };
+
+  const handleReviewModalOpen = async (id) => {
+    setSelectedAcademicTitle(await getCertification(id, false));
+    setReviewModalOpen(true);
   };
 
   const handleDeleteModalOpen = async (selected) => {
@@ -764,12 +978,52 @@ export default function Certificacion() {
         }
       })
       .catch(() => console.error("Couldnt load the types"));
-    updateTable();
+
+    if (review_mode) {
+      getPeople()
+        .then(async (response) => {
+          if (response.ok) {
+            /**@type Array<{pk_persona: number, nombre: string}>*/
+            const people = await response.json();
+            setPeople(
+              people
+                .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+                .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
+            );
+          } else {
+            throw new Error();
+          }
+        })
+        .catch(() => console.error("Couldnt load the people list"));
+    } else {
+      updateTable();
+    }
   }, []);
+
+  useEffect(() => {
+    if (review_mode && selected_person) {
+      updateTable();
+    }
+  }, [selected_person]);
 
   return (
     <Fragment>
       <Title title="Certificaciones" />
+      {review_mode
+        ? (
+          <Fragment>
+            <AdvancedSelectField
+              fullWidth
+              label="Persona"
+              onChange={(_event, value) => setSelectedPerson(value)}
+              options={people}
+              value={selected_person}
+            />
+            <br />
+            <br />
+          </Fragment>
+        )
+        : null}
       <ParameterContext.Provider value={parameters}>
         <AddModal
           is_open={is_add_modal_open}
@@ -782,6 +1036,12 @@ export default function Certificacion() {
           setModalOpen={setEditModalOpen}
           updateTable={updateTable}
         />
+        <ReviewModal
+          data={selected_academic_title}
+          open={review_modal_open}
+          onClose={() => setReviewModalOpen(false)}
+          updateTable={updateTable}
+        />
       </ParameterContext.Provider>
       <DeleteModal
         is_open={is_delete_modal_open}
@@ -790,13 +1050,23 @@ export default function Certificacion() {
         updateTable={updateTable}
       />
       <AsyncTable
-        columns={headers}
-        onAddClick={() => setAddModalOpen(true)}
-        onEditClick={(id) => handleEditModalOpen(id)}
-        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        columns={review_mode ? review_headers : person_headers}
+        onAddClick={!review_mode && (() => setAddModalOpen(true))}
+        onEditClick={(id) =>
+          review_mode ? handleReviewModalOpen(id) : handleEditModalOpen(id)}
+        onDeleteClick={!review_mode &&
+          ((selected) => handleDeleteModalOpen(selected))}
         onTableUpdate={() => setTableShouldUpdate(false)}
+        search={review_mode
+          ? {
+            person: selected_person,
+            review_status: 2,
+          }
+          : {}}
         update_table={tableShouldUpdate}
-        url={"usuario/certificacion/table"}
+        url={review_mode
+          ? "humanos/certificacion/table"
+          : "usuario/certificacion/table"}
       />
     </Fragment>
   );

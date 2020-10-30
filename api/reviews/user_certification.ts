@@ -10,6 +10,19 @@ import {
 
 const REVIEW_TYPE = DataType.CERTIFICACION;
 
+export const deleteReview = async (
+  data_reference: number,
+) => {
+  let review = await findByTypeAndData(
+    REVIEW_TYPE,
+    data_reference,
+  );
+
+  if (review) {
+    review.delete();
+  }
+};
+
 export const requestReview = async (
   data_reference: number,
 ) => {
@@ -30,15 +43,29 @@ export const requestReview = async (
   await dispatchHumanResourcesReviewRequested(review.id);
 };
 
-export const deleteReview = async (
+export const setReview = async (
   data_reference: number,
+  reviewer: number,
+  approved: boolean,
+  observations: string | null,
 ) => {
   let review = await findByTypeAndData(
     REVIEW_TYPE,
     data_reference,
   );
 
-  if (review) {
-    review.delete();
+  if (!review) {
+    throw new Error("No fue encontrada la revision del registro en el sistema");
   }
+
+  if (approved) {
+    await review.approve(reviewer);
+  } else {
+    await review.updateComments(
+      reviewer,
+      observations as string,
+    );
+  }
+
+  await dispatchHumanResourcesReview(review.id);
 };
