@@ -106,6 +106,16 @@ export default function ResidenceForm({
     };
   }, [reload_data]);
 
+  // If in review mode, wait 'til a person is selected
+  // Load instantly if not in review mode
+  useEffect(() => {
+    if (review_mode && person) {
+      setReloadData(true);
+    } else if (!review_mode) {
+      setReloadData(true);
+    }
+  }, [person]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFields((prev_state) => ({ ...prev_state, [name]: value }));
@@ -135,7 +145,6 @@ export default function ResidenceForm({
   const handleReview = (approved, observations) => {
     setLoading(true);
     setError(null);
-
 
     updatePersonReview(fields.id, approved, observations)
       .then((response) => {

@@ -1,0 +1,41 @@
+{{#> layout}}
+  {{#*inline "styles"}}
+    <style>
+      .text-services {
+        padding: 10px 10px 0;
+        text-align: center;
+      }
+
+      .text-services h3 {
+        font-size: 20px;
+      }
+
+      @media screen and (max-width: 500px) {
+        .text-services {
+          padding-left: 0;
+          padding-right: 20px;
+          text-align: left;
+        }
+      }
+    </style>
+  {{/inline}}
+  {{#*inline "title"}}
+    Revisi&oacute;n solicitada
+  {{/inline}}
+  {{#*inline "subtitle"}}
+    {{ requestant }} ha realizado una modificacion en el formulario '{{ formulary }}'.
+  {{/inline}}
+  {{#*inline "content"}}{{/inline}}
+  {{#*inline "information"}}
+    Ingrese a la <a href="{{ AppUrl '' }}">aplicaci&oacute;n Procalidad</a> y valide la solicitud
+  {{/inline}}
+  {{#*inline "links"}}
+    {{ Link 'Datos personales' 'humanos/perfil'}}
+    {{ Link 'Formación academica' 'humanos/formacion/academica'}}
+    {{ Link 'Formación continuada' 'humanos/formacion/continuada'}}
+    {{ Link 'Capacitaciones internas' 'humanos/formacion/capacitacion'}}
+    {{ Link 'Experiencia laboral' 'humanos/experiencia/laboral'}}
+    {{ Link 'Experiencia en proyectos' 'humanos/experiencia/proyecto'}}
+    {{ Link 'Certificaciones' 'humanos/certificacion'}}
+  {{/inline}}
+{{/layout}}

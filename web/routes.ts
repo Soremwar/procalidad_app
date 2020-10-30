@@ -60,14 +60,7 @@ import {
   searchProject,
   updateProject,
 } from "./handlers/operaciones/proyecto.ts";
-import {
-  createPerson,
-  deletePerson,
-  getPeople,
-  getPeopleTable,
-  getPerson,
-  updatePerson,
-} from "./handlers/organizacion/persona.ts";
+import * as person from "./handlers/organizacion/persona.ts";
 import {
   createAreaType,
   deleteAreaType,
@@ -2200,7 +2193,7 @@ main_router
       Profiles.PROYECT_MANAGER,
       Profiles.SALES,
     ]),
-    getPeople,
+    person.getPeople,
   )
   .post(
     "/api/organizacion/persona/table",
@@ -2211,7 +2204,16 @@ main_router
       Profiles.HUMAN_RESOURCES,
       Profiles.PROYECT_MANAGER,
     ]),
-    getPeopleTable,
+    person.getPeopleTable,
+  )
+  .get<{ id: string }>(
+    "/api/organizacion/persona/foto/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    person.getPicture,
   )
   .get<{ id: string }>(
     "/api/organizacion/persona/:id",
@@ -2223,7 +2225,7 @@ main_router
       Profiles.PROYECT_MANAGER,
       Profiles.SALES,
     ]),
-    getPerson,
+    person.getPerson,
   )
   .post(
     "/api/organizacion/persona",
@@ -2232,7 +2234,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    createPerson,
+    person.createPerson,
   )
   .put<{ id: string }>(
     "/api/organizacion/persona/:id",
@@ -2241,7 +2243,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    updatePerson,
+    person.updatePerson,
   )
   .delete<{ id: string }>(
     "/api/organizacion/persona/:id",
@@ -2250,7 +2252,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    deletePerson,
+    person.deletePerson,
   );
 
 main_router

@@ -132,7 +132,7 @@ const useProfilePictureStyles = makeStyles(() => ({
   },
 }));
 
-const ProfilePicture = () => {
+const UploadProfilePicture = () => {
   const classes = useProfilePictureStyles();
   const [picture_key, setPictureKey] = useState(0);
   const [is_modal_open, setModalOpen] = useState(false);
@@ -203,6 +203,27 @@ const ProfilePicture = () => {
         </DialogActions>
       </Dialog>
     </Fragment>
+  );
+};
+
+/**
+ * @param {object} props
+ * @param {number} props.person
+ * */
+const ProfilePicture = ({
+  person,
+}) => {
+  const classes = useProfilePictureStyles();
+
+  return (
+    <Card className={classes.card} variant="outlined">
+      <div className={classes.card_details}>
+        <CardMedia
+          className={classes.image}
+          image={`/api/organizacion/persona/foto/${person}`}
+        />
+      </div>
+    </Card>
   );
 };
 
@@ -463,7 +484,9 @@ export default function MainForm({
             />
           </Grid>
           <Grid item md={6} xs={12}>
-            <ProfilePicture />
+            <Grid container item justify="center">
+              {person ? <ProfilePicture person={person} /> : null}
+            </Grid>
             <br />
             <SelectField
               fullWidth
@@ -603,7 +626,7 @@ export default function MainForm({
             />
           </Grid>
           <Grid item md={6} xs={12}>
-            <ProfilePicture />
+            <UploadProfilePicture />
             <br />
             <SelectField
               blank_value={false}

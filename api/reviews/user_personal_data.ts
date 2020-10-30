@@ -3,6 +3,7 @@ import {
   DataType,
   findByTypeAndData,
 } from "../models/users/data_review.ts";
+import { dispatchHumanResourcesReviewRequested } from "../email/dispatchers.js";
 
 const REVIEW_TYPE = DataType.DATOS_PRINCIPALES;
 
@@ -32,7 +33,7 @@ export const requestReview = async (
     );
   }
 
-  //Enviar correo
+  await dispatchHumanResourcesReviewRequested(review.id);
 };
 
 export const setReview = async (

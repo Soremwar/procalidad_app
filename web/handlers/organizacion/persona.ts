@@ -20,6 +20,15 @@ import {
   STRING,
 } from "../../../lib/ajv/types.js";
 import { castStringToBoolean } from "../../../lib/utils/boolean.js";
+import {
+  findByCode as findParameter,
+} from "../../../api/models/MAESTRO/parametro.ts";
+import {
+  getFile as getTemplateFile,
+} from "../../../api/storage/template_file.ts";
+import {
+  getActiveDefinition as findParameterValue,
+} from "../../../api/models/MAESTRO/parametro_definicion.ts";
 
 const list_request = {
   $id: "list",
@@ -181,4 +190,46 @@ export const updatePerson = async (
         "No fue posible actualizar a la persona",
       );
     });
+};
+
+export const getPicture = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
+  const user = Number(params.id);
+  if (!user) {
+    throw new RequestSyntaxError();
+  }
+
+  //TODO
+  //The parameter code should be a constant
+  const picture_parameter = await findParameter("PLANTILLA_FOTO_PERFIL");
+  if (!picture_parameter) throw new NotFoundError();
+
+  const picture_parameter_value = await findParameterValue(
+    picture_parameter.pk_parametro,
+  );
+  if (!picture_parameter_value) throw new NotFoundError();
+
+  const file = await getTemplateFile(
+    picture_parameter_value.valor as number,
+    user,
+  )
+    .catch((e) => {
+      if (e.name === "NotFound") {
+        //404
+        throw new NotFoundError();
+      } else {
+        //500
+        throw new Error();
+      }
+    });
+
+  response.headers.append("Content-Type", file.type);
+  response.headers.append(
+    "Content-disposition",
+    `attachment;filename=${file.name}`,
+  );
+  response.headers.append("Content-Length", String(file.content.length));
+
+  response.body = file.content;
 };

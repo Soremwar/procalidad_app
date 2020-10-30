@@ -123,3 +123,20 @@ export const createRegistryDelayedSubAreaEmail = async (
     people_data,
   });
 };
+
+export const createHumanResourcesReviewRequestEmail = async (
+  requestant,
+  formulary,
+) => {
+  const raw_template = await Deno.readTextFile(
+    new URL("./templates/human_resources_review_request.html", import.meta.url),
+  );
+  const template = Handlebars.compile(raw_template, {
+    noEscape: true,
+  });
+
+  return template({
+    formulary,
+    requestant,
+  });
+};

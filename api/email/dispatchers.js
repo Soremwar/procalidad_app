@@ -3,6 +3,7 @@ import postgres from "../services/postgres.js";
 import {
   createAssignationRequestEmail,
   createAssignationRequestReviewEmail,
+  createHumanResourcesReviewRequestEmail,
   createRegistryDelayedSubAreaEmail,
   createRegistryDelayedUserEmail,
 } from "./templates.js";
@@ -24,6 +25,9 @@ import {
   TABLE as POSITION_ASSIGNATION_TABLE,
 } from "../models/ORGANIZACION/asignacion_cargo.ts";
 import { TABLE as WEEK_TABLE } from "../models/MAESTRO/dim_semana.ts";
+import {
+  Profiles,
+} from "../common/profiles.ts";
 
 //TODO
 //Emails should be queueable and cancellable
@@ -264,6 +268,83 @@ export const dispatchRegistryDelayedSubAreas = async () => {
       await createRegistryDelayedSubAreaEmail(
         delayed_users,
       ),
+    );
+  }
+};
+
+export const dispatchHumanResourcesReviewRequested = async (
+  review_id,
+) => {
+  const { rows: review } = await postgres.query(
+    `WITH REQUEST_USER AS (
+      SELECT
+        COALESCE(F.FK_USUARIO, EL.FK_USUARIO, EP.FK_USUARIO, P.PK_PERSONA, C.FK_USUARIO) AS FK_USUARIO,
+        CASE
+          WHEN NF.TIPO_FORMACION IS NOT NULL THEN UPPER(NF.TIPO_FORMACION::VARCHAR)
+          ELSE RC.TIPO_FORMULARIO::VARCHAR
+        END AS FORMULARIO
+      FROM USUARIOS.REVISION_CAMBIOS RC
+      LEFT JOIN USUARIOS.FORMACION F
+        ON RC.FK_DATOS = F.PK_FORMACION
+        AND RC.TIPO_FORMULARIO = 'FORMACION'
+      LEFT JOIN USUARIOS.NIVEL_FORMACION NF
+        ON F.FK_NIVEL_FORMACION = NF.PK_NIVEL
+      LEFT JOIN USUARIOS.EXPERIENCIA_LABORAL EL
+        ON RC.FK_DATOS = EL.PK_EXPERIENCIA
+        AND RC.TIPO_FORMULARIO = 'EXPERIENCIA_LABORAL'
+      LEFT JOIN USUARIOS.EXPERIENCIA_PROYECTO EP 
+        ON RC.FK_DATOS = EP.PK_EXPERIENCIA
+        AND RC.TIPO_FORMULARIO = 'EXPERIENCIA_PROYECTO'
+      LEFT JOIN ORGANIZACION.PERSONA P
+        ON RC.FK_DATOS = P.PK_PERSONA
+        AND RC.TIPO_FORMULARIO IN ('DATOS_RESIDENCIA', 'DATOS_IDENTIFICACION', 'DATOS_PRINCIPALES', 'DATOS_SOPORTES')
+      LEFT JOIN USUARIOS.CERTIFICACION C 
+        ON RC.FK_DATOS = C.PK_CERTIFICACION
+        AND RC.TIPO_FORMULARIO = 'CERTIFICACION'
+      WHERE RC.PK_REVISION = $1
+    )
+    SELECT
+      P.NOMBRE AS REQUESTANT_NAME,
+      CASE
+        WHEN RU.FORMULARIO = 'ACADEMICA' THEN 'Formación academica'
+        WHEN RU.FORMULARIO = 'CONTINUADA' THEN 'Formación continuada'
+        WHEN RU.FORMULARIO = 'CAPACITACIONES' THEN 'Capacitaciones internas'
+        WHEN RU.FORMULARIO = 'EXPERIENCIA_LABORAL' THEN 'Experiencia laboral'
+        WHEN RU.FORMULARIO = 'EXPERIENCIA_PROYECTO' THEN 'Experiencia en proyectos'
+        WHEN RU.FORMULARIO = 'CERTIFICACION' THEN 'Certificaciones'
+        ELSE 'Hoja de vida'
+      END AS FORMULARY
+    FROM REQUEST_USER RU
+    JOIN ORGANIZACION.PERSONA P
+      ON RU.FK_USUARIO = P.PK_PERSONA`,
+      review_id,
+  );
+
+  const [
+    requestant_name,
+    formulary,
+  ] = review[0];
+
+  const email_content = await createHumanResourcesReviewRequestEmail(
+    requestant_name,
+    formulary,
+  );
+
+  const { rows: reviewers } = await postgres.query(
+    `SELECT
+      P.CORREO
+    FROM MAESTRO.ACCESO A
+    JOIN ORGANIZACION.PERSONA P 
+      ON A.FK_PERSONA = P.PK_PERSONA
+    WHERE FK_PERMISO = $1`,
+    Profiles.HUMAN_RESOURCES,
+  );
+
+  for(const [email] of reviewers){
+    await sendNewEmail(
+      email,
+      "Solicitud de revisión",
+      email_content,
     );
   }
 };
