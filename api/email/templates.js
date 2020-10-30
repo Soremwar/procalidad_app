@@ -126,7 +126,7 @@ export const createRegistryDelayedSubAreaEmail = async (
 
 export const createHumanResourcesReviewRequestEmail = async (
   requestant,
-  email,
+  formulary,
 ) => {
   const raw_template = await Deno.readTextFile(
     new URL("./templates/human_resources_review_request.html", import.meta.url),
@@ -136,7 +136,7 @@ export const createHumanResourcesReviewRequestEmail = async (
   });
 
   return template({
-    email,
+    formulary,
     requestant,
   });
 };
