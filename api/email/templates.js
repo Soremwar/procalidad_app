@@ -126,7 +126,7 @@ export const createRegistryDelayedSubAreaEmail = async (
 
 export const createHumanResourcesReviewRequestEmail = async (
   requestant,
-  formulary,
+  email,
 ) => {
   const raw_template = await Deno.readTextFile(
     new URL("./templates/human_resources_review_request.html", import.meta.url),
@@ -136,7 +136,28 @@ export const createHumanResourcesReviewRequestEmail = async (
   });
 
   return template({
-    formulary,
+    email,
     requestant,
+  });
+};
+
+export const createHumanResourcesReviewEmail = async (
+  reviewer,
+  approved,
+  comments,
+  formulary,
+) => {
+  const raw_template = await Deno.readTextFile(
+    new URL("./templates/human_resources_review.html", import.meta.url),
+  );
+  const template = Handlebars.compile(raw_template, {
+    noEscape: true,
+  });
+
+  return template({
+    approved,
+    comments,
+    formulary,
+    reviewer,
   });
 };

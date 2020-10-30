@@ -474,7 +474,7 @@ const Layout = (props) => {
                 Profiles.HUMAN_RESOURCES,
               ]}
               component={() => <Perfil review_mode={true} />}
-              path="/recursos_humanos/perfil"
+              path="/humanos/perfil"
             />
             <ProfiledRoute
               allowed_profiles={[
@@ -483,7 +483,7 @@ const Layout = (props) => {
                 Profiles.HUMAN_RESOURCES,
               ]}
               component={() => <FormacionAcademica review_mode={true} />}
-              path="/recursos_humanos/formacion/academica"
+              path="/humanos/formacion/academica"
             />
             <ProfiledRoute
               allowed_profiles={[
@@ -492,7 +492,7 @@ const Layout = (props) => {
                 Profiles.HUMAN_RESOURCES,
               ]}
               component={() => <FormacionContinuada review_mode={true} />}
-              path="/recursos_humanos/formacion/continuada"
+              path="/humanos/formacion/continuada"
             />
             <ProfiledRoute
               allowed_profiles={[
@@ -501,7 +501,7 @@ const Layout = (props) => {
                 Profiles.HUMAN_RESOURCES,
               ]}
               component={() => <FormacionCapacitacion review_mode={true} />}
-              path="/recursos_humanos/formacion/capacitacion"
+              path="/humanos/formacion/capacitacion"
             />
             <ProfiledRoute
               allowed_profiles={[
@@ -510,7 +510,7 @@ const Layout = (props) => {
                 Profiles.HUMAN_RESOURCES,
               ]}
               component={() => <ExperienciaLaboral review_mode={true} />}
-              path="/recursos_humanos/experiencia/laboral"
+              path="/humanos/experiencia/laboral"
             />
             <ProfiledRoute
               allowed_profiles={[
@@ -519,7 +519,7 @@ const Layout = (props) => {
                 Profiles.HUMAN_RESOURCES,
               ]}
               component={() => <ExperienciaProyecto review_mode={true} />}
-              path="/recursos_humanos/experiencia/proyecto"
+              path="/humanos/experiencia/proyecto"
             />
             <Route exact={true} path="/" />
             <Redirect from="*" to="/404" />

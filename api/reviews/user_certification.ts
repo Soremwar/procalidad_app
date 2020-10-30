@@ -3,7 +3,10 @@ import {
   DataType,
   findByTypeAndData,
 } from "../models/users/data_review.ts";
-import { dispatchHumanResourcesReviewRequested } from "../email/dispatchers.js";
+import {
+  dispatchHumanResourcesReview,
+  dispatchHumanResourcesReviewRequested,
+} from "../email/dispatchers.js";
 
 const REVIEW_TYPE = DataType.CERTIFICACION;
 

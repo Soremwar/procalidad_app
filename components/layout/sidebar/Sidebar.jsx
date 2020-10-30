@@ -463,7 +463,7 @@ const structure = [
           Profiles.HUMAN_RESOURCES,
         ],
         label: "Datos personales",
-        link: "/recursos_humanos/perfil",
+        link: "/humanos/perfil",
       },
       {
         allowed_profiles: [
@@ -472,7 +472,7 @@ const structure = [
           Profiles.HUMAN_RESOURCES,
         ],
         label: "Formación académica",
-        link: "/recursos_humanos/formacion/academica",
+        link: "/humanos/formacion/academica",
       },
       {
         allowed_profiles: [
@@ -481,7 +481,7 @@ const structure = [
           Profiles.HUMAN_RESOURCES,
         ],
         label: "Formación continuada",
-        link: "/recursos_humanos/formacion/continuada",
+        link: "/humanos/formacion/continuada",
       },
       {
         allowed_profiles: [
@@ -490,7 +490,7 @@ const structure = [
           Profiles.HUMAN_RESOURCES,
         ],
         label: "Capacitaciones internas",
-        link: "/recursos_humanos/formacion/capacitacion",
+        link: "/humanos/formacion/capacitacion",
       },
       {
         allowed_profiles: [
@@ -499,7 +499,7 @@ const structure = [
           Profiles.HUMAN_RESOURCES,
         ],
         label: "Experiencia laboral",
-        link: "/recursos_humanos/experiencia/laboral",
+        link: "/humanos/experiencia/laboral",
       },
       {
         allowed_profiles: [
@@ -508,7 +508,7 @@ const structure = [
           Profiles.HUMAN_RESOURCES,
         ],
         label: "Experiencia en proyecto",
-        link: "/recursos_humanos/experiencia/proyecto",
+        link: "/humanos/experiencia/proyecto",
       },
       {
         allowed_profiles: [
@@ -517,7 +517,7 @@ const structure = [
           Profiles.HUMAN_RESOURCES,
         ],
         label: "Certificaciones",
-        link: "/recursos_humanos/certificacion",
+        link: "/humanos/certificacion",
       },
     ],
   },
