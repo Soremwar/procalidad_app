@@ -92,6 +92,8 @@ const getTableData = async (
 
 const defaultCellDisplay = (value) => value;
 
+// TODO
+// The table should receive a parameter with the possible actions to execute and buttons available
 export default function AsyncTable({
   columns,
   onAddClick,

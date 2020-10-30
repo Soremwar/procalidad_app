@@ -143,14 +143,16 @@ export default function CitySelector({
   };
 
   useEffect(() => {
-    if (city?.value) {
-      setValue(
-        String(city.value),
-        String(state.value),
-        String(country.value),
-      );
-    } else {
-      setValue("", "", "");
+    if (typeof setValue === "function") {
+      if (city?.value) {
+        setValue(
+          String(city.value),
+          String(state.value),
+          String(country.value),
+        );
+      } else {
+        setValue("", "", "");
+      }
     }
   }, [city]);
 

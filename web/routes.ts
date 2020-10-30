@@ -1158,6 +1158,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONSULTANT,
       Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
     ]),
     formation_level.getFormationLevels,
   )
@@ -1175,6 +1176,7 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONSULTANT,
       Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
     ]),
     formation_level.getFormationLevel,
   )

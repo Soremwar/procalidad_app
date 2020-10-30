@@ -911,10 +911,11 @@ export default function Continuada({
       />
       <AsyncTable
         columns={review_mode ? review_headers : person_headers}
-        onAddClick={() => setAddModalOpen(true)}
+        onAddClick={!review_mode && (() => setAddModalOpen(true))}
         onEditClick={(id) =>
           review_mode ? handleReviewModalOpen(id) : handleEditModalOpen(id)}
-        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onDeleteClick={!review_mode &&
+          ((selected) => handleDeleteModalOpen(selected))}
         onTableUpdate={() => setTableShouldUpdate(false)}
         search={review_mode
           ? {

@@ -1054,15 +1054,11 @@ export default function Academica({
       />
       <AsyncTable
         columns={review_mode ? review_headers : person_headers}
-        onAddClick={() => setAddModalOpen(true)}
-        onEditClick={(id) => {
-          if (review_mode) {
-            handleReviewModal(id);
-          } else {
-            handleEditModalOpen(id);
-          }
-        }}
-        onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
+        onAddClick={!review_mode && (() => setAddModalOpen(true))}
+        onEditClick={(id) =>
+          review_mode ? handleReviewModal(id) : handleEditModalOpen(id)}
+        onDeleteClick={!review_mode &&
+          ((selected) => handleDeleteModalOpen(selected))}
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
         search={review_mode

@@ -55,33 +55,30 @@ export default function Menu({
           )}
         </Grid>
         <Grid container item xs={6} justify="flex-end">
-          <Tooltip title="Agregar">
-            <IconButton aria-label="add" onClick={onAddClick}>
-              <AddIcon />
-            </IconButton>
-          </Tooltip>
-          {numSelected == 1 &&
-            (
-              <Tooltip title="Editar">
-                <IconButton
-                  aria-label="edit"
-                  onClick={() => onEditClick(Array.from(selected)[0])}
-                >
-                  <EditICon />
-                </IconButton>
-              </Tooltip>
-            )}
-          {numSelected > 0 &&
-            (
-              <Tooltip title="Eliminar">
-                <IconButton
-                  aria-label="delete"
-                  onClick={() => onDeleteClick(Array.from(selected))}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Tooltip>
-            )}
+          {onAddClick &&
+            <Tooltip title="Agregar">
+              <IconButton aria-label="add" onClick={onAddClick}>
+                <AddIcon />
+              </IconButton>
+            </Tooltip>}
+          {numSelected == 1 && onEditClick &&
+            <Tooltip title="Editar">
+              <IconButton
+                aria-label="edit"
+                onClick={() => onEditClick(Array.from(selected)[0])}
+              >
+                <EditICon />
+              </IconButton>
+            </Tooltip>}
+          {numSelected > 0 && onDeleteClick &&
+            <Tooltip title="Eliminar">
+              <IconButton
+                aria-label="delete"
+                onClick={() => onDeleteClick(Array.from(selected))}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>}
         </Grid>
       </Grid>
     </Toolbar>
