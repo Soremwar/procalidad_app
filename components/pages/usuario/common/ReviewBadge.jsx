@@ -32,7 +32,7 @@ const Messages = new Map(Object.entries({
   0: "Rechazado",
   1: "Aprobado",
   2: "En revisión",
-  3: "No elegible para revisión",
+  3: "Información incompleta (No elegible)",
 }));
 
 /**
