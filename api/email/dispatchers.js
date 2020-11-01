@@ -354,7 +354,7 @@ export const dispatchHumanResourcesReviewRequested = async (
   for (const [email] of reviewers) {
     await sendNewEmail(
       email,
-      "Solicitud de revisión",
+      "Revisión de hoja de vida",
       email_content,
     );
   }
@@ -444,7 +444,7 @@ export const dispatchHumanResourcesReview = async (
 
   await sendNewEmail(
     requestant_email,
-    `Solicitud de revisión ${approved ? "aprobada" : "rechazada"}`,
+    `Revisión de hoja de vida`,
     email_content,
   );
 };
