@@ -318,7 +318,11 @@ export const dispatchHumanResourcesReviewRequested = async (
         WHEN RU.FORMULARIO = 'EXPERIENCIA_LABORAL' THEN 'Experiencia laboral'
         WHEN RU.FORMULARIO = 'EXPERIENCIA_PROYECTO' THEN 'Experiencia en proyectos'
         WHEN RU.FORMULARIO = 'CERTIFICACION' THEN 'Certificaciones'
-        ELSE 'Hoja de vida'
+        WHEN RU.FORMULARIO = 'DATOS_SOPORTES' THEN 'Datos personales - Soportes'
+        WHEN RU.FORMULARIO = 'DATOS_RESIDENCIA' THEN 'Datos personales - Residencia'
+        WHEN RU.FORMULARIO = 'DATOS_IDENTIFICACION' THEN 'Datos personales - Identificación'
+        WHEN RU.FORMULARIO = 'DATOS_PRINCIPALES' THEN 'Datos personales'
+        ELSE 'Formulario no registrado'
       END AS FORMULARY
     FROM REQUEST_USER RU
     JOIN ORGANIZACION.PERSONA P
@@ -408,7 +412,11 @@ export const dispatchHumanResourcesReview = async (
         WHEN RU.FORMULARIO = 'EXPERIENCIA_LABORAL' THEN 'Experiencia laboral'
         WHEN RU.FORMULARIO = 'EXPERIENCIA_PROYECTO' THEN 'Experiencia en proyectos'
         WHEN RU.FORMULARIO = 'CERTIFICACION' THEN 'Certificaciones'
-        ELSE 'Hoja de vida'
+        WHEN RU.FORMULARIO = 'DATOS_SOPORTES' THEN 'Datos personales - Soportes'
+        WHEN RU.FORMULARIO = 'DATOS_RESIDENCIA' THEN 'Datos personales - Residencia'
+        WHEN RU.FORMULARIO = 'DATOS_IDENTIFICACION' THEN 'Datos personales - Identificación'
+        WHEN RU.FORMULARIO = 'DATOS_PRINCIPALES' THEN 'Datos personales'
+        ELSE 'Formulario no registrado'
       END AS FORMULARY
     FROM REQUEST_USER RU
     LEFT JOIN ORGANIZACION.PERSONA PU
