@@ -84,11 +84,11 @@ export default function Perfil({
           />
         </Grid>
       </Grid>
-      <br />
-      <br />
       {!review_mode
         ? (
           <Fragment>
+            <br />
+            <br />
             <ContactForm />
             <br />
             <br />
@@ -96,12 +96,18 @@ export default function Perfil({
             <br />
             <br />
             <LanguageForm />
-            <br />
-            <br />
           </Fragment>
         )
         : null}
-      <FileForm />
+      {!review_mode
+        ? <FileForm
+          person={selected_person}
+          review_mode={review_mode}
+        />
+        : selected_person && <FileForm
+          person={selected_person}
+          review_mode={review_mode}
+        />}
     </Fragment>
   );
 }

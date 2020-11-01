@@ -11,7 +11,7 @@ import {
 const REVIEW_TYPE = DataType.CERTIFICACION;
 
 export const deleteReview = async (
-  data_reference: number,
+  data_reference: string,
 ) => {
   let review = await findByTypeAndData(
     REVIEW_TYPE,
@@ -24,7 +24,7 @@ export const deleteReview = async (
 };
 
 export const requestReview = async (
-  data_reference: number,
+  data_reference: string,
 ) => {
   let review = await findByTypeAndData(
     REVIEW_TYPE,
@@ -44,7 +44,7 @@ export const requestReview = async (
 };
 
 export const setReview = async (
-  data_reference: number,
+  data_reference: string,
   reviewer: number,
   approved: boolean,
   observations: string | null,

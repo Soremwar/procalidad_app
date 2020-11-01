@@ -58,7 +58,7 @@ export const updateTitleReview = async (
   }
 
   await setReview(
-    id,
+    String(id),
     user_id,
     castStringToBoolean(value.approved),
     value.observations || "",

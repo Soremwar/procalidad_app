@@ -7,6 +7,7 @@ import {
 } from "../../api/storage/generic_file.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
 import { decodeToken } from "../../lib/jwt.ts";
+import { Profiles } from "../../api/common/profiles.ts";
 
 export const getGenericFile = async (
   { cookies, params, response }: RouterContext<{ id: string }>,
@@ -15,12 +16,24 @@ export const getGenericFile = async (
   if (!id) throw new RequestSyntaxError();
 
   const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id: user_id } = await decodeToken(session_cookie);
+  const user = await decodeToken(session_cookie);
 
-  const file = await getGenericFileContent(
-    id,
-    user_id,
-  )
+  let file_request;
+  if (
+    [Profiles.ADMINISTRATOR, Profiles.CONTROLLER, Profiles.HUMAN_RESOURCES]
+      .some((profile) => user.profiles.includes(profile))
+  ) {
+    file_request = getGenericFileContent(
+      id,
+    );
+  } else {
+    file_request = getGenericFileContent(
+      id,
+      user.id,
+    );
+  }
+
+  const file = await file_request
     .catch((e) => {
       if (e.name === "NotFound" || e instanceof NotFoundError) {
         //404
@@ -42,17 +55,27 @@ export const getGenericFile = async (
 };
 
 export const getTemplateFile = async (
-  { cookies, params, response }: RouterContext<{ id: string }>,
+  { cookies, params, response }: RouterContext<{ person: string; id: string }>,
 ) => {
+  let person: number | undefined;
+  if (params.person) {
+    person = Number(params.person);
+    if (!person) {
+      throw new RequestSyntaxError();
+    }
+  }
+
+  if (!person) {
+    const session_cookie = cookies.get("PA_AUTH") || "";
+    person = (await decodeToken(session_cookie)).id;
+  }
+
   const id = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id: user_id } = await decodeToken(session_cookie);
-
   const file = await getTemplateFileContent(
     id,
-    user_id,
+    person,
   )
     .catch((e) => {
       if (e.name === "NotFound" || e instanceof NotFoundError) {

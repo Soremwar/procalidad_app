@@ -30,7 +30,7 @@ export const deleteTitle = async (
   }
 
   try {
-    await deleteReview(formation_title.id);
+    await deleteReview(String(formation_title.id));
     const generic_file_id = formation_title.generic_file;
 
     //Formation title should be deleted first so file constraint doesn't complain

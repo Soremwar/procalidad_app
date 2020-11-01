@@ -32,6 +32,7 @@ import {
   TRUTHY_INTEGER_OR_NULL,
 } from "../../../lib/ajv/types.js";
 import { Message } from "../../http_utils.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 const children_request = {
   $id: "children",
@@ -356,21 +357,21 @@ export const updateUserInformation = async (
     value.blood_type !== undefined ||
     value.professional_card_expedition !== undefined
   ) {
-    await requestPersonalDataReview(user.pk_persona);
+    await requestPersonalDataReview(String(user.pk_persona));
   }
 
   if (
     value.document_expedition_date !== undefined ||
     value.document_expedition_city !== undefined
   ) {
-    await requestIdentificationReview(user.pk_persona);
+    await requestIdentificationReview(String(user.pk_persona));
   }
 
   if (
     value.residence_city !== undefined ||
     value.residence_address !== undefined
   ) {
-    await requestResidenceReview(user.pk_persona);
+    await requestResidenceReview(String(user.pk_persona));
   }
 
   response.body = user;
@@ -454,14 +455,17 @@ export const deleteLanguageExperience = async (
   response.body = Message.OK;
 };
 
-export const getSupportFiles = async (
-  { cookies, response }: RouterContext,
-) => {
-  const { id: user_id } = await decodeToken(cookies.get("PA_AUTH") || "");
+export const getSupportFiles = async (context: RouterContext) => {
+  const { id: user_id } = await decodeToken(
+    context.cookies.get("PA_AUTH") || "",
+  );
 
   const support_file_format = await getFileFormatCode();
 
-  response.body = await file_model.getFileHistory(support_file_format, user_id);
+  return tableRequestHandler(
+    context,
+    file_model.generateFileReviewTable(user_id, support_file_format),
+  );
 };
 
 export const getSupportFile = async (
@@ -502,8 +506,6 @@ export const loadSupportFile = async (
   if (!template_id) throw new RequestSyntaxError();
   const { id: user_id } = await decodeToken(cookies.get("PA_AUTH") || "");
 
-  const support_file_format = await getFileFormatCode();
-
   const form = await request.body({ type: "form-data" }).value.read({
     maxSize: 10000000,
   });
@@ -523,12 +525,16 @@ export const loadSupportFile = async (
   //VALIDATE EXTENSION
   //VALIDATE SIZE
 
-  response.body = await writeTemplateFile(
+  const file = await writeTemplateFile(
     template_id,
     user_id,
     content,
     originalName,
   );
+
+  await requestDocumentsReview(`${user_id}_${template_id}`);
+
+  response.body = file;
 };
 
 export const getPicture = async (

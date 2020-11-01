@@ -4,10 +4,13 @@ import { RequestSyntaxError } from "../../exceptions.ts";
 import { setReview as setIdentificationReview } from "../../../api/reviews/user_identification.ts";
 import { setReview as setPersonalDataReview } from "../../../api/reviews/user_personal_data.ts";
 import { setReview as setResidenceReview } from "../../../api/reviews/user_residence.ts";
+import { setReview as setSupportFileReview } from "../../../api/reviews/user_documents.ts";
+import { getPersonFileReviewTable } from "../../../api/models/files/template_file.ts";
 import { castStringToBoolean } from "../../../lib/utils/boolean.js";
 import { BOOLEAN, STRING_OR_NULL } from "../../../lib/ajv/types.js";
 import { decodeToken } from "../../../lib/jwt.ts";
 import { Message } from "../../http_utils.ts";
+import { tableRequestHandler } from "../../../api/common/table.ts";
 
 enum PersonDataType {
   documentos = "documentos",
@@ -31,6 +34,10 @@ const request_validator = new Ajv({
     review_request,
   ],
 });
+
+export const getSupportFiles = async (
+  context: RouterContext<{ id: string }>,
+) => tableRequestHandler(context, getPersonFileReviewTable);
 
 export const updatePersonReview = async (
   { cookies, params, request, response }: RouterContext<
@@ -70,7 +77,28 @@ export const updatePersonReview = async (
   }
 
   await setReview(
-    id,
+    String(id),
+    user_id,
+    castStringToBoolean(value.approved),
+    value.observations || "",
+  );
+
+  response.body = Message.OK;
+};
+
+export const updateSupportFileReview = async (
+  { cookies, params, request, response }: RouterContext<{ code: string }>,
+) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: user_id } = await decodeToken(session_cookie);
+
+  const value = await request.body({ type: "json" }).value;
+  if (!request_validator.validate("review", value)) {
+    throw new RequestSyntaxError();
+  }
+
+  await setSupportFileReview(
+    params.code,
     user_id,
     castStringToBoolean(value.approved),
     value.observations || "",

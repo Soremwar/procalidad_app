@@ -72,10 +72,12 @@ class PersonalInformation extends People {
 
   async refreshReviewStatus() {
     const identification_review = await getIdentificationReview(
-      this.pk_persona,
+      String(this.pk_persona),
     );
-    const personal_data_review = await getPersonalDataReview(this.pk_persona);
-    const residence_review = await getResidenceReview(this.pk_persona);
+    const personal_data_review = await getPersonalDataReview(
+      String(this.pk_persona),
+    );
+    const residence_review = await getResidenceReview(String(this.pk_persona));
 
     this.identificacion_aprobada = !!identification_review?.approved;
     this.identificacion_observaciones = identification_review?.comments || null;

@@ -207,7 +207,7 @@ export const getAll = async (
       R.OBSERVACION
     FROM ${TABLE} E
     LEFT JOIN ${REVIEW_TABLE} AS R
-      ON E.PK_EXPERIENCIA = R.FK_DATOS
+      ON E.PK_EXPERIENCIA::VARCHAR = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_PROYECTO}'
     ${user ? `WHERE E.FK_USUARIO = ${user}` : ""}`,
   );
@@ -257,7 +257,7 @@ export const findById = async (
       R.OBSERVACION
     FROM ${TABLE} E
     LEFT JOIN ${REVIEW_TABLE} AS R
-      ON E.PK_EXPERIENCIA = R.FK_DATOS
+      ON E.PK_EXPERIENCIA::VARCHAR = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_PROYECTO}'
     WHERE E.PK_EXPERIENCIA = $1`,
     id,
@@ -311,7 +311,7 @@ export const findByIdAndUser = async (
       R.OBSERVACION
     FROM ${TABLE} E
     LEFT JOIN ${REVIEW_TABLE} AS R
-      ON E.PK_EXPERIENCIA = R.FK_DATOS
+      ON E.PK_EXPERIENCIA::VARCHAR = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_PROYECTO}'
     WHERE E.PK_EXPERIENCIA = $1
     AND E.FK_USUARIO = $2`,
@@ -379,7 +379,7 @@ export const generateTableData = (
         END AS REVIEW_STATUS
       FROM ${TABLE} E
       LEFT JOIN ${REVIEW_TABLE} AS R
-        ON E.PK_EXPERIENCIA = R.FK_DATOS
+        ON E.PK_EXPERIENCIA::VARCHAR = R.FK_DATOS
         AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_LABORAL}'
       ${user_id ? `WHERE E.FK_USUARIO = ${user_id}` : ""}`
     );

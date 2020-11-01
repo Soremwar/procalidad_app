@@ -93,7 +93,7 @@ export const createAcademicFormationTitle = async (
   // If the certificate has not yet been provided (formation has not finished)
   // Lock the form and request review
   if (!formation_title.end_date) {
-    await requestReview(formation_title.id);
+    await requestReview(String(formation_title.id));
   }
 
   response.body = formation_title;
@@ -172,7 +172,7 @@ export const updateAcademicFormationTitle = async (
   // If the certificate has not yet been provided (formation has not finished)
   // Lock the form and request review
   if (!formation_title.end_date) {
-    await requestReview(formation_title.id);
+    await requestReview(String(formation_title.id));
   }
 
   response.body = formation_title;
@@ -251,7 +251,7 @@ export const updateAcademicFormationTitleCertificate = async (
   }
 
   //Always lock and request review
-  await requestReview(formation_title.id);
+  await requestReview(String(formation_title.id));
 
   response.body = formation_title;
 };

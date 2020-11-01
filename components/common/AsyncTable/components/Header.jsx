@@ -9,6 +9,7 @@ import {
 
 export default function Header({
   classes,
+  disable_selection,
   headers,
   numSelected,
   onSelectAllClick,
@@ -20,22 +21,22 @@ export default function Header({
     <TableHead>
       <TableRow>
         <TableCell padding="checkbox">
-          <Checkbox
+          {!disable_selection && <Checkbox
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
             inputProps={{ "aria-label": "Seleccionar Todo" }}
-          />
+          />}
         </TableCell>
-        {headers.map((headCell) => (
+        {headers.map((headCell, id) => (
           <TableCell
-            key={headCell.id}
-            align={headCell.numeric ? "right" : "left"}
+            key={`${headCell.id}_${id}`}
+            align={headCell.align || "left"}
             padding={headCell.disablePadding ? "none" : "default"}
             sortDirection={orderBy?.[headCell.id] || false}
           >
             <TableSortLabel
-              active={orderBy?.[headCell.id]}
+              active={!!orderBy?.[headCell.id]}
               direction={orderBy?.[headCell.id] || "asc"}
               disabled={headCell.orderable === false}
               onClick={(_) => updateSortingDirection(headCell.id)}

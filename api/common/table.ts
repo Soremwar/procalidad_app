@@ -27,7 +27,7 @@ export const parseOrderFromObject = (object: { [key: string]: string }) => {
 };
 
 export const tableRequestHandler = async (
-  { request, response }: RouterContext,
+  { request, response }: RouterContext<any>,
   fetchDataSource: (
     order: TableOrder,
     page: number,

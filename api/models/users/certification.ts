@@ -169,7 +169,7 @@ export const getAll = async (
       C.FK_ARCHIVO_GENERICO
     FROM ${TABLE} C
     LEFT JOIN ${REVIEW_TABLE} R
-      ON C.PK_CERTIFICACION = R.FK_DATOS
+      ON C.PK_CERTIFICACION::VARCHAR = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.CERTIFICACION}'
     ${user ? `WHERE C.FK_USUARIO = ${user}` : ""}`,
   );
@@ -205,7 +205,7 @@ export const findById = async (
       C.FK_ARCHIVO_GENERICO
     FROM ${TABLE} C
     LEFT JOIN ${REVIEW_TABLE} R
-      ON C.PK_CERTIFICACION = R.FK_DATOS
+      ON C.PK_CERTIFICACION::VARCHAR = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.CERTIFICACION}'
     WHERE C.PK_CERTIFICACION = $1`,
     id,
@@ -247,7 +247,7 @@ export const findByIdAndUser = async (
       C.FK_ARCHIVO_GENERICO
     FROM ${TABLE} C
     LEFT JOIN ${REVIEW_TABLE} R
-      ON C.PK_CERTIFICACION = R.FK_DATOS
+      ON C.PK_CERTIFICACION::VARCHAR = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.CERTIFICACION}'
     WHERE C.PK_CERTIFICACION = $1
     AND C.FK_USUARIO = $2`,
@@ -322,7 +322,7 @@ export const generateTableData = (
       LEFT JOIN ${GENERIC_FILE_TABLE} AS F
         ON F.PK_ARCHIVO = C.FK_ARCHIVO_GENERICO
       LEFT JOIN ${REVIEW_TABLE} R
-        ON C.PK_CERTIFICACION = R.FK_DATOS
+        ON C.PK_CERTIFICACION::VARCHAR = R.FK_DATOS
         AND R.TIPO_FORMULARIO = '${DataType.CERTIFICACION}'
       ${user_id ? `WHERE C.FK_USUARIO = ${user_id}` : ""}`
     );

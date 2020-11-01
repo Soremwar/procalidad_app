@@ -115,7 +115,7 @@ export const createProjectExperience = async (
       throw new Error("No fue posible crear la experiencia de proyecto");
     });
 
-  await requestReview(project_experience.id);
+  await requestReview(String(project_experience.id));
 
   response.body = project_experience;
 };
@@ -139,7 +139,7 @@ export const deleteProjectExperience = async (
   }
 
   try {
-    await deleteReview(project_experience.id);
+    await deleteReview(String(project_experience.id));
     await project_experience.delete();
   } catch (_e) {
     throw new Error("No fue posible eliminar la experiencia de proyecto");
@@ -235,7 +235,7 @@ export const updateProjectExperience = async (
       throw new Error("No fue posible actualizar la experiencia de proyecto");
     });
 
-  await requestReview(project_experience.id);
+  await requestReview(String(project_experience.id));
 
   response.body = project_experience;
 };

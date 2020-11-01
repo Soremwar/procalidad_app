@@ -121,7 +121,7 @@ export const deleteLaboralExperience = async (
   }
 
   try {
-    deleteReview(laboral_experience.id);
+    deleteReview(String(laboral_experience.id));
 
     const generic_file_id = laboral_experience.generic_file;
 
@@ -224,7 +224,7 @@ export const updateLaboralExperience = async (
     });
 
   if (laboral_experience.generic_file) {
-    requestReview(laboral_experience.id);
+    requestReview(String(laboral_experience.id));
   }
 
   response.body = await laboral_experience;
@@ -302,7 +302,7 @@ export const updateLaboralExperienceCertificate = async (
     laboral_experience = await laboral_experience.update();
   }
 
-  requestReview(laboral_experience.id);
+  requestReview(String(laboral_experience.id));
 
   response.body = laboral_experience;
 };

@@ -117,7 +117,7 @@ export const deleteCertification = async (
   }
 
   try {
-    await deleteReview(certification.id);
+    await deleteReview(String(certification.id));
     const generic_file_id = certification.generic_file;
 
     //Parent should be deleted first so file constraint doesn't complain
@@ -226,7 +226,7 @@ export const updateCertification = async (
     });
 
   if (certification.generic_file) {
-    await requestReview(certification.id);
+    await requestReview(String(certification.id));
   }
 
   response.body = certification;
@@ -319,7 +319,7 @@ export const updateCertificationFile = async (
     certification = await certification.update();
   }
 
-  await requestReview(certification.id);
+  await requestReview(String(certification.id));
 
   response.body = certification;
 };

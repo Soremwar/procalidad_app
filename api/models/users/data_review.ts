@@ -17,7 +17,7 @@ class DataReview {
   constructor(
     public readonly id: number,
     public readonly type: DataType,
-    public readonly data_reference: number,
+    public readonly data_reference: string,
     public reviewer: number | null,
     public comments: string | null,
     public approved: boolean,
@@ -110,7 +110,7 @@ class DataReview {
 
 export const create = async (
   type: DataType,
-  data_reference: number,
+  data_reference: string,
 ) => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
@@ -151,7 +151,7 @@ export const create = async (
 
 export const findByTypeAndData = async (
   type: DataType,
-  data_reference: number,
+  data_reference: string,
 ) => {
   const { rows } = await postgres.query(
     `SELECT
@@ -176,7 +176,7 @@ export const findByTypeAndData = async (
     ...rows[0] as [
       number,
       DataType,
-      number,
+      string,
       number,
       string,
       boolean,

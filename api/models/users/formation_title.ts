@@ -176,7 +176,7 @@ export const getAll = async (
     JOIN ${FORMATION_LEVEL_TABLE} L
       ON T.FK_NIVEL_FORMACION = L.PK_NIVEL
     LEFT JOIN ${REVIEW_TABLE} R
-      ON T.PK_FORMACION = R.FK_DATOS
+      ON T.PK_FORMACION::VARCHAR = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
     WHERE L.TIPO_FORMACION = '${formation_type}'
     ${user ? `AND T.FK_USUARIO = ${user}` : ""}`,
@@ -219,7 +219,7 @@ export const findById = async (
       R.OBSERVACION
     FROM ${TABLE} T
     LEFT JOIN ${REVIEW_TABLE} R
-      ON T.PK_FORMACION = R.FK_DATOS
+      ON T.PK_FORMACION::VARCHAR = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
     WHERE T.PK_FORMACION = $1`,
     id,
@@ -267,7 +267,7 @@ export const findByIdAndUser = async (
       R.OBSERVACION
     FROM ${TABLE} T
     LEFT JOIN ${REVIEW_TABLE} R
-      ON T.PK_FORMACION = R.FK_DATOS
+      ON T.PK_FORMACION::VARCHAR = R.FK_DATOS
       AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
     WHERE T.PK_FORMACION = $1
     AND T.FK_USUARIO = $2`,
@@ -349,7 +349,7 @@ export const generateTableData = (
       LEFT JOIN ${GENERIC_FILE_TABLE} AS F
         ON F.PK_ARCHIVO = T.FK_ARCHIVO_GENERICO
       LEFT JOIN ${REVIEW_TABLE} AS R
-        ON T.PK_FORMACION = R.FK_DATOS
+        ON T.PK_FORMACION::VARCHAR = R.FK_DATOS
         AND R.TIPO_FORMULARIO = '${DataType.FORMACION}'
       WHERE L.TIPO_FORMACION = '${formation_type}'
       ${user_id ? `AND T.FK_USUARIO = ${user_id}` : ""}`

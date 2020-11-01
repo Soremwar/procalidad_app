@@ -1,24 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   Button,
-  Card,
-  CardContent,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  CircularProgress,
+  Grid,
+  IconButton,
+  Tooltip,
   Typography,
 } from "@material-ui/core";
-import { makeStyles } from "@material-ui/styles";
 import {
-  CloudUpload as UploadIcon,
+  Cancel as RejectIcon,
+  CheckCircle as ApproveIcon,
   GetApp as DownloadIcon,
 } from "@material-ui/icons";
-import { fetchUserApi } from "../../../../lib/api/generator.js";
+import {
+  fetchHRSupportFiles,
+  fetchUserApi,
+} from "../../../../lib/api/generator.js";
 import { formatDateToStringDatetime } from "../../../../lib/date/mod.js";
+import AsyncTable from "../../../common/AsyncTable/Table.jsx";
+import InputField from "../../../common/FileField.jsx";
+import ObservationsDialog from "../common/ObservationsDialog.jsx";
+import ReviewBadge from "../common/ReviewBadge.jsx";
 
 const uploadUserFile = async (
   template,
@@ -34,39 +36,40 @@ const uploadUserFile = async (
 };
 
 const getUserFiles = () => fetchUserApi("soportes");
+const getPersonFiles = (person) => fetchHRSupportFiles(`/table/${person}`);
 
-const useStyles = makeStyles(() => ({
-  file_input: {
-    display: "none",
-  },
-}));
+const reviewSupportFile = async (
+  code,
+  approved,
+  observations,
+) =>
+  fetchHRSupportFiles(code, {
+    body: JSON.stringify({
+      approved,
+      observations,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
 
-export default function FileForm() {
-  const classes = useStyles();
+export default function FileForm({
+  person,
+  review_mode,
+}) {
+  const [loading, setLoading] = useState(false);
+  const [observations_modal_open, setObservationsModalOpen] = useState(false);
+  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
+  const [code, setCode] = useState();
 
-  const [table_data, setTableData] = useState([]);
-
-  const updateFileTable = () => {
-    getUserFiles()
-      .then(async (response) => {
-        if (response.ok) {
-          setTableData(await response.json());
-        } else {
-          throw new Error();
-        }
-      })
-      .catch(() => {
-        console.error("couldnt load table");
-      });
-  };
-
-  const uploadFile = (template, event) => {
-    const file = event.target.files[0];
+  const uploadFile = (template, files, onUpload) => {
+    const file = files[0];
 
     uploadUserFile(template, file.name, file)
       .then((response) => {
         if (response.ok) {
-          updateFileTable();
+          onUpload();
         } else {
           throw new Error();
         }
@@ -76,81 +79,187 @@ export default function FileForm() {
       });
   };
 
+  const handleReview = (code, approved, observations) => {
+    setLoading(true);
+
+    reviewSupportFile(code, approved, observations)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("couldnt submit review"))
+      .finally(() => {
+        setTableShouldUpdate(true);
+        setLoading(false);
+      });
+  };
+
+  const review_headers = [
+    {
+      id: "template",
+      label: "Soporte",
+      searchable: false,
+      orderable: true,
+    },
+    {
+      displayAs: (id, value) => (
+        <Button
+          color="primary"
+          component="a"
+          endIcon={<DownloadIcon />}
+          href={`/api/archivos/plantilla/${value.split("_").join("/")}`}
+          target="_blank"
+          variant="contained"
+        >
+          Descargar
+        </Button>
+      ),
+      id: "id",
+      align: "center",
+      label: "Descargar",
+      searchable: false,
+      orderable: false,
+    },
+    {
+      displayAs: (id, value) => (
+        <Grid container spacing={3} justify="center">
+          {loading ? <CircularProgress /> : (
+            <Fragment>
+              <Grid container item md={6} justify="flex-end">
+                <Tooltip title="Rechazar">
+                  <IconButton
+                    color="primary"
+                    onClick={() => {
+                      setCode(value);
+                      setObservationsModalOpen(true);
+                    }}
+                  >
+                    <RejectIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
+              <Grid container item md={6} justify="flex-start">
+                <Tooltip title="Aprobar">
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleReview(value, true)}
+                  >
+                    <ApproveIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
+            </Fragment>
+          )}
+        </Grid>
+      ),
+      id: "id",
+      align: "center",
+      label: "Acciones",
+      searchable: false,
+      orderable: false,
+    },
+  ];
+
+  const person_headers = [
+    {
+      id: "template",
+      label: "Soporte",
+      searchable: false,
+      orderable: true,
+    },
+    {
+      displayAs: (id, _v, updateTable) => (
+        <InputField
+          label="Cargar archivo"
+          loading={loading}
+          onChange={(event) => uploadFile(id, event, updateTable)}
+        />
+      ),
+      id: "id",
+      align: "center",
+      searchable: false,
+      orderable: false,
+    },
+    {
+      displayAs: (id) => (
+        <Button
+          color="primary"
+          component="a"
+          endIcon={<DownloadIcon />}
+          href={`/api/archivos/plantilla/${id}`}
+          target="_blank"
+          variant="contained"
+        >
+          Descargar
+        </Button>
+      ),
+      id: "id",
+      align: "center",
+      searchable: false,
+      orderable: false,
+    },
+    {
+      id: "upload_date",
+      label: "Última carga",
+      searchable: false,
+      orderable: false,
+    },
+    {
+      displayAs: (_id, value) => (
+        <Typography color="primary" variant="h6">{value}</Typography>
+      ),
+      id: "observations",
+      label: "Comentarios",
+      searchable: false,
+      orderable: false,
+    },
+    {
+      displayAs: (_id, value) => (
+        <ReviewBadge status={value} />
+      ),
+      align: "center",
+      id: "review_status",
+      searchable: false,
+      orderable: false,
+    },
+  ];
+
   useEffect(() => {
-    updateFileTable();
+    if (!review_mode) {
+      setTableShouldUpdate(true);
+    }
   }, []);
 
+  useEffect(() => {
+    if (review_mode && person) {
+      setTableShouldUpdate(true);
+    }
+  }, [person]);
+
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <TableContainer component={Paper}>
-          <Typography
-            component="h2"
-            variant="h5"
-          >
-            Soportes
-          </Typography>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell align="center">Soporte</TableCell>
-                <TableCell align="center"></TableCell>
-                <TableCell align="center"></TableCell>
-                <TableCell align="center">Última Carga</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {table_data.map(({
-                template,
-                template_id,
-                upload_date,
-              }) => (
-                <TableRow key={template_id}>
-                  <TableCell component="th" scope="row">
-                    {template}
-                  </TableCell>
-                  <TableCell align="center">
-                    <label>
-                      <input
-                        //accept="image/*"
-                        className={classes.file_input}
-                        onChange={(event) => uploadFile(template_id, event)}
-                        type="file"
-                      />
-                      <Button
-                        color="primary"
-                        component="span"
-                        endIcon={<UploadIcon />}
-                        variant="contained"
-                      >
-                        Cargar Archivo
-                      </Button>
-                    </label>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Button
-                      color="primary"
-                      component={"a"}
-                      disabled={!upload_date}
-                      endIcon={<DownloadIcon />}
-                      href={`/api/usuario/soportes/${template_id}`}
-                      target={"_blank"}
-                      variant="contained"
-                    >
-                      Descargar
-                    </Button>
-                  </TableCell>
-                  <TableCell align="center">
-                    {upload_date
-                      ? formatDateToStringDatetime(upload_date)
-                      : "El archivo no ha sido cargado"}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </CardContent>
-    </Card>
+    <Fragment>
+      <AsyncTable
+        columns={review_mode ? review_headers : person_headers}
+        disable_selection={true}
+        onTableUpdate={() => setTableShouldUpdate(false)}
+        search={review_mode
+          ? {
+            person,
+            review_status: 2,
+          }
+          : {}}
+        update_table={tableShouldUpdate}
+        url={review_mode ? "humanos/persona/soporte/table" : "usuario/soportes"}
+      />
+      <ObservationsDialog
+        onClose={() => setObservationsModalOpen(false)}
+        onConfirm={(observations) => {
+          handleReview(code, false, observations);
+          setObservationsModalOpen(false);
+        }}
+        open={observations_modal_open}
+      />
+    </Fragment>
   );
 }

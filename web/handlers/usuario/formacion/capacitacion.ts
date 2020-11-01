@@ -76,7 +76,7 @@ export const createTrainingTitle = async (
     null,
   );
 
-  await requestReview(formation_title.id);
+  await requestReview(String(formation_title.id));
 
   response.body = formation_title;
 };
@@ -144,7 +144,7 @@ export const updateTrainingTitle = async (
       throw new Error("No fue posible actualizar el título de formación");
     });
 
-  await requestReview(training_title.id);
+  await requestReview(String(training_title.id));
 
   response.body = training_title;
 };

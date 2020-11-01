@@ -10,8 +10,17 @@ import {
 
 const REVIEW_TYPE = DataType.DATOS_SOPORTES;
 
+export const getReview = (
+  data_reference: string,
+) => {
+  return findByTypeAndData(
+    REVIEW_TYPE,
+    data_reference,
+  );
+};
+
 export const requestReview = async (
-  data_reference: number,
+  data_reference: string,
 ) => {
   let review = await findByTypeAndData(
     REVIEW_TYPE,
@@ -31,7 +40,7 @@ export const requestReview = async (
 };
 
 export const setReview = async (
-  data_reference: number,
+  data_reference: string,
   reviewer: number,
   approved: boolean,
   observations: string | null,

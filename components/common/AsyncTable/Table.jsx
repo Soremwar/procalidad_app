@@ -96,12 +96,13 @@ const defaultCellDisplay = (value) => value;
 // The table should receive a parameter with the possible actions to execute and buttons available
 export default function AsyncTable({
   columns,
+  disable_selection = false,
   onAddClick,
   onEditClick,
   onDeleteClick,
   onTableUpdate,
-  search: custom_search = {},
   request_parameters = {},
+  search: custom_search = {},
   update_table,
   url: data_source,
 }) {
@@ -297,6 +298,7 @@ export default function AsyncTable({
           >
             <TableHeaders
               classes={classes}
+              disable_selection={disable_selection}
               headers={columns}
               numSelected={selected.size}
               onSelectAllClick={selectAllItems}
@@ -322,25 +324,30 @@ export default function AsyncTable({
                       selected={is_item_selected}
                     >
                       <TableCell padding="checkbox">
-                        <Checkbox
+                        {!disable_selection && <Checkbox
                           checked={is_item_selected}
                           inputProps={{ "aria-labelledby": labelId }}
-                        />
+                        />}
                       </TableCell>
-                      {Object.entries(columns).map(([_, column]) => {
+                      {Object.entries(columns).map(([_, column], id) => {
                         //TODO
                         //Document cell value handler
 
-                        return (<TableCell key={column.id}>
-                          {column.displayAs &&
-                              typeof column.displayAs === "function"
-                            ? column.displayAs(
-                              row.id,
-                              row[column.id],
-                              () => setShouldFetchData(true),
-                            )
-                            : defaultCellDisplay(row[column.id])}
-                        </TableCell>);
+                        return (
+                          <TableCell
+                            align={column.align || "left"}
+                            key={`${column.id}_${id}`}
+                          >
+                            {column.displayAs &&
+                                typeof column.displayAs === "function"
+                              ? column.displayAs(
+                                row.id,
+                                row[column.id],
+                                () => setShouldFetchData(true),
+                              )
+                              : defaultCellDisplay(row[column.id])}
+                          </TableCell>
+                        );
                       })}
                     </TableRow>
                   );
@@ -352,6 +359,7 @@ export default function AsyncTable({
             </TableBody>
           </Table>
           <TableFooter
+            disable_selection={disable_selection}
             length_options={[1, 5, 10, 25]}
             onChangeSelectedPage={handleChangePage}
             onChangePageLength={handleChangeRowsPerPage}

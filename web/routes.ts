@@ -275,7 +275,11 @@ main_router
     checkUserAccess(),
     user_profile.deleteChildren,
   )
-  .get("/api/usuario/soportes", checkUserAccess(), user_profile.getSupportFiles)
+  .post(
+    "/api/usuario/soportes",
+    checkUserAccess(),
+    user_profile.getSupportFiles,
+  )
   .get<{ id: string }>(
     "/api/usuario/soportes/:id",
     checkUserAccess(),
@@ -2874,22 +2878,45 @@ main_router
       Profiles.ADMINISTRATOR,
       Profiles.CONSULTANT,
       Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
     ]),
     file.getGenericFile,
   )
-  .get<{ id: string }>(
-    "/api/archivos/plantilla/:id",
+  .get<{ person: string; id: string }>(
+    "/api/archivos/plantilla/:person/:id",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
+    ]),
+    file.getTemplateFile,
+  )
+  .get<{ person: string; id: string }>(
+    "/api/archivos/plantilla/:id",
+    checkUserAccess([
+      Profiles.CONSULTANT,
     ]),
     file.getTemplateFile,
   );
 
 main_router
+  .post(
+    "/api/humanos/persona/soporte/table",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_person.getSupportFiles,
+  )
+  .put<{ code: string }>(
+    "/api/humanos/persona/soporte/:code",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_person.updateSupportFileReview,
+  )
   .put<{ tipo: string; id: string }>(
     "/api/humanos/persona/:tipo/:id",
     checkUserAccess([
