@@ -7,6 +7,7 @@ import {
 } from "../../../../lib/api/generator.js";
 import CardForm from "./components/CardForm.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
+import DateField from "../../../common/DateField.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 import ReviewDialog from "../common/ReviewDialog.jsx";
 import ReviewerCardForm from "./components/ReviewerCardForm";
@@ -194,11 +195,10 @@ export default function DocumentForm({
           setValue={() => {}}
           value={fields.city}
         />
-        <TextField
+        <DateField
           fullWidth
           label="Fecha de expedición"
           name="date"
-          type="date"
           value={fields.date}
         />
       </ReviewerCardForm>
@@ -242,12 +242,11 @@ export default function DocumentForm({
             setFields((prev_state) => ({ ...prev_state, city: value }))}
           value={fields.city}
         />
-        <TextField
+        <DateField
           fullWidth
           label="Fecha de expedición"
           name="date"
           onChange={handleChange}
-          type="date"
           value={fields.date}
         />
       </CardForm>

@@ -22,7 +22,7 @@ import {
 } from "../../../../lib/api/generator.js";
 import CardForm from "./components/CardForm.jsx";
 import CitySelector from "../../../common/CitySelector.jsx";
-import DateField from "../../../common/DateField";
+import DateField from "../../../common/DateField.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 import ReviewDialog from "../common/ReviewDialog.jsx";
 import ReviewerCardForm from "./components/ReviewerCardForm.jsx";
@@ -417,7 +417,7 @@ export default function MainForm({
       >
         <Grid container spacing={10}>
           <Grid item md={6} xs={12}>
-            <TextField
+            <DateField
               fullWidth
               label="Nombre"
               name="birth_date"
@@ -548,7 +548,7 @@ export default function MainForm({
       >
         <Grid container spacing={10}>
           <Grid item md={6} xs={12}>
-            <TextField
+            <DateField
               disabled
               fullWidth
               label="Nombre"
@@ -564,12 +564,11 @@ export default function MainForm({
                 }))}
               value={fields.birth_city}
             />
-            <TextField
+            <DateField
               fullWidth
               label="Fecha de nacimiento"
               name="birth_date"
               onChange={handleChange}
-              type="date"
               value={fields.birth_date}
             />
             <SelectField
