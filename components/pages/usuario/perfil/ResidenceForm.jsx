@@ -165,7 +165,7 @@ export default function ResidenceForm({
         disabled={!person}
         helper_text={error}
         loading={loading}
-        title="Datos personales"
+        title="Residencia"
         onReview={handleReview}
       >
         <CitySelector

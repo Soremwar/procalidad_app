@@ -168,7 +168,7 @@ export default function DocumentForm({
         disabled={!person}
         helper_text={error}
         loading={loading}
-        title="Datos personales"
+        title="Identificación"
         onReview={handleReview}
       >
         <TextField
