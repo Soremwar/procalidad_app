@@ -460,10 +460,13 @@ export const dispatchEarlyCloseRequest = async (
     `SELECT
       P1.NOMBRE,
       P2.CORREO,
+      TO_CHAR(DS.FECHA_INICIO, 'DD-MM-YYYY'),
       COALESCE(SUM(R.HORAS), 0)
     FROM ${EARLY_CLOSE_REQUEST_TABLE} SCS
     JOIN ${WEEK_CONTROL_TABLE} CS
       ON SCS.FK_CONTROL_SEMANA = CS.PK_CONTROL
+    JOIN ${WEEK_TABLE} DS
+    	ON CS.FK_SEMANA = DS.PK_SEMANA
     LEFT JOIN ${REGISTRY_TABLE} R
       ON CS.PK_CONTROL = R.FK_CONTROL_SEMANA
     JOIN ${POSITION_ASSIGNATION_TABLE} AC
@@ -477,18 +480,21 @@ export const dispatchEarlyCloseRequest = async (
     WHERE SCS.PK_SOLICITUD = $1
     GROUP BY
       P1.NOMBRE,
-      P2.CORREO`,
+      P2.CORREO,
+      DS.FECHA_INICIO`,
     request_id,
   );
 
   const [
     requestant_name,
     reviewer_email,
+    week,
     current_hours,
   ] = review[0];
 
   const email_content = await createEarlyCloseRequestEmail(
     requestant_name,
+    week,
     current_hours,
   );
 
@@ -507,10 +513,13 @@ export const dispatchEarlyCloseRequestReview = async (
   const { rows: review } = await postgres.query(
     `SELECT
       P1.CORREO,
-      P2.NOMBRE
+      P2.NOMBRE,
+      TO_CHAR(DS.FECHA_INICIO, 'DD-MM-YYYY')
     FROM ${EARLY_CLOSE_REQUEST_TABLE} SCS
     JOIN ${WEEK_CONTROL_TABLE} CS
       ON SCS.FK_CONTROL_SEMANA = CS.PK_CONTROL
+    JOIN ${WEEK_TABLE} DS
+    	ON CS.FK_SEMANA = DS.PK_SEMANA
     JOIN ${POSITION_ASSIGNATION_TABLE} AC
       ON CS.FK_PERSONA = AC.FK_PERSONA
     JOIN ${SUB_AREA_TABLE} SA
@@ -526,12 +535,14 @@ export const dispatchEarlyCloseRequestReview = async (
   const [
     requestant_email,
     reviewer_name,
+    week,
   ] = review[0];
 
   const email_content = await createEarlyCloseRequestReviewEmail(
     reviewer_name,
     approved,
     message,
+    week,
   );
 
   await sendNewEmail(

@@ -164,6 +164,7 @@ export const createHumanResourcesReviewEmail = async (
 
 export const createEarlyCloseRequestEmail = async (
   requestant,
+  week,
   current_hours,
 ) => {
   const raw_template = await Deno.readTextFile(
@@ -176,6 +177,7 @@ export const createEarlyCloseRequestEmail = async (
   return template({
     current_hours,
     requestant,
+    week,
   });
 };
 
@@ -183,6 +185,7 @@ export const createEarlyCloseRequestReviewEmail = async (
   reviewer,
   approved,
   message,
+  week,
 ) => {
   const raw_template = await Deno.readTextFile(
     new URL("./templates/early_close_request_review.html", import.meta.url),
@@ -195,5 +198,6 @@ export const createEarlyCloseRequestReviewEmail = async (
     approved,
     message,
     reviewer,
+    week,
   });
 };

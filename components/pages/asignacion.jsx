@@ -972,7 +972,7 @@ export default function Asignacion() {
               onUpdateRequest={(row_id, approved, message) =>
                 setEarlyCloseRequest(row_id, approved, message)}
               search={{
-                id_week: selected_week,
+                week_id: selected_week,
               }}
             />
           </TabPanel>

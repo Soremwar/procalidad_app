@@ -112,7 +112,7 @@ export const getTableData = async (supervisor: number) => {
     SELECT
       PK_SOLICITUD AS ID,
       DESCRIPCION AS DESCRIPTION,
-      CS.FK_PERSONA AS PERSON_ID,
+      CS.FK_SEMANA AS WEEK_ID,
       P.NOMBRE AS PERSON
     FROM ${TABLE} ECR
     JOIN ${WEEK_CONTROL_TABLE} CS
