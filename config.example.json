@@ -9,7 +9,7 @@
     "address": null,
     "port": null,
     "protocol": "http",
-    "version": "v0.15.0"
+    "version": "v0.16.0"
   },
   "services": {
     "postgresql": {
