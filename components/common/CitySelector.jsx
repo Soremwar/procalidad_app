@@ -208,6 +208,8 @@ export default function CitySelector({
         .finally(() => {
           enableSelection();
         });
+    } else if (!value) {
+      setCountry(null);
     }
   }, [value]);
 

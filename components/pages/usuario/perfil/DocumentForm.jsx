@@ -70,15 +70,18 @@ export default function DocumentForm({
     number: "",
     type: "",
   });
-  const [reload_data, setReloadData] = useState(true);
+  const [reload_data, setReloadData] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [confirm_modal_open, setConfirmModalOpen] = useState(false);
 
-  const rejected = !fields.approved && fields.comments;
+  const rejected = !fields.approved && !!fields.comments;
   const disable_review = fields.approved || rejected;
 
   useEffect(() => {
+    if (!reload_data) {
+      return;
+    }
     let active = true;
     setLoading(true);
 

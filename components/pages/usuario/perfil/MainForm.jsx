@@ -259,7 +259,7 @@ export default function MainForm({
   const [error, setError] = useState(null);
   const [confirm_modal_open, setConfirmModalOpen] = useState(false);
 
-  const rejected = !fields.approved && fields.comments;
+  const rejected = !fields.approved && !!fields.comments;
   const disable_review = fields.approved || rejected;
 
   useEffect(() => {
@@ -432,11 +432,10 @@ export default function MainForm({
               setValue={() => {}}
               value={fields.birth_city}
             />
-            <TextField
+            <DateField
               fullWidth
               label="Fecha de nacimiento"
               name="birth_date"
-              type="date"
               value={fields.birth_date}
             />
             <SelectField
