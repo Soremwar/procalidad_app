@@ -49,7 +49,13 @@ let AVATAR_UPLOAD_WARNING = (
 
 const getGenders = () => fetchGenderApi();
 const getMaritalStatuses = () => fetchMaritalStatus();
-const getPerson = (id) => fetchPeopleApi(id);
+const getPerson = (id) =>
+  fetchPeopleApi({
+    path: id,
+    params: {
+      review: true,
+    },
+  });
 
 const getUserInformation = () => fetchUserApi();
 const setUserInformation = (
@@ -261,6 +267,9 @@ export default function MainForm({
   const [error, setError] = useState(null);
   const [confirm_modal_open, setConfirmModalOpen] = useState(false);
 
+  const rejected = !fields.approved && fields.comments;
+  const disable_review = fields.approved || rejected;
+
   useEffect(() => {
     getGenders()
       .then(async (response) => {
@@ -403,13 +412,16 @@ export default function MainForm({
         console.error("Couldnt update review", e);
         setError(true);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setReloadData(true);
+        setLoading(false);
+      });
   };
 
   if (review_mode) {
     return (
       <ReviewerCardForm
-        disabled={!person}
+        disabled={!person || disable_review}
         helper_text={error}
         loading={loading}
         title="Datos personales"

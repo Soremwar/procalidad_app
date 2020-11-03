@@ -5,6 +5,7 @@ import Ajv from "ajv";
 import {
   create,
   findById,
+  findReviewById,
   getAll,
   getTableData,
   TipoIdentificacion,
@@ -29,6 +30,13 @@ import {
 import {
   getActiveDefinition as findParameterValue,
 } from "../../../api/models/MAESTRO/parametro_definicion.ts";
+
+const get_request = {
+  $id: "get",
+  properties: {
+    "review": BOOLEAN,
+  },
+};
 
 const list_request = {
   $id: "list",
@@ -69,6 +77,7 @@ const create_request = Object.assign({}, update_request, {
 const request_validator = new Ajv({
   schemas: [
     create_request,
+    get_request,
     list_request,
     update_request,
   ],
@@ -124,7 +133,7 @@ export const getPeople = async (ctx: RouterContext) => {
     throw new RequestSyntaxError();
   }
 
-  //Secretly clever
+  // Defaults value to false if non existent
   ctx.response.body = await getAll(
     query_params.list_retired
       ? castStringToBoolean(query_params.list_retired)
@@ -138,16 +147,25 @@ export const getPeopleTable = async (context: RouterContext) =>
     getTableData,
   );
 
-export const getPerson = async (
-  { params, response }: RouterContext<{ id: string }>,
-) => {
-  const id: number = Number(params.id);
+export const getPerson = async (ctx: RouterContext<{ id: string }>) => {
+  const query_params = helpers.getQuery(ctx, {
+    mergeParams: true,
+  });
+
+  const id: number = Number(query_params.id);
   if (!id) throw new RequestSyntaxError();
 
-  const person = await findById(id);
+  if (!request_validator.validate("get", query_params)) {
+    throw new RequestSyntaxError();
+  }
+
+  const person =
+    await (castStringToBoolean(query_params.review ?? false)
+      ? findReviewById(id)
+      : findById(id));
   if (!person) throw new NotFoundError();
 
-  response.body = person;
+  ctx.response.body = person;
 };
 
 export const updatePerson = async (

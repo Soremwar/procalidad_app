@@ -1,6 +1,7 @@
 import postgres from "../../services/postgres.js";
 import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
+import { DataType, TABLE as REVIEW_TABLE } from "../users/data_review.ts";
 
 export const TABLE = "ORGANIZACION.PERSONA";
 const ERROR_DEPENDENCY =
@@ -156,6 +157,62 @@ export class People {
     );
 
     return this;
+  }
+}
+
+class PeopleReview extends People {
+  constructor(
+    pk_persona: number,
+    tipo_identificacion: TipoIdentificacion,
+    identificacion: string,
+    fec_expedicion_identificacion: string | null,
+    fk_ciudad_expedicion_identificacion: number | null,
+    nombre: string,
+    telefono: string,
+    correo: string,
+    fec_nacimiento: string | null,
+    fk_ciudad_nacimiento: number | null,
+    libreta_militar: number | null,
+    fk_genero: number | null,
+    fk_estado_civil: number | null,
+    correo_personal: string | null,
+    telefono_fijo: number | null,
+    tipo_sangre: TipoSangre | null,
+    fk_ciudad_residencia: number | null,
+    direccion_residencia: string | null,
+    fecha_inicio: string | null,
+    fecha_retiro: string | null,
+    expedicion_tarjeta_profesional: string | null,
+    public informacion_principal_aprobada: boolean | null,
+    public informacion_principal_observaciones: string | null,
+    public identificacion_aprobada: boolean | null,
+    public identificacion_observaciones: string | null,
+    public residencia_aprobada: boolean | null,
+    public residencia_observaciones: string | null,
+  ) {
+    super(
+      pk_persona,
+      tipo_identificacion,
+      identificacion,
+      fec_expedicion_identificacion,
+      fk_ciudad_expedicion_identificacion,
+      nombre,
+      telefono,
+      correo,
+      fec_nacimiento,
+      fk_ciudad_nacimiento,
+      libreta_militar,
+      fk_genero,
+      fk_estado_civil,
+      correo_personal,
+      telefono_fijo,
+      tipo_sangre,
+      fk_ciudad_residencia,
+      direccion_residencia,
+      fecha_inicio,
+      fecha_retiro,
+      expedicion_tarjeta_profesional,
+    );
   }
 }
 
@@ -334,6 +391,90 @@ export const findById = async (id: number): Promise<People | null> => {
       string | null,
       string | null,
       string | null,
+      string | null,
+    ],
+  );
+};
+
+export const findReviewById = async (
+  id: number,
+): Promise<PeopleReview | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      P.PK_PERSONA,
+      P.TIPO_IDENTIFICACION::VARCHAR,
+      P.IDENTIFICACION,
+      TO_CHAR(P.FEC_EXPEDICION_IDENTIFICACION, 'YYYY-MM-DD'),
+      P.FK_CIUDAD_EXPEDICION_IDENTIFICACION,
+      P.NOMBRE,
+      P.TELEFONO,
+      P.CORREO,
+      TO_CHAR(P.FEC_NACIMIENTO, 'YYYY-MM-DD'),
+      P.FK_CIUDAD_NACIMIENTO,
+      P.LIBRETA_MILITAR,
+      P.FK_GENERO,
+      P.FK_ESTADO_CIVIL,
+      P.CORREO_PERSONAL,
+      P.TELEFONO_FIJO,
+      P.TIPO_SANGRE::VARCHAR,
+      P.FK_CIUDAD_RESIDENCIA,
+      P.DIRECCION_RESIDENCIA,
+      TO_CHAR(P.FEC_INICIO, 'YYYY-MM-DD'),
+      TO_CHAR(P.FEC_RETIRO, 'YYYY-MM-DD'),
+      TO_CHAR(P.EXPEDICION_TARJETA_PROFESIONAL, 'YYYY-MM-DD'),
+      R1.BAN_APROBADO,
+      R1.OBSERVACION,
+      R2.BAN_APROBADO,
+      R2.OBSERVACION,
+      R3.BAN_APROBADO,
+      R3.OBSERVACION
+    FROM ${TABLE} P
+    LEFT JOIN ${REVIEW_TABLE} R1
+      ON R1.FK_DATOS = PK_PERSONA::VARCHAR
+      AND R1.TIPO_FORMULARIO = $2
+    LEFT JOIN ${REVIEW_TABLE} R2
+      ON R2.FK_DATOS = PK_PERSONA::VARCHAR
+      AND R2.TIPO_FORMULARIO = $3
+    LEFT JOIN ${REVIEW_TABLE} R3
+      ON R3.FK_DATOS = PK_PERSONA::VARCHAR
+      AND R3.TIPO_FORMULARIO = $4
+    WHERE PK_PERSONA = $1`,
+    id,
+    DataType.DATOS_PRINCIPALES,
+    DataType.DATOS_IDENTIFICACION,
+    DataType.DATOS_RESIDENCIA,
+  );
+
+  if (!rows.length) return null;
+
+  return new PeopleReview(
+    ...rows[0] as [
+      number,
+      TipoIdentificacion,
+      string,
+      string | null,
+      number | null,
+      string,
+      string,
+      string,
+      string | null,
+      number | null,
+      number | null,
+      number | null,
+      number | null,
+      string | null,
+      number | null,
+      TipoSangre | null,
+      number | null,
+      string | null,
+      string | null,
+      string | null,
+      string | null,
+      boolean | null,
+      string | null,
+      boolean | null,
+      string | null,
+      boolean | null,
       string | null,
     ],
   );

@@ -11,7 +11,13 @@ import ReviewDialog from "../common/ReviewDialog";
 import ReviewerCardForm from "./components/ReviewerCardForm";
 
 const getUserInformation = () => fetchUserApi();
-const getPerson = (id) => fetchPeopleApi(id);
+const getPerson = (id) =>
+  fetchPeopleApi({
+    path: id,
+    params: {
+      review: true,
+    },
+  });
 
 const setUserResidence = (
   city,
@@ -64,6 +70,9 @@ export default function ResidenceForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [confirm_modal_open, setConfirmModalOpen] = useState(false);
+
+  const rejected = !fields.approved && fields.comments;
+  const disable_review = fields.approved || rejected;
 
   useEffect(() => {
     let active = true;
@@ -156,13 +165,16 @@ export default function ResidenceForm({
         console.error("Couldnt update review", e);
         setError(true);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setReloadData(true);
+        setLoading(false);
+      });
   };
 
   if (review_mode) {
     return (
       <ReviewerCardForm
-        disabled={!person}
+        disabled={!person || disable_review}
         helper_text={error}
         loading={loading}
         title="Residencia"
