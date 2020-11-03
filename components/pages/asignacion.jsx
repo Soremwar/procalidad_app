@@ -8,22 +8,14 @@ import React, {
 import {
   AppBar,
   Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
   DialogContentText,
-  DialogTitle,
   Grid,
-  IconButton,
   Snackbar,
   Tab,
   Tabs,
   TextField,
-  Typography,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
-import { Close as CloseIcon } from "@material-ui/icons";
 import { Alert } from "@material-ui/lab";
 import { UserContext } from "../context/User.jsx";
 import { formatResponseJson } from "../../lib/api/request.js";
@@ -39,17 +31,19 @@ import {
   fetchBudgetApi,
   fetchBudgetDetailApi,
   fetchClientApi,
+  fetchEarlyCloseRequestApi,
   fetchPeopleApi,
   fetchProjectApi,
   fetchRoleApi,
 } from "../../lib/api/generator.js";
 import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
+import AssignationRequestTable from "./asignacion/AssignationRequestTable.jsx";
 import AsyncSelectField from "../common/AsyncSelectField.jsx";
 import AsyncTable from "../common/AsyncTable/Table.jsx";
 import DialogForm from "../common/DialogForm.jsx";
-import Title from "../common/Title.jsx";
-import RequestTable from "./asignacion/Table.jsx";
+import EarlyCloseRequestTable from "./asignacion/EarlyCloseRequestTable.jsx";
 import SelectField from "../common/SelectField.jsx";
+import Title from "../common/Title.jsx";
 
 const parseNumberAsWeek = (date) => {
   date = String(date);
@@ -130,8 +124,19 @@ const deleteAssignation = async (id) =>
 const getAssignationRequestTable = async (id) =>
   fetchAssignationRequestApi(`table/${id}`);
 
+const getEarlyCloseRequestTable = () => fetchEarlyCloseRequestApi();
+
 const updateAssignationRequest = async (id, approved, reason) =>
   fetchAssignationRequestApi(id, {
+    body: JSON.stringify({ approved, reason }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
+const updateEarlyCloseRequest = async (id, approved, reason) =>
+  fetchEarlyCloseRequestApi(id, {
     body: JSON.stringify({ approved, reason }),
     headers: {
       "Content-Type": "application/json",
@@ -653,76 +658,6 @@ const DeleteModal = ({
   );
 };
 
-const reasonDialogStyles = makeStyles((theme) => ({
-  closeButton: {
-    position: "absolute",
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-  title: {
-    backgroundColor: theme.palette.primary.main,
-    color: "white",
-  },
-}));
-
-const ReasonDialog = ({
-  is_open,
-  closeModal,
-  onConfirm,
-}) => {
-  const classes = reasonDialogStyles();
-  const [message, setMessage] = useState("");
-
-  return (
-    <Dialog
-      fullWidth={true}
-      maxWidth="sm"
-      open={is_open}
-      onClose={closeModal}
-    >
-      <DialogTitle className={classes.title} disableTypography>
-        <Typography variant="h6">Razón de rechazo</Typography>
-        <IconButton className={classes.closeButton} onClick={closeModal}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          Justifique la razón de rechazo. (El solicitante recibirá un correo con
-          esta justificación)
-        </DialogContentText>
-        <TextField
-          fullWidth
-          inputProps={{
-            maxLength: "255",
-          }}
-          multiline
-          rows="3"
-          maxRows="10"
-          onChange={(event) => setMessage(event.target.value)}
-          variant="outlined"
-          value={message}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={closeModal} color="primary">
-          Cancelar
-        </Button>
-        <Button
-          color="primary"
-          onClick={() => {
-            onConfirm(message);
-            closeModal();
-          }}
-        >
-          Enviar
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
 const useStyles = makeStyles((theme) => ({
   bar: {
     flexGrow: 1,
@@ -730,7 +665,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default () => {
+export default function Asignacion() {
   const classes = useStyles();
 
   const { id: user_id } = useContext(UserContext)[0];
@@ -749,15 +684,14 @@ export default () => {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
-  const [is_reason_modal_open, setReasonModalOpen] = useState(false);
-  const [request_table_data, setRequestTableData] = useState([]);
   const [selected_client, setSelectedClient] = useState("");
   const [selected_project, setSelectedProject] = useState("");
   const [selected_resource, setSelectedResource] = useState({});
-  const [selected_request, setSelectedRequest] = useState(0);
   const [selected_tab, setSelectedTab] = useState(0);
   const [selected_week, setSelectedWeek] = useState("");
   const [selected, setSelected] = useState([]);
+  const [assignation_request_data, setAssignationRequestData] = useState([]);
+  const [early_close_request_data, setEarlyCloseRequestData] = useState([]);
 
   const handleTabChange = (tab_id) => {
     setSelectedTab(tab_id);
@@ -783,7 +717,7 @@ export default () => {
 
   //TODO
   //This should spawn a loading animation in the notification queue
-  const updateRequest = (id, approved, message) => {
+  const setAssignationRequest = (id, approved, message) => {
     setAlertOpen(false);
     setError(null);
     updateAssignationRequest(id, approved, message)
@@ -801,17 +735,32 @@ export default () => {
         setAlertOpen(true);
       })
       .finally(() => {
-        updateRequestTable();
+        updateAssignationRequestTable();
       });
   };
 
-  const handleRequestUpdate = (id, approved) => {
-    if (approved) {
-      updateRequest(id, approved);
-    } else {
-      setSelectedRequest(id);
-      setReasonModalOpen(true);
-    }
+  //TODO
+  //This should spawn a loading animation in the notification queue
+  const setEarlyCloseRequest = (id, approved, message) => {
+    setAlertOpen(false);
+    setError(null);
+    updateEarlyCloseRequest(id, approved, message)
+      .then(async (response) => {
+        if (response.ok) {
+          setAlertOpen(true);
+        } else {
+          const { message } = await response.json();
+          setError(message);
+          setAlertOpen(true);
+        }
+      })
+      .catch(() => {
+        setError("Ocurrio un error al revisar la solicitud");
+        setAlertOpen(true);
+      })
+      .finally(() => {
+        updateEarlyCloseRequestTable();
+      });
   };
 
   const updateAssignationTable = () => {
@@ -820,20 +769,41 @@ export default () => {
     }
   };
 
-  const updateRequestTable = () => {
+  const updateAssignationRequestTable = () => {
     setAlertOpen(false);
     setError(null);
     if (selected_week && (selected_tab === 1)) {
       getAssignationRequestTable(user_id)
         .then(async (response) => {
           if (response.ok) {
-            setRequestTableData(await response.json());
+            setAssignationRequestData(await response.json());
           } else {
             throw new Error();
           }
         })
         .catch(() => {
-          setError("Ocurrio un error al cargar las solicitudes");
+          setError("Ocurrio un error al cargar las solicitudes de asignacion");
+          setAlertOpen(true);
+        });
+    }
+  };
+
+  const updateEarlyCloseRequestTable = () => {
+    setAlertOpen(false);
+    setError(null);
+    if (selected_week && (selected_tab === 2)) {
+      getEarlyCloseRequestTable()
+        .then(async (response) => {
+          if (response.ok) {
+            setEarlyCloseRequestData(await response.json());
+          } else {
+            throw new Error();
+          }
+        })
+        .catch(() => {
+          setError(
+            "Ocurrio un error al cargar las solicitudes de cierre de semana",
+          );
           setAlertOpen(true);
         });
     }
@@ -877,7 +847,8 @@ export default () => {
 
   useEffect(() => {
     updateAssignationTable();
-    updateRequestTable();
+    updateAssignationRequestTable();
+    updateEarlyCloseRequestTable();
   }, [selected_client, selected_project, selected_week, selected_tab]);
 
   return (
@@ -906,6 +877,7 @@ export default () => {
         <Grid container spacing={10}>
           <Grid item xs={4}>
             <AdvancedSelectField
+              disabled={selected_tab === 2}
               fullWidth
               label="Cliente"
               onChange={(_event, value) => setSelectedClient(value)}
@@ -918,7 +890,7 @@ export default () => {
           </Grid>
           <Grid item xs={4}>
             <AdvancedSelectField
-              disabled={!selected_client}
+              disabled={!selected_client || selected_tab === 2}
               fullWidth
               label="Proyecto"
               onChange={(_event, value) => setSelectedProject(value)}
@@ -956,8 +928,12 @@ export default () => {
             >
               <Tab label="Asignaciones Activas" id="simple-tab-0" />
               <Tab
-                label="Solicitudes"
+                label="Solicitudes de asignación"
                 id="simple-tab-1"
+              />
+              <Tab
+                label="Solicitudes de cierre de semana"
+                id="simple-tab-2"
               />
             </Tabs>
           </AppBar>
@@ -979,13 +955,23 @@ export default () => {
             />
           </TabPanel>
           <TabPanel index={1} value={selected_tab}>
-            <RequestTable
-              data={request_table_data}
-              onUpdateRequest={(row_id, approved) =>
-                handleRequestUpdate(row_id, approved)}
+            <AssignationRequestTable
+              data={assignation_request_data}
+              onUpdateRequest={(row_id, approved, message) =>
+                setAssignationRequest(row_id, approved, message)}
               search={{
                 id_client: selected_client,
                 id_project: selected_project,
+                id_week: selected_week,
+              }}
+            />
+          </TabPanel>
+          <TabPanel index={2} value={selected_tab}>
+            <EarlyCloseRequestTable
+              data={early_close_request_data}
+              onUpdateRequest={(row_id, approved, message) =>
+                setEarlyCloseRequest(row_id, approved, message)}
+              search={{
                 id_week: selected_week,
               }}
             />
@@ -1010,13 +996,6 @@ export default () => {
           {error || "El registro fue guardado con exito"}
         </Alert>
       </Snackbar>
-      <ReasonDialog
-        is_open={is_reason_modal_open}
-        closeModal={() => setReasonModalOpen(false)}
-        onConfirm={(msg) => {
-          updateRequest(selected_request, false, msg);
-        }}
-      />
     </Fragment>
   );
-};
+}

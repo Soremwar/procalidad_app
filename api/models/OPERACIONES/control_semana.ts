@@ -30,21 +30,25 @@ export class WeekControl {
     );
   }
 
-  async close(): Promise<WeekControl> {
-    const validation = await validateWeek(this.person, this.week);
+  async close(
+    validate = true,
+  ): Promise<WeekControl> {
+    if (validate) {
+      const validation = await validateWeek(this.person, this.week);
 
-    if (!validation.goal_reached) {
-      throw new Error(
-        "Las horas registradas no coinciden con el esperado semanal",
-      );
-    }
-    if (!validation.assignation_completed) {
-      throw new Error("Las horas registradas exceden la asignacion aprobada");
-    }
-    if (!validation.time_completed) {
-      throw new Error(
-        "La semana a cerrar aun se encuentra en curso",
-      );
+      if (!validation.goal_reached) {
+        throw new Error(
+          "Las horas registradas no coinciden con el esperado semanal",
+        );
+      }
+      if (!validation.assignation_completed) {
+        throw new Error("Las horas registradas exceden la asignacion aprobada");
+      }
+      if (!validation.time_completed) {
+        throw new Error(
+          "La semana a cerrar aun se encuentra en curso",
+        );
+      }
     }
 
     const { rows } = await postgres.query(

@@ -198,6 +198,7 @@ import * as hr_training_formation from "./handlers/humanos/formacion/capacitacio
 import * as hr_laboral_experience from "./handlers/humanos/experiencia/laboral.ts";
 import * as hr_project_experience from "./handlers/humanos/experiencia/proyecto.ts";
 import * as hr_certification from "./handlers/humanos/certificacion.ts";
+import * as week_close_request from "./handlers/solicitud/cierre.ts";
 
 const main_router = new Router();
 
@@ -3099,6 +3100,33 @@ main_router
       Profiles.HUMAN_RESOURCES,
     ]),
     hr_certification.updateCertificationReview,
+  );
+
+main_router
+  .get(
+    "/api/solicitud/cierre",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+    ]),
+    week_close_request.getEarlyRequestRequestTable,
+  )
+  .post(
+    "/api/solicitud/cierre",
+    checkUserAccess([
+      Profiles.CONSULTANT,
+    ]),
+    week_close_request.createEarlyCloseRequest,
+  )
+  .put<{ id: string }>(
+    "/api/solicitud/cierre/:id",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+    ]),
+    week_close_request.updateEarlyCloseRequest,
   );
 
 export const routes = main_router.routes();

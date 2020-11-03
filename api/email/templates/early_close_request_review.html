@@ -1,0 +1,65 @@
+{{#> layout}}
+  {{#*inline "styles"}}
+    <style>
+      .text-services {
+        padding: 10px 10px 0;
+        text-align: center;
+      }
+
+      .text-services h3 {
+        font-size: 20px;
+      }
+
+      @media screen and (max-width: 500px) {
+        .text-services {
+          padding-left: 0;
+          padding-right: 20px;
+          text-align: left;
+        }
+      }
+    </style>
+  {{/inline}}
+  {{#*inline "title"}}
+    Cierre de semana
+    {{#if approved}}
+      aprobado
+    {{/if}}
+    {{#unless approved}}
+      rechazado
+    {{/unless}}
+  {{/inline}}
+  {{#*inline "subtitle"}}
+    {{ reviewer }} ha
+    {{#if approved}}
+      aprobado
+    {{/if}}
+    {{#unless approved}}
+      rechazado
+    {{/unless}}
+    su solicitud
+  {{/inline}}
+  {{#*inline "content"}}
+    {{#unless approved}}
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td valign="top" width="100%" style="padding-top: 20px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td class="text-services">
+                  <h3>Justificaci&oacute;n</h3>
+                  <p>{{ message }}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    {{/unless}}
+  {{/inline}}
+  {{#*inline "information"}}
+    Ingrese a la <a href="{{ AppUrl '' }}">aplicaci&oacute;n Procalidad</a> y valide la solicitud
+  {{/inline}}
+  {{#*inline "links"}}
+    {{ Link 'Registro' 'registro'}}
+  {{/inline}}
+{{/layout}}

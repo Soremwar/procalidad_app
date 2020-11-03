@@ -13,17 +13,13 @@ import {
   Cancel as RejectIcon,
   CheckCircle as ConfirmIcon,
 } from "@material-ui/icons";
-
+import ReasonDialog from "./ReasonDialog.jsx";
 import TableHeaders from "./components/Header.jsx";
 import TableFooter from "./components/Footer.jsx";
 
 const columns = [
-  { id: "person", label: "Recurso", orderable: true },
-  { id: "project", label: "Proyecto", orderable: true },
-  { id: "role", label: "Rol", orderable: true },
-  { id: "supervisor", label: "Responsable", orderable: true },
-  { id: "hours", label: "Horas solicitadas", orderable: true },
-  { id: "description", label: "Descripción", orderable: false },
+  { id: "person", label: "Persona", orderable: true },
+  { id: "description", label: "Mensaje", orderable: false },
 ];
 
 const useStyles = makeStyles((theme) => ({
@@ -50,7 +46,18 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function ({
+/**
+ * @callback confirmCallback
+ * @param {number} id
+ * @param {boolean} approved
+ * @param {string=} comments
+ * */
+
+/**
+ * @param {object} props
+ * @param {confirmCallback} props.onUpdateRequest
+ */
+export default function EarlyRequestTable({
   data,
   onUpdateRequest,
   search = {},
@@ -60,6 +67,8 @@ export default function ({
   const [orderBy, setOrderBy] = useState({});
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [reason_modal_open, setReasonModalOpen] = useState(false);
+  const [selected, setSelected] = useState();
 
   const updateSortingDirection = (column) => {
     switch (orderBy?.[column]) {
@@ -146,8 +155,7 @@ export default function ({
                   >
                     {Object.entries(row)
                       .filter(([column]) =>
-                        columns.findIndex(({ id }) => id === column) !== -1 &&
-                        column !== "used_hours"
+                        columns.findIndex(({ id }) => id === column) !== -1
                       )
                       .sort(([a], [b]) =>
                         columns.findIndex(({ id }) => id === a) <
@@ -155,19 +163,24 @@ export default function ({
                           ? -1
                           : 1
                       )
-                      .map(([index, value]) => (
+                      .map(([index, value], i) => (
                         <TableCell key={index}>{value}</TableCell>
                       ))}
-                    <TableCell>
+                    <TableCell align="center">
                       <IconButton
                         aria-label="Aceptar"
-                        onClick={() => onUpdateRequest(row.id, true)}
+                        onClick={() => {
+                          onUpdateRequest(row.id, true);
+                        }}
                       >
                         <ConfirmIcon className={classes.button_approve} />
                       </IconButton>
                       <IconButton
                         aria-label="Rechazar"
-                        onClick={() => onUpdateRequest(row.id, false)}
+                        onClick={() => {
+                          setSelected(row.id);
+                          setReasonModalOpen(true);
+                        }}
                       >
                         <RejectIcon className={classes.button_reject} />
                       </IconButton>
@@ -190,6 +203,11 @@ export default function ({
           />
         </TableContainer>
       </Paper>
+      <ReasonDialog
+        onConfirm={(message) => onUpdateRequest(selected, false, message)}
+        onClose={() => setReasonModalOpen(false)}
+        open={reason_modal_open}
+      />
     </div>
   );
 }

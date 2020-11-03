@@ -6,7 +6,6 @@ import { TABLE as SUB_AREA_TABLE } from "../ORGANIZACION/sub_area.ts";
 import { TABLE as BUDGET_TABLE } from "./budget.ts";
 import { TABLE as ROLE_TABLE } from "./ROL.ts";
 import { TABLE as PROJECT_TABLE } from "./PROYECTO.ts";
-import { TABLE as CONTROL_TABLE } from "./control_semana.ts";
 import { TABLE as WEEK_TABLE } from "../MAESTRO/dim_semana.ts";
 
 export const TABLE = "OPERACIONES.ASIGNACION_SOLICITUD";

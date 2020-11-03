@@ -3,6 +3,8 @@ import postgres from "../services/postgres.js";
 import {
   createAssignationRequestEmail,
   createAssignationRequestReviewEmail,
+  createEarlyCloseRequestEmail,
+  createEarlyCloseRequestReviewEmail,
   createHumanResourcesReviewEmail,
   createHumanResourcesReviewRequestEmail,
   createRegistryDelayedSubAreaEmail,
@@ -26,6 +28,8 @@ import {
   TABLE as POSITION_ASSIGNATION_TABLE,
 } from "../models/ORGANIZACION/asignacion_cargo.ts";
 import { TABLE as WEEK_TABLE } from "../models/MAESTRO/dim_semana.ts";
+import { TABLE as REGISTRY_TABLE } from "../models/OPERACIONES/registro.ts";
+import { TABLE as EARLY_CLOSE_REQUEST_TABLE } from "../models/OPERACIONES/early_close_request.ts";
 import { Profiles } from "../common/profiles.ts";
 import { getFileFormatCode } from "../parameters.ts";
 
@@ -445,6 +449,94 @@ export const dispatchHumanResourcesReview = async (
   await sendNewEmail(
     requestant_email,
     `Revisión de hoja de vida`,
+    email_content,
+  );
+};
+
+export const dispatchEarlyCloseRequest = async (
+  request_id,
+) => {
+  const { rows: review } = await postgres.query(
+    `SELECT
+      P1.NOMBRE,
+      P2.CORREO,
+      COALESCE(SUM(R.HORAS), 0)
+    FROM ${EARLY_CLOSE_REQUEST_TABLE} SCS
+    JOIN ${WEEK_CONTROL_TABLE} CS
+      ON SCS.FK_CONTROL_SEMANA = CS.PK_CONTROL
+    LEFT JOIN ${REGISTRY_TABLE} R
+      ON CS.PK_CONTROL = R.FK_CONTROL_SEMANA
+    JOIN ${POSITION_ASSIGNATION_TABLE} AC
+      ON CS.FK_PERSONA = AC.FK_PERSONA
+    JOIN ${SUB_AREA_TABLE} SA
+      ON AC.FK_SUB_AREA = SA.PK_SUB_AREA
+    JOIN ${PERSON_TABLE} P1
+      ON P1.PK_PERSONA = CS.FK_PERSONA
+    JOIN ${PERSON_TABLE} P2
+      ON P2.PK_PERSONA = SA.FK_SUPERVISOR
+    WHERE SCS.PK_SOLICITUD = $1
+    GROUP BY
+      P1.NOMBRE,
+      P2.CORREO`,
+    request_id,
+  );
+
+  const [
+    requestant_name,
+    reviewer_email,
+    current_hours,
+  ] = review[0];
+
+  const email_content = await createEarlyCloseRequestEmail(
+    requestant_name,
+    current_hours,
+  );
+
+  await sendNewEmail(
+    reviewer_email,
+    "Cierre de semana solicitado",
+    email_content,
+  );
+};
+
+export const dispatchEarlyCloseRequestReview = async (
+  request_id,
+  approved,
+  message,
+) => {
+  const { rows: review } = await postgres.query(
+    `SELECT
+      P1.CORREO,
+      P2.NOMBRE
+    FROM ${EARLY_CLOSE_REQUEST_TABLE} SCS
+    JOIN ${WEEK_CONTROL_TABLE} CS
+      ON SCS.FK_CONTROL_SEMANA = CS.PK_CONTROL
+    JOIN ${POSITION_ASSIGNATION_TABLE} AC
+      ON CS.FK_PERSONA = AC.FK_PERSONA
+    JOIN ${SUB_AREA_TABLE} SA
+      ON AC.FK_SUB_AREA = SA.PK_SUB_AREA
+    JOIN ${PERSON_TABLE} P1
+      ON P1.PK_PERSONA = CS.FK_PERSONA
+    JOIN ${PERSON_TABLE} P2
+      ON P2.PK_PERSONA = SA.FK_SUPERVISOR
+    WHERE SCS.PK_SOLICITUD = $1`,
+    request_id,
+  );
+
+  const [
+    requestant_email,
+    reviewer_name,
+  ] = review[0];
+
+  const email_content = await createEarlyCloseRequestReviewEmail(
+    reviewer_name,
+    approved,
+    message,
+  );
+
+  await sendNewEmail(
+    requestant_email,
+    "Cierre de semana",
     email_content,
   );
 };

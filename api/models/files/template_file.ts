@@ -166,21 +166,21 @@ export const getPersonFileReviewTable = async (
 
   const base_query = (
     `SELECT
-        F.FK_USUARIO||'_'||T.PK_PLANTILLA AS ID,
-        F.FK_USUARIO AS PERSON,
-        T.NOMBRE AS TEMPLATE,
-        CASE
-          WHEN RS.BAN_APROBADO = TRUE THEN 1
-          WHEN RS.BAN_APROBADO = FALSE AND RS.OBSERVACION IS NOT NULL THEN 0
-          ELSE 2
-        END AS REVIEW_STATUS
-      FROM ${TABLE} F
-      JOIN ${TEMPLATE_TABLE} T
-        ON T.PK_PLANTILLA = F.FK_PLANTILLA
-        AND T.FK_FORMATO = ${file_format}
-      LEFT JOIN ${REVIEW_TABLE} RS
-        ON RS.TIPO_FORMULARIO = '${DataType.DATOS_SOPORTES}'
-        AND RS.FK_DATOS = F.FK_USUARIO||'_'||T.PK_PLANTILLA`
+      F.FK_USUARIO||'_'||T.PK_PLANTILLA AS ID,
+      F.FK_USUARIO AS PERSON,
+      T.NOMBRE AS TEMPLATE,
+      CASE
+        WHEN RS.BAN_APROBADO = TRUE THEN 1
+        WHEN RS.BAN_APROBADO = FALSE AND RS.OBSERVACION IS NOT NULL THEN 0
+        ELSE 2
+      END AS REVIEW_STATUS
+    FROM ${TABLE} F
+    JOIN ${TEMPLATE_TABLE} T
+      ON T.PK_PLANTILLA = F.FK_PLANTILLA
+      AND T.FK_FORMATO = ${file_format}
+    LEFT JOIN ${REVIEW_TABLE} RS
+      ON RS.TIPO_FORMULARIO = '${DataType.DATOS_SOPORTES}'
+      AND RS.FK_DATOS = F.FK_USUARIO||'_'||T.PK_PLANTILLA`
   );
 
   const { count, data } = await getTableModels(

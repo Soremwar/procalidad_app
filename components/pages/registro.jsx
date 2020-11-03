@@ -10,6 +10,8 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
   Snackbar,
   TextField,
@@ -18,6 +20,7 @@ import { Alert } from "@material-ui/lab";
 import {
   fetchAssignationRequestApi,
   fetchClientApi,
+  fetchEarlyCloseRequestApi,
   fetchProjectApi,
   fetchRoleApi,
   fetchTimeApi,
@@ -111,11 +114,67 @@ const submitWeekDetail = async (
   }
 };
 
+const requestEarlyWeekClose = async (
+  message,
+) =>
+  fetchEarlyCloseRequestApi("", {
+    body: JSON.stringify({ message }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
 export const ParameterContext = createContext({
   clients: [],
   heatmap_blacklisted_dates: [],
   projects: [],
 });
+
+const EarlyCloseDialog = ({
+  onClose,
+  onConfirm,
+  open,
+}) => {
+  return (
+    <Dialog
+      fullWidth
+      maxWidth="sm"
+      onClose={onClose}
+      open={open}
+      scroll="paper"
+    >
+      <DialogTitle>
+        Razón de rechazo
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Usted no cumple la cuota de horas mínimas para cerrar la semana
+          <br />
+          Sin embargo, es posible solicitar una excepción a su supervisor de
+          area, desea enviar esta solicitud?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          color="primary"
+          onClick={onClose}
+        >
+          Cancelar
+        </Button>
+        <Button
+          color="primary"
+          onClick={() => {
+            onConfirm();
+            onClose();
+          }}
+        >
+          Solicitar
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const AddModal = ({
   is_open,
@@ -328,7 +387,7 @@ const MAX_DATE_HEATMAP = (() => {
   return parseDateToStandardNumber(date);
 })();
 
-export default () => {
+export default function Registro() {
   const [context] = useContext(UserContext);
 
   const [alert_open, setAlertOpen] = useState(false);
@@ -344,6 +403,7 @@ export default () => {
   const [is_planning_modal_open, setPlanningModalOpen] = useState(false);
   const [request_modal_open, setRequestModalOpen] = useState(false);
   const [table_data, setTableData] = useState(new Map());
+  const [early_close_modal_open, setEarlyCloseModalOpen] = useState(false);
   const [week_details, setWeekDetails] = useState({
     assignated_hours: 0,
     date: null,
@@ -439,6 +499,26 @@ export default () => {
     }
   };
 
+  const handleEarlyCloseRequested = (message) => {
+    setAlertOpen(false);
+    setError(null);
+
+    requestEarlyWeekClose(message)
+      .then(async (response) => {
+        if (!response.ok) {
+          const res = await response
+            .json()
+            .then((body) => body.message);
+          setError(res);
+        }
+      })
+      .catch(() => {
+        console.log("couldnt complete the early close request");
+        setError("Ocurrio un error al enviar la solicitud");
+      })
+      .finally(() => setAlertOpen(true));
+  };
+
   const handleWeekSave = () => {
     const entries_not_saved = Array.from(table_data).some(([_i, value]) =>
       !value.server_updated
@@ -453,11 +533,18 @@ export default () => {
           if (response.ok) {
             setError(null);
             updateCurrentWeekDetails();
+            setAlertOpen(true);
           } else {
+            //TODO
+            //Fix this, this is an atrocity
             const res = await response.json().then((body) => body.message);
-            setError(res);
+            if (res.includes("esperado semanal")) {
+              setEarlyCloseModalOpen(true);
+            } else {
+              setError(res);
+              setAlertOpen(true);
+            }
           }
-          setAlertOpen(true);
         })
         .finally(() => {
           updateCurrentWeekDetails();
@@ -585,6 +672,11 @@ export default () => {
           start_date={TODAY}
         />
       </ParameterContext.Provider>
+      <EarlyCloseDialog
+        onClose={() => setEarlyCloseModalOpen(false)}
+        onConfirm={(message) => handleEarlyCloseRequested(message)}
+        open={early_close_modal_open}
+      />
     </Fragment>
   );
-};
+}
