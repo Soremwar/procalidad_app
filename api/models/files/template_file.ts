@@ -108,18 +108,19 @@ export const generateFileReviewTable = (
       F.FEC_CARGA AS UPLOAD_DATE,
       RS.OBSERVACION AS OBSERVATIONS,
       CASE
+        WHEN F.FK_USUARIO IS NULL THEN 3
         WHEN RS.BAN_APROBADO = TRUE THEN 1
         WHEN RS.BAN_APROBADO = FALSE AND RS.OBSERVACION IS NOT NULL THEN 0
         ELSE 2
       END AS REVIEW_STATUS
-    FROM ${TABLE} F
-    LEFT JOIN ${TEMPLATE_TABLE} T
+    FROM ${TEMPLATE_TABLE} T
+    LEFT JOIN ${TABLE} F
       ON T.PK_PLANTILLA = F.FK_PLANTILLA
+      AND F.FK_USUARIO = ${person}
     LEFT JOIN ${REVIEW_TABLE} RS
       ON RS.TIPO_FORMULARIO = '${DataType.DATOS_SOPORTES}'
       AND RS.FK_DATOS = F.FK_USUARIO||'_'||T.PK_PLANTILLA
-    WHERE F.FK_USUARIO = ${person}
-    ${format ? `AND T.FK_FORMATO = ${format}` : ""}`
+    ${format ? `WHERE T.FK_FORMATO = ${format}` : ""}`
     );
 
     const { count, data } = await getTableModels(
