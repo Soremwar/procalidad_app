@@ -116,24 +116,12 @@ const updatePersonReview = async (
   });
 
 const useProfilePictureStyles = makeStyles(() => ({
-  card: {
-    display: "flex",
-  },
-  card_content: {
-    flex: "1 0 auto",
-  },
-  card_details: {
-    alignItems: "center",
-    display: "flex",
-    flexDirection: "column",
-    width: "60%",
-  },
   input: {
     display: "none",
   },
   image: {
     backgroundSize: "200px",
-    height: "200px",
+    minHeight: "200px",
     width: "200px",
   },
 }));
@@ -160,24 +148,28 @@ const UploadProfilePicture = () => {
   return (
     <Fragment>
       <Card className={classes.card} variant="outlined">
-        <div className={classes.card_details}>
-          <CardMedia
-            className={classes.image}
-            image={`/api/usuario/foto#${picture_key}`}
-          />
-        </div>
-        <CardActions className={classes.card_content}>
-          <Button
-            color="primary"
-            component="span"
-            className={classes.button}
-            endIcon={<UploadIcon />}
-            onClick={() => setModalOpen(true)}
-            variant="contained"
-          >
-            Cambiar foto
-          </Button>
-        </CardActions>
+        <Grid>
+          <Grid container item xs={12} justify="center">
+            <CardMedia
+              className={classes.image}
+              image={`/api/usuario/foto#${picture_key}`}
+            />
+          </Grid>
+          <Grid container item xs={12} justify="center">
+            <CardActions>
+              <Button
+                color="primary"
+                component="span"
+                className={classes.button}
+                endIcon={<UploadIcon />}
+                onClick={() => setModalOpen(true)}
+                variant="contained"
+              >
+                Cambiar foto
+              </Button>
+            </CardActions>
+          </Grid>
+        </Grid>
       </Card>
       <Dialog
         fullWidth
@@ -222,13 +214,13 @@ const ProfilePicture = ({
   const classes = useProfilePictureStyles();
 
   return (
-    <Card className={classes.card} variant="outlined">
-      <div className={classes.card_details}>
+    <Card variant="outlined">
+      <Grid container justify="center">
         <CardMedia
           className={classes.image}
           image={`/api/organizacion/persona/foto/${person}`}
         />
-      </div>
+      </Grid>
     </Card>
   );
 };

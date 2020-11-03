@@ -288,7 +288,7 @@ main_router
   .put<{ id: string }>(
     "/api/usuario/soportes/:id",
     checkUserAccess(),
-    user_profile.loadSupportFile,
+    user_profile.uploadSupportFile,
   )
   .get("/api/usuario/foto", checkUserAccess(), user_profile.getPicture)
   .put("/api/usuario/foto", checkUserAccess(), user_profile.updatePicture)

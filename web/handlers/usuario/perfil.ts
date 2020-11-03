@@ -506,7 +506,7 @@ export const getSupportFile = async (
   response.body = file.content;
 };
 
-export const loadSupportFile = async (
+export const uploadSupportFile = async (
   { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const template_id = Number(params.id);
