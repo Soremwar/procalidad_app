@@ -4,6 +4,7 @@ import { TABLE as POSITION_ASSIGNATION_TABLE } from "../ORGANIZACION/asignacion_
 import { TABLE as PEOPLE_TABLE } from "../ORGANIZACION/people.ts";
 import { TABLE as SUB_AREA_TABLE } from "../ORGANIZACION/sub_area.ts";
 import { TABLE as WEEK_CONTROL_TABLE } from "../OPERACIONES/control_semana.ts";
+import { TABLE as REGISTRY_TABLE } from "./registro.ts";
 import { Profiles } from "../../common/profiles.ts";
 
 export const TABLE = "OPERACIONES.SOLICITUD_CIERRE_SEMANA";
@@ -83,6 +84,7 @@ class TableData {
     public readonly id: number,
     public readonly description: string,
     public readonly week_id: number,
+    public readonly current_hours: number,
     public readonly person: string,
   ) {
   }
@@ -111,17 +113,25 @@ export const getTableData = async (supervisor: number) => {
     )
     SELECT
       PK_SOLICITUD AS ID,
-      DESCRIPCION AS DESCRIPTION,
+      ECR.DESCRIPCION AS DESCRIPTION,
       CS.FK_SEMANA AS WEEK_ID,
+      COALESCE(SUM(R.HORAS), 0),
       P.NOMBRE AS PERSON
     FROM ${TABLE} ECR
     JOIN ${WEEK_CONTROL_TABLE} CS
       ON ECR.FK_CONTROL_SEMANA = CS.PK_CONTROL
+    LEFT JOIN ${REGISTRY_TABLE} R
+      ON CS.PK_CONTROL = R.FK_CONTROL_SEMANA
     JOIN ${PEOPLE_TABLE} P
       ON CS.FK_PERSONA = P.PK_PERSONA
     JOIN SUPERVISOR ER
       ON CS.FK_PERSONA = ER.PERSON
-    WHERE ER.ID = $3`,
+    WHERE ER.ID = $3
+    GROUP BY
+      PK_SOLICITUD,
+      ECR.DESCRIPCION,
+      CS.FK_SEMANA,
+      P.NOMBRE`,
     Profiles.ADMINISTRATOR,
     Profiles.CONTROLLER,
     supervisor,
@@ -130,6 +140,7 @@ export const getTableData = async (supervisor: number) => {
   return rows.map((row: [
     number,
     string,
+    number,
     number,
     string,
   ]) => new TableData(...row));

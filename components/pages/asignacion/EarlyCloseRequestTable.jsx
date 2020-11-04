@@ -19,7 +19,8 @@ import TableFooter from "./components/Footer.jsx";
 
 const columns = [
   { id: "person", label: "Persona", orderable: true },
-  { id: "description", label: "Mensaje", orderable: false },
+  //{ id: "description", label: "Mensaje", orderable: false },
+  { id: "current_hours", label: "Horas registradas", orderable: false },
 ];
 
 const useStyles = makeStyles((theme) => ({
