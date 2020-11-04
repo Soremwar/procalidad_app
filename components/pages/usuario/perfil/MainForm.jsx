@@ -421,10 +421,10 @@ export default function MainForm({
       >
         <Grid container spacing={10}>
           <Grid item md={6} xs={12}>
-            <DateField
+            <TextField
               fullWidth
               label="Nombre"
-              name="birth_date"
+              name="name"
               value={fields.name}
             />
             <CitySelector
@@ -551,11 +551,11 @@ export default function MainForm({
       >
         <Grid container spacing={10}>
           <Grid item md={6} xs={12}>
-            <DateField
+            <TextField
               disabled
               fullWidth
               label="Nombre"
-              name="birth_date"
+              name="name"
               value={fields.name}
             />
             <CitySelector
