@@ -145,14 +145,14 @@ const EarlyCloseDialog = ({
       scroll="paper"
     >
       <DialogTitle>
-        Razón de rechazo
+        Solicitar cierre de semana
       </DialogTitle>
       <DialogContent>
         <DialogContentText>
           Usted no cumple la cuota de horas mínimas para cerrar la semana
           <br />
           Sin embargo, es posible solicitar una excepción a su supervisor de
-          area, desea enviar esta solicitud?
+          área, ¿Desea enviar esta solicitud?
         </DialogContentText>
       </DialogContent>
       <DialogActions>
