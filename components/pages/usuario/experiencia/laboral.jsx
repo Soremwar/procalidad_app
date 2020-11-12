@@ -1118,7 +1118,7 @@ export default function Laboral({
   };
 
   const handleReviewModalOpen = async (id) => {
-    setSelectedLaboralExperience(await getLaboralExperience(id));
+    setSelectedLaboralExperience(await getLaboralExperience(id, true));
     setReviewModalOpen(true);
   };
 

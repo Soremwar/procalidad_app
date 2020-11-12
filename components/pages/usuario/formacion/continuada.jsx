@@ -776,7 +776,7 @@ const DeleteModal = ({
   );
 };
 
-const getContinuousTitle = (id, review_mode) => {
+const getContinuousTitle = (id, review_mode = false) => {
   let request;
   if (review_mode) {
     request = getUserContinuousTitle(id);
@@ -815,12 +815,12 @@ export default function Continuada({
   const [selected_person, setSelectedPerson] = useState(null);
 
   const handleEditModalOpen = async (id) => {
-    setSelectedContinuousTitle(await getContinuousTitle(id, false));
+    setSelectedContinuousTitle(await getContinuousTitle(id));
     setEditModalOpen(true);
   };
 
   const handleReviewModalOpen = async (id) => {
-    setSelectedContinuousTitle(await getContinuousTitle(id, false));
+    setSelectedContinuousTitle(await getContinuousTitle(id, true));
     setReviewModalOpen(true);
   };
 
