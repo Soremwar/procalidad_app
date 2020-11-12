@@ -1,6 +1,6 @@
 {
   "name": "procalidad_app",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "description": "Esta es una app empresarial para realizar planeación y asignación de recursos",
   "scripts": {
     "compile": "parcel build --dist-dir=public/resources --no-source-maps components/App.jsx",
