@@ -30,6 +30,16 @@ import {
 import {
   getActiveDefinition as findParameterValue,
 } from "../../../api/models/MAESTRO/parametro_definicion.ts";
+import { decodeToken } from "../../../lib/jwt.ts";
+import {
+  createApprovedReview as approveIdentificationReview,
+} from "../../../api/reviews/user_identification.ts";
+import {
+  createApprovedReview as approvePersonalDataReview,
+} from "../../../api/reviews/user_personal_data.ts";
+import {
+  createApprovedReview as approveResidenceReview,
+} from "../../../api/reviews/user_residence.ts";
 
 const get_request = {
   $id: "get",
@@ -83,7 +93,11 @@ const request_validator = new Ajv({
   ],
 });
 
-export const createPerson = async ({ request, response }: RouterContext) => {
+export const createPerson = async (
+  { cookies, request, response }: RouterContext,
+) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const { id: reviewer } = await decodeToken(session_cookie);
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const value = await request.body({ type: "json" }).value;
@@ -92,7 +106,7 @@ export const createPerson = async ({ request, response }: RouterContext) => {
     throw new RequestSyntaxError();
   }
 
-  response.body = await create(
+  const person = await create(
     value.type,
     value.identification,
     value.name,
@@ -100,6 +114,25 @@ export const createPerson = async ({ request, response }: RouterContext) => {
     value.email,
     value.start_date,
   );
+
+  //TODO
+  //Add recoverable error
+  await approvePersonalDataReview(
+    String(person.pk_persona),
+    reviewer,
+  );
+
+  await approveIdentificationReview(
+    String(person.pk_persona),
+    reviewer,
+  );
+
+  await approveResidenceReview(
+    String(person.pk_persona),
+    reviewer,
+  );
+
+  response.body = person;
 };
 
 export const deletePerson = async (

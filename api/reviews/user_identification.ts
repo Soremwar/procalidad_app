@@ -10,6 +10,18 @@ import {
 
 const REVIEW_TYPE = DataType.DATOS_IDENTIFICACION;
 
+export const createApprovedReview = async (
+  data_reference: string,
+  reviewer: number,
+) => {
+  let review = await create(
+    REVIEW_TYPE,
+    data_reference,
+  );
+
+  await review.approve(reviewer);
+};
+
 export const getReview = (
   data_reference: string,
 ) => {

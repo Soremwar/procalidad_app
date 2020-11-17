@@ -79,7 +79,7 @@ export const createLaboralExperience = async (
   const value = await request.body({ type: "json" }).value;
 
   if (!request_validator.validate("create", value)) {
-    console.log(request_validator)
+    console.log(request_validator);
     throw new RequestSyntaxError();
   }
 
