@@ -779,9 +779,9 @@ const DeleteModal = ({
 const getContinuousTitle = (id, review_mode = false) => {
   let request;
   if (review_mode) {
-    request = getUserContinuousTitle(id);
-  } else {
     request = getPersonContinuousTitle(id);
+  } else {
+    request = getUserContinuousTitle(id);
   }
 
   return request
