@@ -346,7 +346,7 @@ const AddModal = ({
       fields.company_city,
       fields.company_name,
       fields.company_nit,
-      fields.company_phone,
+      Number(fields.company_phone) || 0,
       fields.company_sector,
       fields.company_verification_digit,
       fields.contact,
@@ -527,6 +527,10 @@ const AddModal = ({
         />
         <TextField
           fullWidth
+          inputProps={{
+            min: 0,
+            max: 999999999999999,
+          }}
           label="Teléfono"
           name="company_phone"
           onChange={handleChange}
@@ -621,7 +625,7 @@ const EditModal = ({
       fields.company_city,
       fields.company_name,
       fields.company_nit,
-      fields.company_phone,
+      Number(fields.company_phone) || 0,
       fields.company_sector,
       fields.company_verification_digit,
       fields.contact,
@@ -787,6 +791,10 @@ const EditModal = ({
         />
         <TextField
           fullWidth
+          inputProps={{
+            min: 0,
+            max: 999999999999999,
+          }}
           label="Teléfono"
           name="company_phone"
           onChange={handleChange}

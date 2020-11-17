@@ -13,6 +13,7 @@ import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
 import {
   BOOLEAN,
   NUMBER,
+  PHONE,
   STANDARD_DATE_STRING,
   STRING,
   TRUTHY_INTEGER,
@@ -25,7 +26,7 @@ const update_request = {
     "client_name": STRING(255),
     "functions": STRING(1000),
     "project_contact_name": STRING(255),
-    "project_contact_phone": TRUTHY_INTEGER,
+    "project_contact_phone": PHONE,
     "project_description": STRING(100),
     "project_end_date": STANDARD_DATE_STRING,
     "project_is_internal": BOOLEAN,

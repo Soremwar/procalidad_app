@@ -236,14 +236,12 @@ const AddModal = ({
       fields.client_name,
       fields.functions,
       fields.project_contact_name,
-      fields.project_contact_phone,
+      Number(fields.project_contact_phone) || 0,
       fields.project_description,
       fields.project_end_date,
       fields.project_is_internal,
       fields.project_name,
-      isNaN(fields.project_participation)
-        ? 0
-        : Number(fields.project_participation),
+      Number(fields.project_participation) || 0,
       fields.project_start_date,
       fields.roles,
       fields.tools_used,
@@ -397,7 +395,8 @@ const AddModal = ({
       <TextField
         fullWidth
         inputProps={{
-          min: "0",
+          min: 0,
+          max: 999999999999999,
         }}
         label="Numero de contacto"
         name="project_contact_phone"
@@ -499,14 +498,12 @@ const EditModal = ({
       fields.client_name,
       fields.functions,
       fields.project_contact_name,
-      fields.project_contact_phone,
+      Number(fields.project_contact_phone) || 0,
       fields.project_description,
       fields.project_end_date,
       fields.project_is_internal,
       fields.project_name,
-      isNaN(fields.project_participation)
-        ? 0
-        : Number(fields.project_participation),
+      Number(fields.project_participation) || 0,
       fields.project_start_date,
       fields.roles,
       fields.tools_used,
@@ -662,7 +659,8 @@ const EditModal = ({
       <TextField
         fullWidth
         inputProps={{
-          min: "0",
+          min: 0,
+          max: 999999999999999,
         }}
         label="Numero de contacto"
         name="project_contact_phone"

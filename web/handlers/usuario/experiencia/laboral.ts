@@ -11,6 +11,7 @@ import { Message } from "../../../http_utils.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
 import { decodeToken } from "../../../../lib/jwt.ts";
 import {
+  PHONE,
   STANDARD_DATE_STRING,
   STRING,
   TRUTHY_INTEGER,
@@ -29,9 +30,9 @@ const update_request = {
     "company_city": TRUTHY_INTEGER,
     "company_name": STRING(50),
     "company_nit": UNSIGNED_NUMBER,
-    "company_phone": TRUTHY_INTEGER,
+    "company_phone": PHONE,
     "company_sector": TRUTHY_INTEGER,
-    "company_verification_digit": TRUTHY_INTEGER,
+    "company_verification_digit": UNSIGNED_NUMBER,
     "contact": STRING(255),
     "end_date": STANDARD_DATE_STRING,
     "function_description": STRING(1000),
@@ -78,6 +79,7 @@ export const createLaboralExperience = async (
   const value = await request.body({ type: "json" }).value;
 
   if (!request_validator.validate("create", value)) {
+    console.log(request_validator)
     throw new RequestSyntaxError();
   }
 
