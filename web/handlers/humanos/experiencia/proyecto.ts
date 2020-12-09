@@ -3,7 +3,7 @@ import Ajv from "ajv";
 import * as project_experience_model from "../../../../api/models/users/project_experience.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
 import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";
-import { setReview } from "../../../../api/reviews/user_laboral_experience.ts";
+import { setReview } from "../../../../api/reviews/user_project_experience.ts";
 import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
 import { BOOLEAN, STRING_OR_NULL } from "../../../../lib/ajv/types.js";
 import { decodeToken } from "../../../../lib/jwt.ts";

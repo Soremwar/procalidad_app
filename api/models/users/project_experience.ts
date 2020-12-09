@@ -4,7 +4,7 @@ import { DataType, TABLE as REVIEW_TABLE } from "./data_review.ts";
 
 export const TABLE = "USUARIOS.EXPERIENCIA_PROYECTO";
 
-class LaboralExperience {
+class ProjectExperience {
   constructor(
     public readonly id: number,
     public readonly user: number,
@@ -113,7 +113,7 @@ export const create = async (
   project_contact_name: string,
   project_contact_phone: number,
   project_participation: number,
-): Promise<LaboralExperience> => {
+): Promise<ProjectExperience> => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_USUARIO,
@@ -162,7 +162,7 @@ export const create = async (
 
   const id: number = rows[0][0];
 
-  return new LaboralExperience(
+  return new ProjectExperience(
     id,
     user,
     client_name,
@@ -185,7 +185,7 @@ export const create = async (
 
 export const getAll = async (
   user?: number,
-): Promise<LaboralExperience[]> => {
+): Promise<ProjectExperience[]> => {
   const { rows } = await postgres.query(
     `SELECT
       E.PK_EXPERIENCIA,
@@ -230,12 +230,12 @@ export const getAll = async (
     number,
     boolean | null,
     string | null,
-  ]) => new LaboralExperience(...row));
+  ]) => new ProjectExperience(...row));
 };
 
 export const findById = async (
   id: number,
-): Promise<LaboralExperience | null> => {
+): Promise<ProjectExperience | null> => {
   const { rows } = await postgres.query(
     `SELECT
       E.PK_EXPERIENCIA,
@@ -263,7 +263,7 @@ export const findById = async (
     id,
   );
 
-  return new LaboralExperience(
+  return new ProjectExperience(
     ...rows[0] as [
       number,
       number,
@@ -289,7 +289,7 @@ export const findById = async (
 export const findByIdAndUser = async (
   id: number,
   user: number,
-): Promise<LaboralExperience | null> => {
+): Promise<ProjectExperience | null> => {
   const { rows } = await postgres.query(
     `SELECT
       E.PK_EXPERIENCIA,
@@ -319,7 +319,7 @@ export const findByIdAndUser = async (
     user,
   );
 
-  return new LaboralExperience(
+  return new ProjectExperience(
     ...rows[0] as [
       number,
       number,
@@ -380,7 +380,7 @@ export const generateTableData = (
       FROM ${TABLE} E
       LEFT JOIN ${REVIEW_TABLE} AS R
         ON E.PK_EXPERIENCIA::VARCHAR = R.FK_DATOS
-        AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_LABORAL}'
+        AND R.TIPO_FORMULARIO = '${DataType.EXPERIENCIA_PROYECTO}'
       ${user_id ? `WHERE E.FK_USUARIO = ${user_id}` : ""}`
     );
 
