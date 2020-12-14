@@ -30,10 +30,14 @@ import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
 
-const getPersonCost = (id) => fetchPersonCostApi(id).then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getComputers = () => fetchComputerApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getLicenses = () => fetchLicenseApi().then((x) => x.json());
+
+const getPersonCost = (id) => fetchPersonCostApi(id).then((x) => x.json());
 
 const getResult = async (
   labour_cost,
@@ -607,20 +611,27 @@ export default () => {
 
   useEffect(() => {
     getComputers().then((computers) =>
-      setParameters((prev_state) => ({ ...prev_state, computers }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        computers: computers.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getLicenses().then((licenses) => {
       setParameters((prev_state) => ({
         ...prev_state,
-        licenses: licenses.map((
-          { pk_licencia, nombre },
-        ) => [pk_licencia, nombre]),
+        licenses: licenses
+          .map(({ pk_licencia, nombre }) => [pk_licencia, nombre])
+          .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
       }));
     });
     getPeople().then((people) =>
       setParameters((prev_state) => ({
         ...prev_state,
-        people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
+        people: people
+          .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+          .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
       }))
     );
     updateTable();

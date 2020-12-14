@@ -18,7 +18,9 @@ import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 
+/** @return Promise<Array<{name: string}>> */
 const getAreaTypes = () => fetchAreaTypesApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
 
 const getArea = (id) => fetchAreaApi(id).then((x) => x.json());
@@ -378,12 +380,17 @@ export default () => {
   //Add error catching for data fetching
   useEffect(() => {
     getAreaTypes().then((area_types) =>
-      setParameters((prev_state) => ({ ...prev_state, area_types }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        area_types: area_types.sort(({ name: x }, { name: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getPeople().then((people) => {
-      const entries = people.map((
-        { pk_persona, nombre },
-      ) => [pk_persona, nombre]);
+      const entries = people
+        .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+        .sort(([_x, x], [_y, y]) => x.localeCompare(y));
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
     updateTable();

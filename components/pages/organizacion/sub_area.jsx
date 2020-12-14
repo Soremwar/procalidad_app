@@ -18,7 +18,9 @@ import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 
+/** @return Promise<Array<{nombre: string}>> */
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getAreas = () => fetchAreaApi().then((x) => x.json());
 
 const getSubArea = (id) => fetchSubAreaApi(id).then((x) => x.json());
@@ -379,12 +381,15 @@ export default () => {
   //Cancel subscription to state update
   useEffect(() => {
     getAreas().then((areas) =>
-      setParameters((prev_state) => ({ ...prev_state, areas }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        areas: areas.sort(({ nombre: x }, { nombre: y }) => x.localeCompare(y)),
+      }))
     );
     getPeople().then((people) => {
-      const entries = people.map((
-        { pk_persona, nombre },
-      ) => [pk_persona, nombre]);
+      const entries = people
+        .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+        .sort(([_x, x], [_y, y]) => x.localeCompare(y));
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
     updateTable();

@@ -22,9 +22,13 @@ import MultipleSelectField from "../../common/MultipleSelectField.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 
+/** @return Promise<Array<{nombre: string}>> */
 const getPositions = () => fetchPositionApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getSubAreas = () => fetchSubAreaApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getRoles = () => fetchRoleApi().then((x) => x.json());
 
 const getAssignation = (id) => fetchAssignationApi(id).then((x) => x.json());
@@ -465,21 +469,35 @@ export default () => {
 
   useEffect(() => {
     getPositions().then((positions) =>
-      setParameters((parameters) => ({ ...parameters, positions }))
+      setParameters((parameters) => ({
+        ...parameters,
+        positions: positions.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getSubAreas().then((sub_areas) =>
-      setParameters((parameters) => ({ ...parameters, sub_areas }))
+      setParameters((parameters) => ({
+        ...parameters,
+        sub_areas: sub_areas.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getPeople().then((people) =>
       setParameters((parameters) => ({
         ...parameters,
-        people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
+        people: people
+          .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+          .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
       }))
     );
     getRoles().then((roles) =>
       setParameters((parameters) => ({
         ...parameters,
-        roles: roles.map(({ pk_rol, nombre }) => [pk_rol, nombre]),
+        roles: roles
+          .map(({ pk_rol, nombre }) => [pk_rol, nombre])
+          .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
       }))
     );
     updateTable();

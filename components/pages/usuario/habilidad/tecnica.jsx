@@ -451,8 +451,14 @@ export default () => {
     getSkills()
       .then(async (response) => {
         if (response.ok) {
+          /** @type Array<{id: number, name: string}> */
           const skills = await response.json();
-          setParameters((prev_state) => ({ ...prev_state, skills }));
+          setParameters((prev_state) => ({
+            ...prev_state,
+            skills: skills.sort(({ name: x }, { name: y }) =>
+              x.localeCompare(y)
+            ),
+          }));
         } else {
           throw new Error();
         }

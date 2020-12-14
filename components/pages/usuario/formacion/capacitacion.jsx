@@ -237,7 +237,6 @@ const AddModal = ({
         value={fields.formation_level}
       >
         {formation_levels
-          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
           .map(({ id, name }) => (
             <option key={id} value={id}>{name}</option>
           ))}
@@ -296,7 +295,7 @@ const AddModal = ({
         label="Instructor"
         onChange={(_event, value) =>
           setFields((prev_state) => ({ ...prev_state, teacher: value }))}
-        options={people.sort(([_a, x], [_b, y]) => x.localeCompare(y))}
+        options={people}
         value={fields.teacher}
       />
     </ReviewForm>
@@ -389,7 +388,6 @@ const EditModal = ({
         value={fields.formation_level}
       >
         {formation_levels
-          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
           .map(({ id, name }) => (
             <option key={id} value={id}>{name}</option>
           ))}
@@ -443,7 +441,7 @@ const EditModal = ({
         label="Instructor"
         onChange={(_event, value) =>
           setFields((prev_state) => ({ ...prev_state, teacher: value }))}
-        options={people.sort(([_a, x], [_b, y]) => x.localeCompare(y))}
+        options={people}
         value={fields.teacher}
       />
     </ReviewForm>
@@ -526,7 +524,6 @@ const ReviewModal = ({
         value={fields.formation_level}
       >
         {formation_levels
-          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
           .map(({ id, name }) => (
             <option key={id} value={id}>{name}</option>
           ))}
@@ -566,7 +563,7 @@ const ReviewModal = ({
         fullWidth
         name="teacher"
         label="Instructor"
-        options={people.sort(([_a, x], [_b, y]) => x.localeCompare(y))}
+        options={people}
         value={fields.teacher}
       />
     </ReviewerForm>
@@ -689,8 +686,15 @@ export default function Capacitacion({
     getFormationLevels()
       .then(async (response) => {
         if (response.ok) {
+          /** @type Array<{name: string}> */
           const formation_levels = await response.json();
-          setParameters((prev_state) => ({ ...prev_state, formation_levels }));
+          setParameters((prev_state) => ({
+            ...prev_state,
+            formation_levels: formation_levels.sort((
+              { name: x },
+              { name: y },
+            ) => x.localeCompare(y)),
+          }));
         } else {
           throw new Error();
         }
@@ -699,11 +703,14 @@ export default function Capacitacion({
     getPeople(true)
       .then(async (response) => {
         if (response.ok) {
-          const people = await response.json()
-            .then((raw_people) =>
-              raw_people.map(({ pk_persona, nombre }) => [pk_persona, nombre])
-            );
-          setParameters((prev_state) => ({ ...prev_state, people }));
+          /** @type Array<{pk_persona: number, nombre: string}> */
+          const people = await response.json();
+          setParameters((prev_state) => ({
+            ...prev_state,
+            people: people
+              .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+              .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
+          }));
         } else {
           throw new Error();
         }

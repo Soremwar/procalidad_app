@@ -20,9 +20,13 @@ import DialogForm from "../../common/DialogForm.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
 
+/** @return Promise<Array<{nombre: string}>> */
 const getSubAreas = () => fetchSubAreaApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getClients = () => fetchClientApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getProjectTypes = () => fetchProjectTypeApi().then((x) => x.json());
 
 const getProject = (id) => fetchProjectApi(id).then((x) => x.json());
@@ -534,19 +538,36 @@ export default () => {
 
   useEffect(() => {
     getSubAreas().then((sub_areas) =>
-      setParameters((prev_state) => ({ ...prev_state, sub_areas }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        sub_areas: sub_areas.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getClients().then((clients) =>
-      setParameters((prev_state) => ({ ...prev_state, clients }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        clients: clients.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getPeople().then((people) =>
       setParameters((prev_state) => ({
         ...prev_state,
-        people: people.map(({ pk_persona, nombre }) => [pk_persona, nombre]),
+        people: people
+          .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+          .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
       }))
     );
     getProjectTypes().then((project_types) =>
-      setParameters((prev_state) => ({ ...prev_state, project_types }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        project_types: project_types.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     updateTable();
   }, []);

@@ -524,8 +524,14 @@ export default () => {
     getSectors()
       .then(async (response) => {
         if (response.ok) {
+          /** @type Array<{nombre: string}> */
           const sectors = await response.json();
-          setParameters((prev_state) => ({ ...prev_state, sectors }));
+          setParameters((prev_state) => ({
+            ...prev_state,
+            sectors: sectors.sort(({ nombre: x }, { nombre: y }) =>
+              x.localeCompare(y)
+            ),
+          }));
         } else {
           throw new Error();
         }

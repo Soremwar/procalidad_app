@@ -9,7 +9,7 @@ import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
 
-const getClients = () => fetchClientApi().then((x) => x.json());
+const getClients = () => fetchClientApi();
 
 const getContact = (id) => fetchContactApi(id).then((x) => x.json());
 
@@ -473,7 +473,19 @@ export default () => {
   };
 
   useEffect(() => {
-    getClients().then((x) => setClients(x));
+    getClients()
+      .then(async (response) => {
+        if (response.ok) {
+          /** @type Array<{nombre: string}> */
+          const clients = await response.json();
+          setClients(
+            clients.sort(({ nombre: x }, { nombre: y }) => x.localeCompare(y)),
+          );
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("couldnt load clients"));
     updateTable();
   }, []);
 

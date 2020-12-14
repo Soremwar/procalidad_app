@@ -52,14 +52,21 @@ import Widget from "../../common/Widget.jsx";
 import ResourceHeatmap from "./recurso/ResourceHeatmap.jsx";
 import DetailHeatmap from "./recurso/DetailHeatmap.jsx";
 
+/** @return Promise<Array<{nombre: string}>> */
 const getBudgets = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getClients = () => fetchClientApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getPositions = () => fetchPositionApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getProjects = () => fetchProjectApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getRoles = () => fetchRoleApi().then((x) => x.json());
 const getResource = (id) => fetchResourceApi(id).then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getSubAreas = () => fetchSubAreaApi().then((x) => x.json());
 const getResourceGantt = (type, person, project) => {
   const params = new URLSearchParams(Object.fromEntries([
@@ -929,28 +936,56 @@ export default () => {
       setParameters((prev_state) => ({ ...prev_state, blacklisted_dates }))
     );
     getBudgets().then((budgets) =>
-      setParameters((prev_state) => ({ ...prev_state, budgets }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        budgets: budgets.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getClients().then((clients) =>
-      setParameters((prev_state) => ({ ...prev_state, clients }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        clients: clients.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getPeople().then((people) => {
-      const entries = people.map((
-        { pk_persona, nombre },
-      ) => [pk_persona, nombre]);
+      const entries = people
+        .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+        .sort(([_x, x], [_y, y]) => x.localeCompare(y));
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
     getPositions().then((positions) =>
-      setParameters((prev_state) => ({ ...prev_state, positions }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        positions: positions.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getProjects().then((projects) =>
-      setParameters((prev_state) => ({ ...prev_state, projects }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        projects: projects.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getRoles().then((roles) =>
-      setParameters((prev_state) => ({ ...prev_state, roles }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        roles: roles.sort(({ nombre: x }, { nombre: y }) => x.localeCompare(y)),
+      }))
     );
     getSubAreas().then((sub_areas) =>
-      setParameters((prev_state) => ({ ...prev_state, sub_areas }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        sub_areas: sub_areas.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
   }, []);
 

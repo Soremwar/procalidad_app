@@ -46,10 +46,14 @@ import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
+/** @return Promise<Array<{nombre: string}>> */
 const getBudgets = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getClients = () => fetchClientApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getProjects = () => fetchProjectApi().then((x) => x.json());
 const getResource = (id) => fetchResourceApi(id).then((x) => x.json());
 const getResourceGantt = (project) => {
@@ -59,6 +63,7 @@ const getResourceGantt = (project) => {
   ].filter(([_index, value]) => value)));
   return fetchResourceApi(`gantt?${params.toString()}`).then((x) => x.json());
 };
+/** @return Promise<Array<{nombre: string}>> */
 const getRoles = () => fetchRoleApi().then((x) => x.json());
 
 const createResource = async (
@@ -751,7 +756,12 @@ export default () => {
 
   useEffect(() => {
     getBudgets().then((budgets) =>
-      setParameters((prev_state) => ({ ...prev_state, budgets }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        budgets: budgets.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getClients().then((clients) => {
       const entries = clients
@@ -760,9 +770,9 @@ export default () => {
       setParameters((prev_state) => ({ ...prev_state, clients: entries }));
     });
     getPeople().then((people) => {
-      const entries = people.map((
-        { pk_persona, nombre },
-      ) => [pk_persona, nombre]);
+      const entries = people
+        .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+        .sort(([_x, x], [_y, y]) => x.localeCompare(y));
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
     getProjects().then((projects) => {
@@ -774,7 +784,10 @@ export default () => {
       setParameters((prev_state) => ({ ...prev_state, projects: entries }));
     });
     getRoles().then((roles) => {
-      setParameters((prev_state) => ({ ...prev_state, roles }));
+      setParameters((prev_state) => ({
+        ...prev_state,
+        roles: roles.sort(({ nombre: x }, { nombre: y }) => x.localeCompare(y)),
+      }));
     });
   }, []);
 

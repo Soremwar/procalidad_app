@@ -18,6 +18,7 @@ import SelectField from "../../common/SelectField.jsx";
 import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
 
+/** @return Promise<Array<{nombre: string}>> */
 const getPeople = () => fetchPeopleApi().then((x) => x.json());
 
 const getProjectType = (id) => fetchAreaTypesApi(id).then((x) => x.json());
@@ -385,7 +386,8 @@ export default () => {
   useEffect(() => {
     getPeople().then((people) => {
       const entries = people
-        .map(({ pk_persona, nombre }) => [pk_persona, nombre]);
+        .map(({ pk_persona, nombre }) => [pk_persona, nombre])
+        .sort(([_x, x], [_y, y]) => x.localeCompare(y));
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
     updateTable();

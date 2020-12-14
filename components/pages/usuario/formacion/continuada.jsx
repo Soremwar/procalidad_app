@@ -346,7 +346,6 @@ const AddModal = ({
           value={fields.formation_level}
         >
           {formation_levels
-            .sort(({ name: x }, { name: y }) => x.localeCompare(y))
             .map(({ id, name }) => (
               <option key={id} value={id}>{name}</option>
             ))}
@@ -522,7 +521,6 @@ const EditModal = ({
           value={fields.formation_level}
         >
           {formation_levels
-            .sort(({ name: x }, { name: y }) => x.localeCompare(y))
             .map(({ id, name }) => (
               <option key={id} value={id}>{name}</option>
             ))}
@@ -674,7 +672,6 @@ const ReviewModal = ({
         value={fields.formation_level}
       >
         {formation_levels
-          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
           .map(({ id, name }) => (
             <option key={id} value={id}>{name}</option>
           ))}
@@ -837,8 +834,15 @@ export default function Continuada({
     getFormationLevels()
       .then(async (response) => {
         if (response.ok) {
+          /** @type Array<{name: string}> */
           const formation_levels = await response.json();
-          setParameters((prev_state) => ({ ...prev_state, formation_levels }));
+          setParameters((prev_state) => ({
+            ...prev_state,
+            formation_levels: formation_levels.sort((
+              { name: x },
+              { name: y },
+            ) => x.localeCompare(y)),
+          }));
         } else {
           throw new Error();
         }

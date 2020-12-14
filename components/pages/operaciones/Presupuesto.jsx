@@ -35,9 +35,13 @@ import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 import CurrencyField from "@unicef/material-ui-currency-textfield";
 
+/** @return Promise<Array<{nombre: string}>> */
 const getClients = () => fetchClientApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getBudgetTypes = () => fetchBudgetTypeApi().then((x) => x.json());
+/** @return Promise<Array<{nombre: string}>> */
 const getProjects = () => fetchProjectApi().then((x) => x.json());
+/** @return Promise<Array<{pk_rol: number, nombre: string}>> */
 const getRoles = () => fetchRoleApi().then((x) => x.json());
 
 const getBudget = (id) => fetchBudgetApi(id).then((x) => x.json());
@@ -211,12 +215,14 @@ const BudgetDetail = ({
   useEffect(() => {
     getRoles()
       .then((roles) =>
-        roles.map((role) => {
-          return {
-            id: role.pk_rol,
-            name: role.nombre,
-          };
-        })
+        roles
+          .map((role) => {
+            return {
+              id: role.pk_rol,
+              name: role.nombre,
+            };
+          })
+          .sort(({ name: x }, { name: y }) => x.localeCompare(y))
       )
       .then((roles) => setAvailableRoles(roles));
   }, []);
@@ -757,13 +763,28 @@ export default () => {
 
   useEffect(() => {
     getBudgetTypes().then((budget_types) =>
-      setParameters((prev_state) => ({ ...prev_state, budget_types }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        budget_types: budget_types.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getClients().then((clients) =>
-      setParameters((prev_state) => ({ ...prev_state, clients }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        clients: clients.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     getProjects().then((projects) =>
-      setParameters((prev_state) => ({ ...prev_state, projects }))
+      setParameters((prev_state) => ({
+        ...prev_state,
+        projects: projects.sort(({ nombre: x }, { nombre: y }) =>
+          x.localeCompare(y)
+        ),
+      }))
     );
     updateTable();
   }, []);
