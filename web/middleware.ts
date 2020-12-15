@@ -11,6 +11,10 @@ import {
 } from "./exceptions.ts";
 import type { Profiles } from "../api/common/profiles.ts";
 
+//TODO
+//Refactor this.
+// Should receive an error with code and return object with error and message
+
 export const errorHandler = async (
   { response }: Context,
   next: () => Promise<void>,
@@ -38,6 +42,7 @@ export const errorHandler = async (
           response,
           Status.BadRequest,
           error.message || Message.BadRequest,
+          error.code,
         );
         break;
       case NotFoundError:

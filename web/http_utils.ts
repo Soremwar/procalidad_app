@@ -13,9 +13,10 @@ export const formatResponse = (
   response: Response,
   status_code: Status,
   message: string | Message,
+  code?: string,
 ): Response => {
   response.status = status_code;
-  response.body = { message };
+  response.body = { code, message };
   return response;
 };
 

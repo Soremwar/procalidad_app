@@ -129,7 +129,7 @@ export const updateEarlyCloseRequest = async (
   const approved = castStringToBoolean(value.approved);
 
   if (approved) {
-    await control.close(false);
+    await control.close();
   }
 
   await dispatchEarlyCloseRequestReview(

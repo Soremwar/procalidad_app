@@ -37,6 +37,7 @@ import AsyncSelectField from "../common/AsyncSelectField.jsx";
 import DateField from "../common/DateField.jsx";
 import DialogForm from "../common/DialogForm.jsx";
 import PlanningModal from "./registro/PlanningModal.jsx";
+import ConfirmDialog from "../common/ConfirmDialog.jsx";
 import Title from "../common/Title.jsx";
 import Table from "./registro/Table.jsx";
 
@@ -74,8 +75,12 @@ const updateWeekDetail = async (id, control, budget, role, hours) =>
     method: "PUT",
   });
 
-const closeWeek = async (person) =>
+const closeWeek = async (person, overflow = false) =>
   fetchWeekDetailApi(`semana/${person}`, {
+    body: JSON.stringify({ overflow }),
+    headers: {
+      "Content-Type": "application/json",
+    },
     method: "PUT",
   });
 
@@ -404,6 +409,7 @@ export default function Registro() {
   const [request_modal_open, setRequestModalOpen] = useState(false);
   const [table_data, setTableData] = useState(new Map());
   const [early_close_modal_open, setEarlyCloseModalOpen] = useState(false);
+  const [overflow_week_modal_open, setOverflowWeekModalOpen] = useState(false);
   const [week_details, setWeekDetails] = useState({
     assignated_hours: 0,
     date: null,
@@ -530,19 +536,28 @@ export default function Registro() {
       closeWeek(context.id)
         .then(async (response) => {
           setAlertOpen(false);
+
+          const {
+            code,
+            message,
+          } = await response.json();
+
           if (response.ok) {
-            setError(null);
-            updateCurrentWeekDetails();
-            setAlertOpen(true);
-          } else {
-            //TODO
-            //Fix this, this is an atrocity
-            const res = await response.json().then((body) => body.message);
-            if (res.includes("esperado semanal")) {
-              setEarlyCloseModalOpen(true);
+            if (response.status === 202) {
+              setOverflowWeekModalOpen(true);
             } else {
-              setError(res);
+              setError(null);
+              updateCurrentWeekDetails();
               setAlertOpen(true);
+            }
+          } else {
+            switch (code) {
+              case "REGISTRY_WEEK_NOT_COMPLETED":
+                setEarlyCloseModalOpen(true);
+                break;
+              default:
+                setError(message);
+                setAlertOpen(true);
             }
           }
         })
@@ -677,6 +692,40 @@ export default function Registro() {
         onConfirm={(message) => handleEarlyCloseRequested(message)}
         open={early_close_modal_open}
       />
+      <ConfirmDialog
+        onConfirm={() => {
+          closeWeek(context.id, true)
+            .then(async (response) => {
+              setAlertOpen(false);
+
+              const {
+                message,
+              } = await response.json();
+
+              if (response.ok) {
+                setError(null);
+                updateCurrentWeekDetails();
+                setAlertOpen(true);
+              } else {
+                setError(message);
+                setAlertOpen(true);
+              }
+            })
+            .finally(() => {
+              updateCurrentWeekDetails();
+              updateTable();
+            });
+        }}
+        onClose={() => setOverflowWeekModalOpen(false)}
+        open={overflow_week_modal_open}
+        title="Asignación excedida"
+      >
+        Usted va a cerrar la semana con más horas de las laborales de la semana,
+        por favor revise que su registro sea correcto.
+        <br />
+        Recuerde que las horas adicionales solo tendran reconocimiento económico
+        si fueron aprobadas <b>previamente</b>
+      </ConfirmDialog>
     </Fragment>
   );
 }

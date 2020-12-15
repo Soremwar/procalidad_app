@@ -30,27 +30,7 @@ export class WeekControl {
     );
   }
 
-  async close(
-    validate = true,
-  ): Promise<WeekControl> {
-    if (validate) {
-      const validation = await validateWeek(this.person, this.week);
-
-      if (!validation.goal_reached) {
-        throw new Error(
-          "Las horas registradas no coinciden con el esperado semanal",
-        );
-      }
-      if (!validation.assignation_completed) {
-        throw new Error("Las horas registradas exceden la asignacion aprobada");
-      }
-      if (!validation.time_completed) {
-        throw new Error(
-          "La semana a cerrar aun se encuentra en curso",
-        );
-      }
-    }
-
+  async close(): Promise<WeekControl> {
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
         BAN_CERRADO = TRUE,
@@ -394,16 +374,17 @@ export const isWeekOpen = async (
   return rows[0][0];
 };
 
+interface ValidationResult {
+  assignation_completed: boolean;
+  time_completed: boolean;
+  week_completed: boolean;
+  week_overflowed: boolean;
+}
+
 export const validateWeek = async (
   person: number,
   week: number,
-): Promise<
-  {
-    goal_reached: boolean;
-    assignation_completed: boolean;
-    time_completed: boolean;
-  }
-> => {
+): Promise<ValidationResult> => {
   const { rows } = await postgres.query(
     `WITH DETALLE AS (
       SELECT
@@ -437,22 +418,25 @@ export const validateWeek = async (
         A.FK_PRESUPUESTO,
         A.FK_ROL,
         R.HORAS
-    ), EJECUTADO AS (
-      SELECT CASE WHEN COALESCE(SUM(EJECUTADO), 0) = (
-        SELECT
-          COALESCE(SUM(1) * 9, 0)
-        FROM ${TIME_TABLE} T
-        JOIN ${WEEK_TABLE} S
-        ON FECHA BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
-        WHERE S.PK_SEMANA = $2
-        AND BAN_FESTIVO = FALSE
-        AND EXTRACT(ISODOW FROM T.FECHA) NOT IN (6,7)
-      ) THEN TRUE ELSE FALSE END AS META_ALCANZADA FROM DETALLE
+    ), SEMANA AS (
+      SELECT
+        COALESCE(SUM(EJECUTADO), 0) AS REGISTRADO,
+        (
+          SELECT
+            COALESCE(SUM(1) * 9, 0)
+          FROM ${TIME_TABLE} T
+          JOIN ${WEEK_TABLE} S
+          ON FECHA BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
+          WHERE S.PK_SEMANA = $2
+          AND BAN_FESTIVO = FALSE
+          AND EXTRACT(ISODOW FROM T.FECHA) NOT IN (6,7)
+        ) AS ESPERADO
+      FROM DETALLE
     ), IRREGULARIDADES AS (
       SELECT
         CASE WHEN COUNT(1) = 0 THEN TRUE ELSE FALSE END AS ASIGNACION_CUMPLIDA
       FROM DETALLE
-      WHERE ESPERADO < EJECUTADO
+      WHERE EJECUTADO < ESPERADO
     ), CALENDARIO AS (
       SELECT
         CASE WHEN FECHA_FIN + INTERVAL '1 DAY' < NOW() THEN TRUE ELSE FALSE END AS TIEMPO_COMPLETADO
@@ -460,21 +444,33 @@ export const validateWeek = async (
       WHERE PK_SEMANA = $2
     )
     SELECT
-      E.META_ALCANZADA,
-      I.ASIGNACION_CUMPLIDA,
-      C.TIEMPO_COMPLETADO
-    FROM EJECUTADO E
+      I.ASIGNACION_CUMPLIDA AS ASSIGNATION_COMPLETED,
+      C.TIEMPO_COMPLETADO AS TIME_COMPLETED,
+      S.REGISTRADO >= S.ESPERADO AS WEEK_COMPLETED,
+      S.REGISTRADO > S.ESPERADO AS WEEK_OVERFLOWED
+    FROM SEMANA S
     JOIN IRREGULARIDADES I ON 1 = 1
     JOIN CALENDARIO C ON 1 = 1`,
     person,
     week,
   );
 
-  const [goal_reached, assignation_completed, time_completed]: [
+  const [
+    assignation_completed,
+    time_completed,
+    week_completed,
+    week_overflowed,
+  ]: [
+    boolean,
     boolean,
     boolean,
     boolean,
   ] = rows[0];
 
-  return { goal_reached, assignation_completed, time_completed };
+  return {
+    assignation_completed,
+    time_completed,
+    week_completed,
+    week_overflowed,
+  };
 };

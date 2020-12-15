@@ -1,5 +1,5 @@
 import { makeStyles } from "@material-ui/styles";
-import React, { useState } from "react";
+import React from "react";
 import {
   Button,
   Dialog,
@@ -8,7 +8,6 @@ import {
   DialogContentText,
   DialogTitle,
   IconButton,
-  TextField,
   Typography,
 } from "@material-ui/core";
 import { Close as CloseIcon } from "@material-ui/icons";
@@ -27,17 +26,11 @@ const reasonDialogStyles = makeStyles((theme) => ({
 }));
 
 /**
- * @callback confirmationCallback
- * @param {string} reason
- * */
-
-/**
  * @param {object} props
- * @param {confirmationCallback} props.onConfirm
  * @param {boolean} props.open
  * @param {string} props.title
  */
-export default function TextDialog({
+export default function ConfirmDialog({
   children,
   onConfirm,
   onClose,
@@ -45,7 +38,6 @@ export default function TextDialog({
   title,
 }) {
   const classes = reasonDialogStyles();
-  const [message, setMessage] = useState("");
 
   return (
     <Dialog
@@ -62,18 +54,6 @@ export default function TextDialog({
       </DialogTitle>
       <DialogContent>
         <DialogContentText>{children}</DialogContentText>
-        <TextField
-          fullWidth
-          inputProps={{
-            maxLength: "255",
-          }}
-          multiline
-          rows="3"
-          rowsMax="10"
-          onChange={(event) => setMessage(event.target.value)}
-          variant="outlined"
-          value={message}
-        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="primary">
@@ -82,11 +62,11 @@ export default function TextDialog({
         <Button
           color="primary"
           onClick={() => {
-            onConfirm(message);
+            onConfirm();
             onClose();
           }}
         >
-          Confirmar
+          Aceptar
         </Button>
       </DialogActions>
     </Dialog>

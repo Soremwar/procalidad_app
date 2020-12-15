@@ -1,3 +1,4 @@
+import { Status } from "oak";
 import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import {
@@ -11,6 +12,7 @@ import {
   createNewControl,
   findOpenWeek,
   getOpenWeekAsDate,
+  validateWeek,
 } from "../../api/models/OPERACIONES/control_semana.ts";
 import { findById as findWeek } from "../../api/models/MAESTRO/dim_semana.ts";
 import {
@@ -20,8 +22,20 @@ import {
   getPersonRequestedHoursByWeek as getWeekRequests,
 } from "../../api/models/OPERACIONES/asignacion_solicitud.ts";
 import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
-import { TRUTHY_INTEGER, UNSIGNED_NUMBER } from "../../lib/ajv/types.js";
+import {
+  BOOLEAN,
+  TRUTHY_INTEGER,
+  UNSIGNED_NUMBER,
+} from "../../lib/ajv/types.js";
 import { decodeToken } from "../../lib/jwt.ts";
+import { castStringToBoolean } from "../../lib/utils/boolean.js";
+
+const close_request = {
+  $id: "close",
+  properties: {
+    "overflow": BOOLEAN,
+  },
+};
 
 const post_structure = {
   $id: "post",
@@ -55,6 +69,7 @@ const put_structure = {
 
 const request_validator = new Ajv({
   schemas: [
+    close_request,
     post_structure,
     put_structure,
   ],
@@ -187,13 +202,50 @@ export const updateWeekDetail = async (
 };
 
 export const closePersonWeek = async (
-  { params, response }: RouterContext<{ person: string }>,
+  { params, request, response }: RouterContext<{ person: string }>,
 ) => {
-  const person: number = Number(params.person);
+  const person = Number(params.person);
   if (!person) throw new RequestSyntaxError();
 
   const week = await findOpenWeek(person);
   if (!week) throw new NotFoundError("No existen registros en esta semana");
+
+  const value = await request.body({ type: "json" }).value;
+  if (!request_validator.validate("close", value)) {
+    throw new RequestSyntaxError();
+  }
+
+  const allow_week_overflow = castStringToBoolean(value.overflow ?? false);
+  const validation = await validateWeek(week.person, week.week);
+
+  if (validation) {
+    if (!validation.week_completed) {
+      throw new RequestSyntaxError(
+        "REGISTRY_WEEK_NOT_COMPLETED",
+        "Las horas registradas no coinciden con el esperado semanal",
+      );
+    } else if (!validation.time_completed) {
+      throw new RequestSyntaxError(
+        "REGISTRY_WEEK_ON_GOING",
+        "La semana a cerrar aun se encuentra en curso",
+      );
+    } else if (!validation.assignation_completed) {
+      throw new RequestSyntaxError(
+        "REGISTRY_ASSIGNATION_NOT_COMPLETED",
+        "No cumplio con el minimo de horas asignadas",
+      );
+    }
+
+    if (validation.week_overflowed && !allow_week_overflow) {
+      response.status = Status.Accepted;
+      response.body = {
+        code: "REGISTRY_WEEK_OVERFLOWED",
+        message: "Las horas registradas exceden la asignación semanal",
+      };
+      return;
+    }
+    //If validation passes then close week
+  }
 
   response.body = await week.close();
 };
