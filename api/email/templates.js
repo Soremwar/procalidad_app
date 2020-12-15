@@ -201,3 +201,27 @@ export const createEarlyCloseRequestReviewEmail = async (
     week,
   });
 };
+
+export const createCertificationExpirationEmail = async (
+  provider,
+  certification,
+  type,
+  name,
+  days,
+) => {
+  const html = new HtmlEncoder.AllHtmlEntities();
+  const raw_template = await Deno.readTextFile(
+    new URL("./templates/certification_expiration.html", import.meta.url),
+  );
+  const template = Handlebars.compile(raw_template, {
+    noEscape: true,
+  });
+
+  return template({
+    certification: html.encode(certification),
+    days,
+    name: html.encode(name),
+    provider: html.encode(provider),
+    type: html.encode(type),
+  });
+};

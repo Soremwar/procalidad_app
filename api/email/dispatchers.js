@@ -3,6 +3,7 @@ import postgres from "../services/postgres.js";
 import {
   createAssignationRequestEmail,
   createAssignationRequestReviewEmail,
+  createCertificationExpirationEmail,
   createEarlyCloseRequestEmail,
   createEarlyCloseRequestReviewEmail,
   createHumanResourcesReviewEmail,
@@ -550,4 +551,52 @@ export const dispatchEarlyCloseRequestReview = async (
     "Cierre de semana",
     email_content,
   );
+};
+
+export const dispatchCertificationExpiration = async () => {
+  const { rows: review } = await postgres.query(
+    `SELECT
+      (SELECT CORREO FROM ORGANIZACION.PERSONA WHERE PK_PERSONA = C.FK_USUARIO) AS USER_EMAIL,
+      PC.NOMBRE AS PROVIDER,
+      P.NOMBRE AS CERTIFICATION,
+      T.NOMBRE AS TYPE,
+      C.NOMBRE AS NAME,
+      C.FEC_EXPIRACION - CURRENT_DATE AS DAYS
+    FROM USUARIOS.CERTIFICACION C
+    JOIN USUARIOS.TIPO_CERTIFICACION T
+      ON C.FK_TIPO = T.PK_TIPO
+    JOIN USUARIOS.PLANTILLA_CERTIFICACION P
+      ON C.FK_PLANTILLA = P.PK_PLANTILLA
+    JOIN USUARIOS.PROVEEDOR_CERTIFICACION PC
+      ON P.FK_PROVEEDOR = PC.PK_PROVEEDOR
+    WHERE FEC_EXPIRACION IS NOT NULL
+    AND FEC_EXPIRACION < (CURRENT_DATE + INTERVAL '2 MONTH')
+    AND FEC_EXPIRACION >= CURRENT_DATE`,
+  );
+
+  const [
+    user_email,
+    provider,
+    certification,
+    type,
+    name,
+    days,
+  ] = review[0];
+
+  const email_content = await createCertificationExpirationEmail(
+    provider,
+    certification,
+    type,
+    name,
+    days,
+  );
+
+  await sendNewEmail(
+    user_email,
+    "Aviso de certificación: expiración",
+    email_content,
+  );
+
+  //TODO
+  //Should send email to supervisor
 };

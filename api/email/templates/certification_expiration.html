@@ -1,0 +1,66 @@
+{{#> layout}}
+  {{#*inline "styles"}}
+    <style>
+      .text-services {
+        padding: 10px 10px 0;
+        text-align: center;
+      }
+
+      .text-services h3 {
+        font-size: 20px;
+      }
+
+      @media screen and (max-width: 500px) {
+        .text-services {
+          padding-left: 0;
+          padding-right: 20px;
+          text-align: left;
+        }
+      }
+    </style>
+  {{/inline}}
+  {{#*inline "title"}}
+    Aviso de certificación: expiración
+  {{/inline}}
+  {{#*inline "subtitle"}}
+    Una de sus certificaciones en la plataforma se acerca a su fecha de vencimiento
+  {{/inline}}
+  {{#*inline "content"}}
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td valign="top" width="50%" style="padding-top: 20px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td class="text-services">
+                <p>
+                  Su certificación en {{{ certification }}} expirara en {{{ days }}} dias.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td valign="top" width="50%" style="padding-top: 20px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td class="text-services">
+                <h3>Detalles</h3>
+                <ul>
+                  <li>Proveedor: {{{ provider }}}</li>
+                  <li>Certificación: {{{ certification }}}</li>
+                  <li>Tipo de certificación: {{{ type }}}</li>
+                  <li>Nombre: {{{ name }}}</li>
+                </ul>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  {{/inline}}
+  {{#*inline "information"}}
+    Ingrese a la <a href="{{ AppUrl '' }}">aplicaci&oacute;n Procalidad</a> y cargue su certificación renovada
+  {{/inline}}
+  {{#*inline "links"}}
+    {{ Link 'Certificaciones' 'usuario/certificacion'}}
+  {{/inline}}
+{{/layout}}
