@@ -1,4 +1,5 @@
 import type { RouterContext } from "oak";
+import Ajv from "ajv";
 import {
   createNew as createBudgetItem,
   findAll as findBudgetItems,
@@ -18,6 +19,57 @@ import { decodeToken } from "../../../lib/jwt.ts";
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
+import { BOOLEAN, NUMBER, STRING } from "../../../lib/ajv/types.js";
+
+interface Role {
+  id: number;
+  price: number;
+  time: number;
+}
+
+const update_request = {
+  $id: "update",
+  properties: {
+    "budget_type": NUMBER(1),
+    "description": STRING(255),
+    "name": STRING(255),
+    "project": NUMBER(1),
+    "roles": {
+      type: "object",
+      properties: {
+        "id": NUMBER(1),
+        "price": NUMBER(0),
+        "time": NUMBER(0),
+      },
+      required: [
+        "id",
+        "price",
+        "time",
+      ],
+    },
+    "status": BOOLEAN,
+  },
+};
+
+const create_request = Object.assign({}, update_request, {
+  $id: "create",
+  required: [
+    "budget_type",
+    "description",
+    "name",
+    "project",
+    "roles",
+    "status",
+  ],
+});
+
+//@ts-ignore
+const request_validator = new Ajv({
+  schemas: [
+    create_request,
+    update_request,
+  ],
+});
 
 export const getBudgets = async ({ response }: RouterContext) => {
   response.body = await findBudgetItems();
@@ -34,37 +86,23 @@ export const createBudget = async (
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    project,
-    budget_type,
-    name,
-    description,
-    status,
-    roles,
-  } = await request.body({ type: "json" }).value;
-
-  if (
-    !(
-      Number(project) &&
-      Number(budget_type) &&
-      name &&
-      description &&
-      !isNaN(Number(status)) &&
-      Array.isArray(roles)
-    )
-  ) {
-    throw new RequestSyntaxError();
-  }
-
-  const project_model = await findProject(Number(project));
-  if (!project_model) throw new Error("El proyecto seleccionado no existe");
-
-  //Ignore cause this is already validated but TypeScript is too dumb to notice
   const session_cookie = cookies.get("PA_AUTH") || "";
   const {
     id: user_id,
     profiles: user_profiles,
   } = await decodeToken(session_cookie);
+
+  const value: {
+    budget_type: number;
+    description: string;
+    name: string;
+    project: number;
+    roles: Role[];
+    status: boolean;
+  } = await request.body({ type: "json" }).value;
+
+  const project_model = await findProject(value.project);
+  if (!project_model) throw new Error("El proyecto seleccionado no existe");
 
   const allowed_editors = await project_model.getSupervisors();
   if (!allowed_editors.includes(user_id)) {
@@ -81,24 +119,23 @@ export const createBudget = async (
   }
 
   const budget_id = await createBudgetItem(
-    Number(project),
-    Number(budget_type),
-    name,
-    description,
-    Boolean(Number(status)),
+    value.project,
+    value.budget_type,
+    value.name,
+    value.description,
+    value.status,
   );
 
-  for (const role of roles) {
-    if (!Number(role.id)) continue;
+  for (const role of value.roles) {
     await createBudgetDetail(
       budget_id,
-      Number(role.id),
-      Number(role.time) || 0,
-      Number(role.price) || 0,
+      role.id,
+      role.time,
+      role.price,
     );
   }
 
-  response = formatResponse(
+  response.body = formatResponse(
     response,
     Status.OK,
     Message.OK,
@@ -155,29 +192,29 @@ export const updateBudget = async (
     }
   }
 
-  const {
-    budget_type,
-    name,
-    description,
-    status,
-    roles,
+  const value: {
+    budget_type: number;
+    description: string;
+    name: string;
+    roles: Role[];
+    status: boolean;
   } = await request.body({ type: "json" }).value;
 
   budget = await budget.update(
-    Number(budget_type) || undefined,
-    name,
-    description,
-    !isNaN(Number(status)) ? Boolean(Number(status)) : undefined,
+    value.budget_type,
+    value.name,
+    value.description,
+    value.status,
   );
 
   await deleteBudgetDetail(id);
-  for (const role of roles) {
-    if (!Number(role.id)) continue;
+
+  for (const role of value.roles) {
     await createBudgetDetail(
       id,
-      Number(role.id),
-      Number(role.time) || 0,
-      Number(role.price) || 0,
+      role.id,
+      role.time,
+      role.price,
     );
   }
 

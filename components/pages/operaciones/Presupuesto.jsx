@@ -239,8 +239,8 @@ const BudgetDetail = ({
       return prev_roles.map((role, index) => {
         if (index !== key) return role;
         role.id = id;
-        role.time = time;
-        role.price = price;
+        role.time = Number(time);
+        role.price = Number(price);
         return role;
       });
     });
@@ -358,17 +358,16 @@ const AddModal = ({
     budget_type: "",
     name: "",
     description: "",
-    status: "",
+    status: true,
   });
   const [roles, setRoles] = useState([]);
 
   const handleChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-    setFields((prev_state) => {
-      const data = ({ ...prev_state, [name]: value });
-      return data;
-    });
+    const {
+      name,
+      value,
+    } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
   const handleSubmit = async () => {
@@ -407,7 +406,7 @@ const AddModal = ({
         budget_type: "",
         name: "",
         description: "",
-        status: "",
+        status: true,
       });
       setRoles([]);
       setLoading(false);
@@ -484,13 +483,16 @@ const AddModal = ({
         value={fields.description}
       />
       <SelectField
-        margin="dense"
-        name="status"
-        label="Estado"
         fullWidth
-        onChange={handleChange}
+        name="status"
+        margin="dense"
+        label="Estado"
+        onChange={(event) => {
+          const status = Boolean(Number(event.target.value));
+          setFields((prev_state) => ({ ...prev_state, status }));
+        }}
         required
-        value={fields.status}
+        value={Number(fields.status)}
       >
         <option value="0">Cerrado</option>
         <option value="1">Abierto</option>
@@ -523,7 +525,7 @@ const EditModal = ({
     budget_type: "",
     name: "",
     description: "",
-    status: "",
+    status: false,
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -537,7 +539,7 @@ const EditModal = ({
         budget_type: data.fk_tipo_presupuesto,
         name: data.nombre,
         description: data.descripcion,
-        status: Number(data.estado),
+        status: data.estado,
       });
       setRoles(
         data.roles.map((
@@ -653,13 +655,16 @@ const EditModal = ({
         value={fields.description}
       />
       <SelectField
-        margin="dense"
-        name="status"
-        label="Estado"
         fullWidth
-        onChange={handleChange}
+        name="status"
+        margin="dense"
+        label="Estado"
+        onChange={(event) => {
+          const status = Boolean(Number(event.target.value));
+          setFields((prev_state) => ({ ...prev_state, status }));
+        }}
         required
-        value={fields.status}
+        value={Number(fields.status)}
       >
         <option value="0">Cerrado</option>
         <option value="1">Abierto</option>
