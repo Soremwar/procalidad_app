@@ -14,12 +14,12 @@ export const createApprovedReview = async (
   data_reference: string,
   reviewer: number,
 ) => {
-  let review = await create(
+  const review = await create(
     REVIEW_TYPE,
     data_reference,
   );
 
-  await review.approve(reviewer);
+  return await review.approve(reviewer);
 };
 
 export const getReview = (

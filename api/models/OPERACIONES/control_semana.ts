@@ -47,10 +47,19 @@ export class WeekControl {
 
     return this;
   }
+
+  /** Should only be used to rollback a bad user creation operation */
+  async delete(): Promise<void> {
+    await postgres.query(
+      `DELETE FROM ${TABLE} WHERE PK_CONTROL = $1`,
+      this.id,
+    );
+  }
 }
 
-export const createNewControl = async (
+export const create = async (
   person: number,
+  week: number,
 ): Promise<WeekControl> => {
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
@@ -59,25 +68,14 @@ export const createNewControl = async (
       BAN_CERRADO
     ) VALUES (
       $1,
-      (
-        SELECT
-          PK_SEMANA
-        FROM ${WEEK_TABLE}
-        WHERE COD_SEMANA < (
-          SELECT
-            COD_SEMANA
-          FROM ${WEEK_TABLE}
-          WHERE CURRENT_DATE BETWEEN FECHA_INICIO AND FECHA_FIN
-        )
-        ORDER BY COD_SEMANA DESC
-        LIMIT 1
-      ),
+      $2,
       FALSE
-    ) RETURNING PK_CONTROL, FK_SEMANA`,
+    ) RETURNING PK_CONTROL`,
     person,
+    week,
   );
 
-  const [id, week]: [number, number] = rows[0];
+  const id: number = rows[0][0];
 
   return new WeekControl(
     id,

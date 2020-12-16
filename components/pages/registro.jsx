@@ -57,6 +57,8 @@ const getProjects = () => fetchProjectApi().then((x) => x.json());
 const getTableData = (id) =>
   fetchWeekDetailApi(`table/${id}`).then((x) => x.json());
 
+//TODO
+//Create and update should be unified into a single call
 const createWeekDetail = async (person, control, budget, role, hours) =>
   fetchWeekDetailApi(person, {
     body: JSON.stringify({ control, budget, role, hours }),

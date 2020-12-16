@@ -10,6 +10,18 @@ import {
   getTableData,
   TipoIdentificacion,
 } from "../../../api/models/ORGANIZACION/people.ts";
+import {
+  findByDate as findWeekByDate,
+} from "../../../api/models/MAESTRO/dim_semana.ts";
+import {
+  findByCode as findParameter,
+} from "../../../api/models/MAESTRO/parametro.ts";
+import {
+  getActiveDefinition as findParameterValue,
+} from "../../../api/models/MAESTRO/parametro_definicion.ts";
+import {
+  create as createNewControl,
+} from "../../../api/models/OPERACIONES/control_semana.ts";
 import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
@@ -21,15 +33,10 @@ import {
   STRING,
 } from "../../../lib/ajv/types.js";
 import { castStringToBoolean } from "../../../lib/utils/boolean.js";
-import {
-  findByCode as findParameter,
-} from "../../../api/models/MAESTRO/parametro.ts";
+import { formatStandardStringToStandardNumber } from "../../../lib/date/mod.js";
 import {
   getFile as getTemplateFile,
 } from "../../../api/storage/template_file.ts";
-import {
-  getActiveDefinition as findParameterValue,
-} from "../../../api/models/MAESTRO/parametro_definicion.ts";
 import { decodeToken } from "../../../lib/jwt.ts";
 import {
   createApprovedReview as approveIdentificationReview,
@@ -106,6 +113,15 @@ export const createPerson = async (
     throw new RequestSyntaxError();
   }
 
+  const week = await findWeekByDate(
+    formatStandardStringToStandardNumber(value.start_date),
+  );
+  if (!week) {
+    throw new Error(
+      "La fecha de inicio no fue encontrada en la lista de semanas disponible",
+    );
+  }
+
   const person = await create(
     value.type,
     value.identification,
@@ -115,22 +131,47 @@ export const createPerson = async (
     value.start_date,
   );
 
-  //TODO
-  //Add recoverable error
-  await approvePersonalDataReview(
-    String(person.pk_persona),
-    reviewer,
-  );
+  const control = await createNewControl(
+    person.pk_persona,
+    week.id,
+  )
+    .catch(async (e) => {
+      await person.delete();
+      throw e;
+    });
 
-  await approveIdentificationReview(
+  const personal_data_review = await approvePersonalDataReview(
     String(person.pk_persona),
     reviewer,
-  );
+  )
+    .catch(async (e) => {
+      await control.delete();
+      await person.delete();
+      throw e;
+    });
+
+  const identification_review = await approveIdentificationReview(
+    String(person.pk_persona),
+    reviewer,
+  )
+    .catch(async (e) => {
+      await personal_data_review.delete();
+      await control.delete();
+      await person.delete();
+      throw e;
+    });
 
   await approveResidenceReview(
     String(person.pk_persona),
     reviewer,
-  );
+  )
+    .catch(async (e) => {
+      await identification_review.delete();
+      await personal_data_review.delete();
+      await control.delete();
+      await person.delete();
+      throw e;
+    });
 
   response.body = person;
 };
@@ -216,7 +257,10 @@ export const updatePerson = async (
     throw new RequestSyntaxError();
   }
 
-  response.body = await person.update(
+  //TODO
+  //Allow start_date to be updated and update control accordingly
+
+  await person.update(
     value.type,
     value.identification,
     undefined,
@@ -233,14 +277,16 @@ export const updatePerson = async (
     undefined,
     undefined,
     undefined,
-    value.start_date,
+    undefined,
     value.retirement_date,
   )
-    .catch((e) => {
+    .catch(() => {
       throw new Error(
         "No fue posible actualizar a la persona",
       );
     });
+
+  response.body = person;
 };
 
 export const getPicture = async (

@@ -9,7 +9,6 @@ import {
   getTableData,
 } from "../../api/models/OPERACIONES/registro.ts";
 import {
-  createNewControl,
   findOpenWeek,
   getOpenWeekAsDate,
   validateWeek,
@@ -40,11 +39,6 @@ const close_request = {
 const post_structure = {
   $id: "post",
   properties: {
-    "control": {
-      minimum: 1,
-      pattern: "^[0-9]+$|^null$",
-      type: ["string", "number", "null"],
-    },
     "budget": TRUTHY_INTEGER,
     "role": TRUTHY_INTEGER,
     "hours": UNSIGNED_NUMBER,
@@ -148,31 +142,29 @@ export const getWeekDetailTable = async (
 };
 
 export const createWeekDetail = async (
-  { params, request, response }: RouterContext<{ person: string }>,
+  { cookies, request, response }: RouterContext<{ person: string }>,
 ) => {
-  const person: number = Number(params.person);
-  if (!person) throw new RequestSyntaxError();
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: person,
+  } = await decodeToken(session_cookie);
+
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const value = await request.body({ type: "json" }).value;
-
   if (
     !request_validator.validate("post", value)
   ) {
     throw new RequestSyntaxError();
   }
 
-  let control: number;
-  if (String(value.control) === "null") {
-    control = await createNewControl(
-      person,
-    ).then((week_control) => week_control.id);
-  } else {
-    control = Number(value.control);
+  const control = await findOpenWeek(person);
+  if (!control) {
+    throw new NotFoundError("La semana solicitada no se encuentra disponible");
   }
 
   response.body = await createNew(
-    control,
+    control.id,
     Number(value.budget),
     Number(value.role),
     Number(value.hours),
