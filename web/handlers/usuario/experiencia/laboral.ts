@@ -19,6 +19,7 @@ import {
 } from "../../../../lib/ajv/types.js";
 import {
   deleteFile as deleteGenericFile,
+  updateFile as updateGenericFile,
   writeFile as writeGenericFile,
 } from "../../../../api/storage/generic_file.ts";
 
@@ -281,10 +282,11 @@ export const updateLaboralExperienceCertificate = async (
   }
 
   if (laboral_experience.generic_file) {
-    await writeGenericFile(
+    await updateGenericFile(
       laboral_experience.generic_file,
       user_id,
       content,
+      extension,
     );
   } else {
     const { id: file_id } = await writeGenericFile(

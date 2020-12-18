@@ -31,6 +31,8 @@ const generateFileProps = async (
   };
 };
 
+//TODO
+//Refactor this, should use the model not the id
 const getFileProps = async (
   file_id: number,
   user_id?: number,
@@ -42,6 +44,39 @@ const getFileProps = async (
     name: generic_file_model.file_name,
     path: `${generic_file_model.path}/${generic_file_model.file_name}`,
   };
+};
+
+export const updateFile = async (
+  id: number,
+  user_id: number,
+  content: Uint8Array,
+  extension: string,
+): Promise<GenericFile> => {
+  const generic_file_model = await getGenericFileModel(id)
+    .then((model) => {
+      if (!model) {
+        throw new NotFoundError();
+      } else {
+        return model;
+      }
+    });
+
+  const {
+    name,
+    path,
+  } = await getFileProps(generic_file_model.id);
+
+  //TODO
+  //There should be a better way to replace the extension
+  const new_name = name.replace(/(?<=\.)\w+/, extension);
+  const new_path = path.replace(/(?<=\.)\w+/, extension);
+
+  await writeUploadFile(
+    new_path,
+    content,
+  );
+
+  return await generic_file_model.update(new_name);
 };
 
 export const deleteFile = async (
@@ -73,58 +108,25 @@ export const getFile = async (
 };
 
 export async function writeFile(
-  generic_file_id: number,
-  user_id: number,
-  content: Uint8Array,
-): Promise<GenericFile>;
-
-export async function writeFile(
-  generic_file_id: undefined,
+  _generic_file_id: undefined,
   user_id: number,
   content: Uint8Array,
   relative_path: string,
   file_name: string,
   max_size: number,
   extensions: string[],
-): Promise<GenericFile>;
-
-export async function writeFile(
-  generic_file_id: number | undefined,
-  user_id: number,
-  content: Uint8Array,
-  relative_path?: string,
-  file_name?: string,
-  max_size?: number,
-  extensions?: string[],
 ): Promise<GenericFile> {
-  let generic_file_model: GenericFile;
+  const {
+    name,
+  } = await generateFileProps(relative_path, file_name, user_id);
 
-  if (
-    !generic_file_id && relative_path && file_name && max_size && extensions
-  ) {
-    const {
-      name,
-    } = await generateFileProps(relative_path, file_name, user_id);
-
-    generic_file_model = await createGenericFileModel(
-      user_id,
-      relative_path,
-      max_size,
-      extensions,
-      name,
-    );
-  } else if (!generic_file_id) {
-    throw new Error("Los argumentos para cargar el archivo no son válidos");
-  } else {
-    generic_file_model = await getGenericFileModel(generic_file_id)
-      .then((model) => {
-        if (!model) {
-          throw new NotFoundError();
-        } else {
-          return model;
-        }
-      });
-  }
+  const generic_file_model = await createGenericFileModel(
+    user_id,
+    relative_path,
+    max_size,
+    extensions,
+    name,
+  );
 
   const {
     path,
@@ -135,5 +137,5 @@ export async function writeFile(
     content,
   );
 
-  return await generic_file_model.updateUploadDate();
+  return await generic_file_model.update();
 }

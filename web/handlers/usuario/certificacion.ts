@@ -16,6 +16,7 @@ import { tableRequestHandler } from "../../../api/common/table.ts";
 import { decodeToken } from "../../../lib/jwt.ts";
 import {
   deleteFile as deleteGenericFile,
+  updateFile as updateGenericFile,
   writeFile as writeGenericFile,
 } from "../../../api/storage/generic_file.ts";
 import {
@@ -281,10 +282,11 @@ export const updateCertificationFile = async (
   }
 
   if (certification.generic_file) {
-    await writeGenericFile(
+    await updateGenericFile(
       certification.generic_file,
       user_id,
       content,
+      extension,
     );
   } else {
     const type = await findType(certification.type);

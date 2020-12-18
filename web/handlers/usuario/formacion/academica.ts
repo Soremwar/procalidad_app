@@ -9,6 +9,7 @@ import { requestReview } from "../../../../api/reviews/user_formation.ts";
 import { decodeToken } from "../../../../lib/jwt.ts";
 import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
 import {
+  updateFile as updateGenericFile,
   writeFile as writeGenericFile,
 } from "../../../../api/storage/generic_file.ts";
 import {
@@ -227,10 +228,11 @@ export const updateAcademicFormationTitleCertificate = async (
   }
 
   if (formation_title.generic_file) {
-    await writeGenericFile(
+    await updateGenericFile(
       formation_title.generic_file,
       user_id,
       content,
+      extension,
     );
   } else {
     const { id: file_id } = await writeGenericFile(

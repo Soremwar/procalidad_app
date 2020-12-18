@@ -21,13 +21,17 @@ export class GenericFile {
     );
   }
 
-  async updateUploadDate() {
+  async update(
+    file_name = this.file_name,
+  ) {
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
+        NOMBRE_ARCHIVO = $2,
         FEC_CARGA = NOW()
       WHERE PK_ARCHIVO = $1
       RETURNING FEC_CARGA`,
       this.id,
+      file_name,
     );
 
     this.upload_date = rows[0][0];

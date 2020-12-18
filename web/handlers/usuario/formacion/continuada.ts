@@ -13,7 +13,7 @@ import {
   TRUTHY_INTEGER,
 } from "../../../../lib/ajv/types.js";
 import {
-  deleteFile as deleteGenericFile,
+  updateFile as updateGenericFile,
   writeFile as writeGenericFile,
 } from "../../../../api/storage/generic_file.ts";
 export {
@@ -213,10 +213,11 @@ export const updateContinuousFormationTitleCertificate = async (
   }
 
   if (formation_title.generic_file) {
-    await writeGenericFile(
+    await updateGenericFile(
       formation_title.generic_file,
       user_id,
       content,
+      extension,
     );
   } else {
     const { id: file_id } = await writeGenericFile(
