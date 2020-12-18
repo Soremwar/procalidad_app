@@ -114,6 +114,7 @@ const BudgetRole = ({
   index,
   time,
   price,
+  used,
   roles,
   updateRole,
   deleteRole,
@@ -142,6 +143,7 @@ const BudgetRole = ({
       <TableCell width="10%">
         <IconButton
           color="primary"
+          disabled={used}
           onClick={(() => deleteRole(index))}
           variant="contained"
         >
@@ -205,6 +207,19 @@ const BudgetRole = ({
   );
 };
 
+/**
+ * @typedef Role
+ * @type object
+ * @property {number} id
+ * @property {number} price
+ * @property {number} time
+ * @property {boolean} used
+ * */
+
+/**
+ * @param {object} props
+ * @param {Role[]} props.roles
+ * */
 const BudgetDetail = ({
   roles,
   setRoles,
@@ -230,10 +245,18 @@ const BudgetDetail = ({
   const addRole = () => {
     if (!available_roles.length) return;
     const role = available_roles[0];
-    const new_role = { id: role.id, name: role.name, time: 0, price: 0 };
+    const new_role = {
+      id: role.id,
+      name: role.name,
+      time: 0,
+      price: 0,
+      used: false,
+    };
     setRoles((prev_roles) => ([...prev_roles, new_role]));
   };
 
+  //TODO
+  //Change current detail interface to match the one returned by the API
   const updateRole = (key, id, time, price) => {
     setRoles((prev_roles) => {
       return prev_roles.map((role, index) => {
@@ -543,8 +566,8 @@ const EditModal = ({
       });
       setRoles(
         data.roles.map((
-          { fk_rol, horas, tarifa_hora },
-        ) => ({ id: fk_rol, time: horas, price: tarifa_hora })),
+          { role, hours, hour_cost, used },
+        ) => ({ id: role, time: hours, price: hour_cost, used })),
       );
     }
   }, [is_open]);

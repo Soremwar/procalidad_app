@@ -9,7 +9,7 @@ import {
 import {
   createNew as createBudgetDetail,
   deleteByBudget as deleteBudgetDetail,
-  findByBudget as findBudgetDetail,
+  findUseByBudget as findBudgetDetail,
 } from "../../../api/models/OPERACIONES/PRESUPUESTO_DETALLE.ts";
 import {
   findById as findProject,
@@ -71,16 +71,6 @@ const request_validator = new Ajv({
   ],
 });
 
-export const getBudgets = async ({ response }: RouterContext) => {
-  response.body = await findBudgetItems();
-};
-
-export const getBudgetTable = async (context: RouterContext) =>
-  tableRequestHandler(
-    context,
-    getBudgetItemTable,
-  );
-
 export const createBudget = async (
   { cookies, request, response }: RouterContext,
 ) => {
@@ -100,6 +90,9 @@ export const createBudget = async (
     roles: Role[];
     status: boolean;
   } = await request.body({ type: "json" }).value;
+  if (request_validator.validate("create", value)) {
+    throw new RequestSyntaxError();
+  }
 
   const project_model = await findProject(value.project);
   if (!project_model) throw new Error("El proyecto seleccionado no existe");
@@ -142,6 +135,25 @@ export const createBudget = async (
   );
 };
 
+export const deleteBudget = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
+  const id: number = Number(params.id);
+  if (!id) throw new RequestSyntaxError();
+
+  let budget = await findBudgetItem(id);
+  if (!budget) throw new NotFoundError();
+
+  await deleteBudgetDetail(id);
+
+  await budget.delete();
+  response = formatResponse(
+    response,
+    Status.OK,
+    Message.OK,
+  );
+};
+
 export const getBudget = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
@@ -151,16 +163,32 @@ export const getBudget = async (
   const budget = await findBudgetItem(id);
   if (!budget) throw new NotFoundError();
 
-  const detail = await findBudgetDetail(id);
+  const roles = await findBudgetDetail(id);
 
-  response.body = { ...budget, roles: detail };
+  response.body = { ...budget, roles };
 };
+
+export const getBudgets = async ({ response }: RouterContext) => {
+  response.body = await findBudgetItems();
+};
+
+export const getBudgetTable = async (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getBudgetItemTable,
+  );
 
 export const updateBudget = async (
   { cookies, params, request, response }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
+
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: user_id,
+    profiles: user_profiles,
+  } = await decodeToken(session_cookie);
 
   let budget = await findBudgetItem(id);
   if (!budget) throw new NotFoundError();
@@ -170,13 +198,6 @@ export const updateBudget = async (
 
   const project = await findProject(budget.fk_proyecto);
   if (!project) throw new Error("El proyecto seleccionado no existe");
-
-  //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const {
-    id: user_id,
-    profiles: user_profiles,
-  } = await decodeToken(session_cookie);
 
   const allowed_editors = await project.getSupervisors();
   if (!allowed_editors.includes(user_id)) {
@@ -199,17 +220,44 @@ export const updateBudget = async (
     roles: Role[];
     status: boolean;
   } = await request.body({ type: "json" }).value;
+  if (request_validator.validate("update", value)) {
+    throw new RequestSyntaxError();
+  }
 
-  budget = await budget.update(
+  await budget.update(
     value.budget_type,
     value.name,
     value.description,
     value.status,
   );
 
+  //Only add/edit roles, deletion is only allowed for non used roles
+  const current_roles = await findBudgetDetail(id);
+  const new_roles: Role[] = value.roles.reduce(
+    (current_roles, role) => {
+      const current_role_index = current_roles.findIndex((current_role) =>
+        current_role.id === role.id
+      );
+      //Update if found
+      if (current_role_index !== -1) {
+        current_roles[current_role_index].price = role.price;
+        current_roles[current_role_index].time = role.time;
+      }
+      return current_roles;
+    },
+    //Roles that need to be keeped
+    current_roles
+      .filter(({ used }) => used)
+      .map(({ role, hours, hour_cost }) => ({
+        id: role,
+        time: hours,
+        price: hour_cost,
+      })),
+  );
+
   await deleteBudgetDetail(id);
 
-  for (const role of value.roles) {
+  for (const role of new_roles) {
     await createBudgetDetail(
       id,
       role.id,
@@ -219,23 +267,4 @@ export const updateBudget = async (
   }
 
   response.body = budget;
-};
-
-export const deleteBudget = async (
-  { params, response }: RouterContext<{ id: string }>,
-) => {
-  const id: number = Number(params.id);
-  if (!id) throw new RequestSyntaxError();
-
-  let budget = await findBudgetItem(id);
-  if (!budget) throw new NotFoundError();
-
-  await deleteBudgetDetail(id);
-
-  await budget.delete();
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
 };
