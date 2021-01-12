@@ -4,7 +4,7 @@ import { messages } from "../errors/mod.js";
 import { isObject } from "../utils/object.js";
 
 export interface Response<T = any> {
-  json(): Promise<T>
+  json(): Promise<T>;
 }
 
 const sanitizeUrl = (url) => {
@@ -13,7 +13,11 @@ const sanitizeUrl = (url) => {
   return url[url.length - 1] === "/" ? url.slice(0, url.length - 1) : url;
 };
 
-export function timedFetch<T>(url, options: RequestInit = {}, timeout = 15000): Promise<Response<T>>{
+export function timedFetch<T>(
+  url,
+  options: RequestInit = {},
+  timeout = 15000,
+): Promise<Response<T>> {
   if (options.signal) {
     throw new Error(
       'Propiedad "signal" personalizada no permitida en esta instancia de fetch',
@@ -34,21 +38,25 @@ export function timedFetch<T>(url, options: RequestInit = {}, timeout = 15000): 
       .then(resolve, reject)
       .finally(() => clearTimeout(timer));
   });
-};
+}
 
 interface ObjectURL {
   /** Will default to root if no parameters are provided */
-  path?: string,
+  path?: string;
   /** The url request parameters passed on the request */
-  params: {[key: string]: any},
+  params: { [key: string]: any };
 }
 
-export function requestGenerator (
+export function requestGenerator(
   base_url = "",
 ) {
   base_url = sanitizeUrl(base_url);
-  return function<T>(url: string | number | ObjectURL = "", options: RequestInit = {}, timeout = 15000) {
-    if(typeof url === "string" || typeof url === "number"){
+  return function <T>(
+    url: string | number | ObjectURL = "",
+    options: RequestInit = {},
+    timeout = 15000,
+  ) {
+    if (typeof url === "string" || typeof url === "number") {
       const url_parameters = [
         prefix,
         base_url,
@@ -83,7 +91,7 @@ export function requestGenerator (
       );
     }
   };
-};
+}
 
 export const formatResponseJson = (response) => {
   return response.json()

@@ -47,7 +47,7 @@ class Rol {
 export const findAll = async ({
   project,
 }: {
-  project: number,
+  project: number;
 }): Promise<Rol[]> => {
   const { rows } = await postgres.query(
     `SELECT

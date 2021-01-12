@@ -23,9 +23,7 @@ import {
 import { makeStyles } from "@material-ui/styles";
 import { FrappeGantt, Task, ViewMode } from "frappe-gantt-react";
 import { formatResponseJson, Response } from "../../../lib/api/request.ts";
-import {
-  formatStandardNumberToStandardString,
-} from "../../../lib/date/mod.js";
+import { formatStandardNumberToStandardString } from "../../../lib/date/mod.js";
 import {
   fetchClientApi,
   fetchPeopleApi,

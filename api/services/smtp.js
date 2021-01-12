@@ -7,7 +7,7 @@ export const sendNewEmail = async (
   html_content,
   text_content = "",
 ) => {
-  const client = new SmtpClient;
+  const client = new SmtpClient();
 
   await client.connectTLS({
     hostname: host,

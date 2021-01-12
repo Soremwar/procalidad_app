@@ -17,8 +17,8 @@ import {
 } from "../../../api/models/planeacion/recurso.ts";
 import { addLaboralDays } from "../../../api/models/MAESTRO/dim_tiempo.ts";
 import {
-  getCurrentWeek,
   findByDate as findWeekByDate,
+  getCurrentWeek,
 } from "../../../api/models/MAESTRO/dim_semana.ts";
 import {
   findOpenBudgetByProject as findBudget,
@@ -46,10 +46,10 @@ import {
 const update_request = {
   $id: "update",
   properties: {
-    "assignation": INTEGER({min: 1, max: 100}),
+    "assignation": INTEGER({ min: 1, max: 100 }),
     "hours": NUMBER(0.5),
-    "person": INTEGER({min: 1}),
-    "role": INTEGER({min: 1}),
+    "person": INTEGER({ min: 1 }),
+    "role": INTEGER({ min: 1 }),
     "start_date": STANDARD_DATE_STRING,
   },
 };
@@ -116,13 +116,15 @@ export const createResource = async (
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const value = await request.body({ type: "json" }).value;
-  if(!request_validator.validate("create", value)){
+  if (!request_validator.validate("create", value)) {
     throw new RequestSyntaxError();
   }
 
   const budget = await findBudget(value.project);
   if (!budget) {
-    throw new NotFoundError("No existe un presupuesto abierto para el proyecto seleccionado");
+    throw new NotFoundError(
+      "No existe un presupuesto abierto para el proyecto seleccionado",
+    );
   }
 
   const session_cookie = cookies.get("PA_AUTH") || "";
@@ -135,7 +137,7 @@ export const createResource = async (
   if (!project) {
     throw new NotFoundError("El proyecto seleccionado no existe");
   }
-  
+
   const allowed_editors = await project.getSupervisors();
   if (!allowed_editors.includes(user_id)) {
     if (
@@ -350,7 +352,7 @@ export const updateResource = async (
   if (!resource) throw new NotFoundError();
 
   const value = await request.body({ type: "json" }).value;
-  if(!request_validator.validate("update", value)){
+  if (!request_validator.validate("update", value)) {
     throw new RequestSyntaxError();
   }
 
@@ -372,7 +374,9 @@ export const updateResource = async (
 
   const budget = await findBudget(value.project);
   if (!budget) {
-    throw new NotFoundError("No existe un presupuesto abierto para el proyecto seleccionado");
+    throw new NotFoundError(
+      "No existe un presupuesto abierto para el proyecto seleccionado",
+    );
   }
 
   const project = await findProject(value.project);
@@ -422,5 +426,5 @@ export const updateResource = async (
     end_date,
     value.assignation,
     value.hours,
-  );;
+  );
 };

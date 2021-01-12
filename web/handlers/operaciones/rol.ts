@@ -1,4 +1,4 @@
-import { RouterContext, helpers } from "oak";
+import { helpers, RouterContext } from "oak";
 import Ajv from "ajv";
 import {
   createNew,
@@ -15,9 +15,9 @@ import { INTEGER } from "../../../lib/ajv/types.js";
 const list_request = {
   $id: "list",
   properties: {
-    "project": INTEGER({min: 1}),
+    "project": INTEGER({ min: 1 }),
   },
-}
+};
 
 const request_validator = new Ajv({
   schemas: [
@@ -28,7 +28,7 @@ const request_validator = new Ajv({
 export const getRoles = async (context: RouterContext) => {
   const value = helpers.getQuery(context);
 
-  if(!request_validator.validate("list", value)){
+  if (!request_validator.validate("list", value)) {
     throw new RequestSyntaxError();
   }
 
