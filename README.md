@@ -17,7 +17,7 @@ deno fmt api components config lib web
 ```
 
 ### Requerimientos
-- Deno versión 1.6.0
+- Deno versión 1.6.3
 
 ### Notas:
 Asegurese de permitir el acceso de Deno a la red como servicio

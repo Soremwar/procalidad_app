@@ -4,11 +4,10 @@ import { host, password, port, username } from "../../config/services/smtp.js";
 export const sendNewEmail = async (
   recipient,
   subject,
-  content,
+  html_content,
+  text_content = "",
 ) => {
-  const client = new SmtpClient({
-    content_encoding: "7bit",
-  });
+  const client = new SmtpClient;
 
   await client.connectTLS({
     hostname: host,
@@ -21,7 +20,8 @@ export const sendNewEmail = async (
     from: username,
     to: recipient,
     subject,
-    content,
+    content: text_content,
+    html: html_content,
   });
 
   await client.close();
