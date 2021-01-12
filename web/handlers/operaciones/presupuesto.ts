@@ -238,11 +238,16 @@ export const updateBudget = async (
       const current_role_index = current_roles.findIndex((current_role) =>
         current_role.id === role.id
       );
+
       //Update if found
       if (current_role_index !== -1) {
         current_roles[current_role_index].price = role.price;
         current_roles[current_role_index].time = role.time;
+        //Insert otherwise
+      } else {
+        current_roles.push(role);
       }
+
       return current_roles;
     },
     //Roles that need to be keeped
