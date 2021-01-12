@@ -1,4 +1,5 @@
-import type { RouterContext } from "oak";
+import { RouterContext, helpers } from "oak";
+import Ajv from "ajv";
 import {
   createNew,
   findAll,
@@ -9,10 +10,31 @@ import {
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
-import { searchByName } from "../../../api/models/MAESTRO/PAIS.ts";
+import { INTEGER } from "../../../lib/ajv/types.js";
 
-export const getRoles = async ({ response }: RouterContext) => {
-  response.body = await findAll();
+const list_request = {
+  $id: "list",
+  properties: {
+    "project": INTEGER({min: 1}),
+  },
+}
+
+const request_validator = new Ajv({
+  schemas: [
+    list_request,
+  ],
+});
+
+export const getRoles = async (context: RouterContext) => {
+  const value = helpers.getQuery(context);
+
+  if(!request_validator.validate("list", value)){
+    throw new RequestSyntaxError();
+  }
+
+  context.response.body = await findAll({
+    project: Number(value.proyecto),
+  });
 };
 
 export const getRolesTable = async (context: RouterContext) =>

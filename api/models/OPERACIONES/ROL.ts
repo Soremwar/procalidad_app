@@ -44,18 +44,38 @@ class Rol {
   }
 }
 
-export const findAll = async (): Promise<Rol[]> => {
+export const findAll = async ({
+  project,
+}: {
+  project: number,
+}): Promise<Rol[]> => {
   const { rows } = await postgres.query(
-    `SELECT PK_ROL, NOMBRE, DESCRIPCION FROM ${TABLE}`,
+    `SELECT
+      PK_ROL,
+      NOMBRE,
+      DESCRIPCION
+    FROM OPERACIONES.ROL
+    ${
+      project
+        ? `WHERE PK_ROL IN (
+            SELECT FK_ROL
+            FROM OPERACIONES.PRESUPUESTO_DETALLE
+            WHERE FK_PRESUPUESTO IN (
+              SELECT PK_PRESUPUESTO
+              FROM OPERACIONES.PRESUPUESTO
+              WHERE FK_PROYECTO = ${project}
+              AND ESTADO = TRUE
+            )
+          )`
+        : ""
+    }`,
   );
 
-  const models = rows.map((row: [
+  return rows.map((row: [
     number,
     string,
     string,
   ]) => new Rol(...row));
-
-  return models;
 };
 
 export const findById = async (id: number): Promise<Rol | null> => {

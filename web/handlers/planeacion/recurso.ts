@@ -17,10 +17,11 @@ import {
 } from "../../../api/models/planeacion/recurso.ts";
 import { addLaboralDays } from "../../../api/models/MAESTRO/dim_tiempo.ts";
 import {
+  getCurrentWeek,
   findByDate as findWeekByDate,
 } from "../../../api/models/MAESTRO/dim_semana.ts";
 import {
-  findById as findBudget,
+  findOpenBudgetByProject as findBudget,
 } from "../../../api/models/OPERACIONES/budget.ts";
 import {
   findById as findProject,
@@ -30,13 +31,39 @@ import { Profiles } from "../../../api/common/profiles.ts";
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import {
+  formatStandardStringToStandardNumber,
   parseDateToStandardNumber,
   parseStandardNumber,
 } from "../../../lib/date/mod.js";
 import {
+  INTEGER,
+  NUMBER,
+  STANDARD_DATE_STRING,
   TRUTHY_INTEGER,
   TRUTHY_INTEGER_OR_EMPTY,
 } from "../../../lib/ajv/types.js";
+
+const update_request = {
+  $id: "update",
+  properties: {
+    "assignation": INTEGER({min: 1, max: 100}),
+    "hours": NUMBER(0.5),
+    "person": INTEGER({min: 1}),
+    "role": INTEGER({min: 1}),
+    "start_date": STANDARD_DATE_STRING,
+  },
+};
+
+const create_request = Object.assign({}, update_request, {
+  $id: "create",
+  required: [
+    "assignation",
+    "hours",
+    "person",
+    "role",
+    "start_date",
+  ],
+});
 
 const heatmap_resource_request = {
   $id: "heatmap_resource",
@@ -70,6 +97,8 @@ const heatmap_detail_request = {
 // @ts-ignore
 const request_validator = new Ajv({
   schemas: [
+    create_request,
+    update_request,
     heatmap_detail_request,
     heatmap_resource_request,
   ],
@@ -81,113 +110,33 @@ enum ResourceViewType {
   detail = "detail",
 }
 
-export const getResources = async ({ response }: RouterContext) => {
-  response.body = await findAll();
-};
-
-export const getResourcesTable = async (
-  { request, response }: RouterContext,
-) => {
-  if (!request.hasBody) throw new RequestSyntaxError();
-
-  const {
-    filters = {},
-    order = {},
-    page,
-    rows,
-    search = {},
-    type,
-  } = await request.body({ type: "json" }).value;
-
-  if (
-    !(
-      filters instanceof Object &&
-      order instanceof Object &&
-      search instanceof Object
-    )
-  ) {
-    throw new RequestSyntaxError();
-  }
-
-  const order_parameters = parseOrderFromObject(order);
-  const table_type = type in ResourceViewType
-    ? type as ResourceViewType
-    : ResourceViewType.project;
-
-  if (table_type === ResourceViewType.project) {
-    response.body = await getProjectTableData(
-      order_parameters,
-      page || 0,
-      rows || null,
-      filters,
-      search,
-    );
-  } else if (table_type === ResourceViewType.resource) {
-    response.body = await getResourceTableData(
-      order_parameters,
-      page || 0,
-      rows || null,
-      filters,
-      search,
-    );
-  } else if (table_type === ResourceViewType.detail) {
-    response.body = await getDetailTableData(
-      order_parameters,
-      page || 0,
-      rows || null,
-      filters,
-      search,
-    );
-  }
-};
-
 export const createResource = async (
   { cookies, request, response }: RouterContext,
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    person,
-    budget,
-    role,
-    start_date,
-    assignation,
-    hours,
-  } = await request.body({ type: "json" }).value;
-
-  if (
-    !(
-      Number(person) &&
-      Number(budget) &&
-      Number(role) &&
-      parseStandardNumber(start_date) &&
-      Number(assignation) >= 0 && Number(assignation) <= 100 &&
-      Number(hours)
-    )
-  ) {
+  const value = await request.body({ type: "json" }).value;
+  if(!request_validator.validate("create", value)){
     throw new RequestSyntaxError();
   }
 
-  const budget_data = await findBudget(Number(budget));
-  if (!budget_data) {
-    throw new NotFoundError("El presupuesto seleccionado no existe");
-  }
-  if (!budget_data.estado) {
-    throw new Error("El presupuesto seleccionado esta cerrado");
+  const budget = await findBudget(value.project);
+  if (!budget) {
+    throw new NotFoundError("No existe un presupuesto abierto para el proyecto seleccionado");
   }
 
-  //Ignore cause this is already validated but TypeScript is too dumb to notice
   const session_cookie = cookies.get("PA_AUTH") || "";
   const {
     id: user_id,
     profiles: user_profiles,
   } = await decodeToken(session_cookie);
 
-  const project_data = await findProject(budget_data.fk_proyecto);
-  if (!project_data) {
+  const project = await findProject(value.project);
+  if (!project) {
     throw new NotFoundError("El proyecto seleccionado no existe");
   }
-  const allowed_editors = await project_data.getSupervisors();
+  
+  const allowed_editors = await project.getSupervisors();
   if (!allowed_editors.includes(user_id)) {
     if (
       !user_profiles.some((profile: number) =>
@@ -203,10 +152,9 @@ export const createResource = async (
     }
   }
 
-  const start_date_week = await findWeekByDate(Number(start_date));
-  const today_week = await findWeekByDate(
-    parseDateToStandardNumber(new Date()),
-  );
+  const start_date = formatStandardStringToStandardNumber(value.start_date);
+  const start_date_week = await findWeekByDate(start_date);
+  const today_week = await getCurrentWeek();
   if (!start_date_week || !today_week) {
     throw new Error("Ocurrio un error al procesar las fechas de la planeacion");
   }
@@ -219,124 +167,19 @@ export const createResource = async (
   //TODO
   //Reemplazar 9 por calculo de horas laborales diarias
   const end_date = await addLaboralDays(
-    Number(start_date),
-    Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
+    start_date,
+    Math.ceil(value.hours / 9 * 100 / value.assignation),
   );
 
   response.body = await createNew(
-    Number(person),
-    Number(budget),
-    Number(role),
-    Number(start_date),
-    end_date,
-    Number(assignation),
-    Number(hours),
-  );
-};
-
-export const getResource = async (
-  { params, response }: RouterContext<{ id: string }>,
-) => {
-  const id: number = Number(params.id);
-  if (!id) throw new RequestSyntaxError();
-
-  const resource = await findById(id);
-  if (!resource) throw new NotFoundError();
-
-  response.body = resource;
-};
-
-export const updateResource = async (
-  { cookies, params, request, response }: RouterContext<{ id: string }>,
-) => {
-  const id: number = Number(params.id);
-  if (!request.hasBody || !id) throw new RequestSyntaxError();
-
-  let resource = await findById(id);
-  if (!resource) throw new NotFoundError();
-
-  const {
-    person,
-    budget,
-    role,
-    start_date: stard_date_string,
-    assignation,
-    hours,
-  } = await request.body({ type: "json" }).value;
-
-  let start_date: number;
-  if (!parseStandardNumber(stard_date_string) || !Number(budget)) {
-    throw new RequestSyntaxError();
-  } else {
-    start_date = Number(stard_date_string);
-  }
-
-  const budget_data = await findBudget(Number(budget));
-  if (!budget_data) throw new Error("El presupuesto seleccionado no existe");
-  if (!budget_data.estado) {
-    throw new Error("El presupuesto seleccionado esta cerrado");
-  }
-
-  //Ignore cause this is already validated but TypeScript is too dumb to notice
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const {
-    id: user_id,
-    profiles: user_profiles,
-  } = await decodeToken(session_cookie);
-
-  const project_data = await findProject(budget_data.fk_proyecto);
-  if (!project_data) {
-    throw new NotFoundError("El proyecto seleccionado no existe");
-  }
-  const allowed_editors = await project_data.getSupervisors();
-  if (!allowed_editors.includes(user_id)) {
-    if (
-      !user_profiles.some((profile: number) =>
-        [
-          Profiles.ADMINISTRATOR,
-          Profiles.CONTROLLER,
-        ].includes(profile)
-      )
-    ) {
-      throw new Error(
-        "Usted no tiene permiso para planear sobre este proyecto",
-      );
-    }
-  }
-
-  //TODO
-  //Reemplazar 9 por calculo de horas laborales diarias
-  const end_date = await addLaboralDays(
-    start_date,
-    Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
-  );
-
-  const start_date_week = await findWeekByDate(start_date);
-  const today_week = await findWeekByDate(
-    parseDateToStandardNumber(new Date()),
-  );
-  if (!start_date_week || !today_week) {
-    throw new Error("Ocurrio un error al procesar las fechas de la planeacion");
-  }
-  if (today_week.start_date > start_date_week.start_date) {
-    throw new Error(
-      "La planeacion solo se puede crear hacia futuro",
-    );
-  }
-
-  resource = await resource.update(
-    Number(person) || undefined,
-    Number(budget),
-    Number(role) || undefined,
+    value.person,
+    budget.pk_presupuesto,
+    value.role,
     start_date,
     end_date,
-    Number(assignation) >= 0 && Number(assignation) <= 100
-      ? Number(assignation)
-      : undefined,
-    Number(hours) || undefined,
+    value.assignation,
+    value.hours,
   );
-
-  response.body = resource;
 };
 
 export const deleteResource = async (
@@ -354,6 +197,22 @@ export const deleteResource = async (
     Status.OK,
     Message.OK,
   );
+};
+
+export const getResource = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
+  const id: number = Number(params.id);
+  if (!id) throw new RequestSyntaxError();
+
+  const resource = await findById(id);
+  if (!resource) throw new NotFoundError();
+
+  response.body = resource;
+};
+
+export const getResources = async ({ response }: RouterContext) => {
+  response.body = await findAll();
 };
 
 export const getResourcesGantt = async (
@@ -423,4 +282,145 @@ export const getResourcesHeatmap = async (
       Number(request_value.person),
     );
   }
+};
+
+export const getResourcesTable = async (
+  { request, response }: RouterContext,
+) => {
+  if (!request.hasBody) throw new RequestSyntaxError();
+
+  const {
+    filters = {},
+    order = {},
+    page,
+    rows,
+    search = {},
+    type,
+  } = await request.body({ type: "json" }).value;
+
+  if (
+    !(
+      filters instanceof Object &&
+      order instanceof Object &&
+      search instanceof Object
+    )
+  ) {
+    throw new RequestSyntaxError();
+  }
+
+  const order_parameters = parseOrderFromObject(order);
+  const table_type = type in ResourceViewType
+    ? type as ResourceViewType
+    : ResourceViewType.project;
+
+  if (table_type === ResourceViewType.project) {
+    response.body = await getProjectTableData(
+      order_parameters,
+      page || 0,
+      rows || null,
+      filters,
+      search,
+    );
+  } else if (table_type === ResourceViewType.resource) {
+    response.body = await getResourceTableData(
+      order_parameters,
+      page || 0,
+      rows || null,
+      filters,
+      search,
+    );
+  } else if (table_type === ResourceViewType.detail) {
+    response.body = await getDetailTableData(
+      order_parameters,
+      page || 0,
+      rows || null,
+      filters,
+      search,
+    );
+  }
+};
+
+export const updateResource = async (
+  { cookies, params, request, response }: RouterContext<{ id: string }>,
+) => {
+  const id = Number(params.id);
+  if (!request.hasBody || !id) throw new RequestSyntaxError();
+
+  let resource = await findById(id);
+  if (!resource) throw new NotFoundError();
+
+  const value = await request.body({ type: "json" }).value;
+  if(!request_validator.validate("update", value)){
+    throw new RequestSyntaxError();
+  }
+
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  const {
+    id: user_id,
+    profiles: user_profiles,
+  } = await decodeToken(session_cookie);
+
+  const {
+    person,
+    role,
+    start_date: stard_date_string,
+    assignation,
+    hours,
+  } = await request.body({ type: "json" }).value;
+
+  let start_date = formatStandardStringToStandardNumber(value.start_date);
+
+  const budget = await findBudget(value.project);
+  if (!budget) {
+    throw new NotFoundError("No existe un presupuesto abierto para el proyecto seleccionado");
+  }
+
+  const project = await findProject(value.project);
+  if (!project) {
+    throw new NotFoundError("El proyecto seleccionado no existe");
+  }
+
+  const allowed_editors = await project.getSupervisors();
+  if (!allowed_editors.includes(user_id)) {
+    if (
+      !user_profiles.some((profile: number) =>
+        [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
+        ].includes(profile)
+      )
+    ) {
+      throw new Error(
+        "Usted no tiene permiso para planear sobre este proyecto",
+      );
+    }
+  }
+
+  //TODO
+  //Reemplazar 9 por calculo de horas laborales diarias
+  const end_date = await addLaboralDays(
+    start_date,
+    Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
+  );
+
+  const start_date_week = await findWeekByDate(start_date);
+  const today_week = await getCurrentWeek();
+  if (!start_date_week || !today_week) {
+    throw new Error("Ocurrio un error al procesar las fechas de la planeacion");
+  }
+  if (today_week.start_date > start_date_week.start_date) {
+    throw new Error(
+      "La planeacion solo se puede crear hacia futuro",
+    );
+  }
+
+  response.body = await resource.update(
+    value.person,
+    budget.pk_presupuesto,
+    value.role,
+    start_date,
+    end_date,
+    value.assignation,
+    value.hours,
+  );;
 };

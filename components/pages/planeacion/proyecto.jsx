@@ -22,15 +22,11 @@ import {
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import { FrappeGantt, Task, ViewMode } from "frappe-gantt-react";
-import { formatResponseJson } from "../../../lib/api/request.ts";
+import { formatResponseJson, Response } from "../../../lib/api/request.ts";
 import {
   formatStandardNumberToStandardString,
-  formatStandardStringToStandardNumber,
-  parseDateToStandardNumber,
 } from "../../../lib/date/mod.js";
 import {
-  fetchBudgetApi,
-  fetchBudgetDetailApi,
   fetchClientApi,
   fetchPeopleApi,
   fetchProjectApi,
@@ -41,14 +37,12 @@ import {
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
+import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
-/** @return Promise<Array<{nombre: string}>> */
-const getBudgets = () => fetchBudgetApi().then((x) => x.json());
-const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
 /** @return Promise<Array<{nombre: string}>> */
 const getClients = () => fetchClientApi().then((x) => x.json());
 /** @return Promise<Array<{nombre: string}>> */
@@ -63,23 +57,28 @@ const getResourceGantt = (project) => {
   ].filter(([_index, value]) => value)));
   return fetchResourceApi(`gantt?${params.toString()}`).then((x) => x.json());
 };
-/** @return Promise<Array<{nombre: string}>> */
-const getRoles = () => fetchRoleApi().then((x) => x.json());
+/** @return Promise<Response<Array<{pk_rol: number, nombre: string}>>> */
+const getRoles = (project) =>
+  fetchRoleApi({
+    params: {
+      proyecto: project,
+    },
+  });
 
 const createResource = async (
   assignation,
-  budget,
   hours,
   person,
+  project,
   role,
   start_date,
 ) =>
   fetchResourceApi("", {
     body: JSON.stringify({
       assignation,
-      budget,
       hours,
       person,
+      project,
       role,
       start_date,
     }),
@@ -92,18 +91,18 @@ const createResource = async (
 const updateResource = async (
   id,
   assignation,
-  budget,
   hours,
   person,
+  project,
   role,
   start_date,
 ) =>
   fetchResourceApi(id, {
     body: JSON.stringify({
       assignation,
-      budget,
       hours,
       person,
+      project,
       role,
       start_date,
     }),
@@ -163,13 +162,13 @@ const headers = [
   },
 ];
 
-const ParameterContext = createContext({
-  budgets: [],
+const DEFAULT_PARAMETERS = {
   clients: [],
   people: [],
   projects: [],
-  roles: [],
-});
+};
+
+const ParameterContext = createContext(DEFAULT_PARAMETERS);
 
 const NotSelectedProjectDialog = ({
   open,
@@ -227,17 +226,15 @@ const AddModal = ({
   setModalOpen,
 }) => {
   const {
-    budgets,
     people,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
     assignation: "",
-    budget: "",
     hours: "",
     person: "",
-    role: null,
-    start_date: parseDateToStandardNumber(new Date()),
+    role: "",
+    start_date: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -252,11 +249,11 @@ const AddModal = ({
     setError(null);
 
     createResource(
-      fields.assignation,
-      fields.budget,
-      fields.hours,
-      fields.person,
-      fields.role?.value,
+      Number(fields.assignation),
+      Number(fields.hours),
+      Number(fields.person),
+      Number(project),
+      Number(fields.role.value),
       fields.start_date,
     )
       .then(async (request) => {
@@ -276,11 +273,10 @@ const AddModal = ({
     if (is_open) {
       setFields({
         assignation: "",
-        budget: "",
         hours: "",
         person: "",
-        role: null,
-        start_date: parseDateToStandardNumber(new Date()),
+        role: "",
+        start_date: "",
       });
       setError(null);
       setLoading(false);
@@ -309,28 +305,10 @@ const AddModal = ({
               required
               value={fields.person}
             />
-            <SelectField
-              fullWidth
-              label="Presupuesto"
-              margin="dense"
-              name="budget"
-              onChange={handleChange}
-              required
-              value={fields.budget}
-            >
-              {budgets
-                .filter(({ fk_proyecto }) => fk_proyecto == project)
-                .map(({ pk_presupuesto, nombre }) => (
-                  <option key={pk_presupuesto} value={pk_presupuesto}>
-                    {nombre}
-                  </option>
-                ))}
-            </SelectField>
             <AsyncSelectField
-              disabled={!fields.budget}
               fullWidth
               fetchOptions={async () => {
-                const roles = await fetchRoleApi()
+                const roles = await getRoles(project)
                   .then(async (response) => {
                     if (response.ok) {
                       return await response.json();
@@ -338,16 +316,7 @@ const AddModal = ({
                     throw new Error();
                   });
 
-                const available_roles = await getBudgetDetails(fields.budget)
-                  .then((details) =>
-                    details.reduce((res, { fk_rol }) => {
-                      res.push(fk_rol);
-                      return res;
-                    }, [])
-                  );
-
                 return roles
-                  .filter(({ pk_rol }) => available_roles.includes(pk_rol))
                   .map(({
                     pk_rol,
                     nombre,
@@ -359,29 +328,20 @@ const AddModal = ({
                 setFields((prev_state) => ({ ...prev_state, role: value }))}
               value={fields.role}
             />
-            <TextField
+            <DateField
               fullWidth
               label="Fecha inicio"
-              margin="dense"
               name="start_date"
-              onChange={(event) => {
-                const { value } = event.target;
-                setFields((fields) => ({
-                  ...fields,
-                  start_date: formatStandardStringToStandardNumber(value),
-                }));
-              }}
+              onChange={handleChange}
               required
               type="date"
-              value={formatStandardNumberToStandardString(fields.start_date)}
+              value={fields.start_date}
             />
             <TextField
               fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0,
-                  max: 100,
-                },
+              inputProps={{
+                max: 100,
+                min: 1,
               }}
               label="% Asignación"
               margin="dense"
@@ -393,10 +353,8 @@ const AddModal = ({
             />
             <TextField
               fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0,
-                },
+              inputProps={{
+                min: 1,
               }}
               label="Horas"
               margin="dense"
@@ -422,18 +380,14 @@ const EditModal = ({
   callback,
   data,
   is_open,
-  project,
   setModalOpen,
 }) => {
   const {
-    budgets,
     people,
-    roles,
   } = useContext(ParameterContext);
 
   const [fields, setFields] = useState({
     assignation: "",
-    budget: "",
     hours: "",
     person: "",
     role: "",
@@ -445,16 +399,28 @@ const EditModal = ({
 
   useEffect(() => {
     if (is_open) {
-      setFields({
-        assignation: data.porcentaje,
-        budget: data.fk_presupuesto,
-        hours: data.horas,
-        person: data.fk_persona,
-        role: data.fk_rol,
-        start_date: data.fecha_inicio,
-      });
       setError(null);
       setLoading(false);
+
+      (async () => {
+        await getRoles(data.fk_proyecto)
+          .then(async (response) => {
+            if (response.ok) {
+              const roles = await response.json();
+              setAvailableRoles(roles);
+            } else {
+              throw new Error();
+            }
+          });
+
+        setFields({
+          assignation: data.porcentaje,
+          hours: data.horas,
+          person: data.fk_persona,
+          role: data.fk_rol,
+          start_date: formatStandardNumberToStandardString(data.fecha_inicio),
+        });
+      })();
     }
   }, [is_open]);
 
@@ -468,12 +434,12 @@ const EditModal = ({
     setError(null);
 
     updateResource(
-      data.pk_recurso,
-      fields.assignation,
-      fields.budget,
-      fields.hours,
-      fields.person,
-      fields.role,
+      Number(data.pk_recurso),
+      Number(fields.assignation),
+      Number(fields.hours),
+      Number(fields.person),
+      Number(data.fk_proyecto),
+      Number(fields.role),
       fields.start_date,
     )
       .then(async (request) => {
@@ -489,142 +455,81 @@ const EditModal = ({
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    if (fields.budget) {
-      getBudgetDetails(fields.budget)
-        .then((details) =>
-          details.reduce((res, { fk_rol }) => {
-            res.push(fk_rol);
-            return res;
-          }, [])
-        )
-        .then((available_roles) =>
-          roles.filter(({ pk_rol }) => available_roles.includes(pk_rol))
-        )
-        .then((available_roles) => {
-          setAvailableRoles(available_roles);
-        });
-    } else {
-      setFields((fields) => ({ ...fields, role: "" }));
-      setAvailableRoles([]);
-    }
-  }, [fields.budget]);
-
   return (
-    <Fragment>
-      {project
-        ? (
-          <DialogForm
-            error={error}
-            handleSubmit={handleSubmit}
-            is_loading={is_loading}
-            is_open={is_open}
-            setIsOpen={setModalOpen}
-            title={"Editar"}
-          >
-            <AdvancedSelectField
-              fullWidth
-              name="person"
-              label="Recurso"
-              onChange={(_event, value) =>
-                setFields((prev_value) => ({ ...prev_value, person: value }))}
-              options={people}
-              required
-              value={fields.person}
-            />
-            <SelectField
-              fullWidth
-              label="Presupuesto"
-              margin="dense"
-              name="budget"
-              onChange={handleChange}
-              required
-              value={fields.budget}
-            >
-              {budgets.map(({ pk_presupuesto, nombre }) => (
-                <option key={pk_presupuesto} value={pk_presupuesto}>
-                  {nombre}
-                </option>
-              ))}
-            </SelectField>
-            <SelectField
-              disabled={!fields.budget}
-              fullWidth
-              label="Rol"
-              margin="dense"
-              name="role"
-              onChange={handleChange}
-              required
-              value={fields.budget && fields.role}
-            >
-              {available_roles
-                .map(({ pk_rol, nombre }) => (
-                  <option key={pk_rol} value={pk_rol}>{nombre}</option>
-                ))}
-            </SelectField>
-            <TextField
-              fullWidth
-              label="Fecha inicio"
-              margin="dense"
-              name="start_date"
-              onChange={(event) => {
-                const { value } = event.target;
-                setFields((fields) => ({
-                  ...fields,
-                  start_date: formatStandardStringToStandardNumber(value),
-                }));
-              }}
-              required
-              type="date"
-              value={formatStandardNumberToStandardString(fields.start_date)}
-            />
-            <TextField
-              fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0,
-                  max: 100,
-                },
-              }}
-              label="% Asignación"
-              margin="dense"
-              name="assignation"
-              onChange={handleChange}
-              required
-              type="number"
-              value={fields.assignation}
-            />
-            <TextField
-              fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0,
-                },
-              }}
-              label="Horas"
-              margin="dense"
-              name="hours"
-              onChange={handleChange}
-              required
-              type="number"
-              value={fields.hours}
-            />
-          </DialogForm>
-        )
-        : (
-          <NotSelectedProjectDialog
-            open={is_open}
-            setOpen={setModalOpen}
-          />
-        )}
-    </Fragment>
+    <DialogForm
+      error={error}
+      handleSubmit={handleSubmit}
+      is_loading={is_loading}
+      is_open={is_open}
+      setIsOpen={setModalOpen}
+      title={"Editar"}
+    >
+      <AdvancedSelectField
+        fullWidth
+        name="person"
+        label="Recurso"
+        onChange={(_event, value) =>
+          setFields((prev_value) => ({ ...prev_value, person: value }))}
+        options={people}
+        required
+        value={fields.person}
+      />
+      <SelectField
+        fullWidth
+        label="Rol"
+        margin="dense"
+        name="role"
+        onChange={handleChange}
+        required
+        value={fields.role}
+      >
+        {available_roles
+          .map(({ pk_rol, nombre }) => (
+            <option key={pk_rol} value={pk_rol}>{nombre}</option>
+          ))}
+      </SelectField>
+      <DateField
+        fullWidth
+        label="Fecha inicio"
+        name="start_date"
+        onChange={handleChange}
+        required
+        value={fields.start_date}
+      />
+      <TextField
+        fullWidth
+        inputProps={{
+          max: 100,
+          min: 1,
+        }}
+        label="% Asignación"
+        margin="dense"
+        name="assignation"
+        onChange={handleChange}
+        required
+        type="number"
+        value={fields.assignation}
+      />
+      <TextField
+        fullWidth
+        inputProps={{
+          min: 1,
+        }}
+        label="Horas"
+        margin="dense"
+        name="hours"
+        onChange={handleChange}
+        required
+        type="number"
+        value={fields.hours}
+      />
+    </DialogForm>
   );
 };
 
 const DeleteModal = ({
   callback,
   is_open,
-  project,
   selected,
   setModalOpen,
 }) => {
@@ -660,32 +565,21 @@ const DeleteModal = ({
   };
 
   return (
-    <Fragment>
-      {project
-        ? (
-          <DialogForm
-            error={error}
-            handleSubmit={handleSubmit}
-            is_loading={is_loading}
-            is_open={is_open}
-            setIsOpen={setModalOpen}
-            title={"Eliminar Elementos"}
-            confirmButtonText={"Confirmar"}
-          >
-            <DialogContentText>
-              Esta operacion no se puede deshacer. ¿Esta seguro que desea
-              eliminar estos <b>{selected.length}</b>
-              &nbsp;elementos?
-            </DialogContentText>
-          </DialogForm>
-        )
-        : (
-          <NotSelectedProjectDialog
-            open={is_open}
-            setOpen={setModalOpen}
-          />
-        )}
-    </Fragment>
+    <DialogForm
+      error={error}
+      handleSubmit={handleSubmit}
+      is_loading={is_loading}
+      is_open={is_open}
+      setIsOpen={setModalOpen}
+      title={"Eliminar Elementos"}
+      confirmButtonText={"Confirmar"}
+    >
+      <DialogContentText>
+        Esta operacion no se puede deshacer. ¿Esta seguro que desea eliminar
+        estos <b>{selected.length}</b>
+        &nbsp;elementos?
+      </DialogContentText>
+    </DialogForm>
   );
 };
 
@@ -696,14 +590,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default () => {
-  const [parameters, setParameters] = useState({
-    budgets: [],
-    clients: [],
-    people: [],
-    projects: [],
-    roles: [],
-  });
+export default function Proyecto() {
+  const [parameters, setParameters] = useState(DEFAULT_PARAMETERS);
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedProyect, setSelectedProyect] = useState(null);
   const [is_add_modal_open, setAddModalOpen] = useState(false);
@@ -755,14 +643,6 @@ export default () => {
   };
 
   useEffect(() => {
-    getBudgets().then((budgets) =>
-      setParameters((prev_state) => ({
-        ...prev_state,
-        budgets: budgets.sort(({ nombre: x }, { nombre: y }) =>
-          x.localeCompare(y)
-        ),
-      }))
-    );
     getClients().then((clients) => {
       const entries = clients
         .map(({ pk_cliente, nombre }) => [pk_cliente, nombre])
@@ -782,12 +662,6 @@ export default () => {
         ) => [pk_proyecto, nombre, fk_cliente])
         .sort((x, y) => (x[1]).localeCompare(y[1]));
       setParameters((prev_state) => ({ ...prev_state, projects: entries }));
-    });
-    getRoles().then((roles) => {
-      setParameters((prev_state) => ({
-        ...prev_state,
-        roles: roles.sort(({ nombre: x }, { nombre: y }) => x.localeCompare(y)),
-      }));
     });
   }, []);
 
@@ -822,13 +696,11 @@ export default () => {
           callback={updateTable}
           data={selected_resource}
           is_open={is_edit_modal_open}
-          project={selectedProyect}
           setModalOpen={setEditModalOpen}
         />
         <DeleteModal
           callback={updateTable}
           is_open={is_delete_modal_open}
-          project={selectedProyect}
           setModalOpen={setDeleteModalOpen}
           selected={selected}
         />
@@ -912,4 +784,4 @@ export default () => {
       )}
     </Fragment>
   );
-};
+}
