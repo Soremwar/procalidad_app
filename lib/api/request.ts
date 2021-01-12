@@ -47,8 +47,8 @@ export function requestGenerator (
   base_url = "",
 ) {
   base_url = sanitizeUrl(base_url);
-  return function<T>(url: string | ObjectURL = "", options: RequestInit = {}, timeout = 15000) {
-    if(typeof url === "string"){
+  return function<T>(url: string | number | ObjectURL = "", options: RequestInit = {}, timeout = 15000) {
+    if(typeof url === "string" || typeof url === "number"){
       const url_parameters = [
         prefix,
         base_url,
