@@ -21,7 +21,7 @@ import { makeStyles } from "@material-ui/styles";
 import {
   formatResponseJson,
   requestGenerator,
-} from "../../../lib/api/request.js";
+} from "../../../lib/api/request.ts";
 import { formatDateToStandardString } from "../../../lib/date/mod.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";

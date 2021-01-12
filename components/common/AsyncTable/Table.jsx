@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@material-ui/core";
 
-import { requestGenerator } from "../../../lib/api/request.js";
+import { requestGenerator } from "../../../lib/api/request.ts";
 import { objectsAreEqual } from "../../../lib/utils/object.js";
 
 import TableHeaders from "./components/Header.jsx";

@@ -3,13 +3,17 @@ import { prefix } from "../../config/api.js";
 import { messages } from "../errors/mod.js";
 import { isObject } from "../utils/object.js";
 
+export interface Response<T = any> {
+  json(): Promise<T>
+}
+
 const sanitizeUrl = (url) => {
   url = url[0] === "/" ? url.slice(1) : url;
 
   return url[url.length - 1] === "/" ? url.slice(0, url.length - 1) : url;
 };
 
-export const timedFetch = (url, options = {}, timeout = 15000) => {
+export function timedFetch<T>(url, options: RequestInit = {}, timeout = 15000): Promise<Response<T>>{
   if (options.signal) {
     throw new Error(
       'Propiedad "signal" personalizada no permitida en esta instancia de fetch',
@@ -25,32 +29,38 @@ export const timedFetch = (url, options = {}, timeout = 15000) => {
         ),
       );
     }, timeout);
+
     fetch(url, { signal: controller.signal, ...options })
       .then(resolve, reject)
       .finally(() => clearTimeout(timer));
   });
 };
 
-/**
- * @typedef ObjectURL
- * @type object
- * @property {string} [path=] Will default to root if no parameters are provided
- * @property {Object.<string, any>} params
- * */
+interface ObjectURL {
+  /** Will default to root if no parameters are provided */
+  path?: string,
+  /** The url request parameters passed on the request */
+  params: {[key: string]: any},
+}
 
-/**
- * @callback FetchInstance
- * @param {ObjectURL | string} [url=]
- * @param {object=} options Options for the fetch function
- * @param {number=} timeout
- * @returns {Promise<Response>}
- * */
-
-/** @returns FetchInstance*/
-export const requestGenerator = (base_url = "") => {
+export function requestGenerator (
+  base_url = "",
+) {
   base_url = sanitizeUrl(base_url);
-  return function (url = "", options = {}, timeout = 15000) {
-    if (isObject(url)) {
+  return function<T>(url: string | ObjectURL = "", options: RequestInit = {}, timeout = 15000) {
+    if(typeof url === "string"){
+      const url_parameters = [
+        prefix,
+        base_url,
+        sanitizeUrl(String(url)),
+      ].filter((x) => x);
+
+      return timedFetch<T>(
+        `${protocol}://${address}:${port}/${url_parameters.join("/")}`,
+        options,
+        timeout,
+      );
+    } else {
       const url_parameters = [
         prefix,
         base_url,
@@ -66,20 +76,8 @@ export const requestGenerator = (base_url = "") => {
         }
       }
 
-      return timedFetch(
+      return timedFetch<T>(
         targetURI,
-        options,
-        timeout,
-      );
-    } else {
-      const url_parameters = [
-        prefix,
-        base_url,
-        sanitizeUrl(String(url)),
-      ].filter((x) => x);
-
-      return timedFetch(
-        `${protocol}://${address}:${port}/${url_parameters.join("/")}`,
         options,
         timeout,
       );

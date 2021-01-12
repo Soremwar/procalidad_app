@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { DialogContentText, TextField } from "@material-ui/core";
-import { formatResponseJson } from "../../../lib/api/request.js";
+import { formatResponseJson } from "../../../lib/api/request.ts";
 import { fetchLicenseApi } from "../../../lib/api/generator.js";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import CurrencyField from "@unicef/material-ui-currency-textfield";

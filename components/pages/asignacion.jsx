@@ -18,7 +18,7 @@ import {
 import { makeStyles } from "@material-ui/styles";
 import { Alert } from "@material-ui/lab";
 import { UserContext } from "../context/User.jsx";
-import { formatResponseJson } from "../../lib/api/request.js";
+import { formatResponseJson } from "../../lib/api/request.ts";
 import {
   formatStandardNumberToStandardString,
   formatStandardStringToStandardNumber,

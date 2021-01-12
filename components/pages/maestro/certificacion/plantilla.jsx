@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { DialogContentText, TextField } from "@material-ui/core";
-import { formatResponseJson } from "../../../../lib/api/request.js";
+import { formatResponseJson } from "../../../../lib/api/request.ts";
 import {
   fetchCertificationProviderApi,
   fetchCertificationTemplateApi,

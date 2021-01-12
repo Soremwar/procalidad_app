@@ -13,7 +13,7 @@ import {
   Tooltip,
 } from "@material-ui/core";
 import { GetApp as DownloadIcon } from "@material-ui/icons";
-import { formatResponseJson } from "../../../lib/api/request.js";
+import { formatResponseJson } from "../../../lib/api/request.ts";
 import {
   fetchCertificationProviderApi,
   fetchCertificationTemplateApi,

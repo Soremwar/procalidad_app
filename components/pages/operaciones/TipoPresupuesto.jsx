@@ -3,7 +3,7 @@ import { DialogContentText, TextField } from "@material-ui/core";
 import {
   formatResponseJson,
   requestGenerator,
-} from "../../../lib/api/request.js";
+} from "../../../lib/api/request.ts";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";

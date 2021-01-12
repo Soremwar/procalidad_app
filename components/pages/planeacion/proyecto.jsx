@@ -22,7 +22,7 @@ import {
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import { FrappeGantt, Task, ViewMode } from "frappe-gantt-react";
-import { formatResponseJson } from "../../../lib/api/request.js";
+import { formatResponseJson } from "../../../lib/api/request.ts";
 import {
   formatStandardNumberToStandardString,
   formatStandardStringToStandardNumber,
