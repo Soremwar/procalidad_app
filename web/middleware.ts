@@ -10,11 +10,57 @@ import {
   RequestSyntaxError,
 } from "./exceptions.ts";
 import type { Profiles } from "../api/common/profiles.ts";
+import { State } from "./state.ts";
+
+//@ts-ignore
+const token_validator = new Ajv();
+const token_structure = {
+  required: [
+    "id",
+    "name",
+    "email",
+    "profiles",
+  ],
+  properties: {
+    "id": TRUTHY_INTEGER,
+    "name": {
+      type: "string",
+    },
+    "email": {
+      type: "string",
+    },
+    "profiles": {
+      items: [
+        TRUTHY_INTEGER,
+      ],
+      type: "array",
+    },
+  },
+};
+
+export const checkUserAccess = (required_profiles?: Profiles[]) => {
+  return async (
+    { state }: Context,
+    next: () => Promise<void>,
+  ) => {
+    if (required_profiles) {
+      const user_profiles: number[] = state.user.profiles;
+
+      const has_required_profiles = user_profiles.some((profile) =>
+        required_profiles.includes(profile)
+      );
+      if (!has_required_profiles) {
+        throw new ForbiddenAccessError("No tiene acceso a este contenido");
+      }
+    }
+
+    await next();
+  };
+};
 
 //TODO
 //Refactor this.
 // Should receive an error with code and return object with error and message
-
 export const errorHandler = async (
   { response }: Context,
   next: () => Promise<void>,
@@ -62,60 +108,28 @@ export const errorHandler = async (
   }
 };
 
-//@ts-ignore
-const token_validator = new Ajv();
-const token_structure = {
-  required: [
-    "id",
-    "name",
-    "email",
-    "profiles",
-  ],
-  properties: {
-    "id": TRUTHY_INTEGER,
-    "name": {
-      type: "string",
-    },
-    "email": {
-      type: "string",
-    },
-    "profiles": {
-      items: [
-        TRUTHY_INTEGER,
-      ],
-      type: "array",
-    },
-  },
-};
+/**
+ * This decodes user cookie session and appends it to the app state
+ */
+export const initializeUserSession = async (
+  { cookies, state }: Context<State>,
+  next: () => Promise<void>,
+) => {
+  const session_cookie = cookies.get("PA_AUTH") || "";
+  let session;
+  try {
+    session = await decodeToken(session_cookie);
+  } catch (_e) {
+    throw new AuthenticationRejectedError();
+  }
 
-export const checkUserAccess = (required_profiles?: Profiles[]) => {
-  return async (
-    { cookies }: Context,
-    next: () => Promise<void>,
-  ) => {
-    const session_cookie = cookies.get("PA_AUTH");
-    if (!session_cookie) {
-      throw new AuthenticationRejectedError("El usuario no esta autenticado");
-    }
+  if (!token_validator.validate(token_structure, session)) {
+    throw new RequestSyntaxError(
+      "La estructura de la sesion no es la esperada",
+    );
+  }
 
-    const session_data = await decodeToken(session_cookie);
-    if (!token_validator.validate(token_structure, session_data)) {
-      throw new RequestSyntaxError(
-        "La estructura de la sesion no es la esperada",
-      );
-    }
+  state.user = session;
 
-    if (required_profiles) {
-      const user_profiles: number[] = session_data.profiles;
-
-      const has_required_profiles = user_profiles.some((profile) =>
-        required_profiles.includes(profile)
-      );
-      if (!has_required_profiles) {
-        throw new ForbiddenAccessError("No tiene acceso a este contenido");
-      }
-    }
-
-    await next();
-  };
+  await next();
 };

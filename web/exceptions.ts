@@ -22,7 +22,7 @@ export class NotFoundError extends Error {
 }
 
 export class AuthenticationRejectedError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = Message.Unauthorized) {
     super(message);
   }
 }

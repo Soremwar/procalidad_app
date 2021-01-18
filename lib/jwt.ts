@@ -3,7 +3,7 @@ import { encryption_key } from "../config/api_deno.js";
 
 export const algorithm = "HS256";
 
-interface UserData {
+export interface UserData {
   id: number;
   name: string;
   email: string;

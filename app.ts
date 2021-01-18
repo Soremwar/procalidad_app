@@ -1,14 +1,16 @@
 import { Application, send } from "oak";
 import { allowedMethods, routes } from "./web/routes.ts";
 import { address, port } from "./config/api_deno.js";
-import { errorHandler } from "./web/middleware.ts";
+import { errorHandler, initializeUserSession } from "./web/middleware.ts";
+import { State } from "./web/state.ts";
 
 //TODO
 //Add a check for database parameters before startup
 //Fail and notify on error if active definition doesn't exist either
 
-const app = new Application();
+const app = new Application<State>();
 
+app.use(initializeUserSession);
 app.use(errorHandler);
 app.use(routes);
 app.use(allowedMethods);
