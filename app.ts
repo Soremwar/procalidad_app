@@ -1,7 +1,7 @@
 import { Application, send } from "oak";
 import { allowedMethods, routes } from "./web/routes.ts";
 import { address, port } from "./config/api_deno.js";
-import { errorHandler, initializeUserSession } from "./web/middleware.ts";
+import { errorHandler } from "./web/middleware.ts";
 import { State } from "./web/state.ts";
 
 //TODO
@@ -10,7 +10,6 @@ import { State } from "./web/state.ts";
 
 const app = new Application<State>();
 
-app.use(initializeUserSession);
 app.use(errorHandler);
 app.use(routes);
 app.use(allowedMethods);

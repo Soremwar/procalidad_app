@@ -1,4 +1,4 @@
-import { Context, Status } from "oak";
+import { composeMiddleware, Context, Status } from "oak";
 import { decodeToken } from "../lib/jwt.ts";
 import Ajv from "ajv";
 import { TRUTHY_INTEGER } from "../lib/ajv/types.js";
@@ -39,23 +39,26 @@ const token_structure = {
 };
 
 export const checkUserAccess = (required_profiles?: Profiles[]) => {
-  return async (
-    { state }: Context,
-    next: () => Promise<void>,
-  ) => {
-    if (required_profiles) {
-      const user_profiles: number[] = state.user.profiles;
+  return composeMiddleware([
+    initializeUserSession,
+    async (
+      { state }: Context,
+      next: () => Promise<void>,
+    ) => {
+      if (required_profiles) {
+        const user_profiles: number[] = state.user.profiles;
 
-      const has_required_profiles = user_profiles.some((profile) =>
-        required_profiles.includes(profile)
-      );
-      if (!has_required_profiles) {
-        throw new ForbiddenAccessError("No tiene acceso a este contenido");
+        const has_required_profiles = user_profiles.some((profile) =>
+          required_profiles.includes(profile)
+        );
+        if (!has_required_profiles) {
+          throw new ForbiddenAccessError("No tiene acceso a este contenido");
+        }
       }
-    }
 
-    await next();
-  };
+      await next();
+    },
+  ]);
 };
 
 //TODO
@@ -111,8 +114,8 @@ export const errorHandler = async (
 /**
  * This decodes user cookie session and appends it to the app state
  */
-export const initializeUserSession = async (
-  { cookies, state }: Context<State>,
+const initializeUserSession = async (
+  { cookies, state }: Context,
   next: () => Promise<void>,
 ) => {
   const session_cookie = cookies.get("PA_AUTH") || "";
