@@ -1,39 +1,89 @@
-import { Status } from "oak";
-import type { RouterContext } from "oak";
+import { helpers, Status } from "oak";
+import { RouterContext } from "../state.ts";
 import Ajv from "ajv";
 import {
-  createNew,
-  findById,
-  getAll,
+  create as createRegistry,
+  findByIdentifiers,
+  getCurrentWeekData,
   getRegistryHoursByControlWeek as getWeekRegistry,
-  getTableData,
+  getWeekData,
 } from "../../api/models/OPERACIONES/registro.ts";
 import {
+  create as createRegistryLog,
+} from "../../api/models/OPERACIONES/registry_log.ts";
+import {
+  findByPersonAndWeek,
   findOpenWeek,
   getOpenWeekAsDate,
   validateWeek,
 } from "../../api/models/OPERACIONES/control_semana.ts";
-import { findById as findWeek } from "../../api/models/MAESTRO/dim_semana.ts";
+import {
+  findById as findWeek,
+  getWeeksBetween,
+} from "../../api/models/MAESTRO/dim_semana.ts";
 import {
   getAssignationHoursByWeek as getWeekAssignation,
 } from "../../api/models/OPERACIONES/asignacion.ts";
 import {
   getPersonRequestedHoursByWeek as getWeekRequests,
 } from "../../api/models/OPERACIONES/asignacion_solicitud.ts";
-import { NotFoundError, RequestSyntaxError } from "../exceptions.ts";
+import {
+  ForbiddenAccessError,
+  NotFoundError,
+  RequestSyntaxError,
+} from "../exceptions.ts";
 import {
   BOOLEAN,
+  INTEGER,
+  STRING,
   TRUTHY_INTEGER,
   UNSIGNED_NUMBER,
 } from "../../lib/ajv/types.js";
-import { decodeToken } from "../../lib/jwt.ts";
-import { castStringToBoolean } from "../../lib/utils/boolean.js";
+import { formatDateToStandardString } from "../../lib/date/mod.js";
+import { Profiles } from "../../api/common/profiles.ts";
 
+//TODO
+//person and week should be mutually mandatory
+//Reason should be mandatory if person and week are provided
 const close_request = {
   $id: "close",
   properties: {
     "overflow": BOOLEAN,
+    "person": INTEGER({ min: 0 }),
+    "registry": {
+      items: {
+        properties: {
+          "budget": INTEGER({ min: 0 }),
+          "hours": INTEGER({ min: 0 }),
+          "role": INTEGER({ min: 0 }),
+          "reason": STRING(100),
+        },
+        required: [
+          "budget",
+          "hours",
+          "role",
+        ],
+        type: "object",
+      },
+      type: "array",
+    },
+    "week": INTEGER({ min: 0 }),
   },
+  required: [
+    "registry",
+  ],
+};
+
+const list_request = {
+  $id: "list",
+  properties: {
+    "persona": INTEGER({ min: 1 }),
+    "semana": INTEGER({ min: 1 }),
+  },
+  required: [
+    "persona",
+    "semana",
+  ],
 };
 
 const post_structure = {
@@ -44,7 +94,7 @@ const post_structure = {
     "hours": UNSIGNED_NUMBER,
   },
   required: [
-    "control",
+    "week_control",
     "budget",
     "role",
     "hours",
@@ -64,38 +114,192 @@ const put_structure = {
 const request_validator = new Ajv({
   schemas: [
     close_request,
+    list_request,
     post_structure,
     put_structure,
   ],
 });
 
-export const getWeeksDetail = async ({ response }: RouterContext) => {
-  response.body = await getAll();
+export const closePersonWeek = async (
+  { request, response, state }: RouterContext<{ person: string }>,
+) => {
+  const value: {
+    overflow: boolean;
+    person?: number;
+    registry: Array<{
+      budget: number;
+      role: number;
+      hours: number;
+      reason?: string;
+    }>;
+    week?: number;
+  } = await request.body({ type: "json" }).value;
+  if (!request_validator.validate("close", value)) {
+    throw new RequestSyntaxError();
+  }
+
+  const is_admin_request = !!(value.person && value.week);
+
+  let person;
+  let week_control;
+  if (value.person && value.week) {
+    const has_access = state.user.profiles.some((profile) =>
+      [
+        Profiles.ADMINISTRATOR,
+        Profiles.CONTROLLER,
+        Profiles.HUMAN_RESOURCES,
+      ].includes(profile)
+    );
+
+    if (!has_access) {
+      throw new ForbiddenAccessError();
+    }
+
+    person = value.person;
+    week_control = await findByPersonAndWeek(person, value.week);
+  } else {
+    person = state.user.id;
+    week_control = await findOpenWeek(person);
+  }
+
+  if (!week_control) {
+    throw new NotFoundError("No existen registros en esta semana");
+  }
+
+  const allow_week_overflow = value.overflow;
+  const validation = await validateWeek(
+    person,
+    week_control.week,
+    value.registry,
+  );
+
+  // TODO
+  // El usuario no se le debe permitir solicitar el cerrado
+  // de la semana anticipadamente
+  if (!validation.week_completed) {
+    throw new RequestSyntaxError(
+      "REGISTRY_WEEK_NOT_COMPLETED",
+      "Las horas registradas no coinciden con el esperado semanal",
+    );
+  } else if (!validation.time_completed) {
+    throw new RequestSyntaxError(
+      "REGISTRY_WEEK_ON_GOING",
+      "La semana a cerrar aun se encuentra en curso",
+    );
+  } else if (!validation.assignation_completed) {
+    throw new RequestSyntaxError(
+      "REGISTRY_ASSIGNATION_NOT_COMPLETED",
+      "No cumplio con el minimo de horas asignadas",
+    );
+  }
+
+  if (validation.week_overflowed && !allow_week_overflow) {
+    response.status = Status.Accepted;
+    response.body = {
+      code: "REGISTRY_WEEK_OVERFLOWED",
+      message: "Las horas registradas exceden la asignación semanal",
+    };
+    return;
+  }
+
+  for (const registry of value.registry) {
+    const prev_registry = await findByIdentifiers(
+      week_control.id,
+      registry.budget,
+      registry.role,
+    );
+
+    let updated_registry;
+    if (prev_registry) {
+      updated_registry = await prev_registry.update(registry.hours);
+    } else {
+      updated_registry = await createRegistry(
+        week_control.id,
+        registry.budget,
+        registry.role,
+        registry.hours,
+      );
+    }
+
+    if (is_admin_request) {
+      await createRegistryLog(
+        updated_registry.id,
+        state.user.id,
+        registry.reason || "",
+      );
+    }
+  }
+
+  //Don't open a new week if registered in admin mode
+  response.body = await week_control.close(!is_admin_request);
 };
 
-export const getWeekDetail = async (
-  { params, response }: RouterContext<{ id: string }>,
+export const getRegistrableWeeks = async ({
+  params,
+  response,
+}: RouterContext<{ person: string }>) => {
+  const person = Number(params.person);
+  if (!person) {
+    throw new RequestSyntaxError();
+  }
+
+  const control = await findOpenWeek(person);
+  if (!control) {
+    throw new NotFoundError(
+      "La persona solicitada no tiene ninguna semana abierta",
+    );
+  }
+  const week = await findWeek(control.week);
+  if (!week) {
+    throw new NotFoundError("Semana de registro no encontrada");
+  }
+
+  const start_date = new Date(week.start_date.getTime());
+  start_date.setMonth(week.start_date.getMonth() - 2);
+
+  response.body = await getWeeksBetween(
+    formatDateToStandardString(start_date),
+    formatDateToStandardString(week.start_date),
+  );
+};
+
+export const getWeekDetailTable = async (
+  ctx: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
-  if (!id) throw new RequestSyntaxError();
+  const query = Object.fromEntries(
+    Object.entries(helpers.getQuery(ctx)).map((
+      [key, value],
+    ) => [key, Number(value)]),
+  );
 
-  const detail = await findById(id);
-  if (!detail) throw new NotFoundError();
+  if (request_validator.validate("list", query)) {
+    const has_access = ctx.state.user.profiles.some((profile) =>
+      [
+        Profiles.ADMINISTRATOR,
+        Profiles.CONTROLLER,
+        Profiles.HUMAN_RESOURCES,
+      ].includes(profile)
+    );
 
-  response.body = detail;
+    if (!has_access) {
+      throw new ForbiddenAccessError();
+    }
+    ctx.response.body = await getWeekData(query.persona, query.semana);
+    return;
+  }
+
+  ctx.response.body = await getCurrentWeekData(ctx.state.user.id);
 };
 
 export const getWeekInformation = async (
-  { cookies, response }: RouterContext,
+  { response, state }: RouterContext,
 ) => {
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id: user_id } = await decodeToken(session_cookie);
-
   const week_information: {
     assignated_hours: number;
     date: number;
     executed_hours: number;
     expected_hours: number;
+    id: number | null;
     is_current_week: boolean | null;
     requested_hours: number;
   } = {
@@ -103,141 +307,33 @@ export const getWeekInformation = async (
     date: 20001231,
     executed_hours: 0,
     expected_hours: 0,
+    id: null,
     is_current_week: null,
     requested_hours: 0,
   };
 
-  const control_week = await findOpenWeek(user_id);
+  const control_week = await findOpenWeek(state.user.id);
   if (control_week) {
     const week = await findWeek(control_week.week);
     if (!week) {
       throw new NotFoundError("Semana de registro no encontrada");
     }
     week_information.assignated_hours = await getWeekAssignation(
-      user_id,
+      state.user.id,
       week.id,
     );
     week_information.date = await week.getStartDate();
     week_information.executed_hours = await getWeekRegistry(control_week.id);
     week_information.expected_hours = await week.getLaboralHours();
+    week_information.id = control_week.week;
     week_information.is_current_week = await week.isCurrentWeek();
     week_information.requested_hours = await getWeekRequests(
-      user_id,
+      state.user.id,
       control_week.week,
     );
   } else {
-    week_information.date = await getOpenWeekAsDate(user_id);
+    week_information.date = await getOpenWeekAsDate(state.user.id);
   }
 
   response.body = week_information;
-};
-
-export const getWeekDetailTable = async (
-  { params, response }: RouterContext<{ id: string }>,
-) => {
-  const id: number = Number(params.id);
-  if (!id) throw new RequestSyntaxError();
-
-  response.body = await getTableData(id);
-};
-
-export const createWeekDetail = async (
-  { cookies, request, response }: RouterContext<{ person: string }>,
-) => {
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const {
-    id: person,
-  } = await decodeToken(session_cookie);
-
-  if (!request.hasBody) throw new RequestSyntaxError();
-
-  const value = await request.body({ type: "json" }).value;
-  if (
-    !request_validator.validate("post", value)
-  ) {
-    throw new RequestSyntaxError();
-  }
-
-  const control = await findOpenWeek(person);
-  if (!control) {
-    throw new NotFoundError("La semana solicitada no se encuentra disponible");
-  }
-
-  response.body = await createNew(
-    control.id,
-    Number(value.budget),
-    Number(value.role),
-    Number(value.hours),
-  );
-};
-
-export const updateWeekDetail = async (
-  { params, request, response }: RouterContext<{ id: string }>,
-) => {
-  const id: number = Number(params.id);
-  if (!request.hasBody || !id) throw new RequestSyntaxError();
-
-  const value = await request.body({ type: "json" }).value;
-
-  if (
-    !request_validator.validate("put", value)
-  ) {
-    throw new RequestSyntaxError();
-  }
-
-  let detail = await findById(id);
-  if (!detail) throw new NotFoundError();
-
-  response.body = await detail.update(
-    Number(value.hours),
-  );
-};
-
-export const closePersonWeek = async (
-  { params, request, response }: RouterContext<{ person: string }>,
-) => {
-  const person = Number(params.person);
-  if (!person) throw new RequestSyntaxError();
-
-  const week = await findOpenWeek(person);
-  if (!week) throw new NotFoundError("No existen registros en esta semana");
-
-  const value = await request.body({ type: "json" }).value;
-  if (!request_validator.validate("close", value)) {
-    throw new RequestSyntaxError();
-  }
-
-  const allow_week_overflow = castStringToBoolean(value.overflow ?? false);
-  const validation = await validateWeek(week.person, week.week);
-
-  if (validation) {
-    if (!validation.week_completed) {
-      throw new RequestSyntaxError(
-        "REGISTRY_WEEK_NOT_COMPLETED",
-        "Las horas registradas no coinciden con el esperado semanal",
-      );
-    } else if (!validation.time_completed) {
-      throw new RequestSyntaxError(
-        "REGISTRY_WEEK_ON_GOING",
-        "La semana a cerrar aun se encuentra en curso",
-      );
-    } else if (!validation.assignation_completed) {
-      throw new RequestSyntaxError(
-        "REGISTRY_ASSIGNATION_NOT_COMPLETED",
-        "No cumplio con el minimo de horas asignadas",
-      );
-    }
-
-    if (validation.week_overflowed && !allow_week_overflow) {
-      response.status = Status.Accepted;
-      response.body = {
-        code: "REGISTRY_WEEK_OVERFLOWED",
-        message: "Las horas registradas exceden la asignación semanal",
-      };
-      return;
-    }
-    //If validation passes then close week
-  }
-
-  response.body = await week.close();
 };

@@ -28,16 +28,6 @@ class WeekDetail {
       hours,
     });
 
-    const control = await findControl(this.control);
-    //Shouldn't ever happen cause of constraints
-    if (!control) throw new Error("La semana referenciada no existe");
-
-    if (control.closed) {
-      throw new Error(
-        "La semana a la que pertenece este registro se encuentra cerrada",
-      );
-    }
-
     await postgres.query(
       `UPDATE ${TABLE} SET
         HORAS = $2
@@ -50,21 +40,12 @@ class WeekDetail {
   }
 }
 
-export const createNew = async (
+export const create = async (
   control: number,
   budget: number,
   role: number,
   hours: number,
 ): Promise<WeekDetail> => {
-  const week_control = await findControl(control);
-  //Shouldn't ever happen cause of constraints
-  if (!week_control) throw new Error("La semana referenciada no existe");
-
-  if (week_control.closed) {
-    throw new Error(
-      "La semana a la que pertenece este registro se encuentra cerrada",
-    );
-  }
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_CONTROL_SEMANA,
@@ -120,7 +101,11 @@ export const findById = async (id: number): Promise<WeekDetail | null> => {
   return new WeekDetail(...result);
 };
 
-export const getAll = async (): Promise<WeekDetail[]> => {
+export const findByIdentifiers = async (
+  control: number,
+  budget: number,
+  role: number,
+): Promise<WeekDetail | null> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_REGISTRO,
@@ -128,16 +113,26 @@ export const getAll = async (): Promise<WeekDetail[]> => {
       FK_PRESUPUESTO,
       FK_ROL,
       HORAS
-    FROM ${TABLE}`,
+    FROM ${TABLE}
+    WHERE FK_CONTROL_SEMANA = $1
+    AND FK_PRESUPUESTO = $2
+    AND FK_ROL = $3`,
+    control,
+    budget,
+    role,
   );
 
-  return rows.map((row: [
-    number,
-    number,
-    number,
-    number,
-    number,
-  ]) => new WeekDetail(...row));
+  if (!rows[0]) return null;
+
+  return new WeekDetail(
+    ...rows[0] as [
+      number,
+      number,
+      number,
+      number,
+      number,
+    ],
+  );
 };
 
 export const getRegistryHoursByControlWeek = async (control_week: number) => {
@@ -159,20 +154,88 @@ export const getRegistryHoursByControlWeek = async (control_week: number) => {
 
 class WeekDetailData {
   constructor(
-    public readonly id: number | null,
-    public readonly control_id: number | null,
     public readonly client: string,
     public readonly project: string,
     public readonly budget_id: number,
     public readonly role_id: number,
     public readonly role: string,
     public readonly expected_hours: number,
-    public readonly used_hours: number | null,
-    public readonly server_updated: boolean,
+    public readonly used_hours: number,
+    public readonly reason?: number,
   ) {}
 }
 
-export const getTableData = async (
+export const getWeekData = async (
+  person: number,
+  week: number,
+): Promise<WeekDetailData[]> => {
+  const { rows } = await postgres.query(
+    `WITH TOTAL AS (
+      SELECT
+        C.PK_CONTROL,
+        A.FK_PRESUPUESTO,
+        A.FK_ROL,
+        SUM(A.HORAS) AS HORAS
+      FROM ${ASSIGNATION_TABLE} A
+      LEFT JOIN ${CONTROL_TABLE} C
+        ON A.FK_SEMANA = C.FK_SEMANA
+        AND C.FK_PERSONA = $1
+    WHERE A.FK_SEMANA = $2
+    AND A.FK_PERSONA = $1
+      GROUP BY
+        C.PK_CONTROL,
+        C.FK_SEMANA,
+        A.FK_PRESUPUESTO,
+        A.FK_ROL
+    )
+    SELECT
+      CLI.NOMBRE AS CLIENT,
+      PROY.NOMBRE AS PROJECT,
+      TOTAL.FK_PRESUPUESTO AS BUDGET_ID,
+      TOTAL.FK_ROL AS ROLE_ID,
+      ROL.NOMBRE AS ROLE,
+      TO_CHAR(SUM(TOTAL.HORAS), 'FM999999999.0') AS EXPECTED_HOURS,
+      REG.HORAS AS USED_HOURS
+    FROM TOTAL
+    LEFT JOIN ${TABLE} AS REG
+      ON REG.FK_PRESUPUESTO = TOTAL.FK_PRESUPUESTO
+      AND REG.FK_ROL = TOTAL.FK_ROL
+      AND REG.FK_CONTROL_SEMANA = TOTAL.PK_CONTROL
+    JOIN ${BUDGET_TABLE} AS PRES
+      ON PRES.PK_PRESUPUESTO = TOTAL.FK_PRESUPUESTO
+    JOIN ${ROLE_TABLE} AS ROL
+      ON ROL.PK_ROL = TOTAL.FK_ROL
+    JOIN ${PROJECT_TABLE} AS PROY
+      ON PROY.PK_PROYECTO = PRES.FK_PROYECTO
+    JOIN ${CLIENT_TABLE} AS CLI
+      ON CLI.PK_CLIENTE = PROY.FK_CLIENTE
+    GROUP BY
+      CLI.PK_CLIENTE,
+      PROY.PK_PROYECTO,
+      TOTAL.FK_PRESUPUESTO,
+      TOTAL.FK_ROL,
+      ROL.NOMBRE,
+      REG.HORAS`,
+    person,
+    week,
+  );
+
+  return rows.map((row: [
+    string,
+    string,
+    number,
+    number,
+    string,
+    number,
+    number,
+  ]) => new WeekDetailData(...row));
+};
+
+/**
+ * This method won't return the reason for change, since current week
+ * registry can't be edited by the app administrators
+ */
+export const getCurrentWeekData = async (
   person: number,
 ): Promise<WeekDetailData[]> => {
   const { rows } = await postgres.query(
@@ -231,7 +294,6 @@ export const getTableData = async (
     ), TOTAL AS (
       SELECT
         C.PK_CONTROL,
-        C.FK_SEMANA,
         A.FK_PRESUPUESTO,
         A.FK_ROL,
         SUM(A.HORAS) AS HORAS
@@ -244,21 +306,17 @@ export const getTableData = async (
     AND A.FK_PERSONA = $1
       GROUP BY
         C.PK_CONTROL,
-        C.FK_SEMANA,
         A.FK_PRESUPUESTO,
         A.FK_ROL
     )
     SELECT
-      REG.PK_REGISTRO AS ID,
-      TOTAL.PK_CONTROL AS CONTROL_ID,
       CLI.NOMBRE AS CLIENT,
       PROY.NOMBRE AS PROJECT,
       TOTAL.FK_PRESUPUESTO AS BUDGET_ID,
       TOTAL.FK_ROL AS ROLE_ID,
       ROL.NOMBRE AS ROLE,
       TO_CHAR(SUM(TOTAL.HORAS), 'FM999999999.0') AS EXPECTED_HOURS,
-      REG.HORAS AS USED_HOURS,
-      TRUE AS SERVER_UPDATED
+      COALESCE(REG.HORAS, 0) AS USED_HOURS
     FROM TOTAL
     LEFT JOIN ${TABLE} AS REG
       ON REG.FK_PRESUPUESTO = TOTAL.FK_PRESUPUESTO
@@ -273,27 +331,22 @@ export const getTableData = async (
     JOIN ${CLIENT_TABLE} AS CLI
       ON CLI.PK_CLIENTE = PROY.FK_CLIENTE
     GROUP BY
-      REG.PK_REGISTRO,
-      TOTAL.PK_CONTROL,
+      CLI.PK_CLIENTE,
+      PROY.PK_PROYECTO,
       TOTAL.FK_PRESUPUESTO,
       TOTAL.FK_ROL,
       ROL.NOMBRE,
-      CLI.PK_CLIENTE,
-      PROY.PK_PROYECTO,
       REG.HORAS`,
     person,
   );
 
   return rows.map((row: [
-    number | null,
-    number | null,
     string,
     string,
     number,
     number,
     string,
     number,
-    number | null,
-    boolean,
+    number,
   ]) => new WeekDetailData(...row));
 };

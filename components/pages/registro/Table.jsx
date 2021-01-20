@@ -41,12 +41,11 @@ const parseStandardNumberAsWeek = (standard_date) => {
   }
 };
 
-const columns = [
+const base_columns = [
   { id: "client", label: "Cliente", orderable: true },
   { id: "project", label: "Proyecto", orderable: true },
   { id: "role", label: "Rol", orderable: true },
   { id: "expected_hours", label: "Horas asignadas", orderable: true },
-  { id: "used_hours", label: "Horas ejecutadas", orderable: false },
 ];
 
 const useStyles = makeStyles((theme) => ({
@@ -72,13 +71,76 @@ const useStyles = makeStyles((theme) => ({
 
 export default function RegistryTable({
   data,
+  edit_mode,
+  header,
   footer,
-  onButtonClick,
-  onRowSave,
-  onRowUpdate,
+  onHourChange,
+  onReasonChange,
   week_details,
 }) {
   const classes = useStyles();
+
+  let columns = [
+    ...base_columns,
+    {
+      id: "used_hours",
+      label: "Horas ejecutadas",
+      orderable: false,
+      displayAs: (value, index, row) => (
+        <TableCell>
+          <TextField
+            fullWidth
+            error={Number(row.expected_hours) <
+              Number(row.used_hours)}
+            helperText={Number(row.expected_hours) <
+                Number(row.used_hours) &&
+              "Las horas usadas exceden las asignadas"}
+            onChange={(event) => {
+              const value = event.target.value === ""
+                ? ""
+                : parseInt(event.target.value) || 0;
+              onHourChange(
+                `${row.budget_id}_${row.role_id}`,
+                value,
+              );
+            }}
+            style={{ maxWidth: "250px" }}
+            value={row.used_hours}
+          />
+        </TableCell>
+      ),
+    },
+  ];
+  if (edit_mode) {
+    columns.push(
+      {
+        id: "reason",
+        label: "Justificación",
+        orderable: false,
+        displayAs: (value, index, row) => (
+          <TableCell>
+            <TextField
+              error={!row.reason}
+              fullWidth
+              helperText={!row.reason &&
+                "Especifique una justificación para el cambio"}
+              inputProps={{
+                maxLength: "100",
+              }}
+              multiline
+              onChange={(event) =>
+                onReasonChange(
+                  `${row.budget_id}_${row.role_id}`,
+                  event.target.value,
+                )}
+              style={{ maxWidth: "400px" }}
+              value={row.reason}
+            />
+          </TableCell>
+        ),
+      },
+    );
+  }
 
   const [orderBy, setOrderBy] = useState({});
   const [page, setPage] = useState(0);
@@ -118,36 +180,32 @@ export default function RegistryTable({
           <Toolbar>
             <Grid container alignItems="center">
               <Grid container item xs={6} justify="flex-start">
-                <div>
-                  <Typography variant="h5">
-                    {week_details.date
-                      ? parseStandardNumberAsWeek(week_details.date)
-                      : "Semana no disponible"}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Horas totales de la semana: {week_details.expected_hours ||
-                      0}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Horas asignadas: {week_details.assignated_hours || 0}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Horas registradas: {week_details.executed_hours || 0}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Horas solicitadas pendientes:
-                    {week_details.requested_hours || 0}
-                  </Typography>
-                </div>
+                {!edit_mode && (
+                  <div>
+                    <Typography variant="h5">
+                      {week_details.date
+                        ? parseStandardNumberAsWeek(week_details.date)
+                        : "Semana no disponible"}
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      Horas totales de la semana:
+                      {week_details.expected_hours ||
+                        0}
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      Horas asignadas: {week_details.assignated_hours || 0}
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      Horas registradas: {week_details.executed_hours || 0}
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      Horas solicitadas pendientes:
+                      {week_details.requested_hours || 0}
+                    </Typography>
+                  </div>
+                )}
               </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <Button
-                  onClick={onButtonClick}
-                  variant="contained"
-                >
-                  Solicitar horas
-                </Button>
-              </Grid>
+              <Grid container item xs={6}>{header}</Grid>
             </Grid>
           </Toolbar>
         </AppBar>
@@ -160,6 +218,7 @@ export default function RegistryTable({
           >
             <TableHeaders
               classes={classes}
+              edit_mode={edit_mode}
               columns={columns}
               orderBy={orderBy}
               updateSortingDirection={updateSortingDirection}
@@ -193,45 +252,22 @@ export default function RegistryTable({
                     key={index}
                   >
                     {Object.entries(row)
-                      .filter(([column]) =>
-                        columns.findIndex(({ id }) => id === column) !== -1 &&
-                        column !== "used_hours"
-                      )
+                      .filter(([key]) => {
+                        return columns.findIndex(({ id }) => id === key) !== -1;
+                      })
                       .sort(([a], [b]) =>
                         columns.findIndex(({ id }) => id === a) <
                             columns.findIndex(({ id }) => id === b)
                           ? -1
                           : 1
                       )
-                      .map(([index, value]) => (
-                        <TableCell key={index}>{value}</TableCell>
-                      ))}
-                    <TableCell>
-                      <TextField
-                        error={Number(row.expected_hours) <
-                          Number(row.used_hours)}
-                        helperText={Number(row.expected_hours) <
-                            Number(row.used_hours) &&
-                          "Las horas usadas exceden las asignadas"}
-                        onChange={(event) =>
-                          onRowUpdate(
-                            `${row.budget_id}_${row.role_id}`,
-                            event.target.value,
-                          )}
-                        style={{ width: "150px" }}
-                        value={row.used_hours || ""}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <IconButton
-                        aria-label="Guardar"
-                        onClick={() => onRowSave(row)}
-                      >
-                        {row.server_updated
-                          ? <OnlineIcon className={classes.button_online} />
-                          : <OfflineIcon />}
-                      </IconButton>
-                    </TableCell>
+                      .map(([index, value]) => {
+                        const column = columns.find(({ id }) => id === index);
+                        if (column.displayAs) {
+                          return column.displayAs(value, index, row);
+                        }
+                        return <TableCell key={index}>{value}</TableCell>;
+                      })}
                   </TableRow>
                 ))}
               {!!emptyRows &&

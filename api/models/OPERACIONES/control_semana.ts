@@ -15,22 +15,28 @@ export class WeekControl {
     public close_date: Date | null,
   ) {}
 
+  async clearRegistry(): Promise<void>;
   async clearRegistry(
     budget: number,
     role: number,
+  ): Promise<void>;
+  async clearRegistry(
+    budget?: number,
+    role?: number,
   ): Promise<void> {
+    const condition = budget && role
+      ? `AND FK_PRESUPUESTO = ${budget} AND FK_ROL = ${role}`
+      : "";
+
     await postgres.query(
       `DELETE FROM ${REGISTRY_TABLE}
       WHERE FK_CONTROL_SEMANA = $1
-      AND FK_PRESUPUESTO = $2
-      AND FK_ROL = $3`,
+      ${condition}`,
       this.id,
-      budget,
-      role,
     );
   }
 
-  async close(): Promise<WeekControl> {
+  async close(open_next_week = true): Promise<WeekControl> {
     const { rows } = await postgres.query(
       `UPDATE ${TABLE} SET
         BAN_CERRADO = TRUE,
@@ -43,7 +49,9 @@ export class WeekControl {
     this.closed = true;
     this.close_date = rows[0][0] as Date;
 
-    await createNewWeek(this.person, this.week);
+    if (open_next_week) {
+      await createNewWeek(this.person, this.week);
+    }
 
     return this;
   }
@@ -96,12 +104,12 @@ export const createNewWeek = async (
   const { rows } = await postgres.query(
     `WITH FECHA AS (
       SELECT MIN(FECHA) AS MIN, MAX(FECHA) AS MAX
-      FROM MAESTRO.DIM_TIEMPO DT
-      WHERE FECHA > (SELECT FECHA_FIN FROM MAESTRO.DIM_SEMANA DS WHERE PK_SEMANA = $2)
+      FROM ${TIME_TABLE} DT
+      WHERE FECHA > (SELECT FECHA_FIN FROM ${WEEK_TABLE} DS WHERE PK_SEMANA = $2)
       AND FECHA <= (
         SELECT FECHA
-        FROM MAESTRO.DIM_TIEMPO DT
-        WHERE FECHA > (SELECT FECHA_FIN FROM MAESTRO.DIM_SEMANA DS WHERE PK_SEMANA = $2)
+        FROM ${TIME_TABLE} DT
+        WHERE FECHA > (SELECT FECHA_FIN FROM ${WEEK_TABLE} DS WHERE PK_SEMANA = $2)
         AND EXTRACT(ISODOW FROM FECHA) NOT IN (6,7)
         AND BAN_FESTIVO = FALSE
         ORDER BY COD_FECHA ASC
@@ -119,7 +127,7 @@ export const createNewWeek = async (
       PK_SEMANA,
       CASE WHEN ROW_NUMBER() OVER (ORDER BY FECHA_INICIO DESC) = 2 THEN TRUE ELSE FALSE END AS CLOSED,
       CASE WHEN ROW_NUMBER() OVER (ORDER BY FECHA_INICIO DESC) = 2 THEN NOW() ELSE NULL END AS CLOSE_DATE
-    FROM MAESTRO.DIM_SEMANA WHERE FECHA_INICIO BETWEEN (SELECT MIN FROM FECHA) AND (SELECT MAX FROM FECHA)
+    FROM ${WEEK_TABLE} WHERE FECHA_INICIO BETWEEN (SELECT MIN FROM FECHA) AND (SELECT MAX FROM FECHA)
     RETURNING PK_CONTROL, FK_SEMANA`,
     person,
     prev_week,
@@ -361,7 +369,7 @@ export const isWeekOpen = async (
   const { rows } = await postgres.query(
     `SELECT
       CASE WHEN COUNT(1) > 0 THEN TRUE ELSE FALSE END
-    FROM OPERACIONES.CONTROL_SEMANA
+    FROM ${TABLE}
     WHERE FK_PERSONA = $1
     AND FK_SEMANA = $2
     AND BAN_CERRADO = FALSE`,
@@ -382,6 +390,11 @@ interface ValidationResult {
 export const validateWeek = async (
   person: number,
   week: number,
+  registry: Array<{
+    budget: number;
+    role: number;
+    hours: number;
+  }>,
 ): Promise<ValidationResult> => {
   const { rows } = await postgres.query(
     `WITH DETALLE AS (
@@ -395,19 +408,15 @@ export const validateWeek = async (
       JOIN ${WEEK_TABLE} S
       ON A.FK_SEMANA = S.PK_SEMANA
       LEFT JOIN (
-        SELECT
-          FK_SEMANA,
-          FK_PERSONA,
-          FK_PRESUPUESTO,
-          FK_ROL,
-          HORAS
-        FROM ${TABLE} AS CCS
-        JOIN ${REGISTRY_TABLE} AS RD
-        ON CCS.PK_CONTROL = RD.FK_CONTROL_SEMANA
+        ${
+      registry
+        .map(({ budget, hours, role }) =>
+          `SELECT ${budget} AS FK_PRESUPUESTO, ${hours} AS HORAS, ${role} AS FK_ROL`
+        )
+        .join("\nUNION ALL\n")
+    }
       ) AS R
-      ON S.PK_SEMANA = R.FK_SEMANA
-      AND A.FK_PERSONA = R.FK_PERSONA
-      AND A.FK_PRESUPUESTO = R.FK_PRESUPUESTO
+      ON A.FK_PRESUPUESTO = R.FK_PRESUPUESTO
       AND A.FK_ROL = R.FK_ROL
       WHERE S.PK_SEMANA = $2
       AND A.FK_PERSONA = $1

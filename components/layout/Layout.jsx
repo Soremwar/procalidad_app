@@ -60,19 +60,26 @@ const Profiles = {
   CONSULTANT: 7,
 };
 
+/**
+ * @param {number[]} user_profiles
+ * @param {number[]} profiles
+ * */
+const hasProfile = (user_profiles, profiles) => {
+  return user_profiles.some((profile) => profiles.includes(profile));
+};
+
 const ProfiledRoute = ({
   allowed_profiles,
   component,
   ...props
 }) => {
   const [context] = useContext(UserContext);
-  const { profiles } = context;
 
   return (
     <Route
       {...props}
       render={(children_props) =>
-        profiles.some((profile) => allowed_profiles.includes(profile))
+        hasProfile(context.profiles, allowed_profiles)
           ? React.createElement(component, children_props)
           : <Redirect to={"/"} />}
     />
@@ -80,6 +87,7 @@ const ProfiledRoute = ({
 };
 
 const Layout = (props) => {
+  const [context] = useContext(UserContext);
   const classes = useStyles();
   const layout_context = useLayoutState();
 
@@ -406,9 +414,19 @@ const Layout = (props) => {
             />
             <ProfiledRoute
               allowed_profiles={[
+                Profiles.ADMINISTRATOR,
+                Profiles.CONTROLLER,
                 Profiles.CONSULTANT,
+                Profiles.HUMAN_RESOURCES,
               ]}
-              component={Registro}
+              component={() =>
+                <Registro
+                  admin_access={hasProfile(context.profiles, [
+                    Profiles.ADMINISTRATOR,
+                    Profiles.CONTROLLER,
+                    Profiles.HUMAN_RESOURCES,
+                  ])}
+                />}
               path="/registro"
             />
             <ProfiledRoute

@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
  * @param {string=} name
  * @param {boolean | valueCallback} [onChange=false]
  * */
-export default ({
+export default function SelectField({
   blank_value = true,
   children,
   id = false,
@@ -34,8 +34,9 @@ export default ({
   onChange = false,
   default_value = false,
   required = false,
+  shrink = false,
   ...props
-}) => {
+}) {
   const classes = useStyles();
   const input_id = id || hashGenerator(10);
 
@@ -51,7 +52,12 @@ export default ({
       fullWidth={fullWidth}
       required={required}
     >
-      <InputLabel htmlFor={input_id}>{label}</InputLabel>
+      <InputLabel
+        htmlFor={input_id}
+        shrink={shrink}
+      >
+        {label}
+      </InputLabel>
       <NativeSelect
         inputProps={{
           id: input_id,
@@ -67,4 +73,4 @@ export default ({
       </NativeSelect>
     </FormControl>
   );
-};
+}

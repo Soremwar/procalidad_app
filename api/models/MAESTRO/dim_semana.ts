@@ -55,7 +55,11 @@ class Week {
   }
 }
 
-export const findById = async (id: number): Promise<Week | null> => {
+/**
+* Receives a YYYYMMDD date number and returns the model
+* for the week matching that data
+* */
+export const findByDate = async (date: number): Promise<Week | null> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_SEMANA,
@@ -63,8 +67,8 @@ export const findById = async (id: number): Promise<Week | null> => {
       FECHA_INICIO,
       FECHA_FIN
     FROM ${TABLE}
-    WHERE PK_SEMANA = $1`,
-    id,
+    WHERE TO_DATE($1::VARCHAR, 'YYYYMMDD') BETWEEN FECHA_INICIO AND FECHA_FIN`,
+    date,
   );
 
   if (!rows.length) return null;
@@ -79,11 +83,7 @@ export const findById = async (id: number): Promise<Week | null> => {
   );
 };
 
-/*
-* Receives a YYYYMMDD date number and returns the model
-* for the week matching that data
-* */
-export const findByDate = async (date: number): Promise<Week | null> => {
+export const findById = async (id: number): Promise<Week | null> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_SEMANA,
@@ -91,8 +91,8 @@ export const findByDate = async (date: number): Promise<Week | null> => {
       FECHA_INICIO,
       FECHA_FIN
     FROM ${TABLE}
-    WHERE TO_DATE($1::VARCHAR, 'YYYYMMDD') BETWEEN FECHA_INICIO AND FECHA_FIN`,
-    date,
+    WHERE PK_SEMANA = $1`,
+    id,
   );
 
   if (!rows.length) return null;
@@ -126,4 +126,36 @@ export const getCurrentWeek = async (): Promise<Week> => {
       Date,
     ],
   );
+};
+
+/**
+ * Receives two YYYY-MM-DD strings and returns the weeks in between
+ * @param start YYYY-MM-DD formatted date
+ * @param end YYYY-MM-DD formatted date
+ */
+export const getWeeksBetween = async (
+  start: string,
+  end: string,
+): Promise<Week[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_SEMANA,
+      COD_SEMANA,
+      FECHA_INICIO,
+      FECHA_FIN
+    FROM ${TABLE}
+    WHERE
+      FECHA_INICIO >= TO_DATE($1, 'YYYY-MM-DD')
+    AND
+      FECHA_INICIO <= TO_DATE($2, 'YYYY-MM-DD')`,
+    start,
+    end,
+  );
+
+  return rows.map((row: [
+    number,
+    string,
+    Date,
+    Date,
+  ]) => new Week(...row));
 };

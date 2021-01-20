@@ -20,11 +20,12 @@ import { Alert } from "@material-ui/lab";
 import { UserContext } from "../context/User.jsx";
 import { formatResponseJson } from "../../lib/api/request.ts";
 import {
+  formatDateAsWeekLocal,
   formatStandardNumberToStandardString,
   formatStandardStringToStandardNumber,
   parseDateToStandardNumber,
+  parseStandardNumber,
 } from "../../lib/date/mod.js";
-import { months } from "../../lib/date/lang.js";
 import {
   fetchAssignationApi,
   fetchAssignationRequestApi,
@@ -44,14 +45,6 @@ import DialogForm from "../common/DialogForm.jsx";
 import EarlyCloseRequestTable from "./asignacion/EarlyCloseRequestTable.jsx";
 import SelectField from "../common/SelectField.jsx";
 import Title from "../common/Title.jsx";
-
-const parseNumberAsWeek = (date) => {
-  date = String(date);
-  const day = date.substr(6, 2);
-  const month = months.get(date.substr(4, 2));
-
-  return `${day} de ${month}`;
-};
 
 const getBudgets = () => fetchBudgetApi().then((x) => x.json());
 const getBudgetDetails = (id) => fetchBudgetDetailApi(id).then((x) => x.json());
@@ -911,7 +904,7 @@ export default function Asignacion() {
               {parameters.weeks
                 .map(({ code, date }) => (
                   <option key={code} value={code}>
-                    {parseNumberAsWeek(date)}
+                    {formatDateAsWeekLocal(parseStandardNumber(date))}
                   </option>
                 ))}
             </SelectField>

@@ -28,7 +28,7 @@ export class AuthenticationRejectedError extends Error {
 }
 
 export class ForbiddenAccessError extends Error {
-  constructor(message?: string) {
+  constructor(message: string = Message.Forbidden) {
     super(message);
   }
 }

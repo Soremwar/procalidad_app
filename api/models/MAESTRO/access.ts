@@ -68,7 +68,7 @@ export const findById = async (id: number): Promise<Access | null> => {
   const { rows } = await postgres.query(
     `SELECT
       FK_PERSONA,
-      ARRAY_AGG( FK_PERMISO)
+      ARRAY_AGG(FK_PERMISO)
     FROM ${TABLE}
     WHERE FK_PERSONA = $1
     GROUP BY FK_PERSONA`,

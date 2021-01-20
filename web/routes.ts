@@ -2792,10 +2792,26 @@ main_router
   .get(
     "/api/registro",
     checkUserAccess([
+      Profiles.ADMINISTRATOR,
       Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
     ]),
-    registry.getWeeksDetail,
+    registry.getWeekDetailTable,
   )
+  .put(
+    "/api/registro",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONSULTANT,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    registry.closePersonWeek,
+  )
+  //TODO
+  //Maybe add a route to get the requested week info
+  //Not just current week
   .get(
     "/api/registro/semana",
     checkUserAccess([
@@ -2803,40 +2819,14 @@ main_router
     ]),
     registry.getWeekInformation,
   )
-  .put<{ person: string }>(
-    "/api/registro/semana/:person",
+  .get<{ person: string }>(
+    "/api/registro/semanas/:person",
     checkUserAccess([
-      Profiles.CONSULTANT,
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
     ]),
-    registry.closePersonWeek,
-  )
-  .get<{ id: string }>(
-    "/api/registro/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
-    registry.getWeekDetail,
-  )
-  .get<{ id: string }>(
-    "/api/registro/table/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
-    registry.getWeekDetailTable,
-  )
-  .post<{ person: string }>(
-    "/api/registro/:person",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
-    registry.createWeekDetail,
-  )
-  .put<{ id: string }>(
-    "/api/registro/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
-    registry.updateWeekDetail,
+    registry.getRegistrableWeeks,
   );
 
 main_router

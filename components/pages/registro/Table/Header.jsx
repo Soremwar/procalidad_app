@@ -7,8 +7,8 @@ import {
 } from "@material-ui/core";
 
 export default function Header({
-  classes,
   columns,
+  edit_mode,
   orderBy,
   updateSortingDirection,
 }) {
@@ -36,10 +36,6 @@ export default function Header({
               : (column.label)}
           </TableCell>
         ))}
-        <TableCell
-          align="left"
-          padding="default"
-        />
       </TableRow>
     </TableHead>
   );

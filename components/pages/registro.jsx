@@ -21,6 +21,7 @@ import {
   fetchAssignationRequestApi,
   fetchClientApi,
   fetchEarlyCloseRequestApi,
+  fetchPeopleApi,
   fetchProjectApi,
   fetchRoleApi,
   fetchTimeApi,
@@ -28,63 +29,65 @@ import {
 } from "../../lib/api/generator.js";
 import { UserContext } from "../context/User.jsx";
 import {
+  formatDateAsWeekLocal,
   formatStandardNumberToStandardString,
   formatStandardStringToStandardNumber,
   parseDateToStandardNumber,
 } from "../../lib/date/mod.js";
 import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
 import AsyncSelectField from "../common/AsyncSelectField.jsx";
+import ConfirmDialog from "../common/ConfirmDialog.jsx";
 import DateField from "../common/DateField.jsx";
 import DialogForm from "../common/DialogForm.jsx";
 import PlanningModal from "./registro/PlanningModal.jsx";
-import ConfirmDialog from "../common/ConfirmDialog.jsx";
+import SelectField from "../common/SelectField.jsx";
 import Title from "../common/Title.jsx";
 import Table from "./registro/Table.jsx";
 
-const getWeekDate = () => fetchWeekDetailApi(`semana`);
-
-const getBlacklistedDates = (start_date, end_date) => {
-  const params = new URLSearchParams({
-    start_date,
-    end_date,
+const getAvailableWeeks = (person) => fetchWeekDetailApi(`semanas/${person}`);
+const getBlacklistedDates = (start_date, end_date) =>
+  fetchTimeApi({
+    path: "blacklist",
+    params: {
+      end_date,
+      start_date,
+    },
   });
-
-  return fetchTimeApi(`blacklist?${params.toString()}`);
-};
 const getClients = () => fetchClientApi().then((x) => x.json());
+const getPeople = () => fetchPeopleApi();
 const getProjects = () => fetchProjectApi().then((x) => x.json());
+const getTableData = (person, week) => {
+  let params = {};
+  if (person && week) {
+    params = {
+      persona: person,
+      semana: week,
+    };
+  }
 
-const getTableData = (id) =>
-  fetchWeekDetailApi(`table/${id}`).then((x) => x.json());
+  return fetchWeekDetailApi({ params }).then((x) => x.json());
+};
+const getWeekDate = () => fetchWeekDetailApi("semana");
 
-//TODO
-//Create and update should be unified into a single call
-const createWeekDetail = async (person, control, budget, role, hours) =>
-  fetchWeekDetailApi(person, {
-    body: JSON.stringify({ control, budget, role, hours }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
-
-const updateWeekDetail = async (id, control, budget, role, hours) =>
-  fetchWeekDetailApi(id, {
-    body: JSON.stringify({ control, budget, role, hours }),
+/**
+ * This will send the filled registry and check for inconsistencies
+ * @param {number=} person
+ * @param {number=} week
+ * */
+const closeWeek = async (registry, person, week, overflow = false) => {
+  return fetchWeekDetailApi("", {
+    body: JSON.stringify({
+      person,
+      overflow,
+      registry,
+      week,
+    }),
     headers: {
       "Content-Type": "application/json",
     },
     method: "PUT",
   });
-
-const closeWeek = async (person, overflow = false) =>
-  fetchWeekDetailApi(`semana/${person}`, {
-    body: JSON.stringify({ overflow }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "PUT",
-  });
+};
 
 const createAssignationRequest = async (
   person,
@@ -110,17 +113,6 @@ const createAssignationRequest = async (
     method: "POST",
   });
 
-const submitWeekDetail = async (
-  person,
-  { id, control_id, budget_id, role_id, used_hours },
-) => {
-  if (id) {
-    return updateWeekDetail(id, control_id, budget_id, role_id, used_hours);
-  } else {
-    return createWeekDetail(person, control_id, budget_id, role_id, used_hours);
-  }
-};
-
 const requestEarlyWeekClose = async (
   message,
 ) =>
@@ -132,11 +124,15 @@ const requestEarlyWeekClose = async (
     method: "POST",
   });
 
-export const ParameterContext = createContext({
+const DEFAULT_PARAMETERS = {
+  available_weeks: [],
   clients: [],
   heatmap_blacklisted_dates: [],
+  people: [],
   projects: [],
-});
+};
+
+export const ParameterContext = createContext(DEFAULT_PARAMETERS);
 
 const EarlyCloseDialog = ({
   onClose,
@@ -394,37 +390,170 @@ const MAX_DATE_HEATMAP = (() => {
   return parseDateToStandardNumber(date);
 })();
 
-export default function Registro() {
+export default function Registro({
+  admin_access = false,
+}) {
   const [context] = useContext(UserContext);
 
   const [alert_open, setAlertOpen] = useState(false);
   const [confirm_request_modal_open, setConfirmRequestModalOpen] = useState(
     false,
   );
-  const [error, setError] = useState(null);
-  const [parameters, setParameters] = useState({
-    clients: [],
-    heatmap_blacklisted_dates: [],
-    projects: [],
-  });
-  const [is_planning_modal_open, setPlanningModalOpen] = useState(false);
-  const [request_modal_open, setRequestModalOpen] = useState(false);
-  const [table_data, setTableData] = useState(new Map());
   const [early_close_modal_open, setEarlyCloseModalOpen] = useState(false);
+  const [error, setError] = useState(null);
+  const [is_planning_modal_open, setPlanningModalOpen] = useState(false);
   const [overflow_week_modal_open, setOverflowWeekModalOpen] = useState(false);
+  const [parameters, setParameters] = useState(DEFAULT_PARAMETERS);
+  const [request_modal_open, setRequestModalOpen] = useState(false);
+  const [selected_person, setSelectedPerson] = useState(context.id);
+  const [selected_week, setSelectedWeek] = useState("");
+  const [table_data, setTableData] = useState(new Map());
   const [week_details, setWeekDetails] = useState({
     assignated_hours: 0,
     date: null,
     executed_hours: 0,
     expected_hours: 0,
+    id: null,
     requested_hours: 0,
   });
+
+  /**
+   * Admin mode will be disabled if the user is editing his own registry on the
+   * current active week
+   * Person and week selector will still be available, but the week close will work as
+   * a regular user and assignation request and planning will be available
+   * */
+  //TODO
+  //Disabled admin mode is too confusing, convert to admin mode
+  const disable_admin_mode = !admin_access || (
+    (Number(selected_person) === Number(context.id)) &&
+    (Number(selected_week) === Number(week_details.id))
+  );
+
+  useEffect(() => {
+    let active = true;
+    //TODO
+    //Add unmount handling
+    updateCurrentWeekDetails();
+
+    getBlacklistedDates(
+      TODAY,
+      MAX_DATE_HEATMAP,
+    )
+      .then(async (response) => {
+        if (response.ok) {
+          const heatmap_blacklisted_dates = await response.json();
+
+          if (active) {
+            setParameters((prev_state) => ({
+              ...prev_state,
+              heatmap_blacklisted_dates,
+            }));
+          }
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() =>
+        console.error("Couldnt load the banned dates for the calendar")
+      );
+    getClients().then((clients) => {
+      const entries = clients
+        .map(({ pk_cliente, nombre }) => [pk_cliente, nombre])
+        .sort((x, y) => x[1].localeCompare(y[1]));
+
+      if (active) {
+        setParameters((prev_state) => ({ ...prev_state, clients: entries }));
+      }
+    });
+    getPeople()
+      .then(async (response) => {
+        if (response.ok) {
+          /** @type Array<{nombre: string}>> */
+          const people = await response.json();
+
+          if (active) {
+            setParameters((prev_state) => ({
+              ...prev_state,
+              people: people.sort(({ nombre: x }, { nombre: y }) =>
+                x.localeCompare(y)
+              ),
+            }));
+          }
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => console.error("Failed to load people"));
+    getProjects().then((projects) => {
+      const entries = projects
+        .map((
+          { pk_proyecto, nombre, fk_cliente },
+        ) => [pk_proyecto, nombre, fk_cliente])
+        .sort((x, y) => x[1].localeCompare(y[1]));
+
+      if (active) {
+        setParameters((prev_state) => ({ ...prev_state, projects: entries }));
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    setSelectedWeek();
+    setParameters((prev_state) => ({
+      ...prev_state,
+      available_weeks: [],
+    }));
+
+    if (selected_person) {
+      getAvailableWeeks(selected_person)
+        .then(async (response) => {
+          if (response.ok) {
+            /** @type Array<{code: string}> */
+            const available_weeks = await response.json();
+
+            if (active) {
+              setParameters((prev_state) => ({
+                ...prev_state,
+                available_weeks: available_weeks.sort((
+                  { code: x },
+                  { code: y },
+                ) => x.localeCompare(y)),
+              }));
+            }
+          } else {
+            throw new Error();
+          }
+        })
+        .catch(() => console.error("Failed to load available weeks"));
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [selected_person]);
+
+  useEffect(() => {
+    // TODO
+    // Add unmount handling
+    updateTable();
+  }, [selected_person, selected_week]);
 
   const updateCurrentWeekDetails = () => {
     getWeekDate()
       .then(async (response) => {
         if (response.ok) {
-          setWeekDetails(await response.json());
+          const week_details = await response.json();
+          setWeekDetails(week_details);
+          //TODO
+          //Different handling for null id(when user doesn't use the registry)
+          setSelectedWeek(week_details.id);
         } else {
           throw new Error();
         }
@@ -436,75 +565,42 @@ export default function Registro() {
       });
   };
 
-  //Set budget_id and role_id as unique key since id can be null
   const updateTable = () => {
-    if (context.id) {
-      getTableData(context.id)
-        .then((data) => {
-          setTableData((prev_state) => {
-            return new Map(
-              Array.from(prev_state).reduce(
-                (total, [index, value]) => {
-                  const match = total.findIndex(([index_t]) =>
-                    index_t === index
-                  );
-                  if (match !== -1) {
-                    if (
-                      value.server_updated ||
-                      total[match][1].used_hours == value.used_hours
-                    ) {
-                      total[match] = [index, { ...total[match][1] }];
-                    } else {
-                      total[match] = [
-                        index,
-                        {
-                          ...total[match][1],
-                          used_hours: value.used_hours,
-                          server_updated: value.server_updated,
-                        },
-                      ];
-                    }
-                  }
-                  return total;
-                },
-                data.map((
-                  record,
-                ) => [`${record.budget_id}_${record.role_id}`, record]),
-              ),
-            );
-          });
-        });
+    let parameters = [];
+    if (!disable_admin_mode) {
+      //Don't fetch data if person and week haven't been selected
+      if (!(selected_person && selected_week)) {
+        return;
+      }
+      parameters = [
+        selected_person,
+        selected_week,
+      ];
     }
+    getTableData(...parameters)
+      .then((data) => {
+        setTableData(
+          new Map(
+            data.map(
+              //Set budget_id and role_id as identifier
+              (registry) => [`${registry.budget_id}_${registry.role_id}`, {
+                ...registry,
+                reason: "",
+              }],
+            ),
+          ),
+        );
+      });
   };
 
-  const updateRow = (id, used_hours) => {
-    const data = { ...table_data.get(id), used_hours, server_updated: false };
-    setTableData((prev_state) => new Map([...prev_state, [id, data]]));
+  const updateHours = (id, used_hours) => {
+    const data = { ...table_data.get(id), used_hours };
+    setTableData(new Map(table_data.set(id, data)));
   };
 
-  const handleRowSave = (row) => {
-    if (Number(row.used_hours) >= 0) {
-      submitWeekDetail(
-        context.id,
-        { ...row, used_hours: Number(row.used_hours) },
-      )
-        .then((response) => {
-          setAlertOpen(false);
-          if (response.ok) {
-            updateCurrentWeekDetails();
-            setError(null);
-          } else {
-            setError("No fue posible actualizar el registro");
-          }
-          setAlertOpen(true);
-        })
-        .finally(() => {
-          updateTable();
-        });
-    } else {
-      setError(`${row.used_hours} no es un numero valido`);
-      setAlertOpen(true);
-    }
+  const updateReason = (id, reason) => {
+    const data = { ...table_data.get(id), reason };
+    setTableData(new Map(table_data.set(id, data)));
   };
 
   const handleEarlyCloseRequested = (message) => {
@@ -527,47 +623,57 @@ export default function Registro() {
       .finally(() => setAlertOpen(true));
   };
 
-  const handleWeekSave = () => {
-    const entries_not_saved = Array.from(table_data).some(([_i, value]) =>
-      !value.server_updated
-    );
-    if (entries_not_saved) {
-      setError("Guarde su tiempo antes de cerrar la semana");
-      setAlertOpen(true);
+  const handleWeekSave = (overflow) => {
+    const registry = Array.from(table_data.values()).map((
+      { budget_id, reason, role_id, used_hours },
+    ) => ({
+      budget: budget_id,
+      hours: used_hours,
+      role: role_id,
+      reason,
+    }));
+    let params;
+    if (disable_admin_mode) {
+      params = [registry, undefined, undefined, overflow];
     } else {
-      closeWeek(context.id)
-        .then(async (response) => {
-          setAlertOpen(false);
+      params = [
+        registry,
+        Number(selected_person),
+        Number(selected_week),
+        overflow,
+      ];
+    }
+    closeWeek(...params)
+      .then(async (response) => {
+        setAlertOpen(false);
 
-          const {
-            code,
-            message,
-          } = await response.json();
+        const {
+          code,
+          message,
+        } = await response.json();
 
-          if (response.ok) {
-            if (response.status === 202) {
-              setOverflowWeekModalOpen(true);
-            } else {
-              setError(null);
-              updateCurrentWeekDetails();
-              setAlertOpen(true);
-            }
+        if (response.ok) {
+          if (response.status === 202) {
+            setOverflowWeekModalOpen(true);
           } else {
-            switch (code) {
-              case "REGISTRY_WEEK_NOT_COMPLETED":
-                setEarlyCloseModalOpen(true);
-                break;
-              default:
-                setError(message);
-                setAlertOpen(true);
+            setError(null);
+            setAlertOpen(true);
+            if (disable_admin_mode) {
+              updateCurrentWeekDetails();
+              updateTable();
             }
           }
-        })
-        .finally(() => {
-          updateCurrentWeekDetails();
-          updateTable();
-        });
-    }
+        } else {
+          switch (code) {
+            case "REGISTRY_WEEK_NOT_COMPLETED":
+              setEarlyCloseModalOpen(true);
+              break;
+            default:
+              setError(message);
+              setAlertOpen(true);
+          }
+        }
+      });
   };
 
   const handleAlertClose = (_event, reason) => {
@@ -575,52 +681,58 @@ export default function Registro() {
     setAlertOpen(false);
   };
 
-  useEffect(() => {
-    updateCurrentWeekDetails();
-    getBlacklistedDates(
-      TODAY,
-      MAX_DATE_HEATMAP,
-    )
-      .then(async (response) => {
-        if (response.ok) {
-          const heatmap_blacklisted_dates = await response.json();
-          setParameters((prev_state) => ({
-            ...prev_state,
-            heatmap_blacklisted_dates,
-          }));
-        } else {
-          throw new Error();
-        }
-      })
-      .catch(() =>
-        console.error("Couldnt load the banned dates for the calendar")
-      );
-    getClients().then((clients) => {
-      const entries = clients
-        .map(({ pk_cliente, nombre }) => [pk_cliente, nombre])
-        .sort((x, y) => x[1].localeCompare(y[1]));
-      setParameters((prev_state) => ({ ...prev_state, clients: entries }));
-    });
-    getProjects().then((projects) => {
-      const entries = projects
-        .map((
-          { pk_proyecto, nombre, fk_cliente },
-        ) => [pk_proyecto, nombre, fk_cliente])
-        .sort((x, y) => x[1].localeCompare(y[1]));
-      setParameters((prev_state) => ({ ...prev_state, projects: entries }));
-    });
-    updateTable();
-  }, []);
-
   return (
     <Fragment>
       <Title title={"Registro"} />
-      <ConfirmRequestModal
-        closeModal={() => setConfirmRequestModalOpen(false)}
-        onConfirm={() => setRequestModalOpen(true)}
-        is_open={confirm_request_modal_open}
-      />
+      {admin_access
+        ? (<Grid container spacing={3}>
+          <Grid item md={6}>
+            <SelectField
+              blank_value={false}
+              label="Persona"
+              fullWidth
+              onChange={(event) => setSelectedPerson(event.target.value)}
+              shrink={true}
+              value={selected_person}
+            >
+              {parameters.people.map(({ pk_persona, nombre }) => (
+                <option key={pk_persona} value={pk_persona}>{nombre}</option>
+              ))}
+            </SelectField>
+          </Grid>
+          <Grid item md={6}>
+            <SelectField
+              disabled={!selected_person}
+              label="Semana"
+              fullWidth
+              onChange={(event) => setSelectedWeek(event.target.value)}
+              shrink={true}
+              value={selected_week}
+            >
+              {parameters.available_weeks.map(({ id, start_date }) => (
+                <option key={id} value={id}>
+                  {(() => {
+                    const parsed_date = new Date(start_date);
+                    return formatDateAsWeekLocal(
+                      new Date(
+                        parsed_date.getTime() +
+                          (parsed_date.getTimezoneOffset() * 60 * 1000),
+                      ),
+                    );
+                  })()}
+                </option>
+              ))}
+              {// Render current week option only when the selected user
+              // is the current one
+              Number(selected_person) === Number(context.id) && (
+                <option value={week_details.id}>Semana actual</option>
+              )}
+            </SelectField>
+          </Grid>
+        </Grid>)
+        : null}
       <ParameterContext.Provider value={parameters}>
+        <br />
         <AddModal
           is_open={request_modal_open}
           person_id={context.id}
@@ -632,37 +744,54 @@ export default function Registro() {
           setModalOpen={setRequestModalOpen}
         />
       </ParameterContext.Provider>
-      <Table
-        data={table_data}
-        footer={<Grid container style={{ textAlign: "center" }}>
-          <Grid item md={6} xs={12}>
+      {(disable_admin_mode || (selected_person && selected_week)) && (
+        <Table
+          data={table_data}
+          edit_mode={!disable_admin_mode}
+          header={disable_admin_mode && (
             <Button
-              onClick={handleWeekSave}
+              onClick={() => {
+                if (week_details.is_current_week === false) {
+                  setRequestModalOpen(true);
+                } else if (week_details.is_current_week) {
+                  setConfirmRequestModalOpen(true);
+                }
+              }}
               variant="contained"
             >
-              Cerrar Semana
+              Solicitar horas
             </Button>
-          </Grid>
-          <Grid item md={6} xs={12}>
-            <Button
-              onClick={() => setPlanningModalOpen(true)}
-              variant="contained"
-            >
-              Visualizar planeación
-            </Button>
-          </Grid>
-        </Grid>}
-        onButtonClick={() => {
-          if (week_details.is_current_week === false) {
-            setRequestModalOpen(true);
-          } else if (week_details.is_current_week) {
-            setConfirmRequestModalOpen(true);
-          }
-        }}
-        onRowSave={handleRowSave}
-        onRowUpdate={updateRow}
-        week_details={week_details}
-      />
+          )}
+          footer={<Grid container style={{ textAlign: "center" }}>
+            <Grid item md={6} xs={12}>
+              <Button
+                //Disable only if reasons are not filled out
+                disabled={!disable_admin_mode &&
+                  !Array.from(table_data).every(([_index, { reason }]) =>
+                    !!reason.trim()
+                  )}
+                onClick={() => handleWeekSave(false)}
+                variant="contained"
+              >
+                {disable_admin_mode ? "Cerrar Semana" : "Modificar semana"}
+              </Button>
+            </Grid>
+            <Grid item md={6} xs={12}>
+              {disable_admin_mode && (
+                <Button
+                  onClick={() => setPlanningModalOpen(true)}
+                  variant="contained"
+                >
+                  Visualizar planeación
+                </Button>
+              )}
+            </Grid>
+          </Grid>}
+          onHourChange={updateHours}
+          onReasonChange={updateReason}
+          week_details={week_details}
+        />
+      )}
       <Snackbar
         anchorOrigin={{
           vertical: "bottom",
@@ -689,35 +818,18 @@ export default function Registro() {
           start_date={TODAY}
         />
       </ParameterContext.Provider>
+      <ConfirmRequestModal
+        closeModal={() => setConfirmRequestModalOpen(false)}
+        onConfirm={() => setRequestModalOpen(true)}
+        is_open={confirm_request_modal_open}
+      />
       <EarlyCloseDialog
         onClose={() => setEarlyCloseModalOpen(false)}
         onConfirm={(message) => handleEarlyCloseRequested(message)}
         open={early_close_modal_open}
       />
       <ConfirmDialog
-        onConfirm={() => {
-          closeWeek(context.id, true)
-            .then(async (response) => {
-              setAlertOpen(false);
-
-              const {
-                message,
-              } = await response.json();
-
-              if (response.ok) {
-                setError(null);
-                updateCurrentWeekDetails();
-                setAlertOpen(true);
-              } else {
-                setError(message);
-                setAlertOpen(true);
-              }
-            })
-            .finally(() => {
-              updateCurrentWeekDetails();
-              updateTable();
-            });
-        }}
+        onConfirm={() => handleWeekSave(true)}
         onClose={() => setOverflowWeekModalOpen(false)}
         open={overflow_week_modal_open}
         title="Asignación excedida"
