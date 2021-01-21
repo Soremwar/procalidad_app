@@ -664,14 +664,16 @@ export default function Registro({
             }
           }
         } else {
-          switch (code) {
-            case "REGISTRY_WEEK_NOT_COMPLETED":
+          //You can't close the week early on edit mode
+          //Early close is only available for open weeks
+          if (disable_admin_mode) {
+            if (code === "REGISTRY_WEEK_NOT_COMPLETED") {
               setEarlyCloseModalOpen(true);
-              break;
-            default:
-              setError(message);
-              setAlertOpen(true);
+              return;
+            }
           }
+          setError(message);
+          setAlertOpen(true);
         }
       });
   };
