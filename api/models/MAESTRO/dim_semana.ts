@@ -3,7 +3,7 @@ import { TABLE as TIME_TABLE } from "./dim_tiempo.ts";
 
 export const TABLE = "MAESTRO.DIM_SEMANA";
 
-class Week {
+export class Week {
   constructor(
     public readonly id: number,
     public readonly code: string,

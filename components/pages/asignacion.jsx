@@ -899,14 +899,23 @@ export default function Asignacion() {
               fullWidth
               label="Semana"
               onChange={(event) => setSelectedWeek(event.target.value)}
+              shrink={true}
               value={selected_week}
             >
               {parameters.weeks
-                .map(({ code, date }) => (
-                  <option key={code} value={code}>
-                    {formatDateAsWeekLocal(parseStandardNumber(date))}
-                  </option>
-                ))}
+                .map(({ id, start_date }) => {
+                  //This adjusts the offset
+                  const parsed_date = new Date(start_date);
+                  const adjusted_date = new Date(
+                    parsed_date.getTime() +
+                      (parsed_date.getTimezoneOffset() * 60 * 1000),
+                  );
+                  return (
+                    <option key={id} value={id}>
+                      {formatDateAsWeekLocal(adjusted_date)}
+                    </option>
+                  );
+                })}
             </SelectField>
           </Grid>
         </Grid>
@@ -919,7 +928,7 @@ export default function Asignacion() {
               value={selected_tab}
               onChange={(_event, value) => handleTabChange(value)}
             >
-              <Tab label="Asignaciones Activas" id="simple-tab-0" />
+              <Tab label="Asignaciones" id="simple-tab-0" />
               <Tab
                 label="Solicitudes de asignación"
                 id="simple-tab-1"

@@ -6,10 +6,7 @@ import { TABLE as PROJECT_TABLE } from "./PROYECTO.ts";
 import { TABLE as ROLE_TABLE } from "./ROL.ts";
 import { TABLE as PERSON_TABLE } from "../ORGANIZACION/people.ts";
 import { TABLE as SUB_AREA_TABLE } from "../ORGANIZACION/sub_area.ts";
-import {
-  findByDate as findWeek,
-  TABLE as WEEK_TABLE,
-} from "../MAESTRO/dim_semana.ts";
+import { TABLE as WEEK_TABLE, Week } from "../MAESTRO/dim_semana.ts";
 import { TABLE as ACCESS_TABLE } from "../MAESTRO/access.ts";
 import {
   findByPersonAndWeek as findControl,
@@ -54,13 +51,6 @@ class Asignacion {
   ): Promise<
     Asignacion
   > {
-    const is_control_open = await isControlOpen(this.person, this.week);
-    if (!is_control_open) {
-      throw new Error(
-        "La semana asociada a esta asignacion se encuentra cerrada",
-      );
-    }
-
     Object.assign(this, {
       hours,
     });
@@ -178,15 +168,10 @@ export const createNew = async (
   );
 };
 
-interface AvailableWeeks {
-  code: number;
-  date: number;
-}
-
 /*
 * Returns the week code and start date of the weeks available for assignation
 * */
-export const getAvailableWeeks = async (): Promise<AvailableWeeks[]> => {
+export const getAvailableWeeks = async (): Promise<Week[]> => {
   const { rows } = await postgres.query(
     `WITH SEMANAS AS (
       SELECT
@@ -203,21 +188,36 @@ export const getAvailableWeeks = async (): Promise<AvailableWeeks[]> => {
       WHERE C.BAN_CERRADO = FALSE
     )
     SELECT
-      PK_SEMANA AS WEEK_CODE,
-      TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER AS WEEK_DATE
+      PK_SEMANA AS ID,
+      COD_SEMANA AS CODE,
+      FECHA_INICIO AS START_DATE,
+      FECHA_FIN AS END_DATE
     FROM ${WEEK_TABLE}
-    WHERE TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER BETWEEN (SELECT MIN FROM SEMANAS) AND (SELECT MAX FROM SEMANAS)
-    GROUP BY
-      WEEK_CODE,
-      WEEK_DATE
+    WHERE TO_CHAR(FECHA_INICIO, 'YYYYMMDD')::INTEGER
+      BETWEEN (SELECT MIN FROM SEMANAS)
+      AND (SELECT MAX FROM SEMANAS)
     ORDER BY
-      WEEK_DATE`,
+      CODE`,
   );
 
-  return rows.map(([code, date]: [number, number]) => ({
+  return rows.map(([
+    id,
     code,
-    date,
-  } as AvailableWeeks));
+    start_date,
+    end_date,
+  ]: [
+    number,
+    string,
+    Date,
+    Date,
+  ]) =>
+    new Week(
+      id,
+      code,
+      new Date(start_date),
+      new Date(end_date),
+    )
+  );
 };
 
 export const getAssignationHoursByWeek = async (

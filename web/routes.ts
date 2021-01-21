@@ -2830,6 +2830,8 @@ main_router
   );
 
 main_router
+  //TODO
+  //Person should be inferred not passed through query
   .get<{ person: string }>(
     "/api/asignacion_solicitud/table/:person",
     checkUserAccess([
