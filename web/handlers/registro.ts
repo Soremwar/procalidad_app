@@ -166,7 +166,6 @@ export const closePersonWeek = async (
     throw new NotFoundError("No existen registros en esta semana");
   }
 
-  const allow_week_overflow = value.overflow;
   const validation = await validateWeek(
     person,
     week_control.week,
@@ -186,13 +185,14 @@ export const closePersonWeek = async (
       "REGISTRY_WEEK_ON_GOING",
       "La semana a cerrar aun se encuentra en curso",
     );
-  } else if (!validation.assignation_completed) {
+  } else if (validation.assignation_overflowed) {
     throw new RequestSyntaxError(
-      "REGISTRY_ASSIGNATION_NOT_COMPLETED",
-      "No cumplio con el minimo de horas asignadas",
+      "REGISTRY_ASSIGNATION_OVERFLOWED",
+      "Las horas registradas exceden su asignación",
     );
   }
 
+  const allow_week_overflow = value.overflow;
   if (validation.week_overflowed && !allow_week_overflow) {
     response.status = Status.Accepted;
     response.body = {

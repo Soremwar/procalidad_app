@@ -381,7 +381,7 @@ export const isWeekOpen = async (
 };
 
 interface ValidationResult {
-  assignation_completed: boolean;
+  assignation_overflowed: boolean;
   time_completed: boolean;
   week_completed: boolean;
   week_overflowed: boolean;
@@ -397,7 +397,29 @@ export const validateWeek = async (
   }>,
 ): Promise<ValidationResult> => {
   const { rows } = await postgres.query(
-    `WITH DETALLE AS (
+    //deno-fmt-ignore
+    `WITH REGISTRO AS (
+      SELECT
+        FK_PRESUPUESTO,
+        HORAS,
+        FK_ROL
+      FROM (
+        ${
+          registry.length
+            ? registry
+              .map(({ budget, hours, role }) =>
+                `SELECT ${budget} AS FK_PRESUPUESTO, ${hours} AS HORAS, ${role} AS FK_ROL`
+              )
+              .join("\nUNION ALL\n")
+            // This is an empty array that will guaranteee the validation
+            // Doesn't break if the user tries to early close an empty week
+            : `SELECT
+                UNNEST('{}'::INTEGER[]) as FK_PRESUPUESTO,
+                UNNEST('{}'::INTEGER[]) as HORAS,
+                UNNEST('{}'::INTEGER[]) as FK_ROL`
+        }
+      ) A
+    ), DETALLE AS (
       SELECT
         S.PK_SEMANA,
         A.FK_PRESUPUESTO,
@@ -407,15 +429,7 @@ export const validateWeek = async (
       FROM ${ASSIGNATION_TABLE} A
       JOIN ${WEEK_TABLE} S
       ON A.FK_SEMANA = S.PK_SEMANA
-      LEFT JOIN (
-        ${
-      registry
-        .map(({ budget, hours, role }) =>
-          `SELECT ${budget} AS FK_PRESUPUESTO, ${hours} AS HORAS, ${role} AS FK_ROL`
-        )
-        .join("\nUNION ALL\n")
-    }
-      ) AS R
+      LEFT JOIN REGISTRO AS R
       ON A.FK_PRESUPUESTO = R.FK_PRESUPUESTO
       AND A.FK_ROL = R.FK_ROL
       WHERE S.PK_SEMANA = $2
@@ -441,9 +455,9 @@ export const validateWeek = async (
       FROM DETALLE
     ), IRREGULARIDADES AS (
       SELECT
-        CASE WHEN COUNT(1) = 0 THEN TRUE ELSE FALSE END AS ASIGNACION_CUMPLIDA
+        CASE WHEN COUNT(1) = 0 THEN FALSE ELSE TRUE END AS ASIGNACION_EXCEDIDA
       FROM DETALLE
-      WHERE EJECUTADO < ESPERADO
+      WHERE EJECUTADO > ESPERADO
     ), CALENDARIO AS (
       SELECT
         CASE WHEN FECHA_FIN + INTERVAL '1 DAY' < NOW() THEN TRUE ELSE FALSE END AS TIEMPO_COMPLETADO
@@ -451,7 +465,7 @@ export const validateWeek = async (
       WHERE PK_SEMANA = $2
     )
     SELECT
-      I.ASIGNACION_CUMPLIDA AS ASSIGNATION_COMPLETED,
+      I.ASIGNACION_EXCEDIDA AS ASSIGNATION_OVERFLOWED,
       C.TIEMPO_COMPLETADO AS TIME_COMPLETED,
       S.REGISTRADO >= S.ESPERADO AS WEEK_COMPLETED,
       S.REGISTRADO > S.ESPERADO AS WEEK_OVERFLOWED
@@ -463,7 +477,7 @@ export const validateWeek = async (
   );
 
   const [
-    assignation_completed,
+    assignation_overflowed,
     time_completed,
     week_completed,
     week_overflowed,
@@ -475,7 +489,7 @@ export const validateWeek = async (
   ] = rows[0];
 
   return {
-    assignation_completed,
+    assignation_overflowed,
     time_completed,
     week_completed,
     week_overflowed,
