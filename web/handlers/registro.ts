@@ -112,6 +112,7 @@ const put_structure = {
 };
 
 const request_validator = new Ajv({
+  coerceTypes: true,
   schemas: [
     close_request,
     list_request,
