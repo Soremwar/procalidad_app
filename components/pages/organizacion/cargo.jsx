@@ -11,11 +11,13 @@ const getPosition = (id) => fetchPositionApi(id).then((x) => x.json());
 const createPosition = async (
   description,
   name,
+  public_name,
 ) =>
   fetchPositionApi("", {
     body: JSON.stringify({
       description,
       name,
+      public_name,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -27,11 +29,13 @@ const updatePosition = async (
   id,
   description,
   name,
+  public_name,
 ) =>
   fetchPositionApi(id, {
     body: JSON.stringify({
       description,
       name,
+      public_name,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -53,32 +57,40 @@ const headers = [
     searchable: true,
   },
   {
+    id: "public_name",
+    numeric: false,
+    disablePadding: false,
+    label: "Cargo público",
+    searchable: true,
+  },
+  {
     id: "description",
     numeric: false,
     disablePadding: false,
     label: "Descripción",
-    searchable: true,
+    searchable: false,
+    orderable: false,
   },
 ];
+
+const DEFAULT_FIELDS = {
+  description: "",
+  name: "",
+  public_name: "",
+};
 
 const AddModal = ({
   is_open,
   setModalOpen,
   updateTable,
 }) => {
-  const [fields, setFields] = useState({
-    description: "",
-    name: "",
-  });
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (is_open) {
-      setFields({
-        name: "",
-        description: "",
-      });
+      setFields(DEFAULT_FIELDS);
       setError(null);
       setLoading(false);
     }
@@ -96,6 +108,7 @@ const AddModal = ({
     const request = await createPosition(
       fields.description,
       fields.name,
+      fields.public_name,
     );
 
     if (request.ok) {
@@ -119,21 +132,38 @@ const AddModal = ({
     >
       <TextField
         fullWidth
+        inputProps={{
+          maxLength: "100",
+        }}
         label="Cargo"
-        margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
       <TextField
         fullWidth
+        inputProps={{
+          maxLength: "255",
+        }}
         label="Descripción"
-        margin="dense"
+        multiline
         name="description"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
+        rows={2}
         value={fields.description}
+      />
+      <TextField
+        fullWidth
+        inputProps={{
+          maxLength: "100",
+        }}
+        label="Cargo público"
+        name="public_name"
+        onChange={handleChange}
+        required
+        value={fields.public_name}
       />
     </DialogForm>
   );
@@ -145,10 +175,7 @@ const EditModal = ({
   setModalOpen,
   updateTable,
 }) => {
-  const [fields, setFields] = useState({
-    description: "",
-    name: "",
-  });
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -157,6 +184,7 @@ const EditModal = ({
       setFields({
         name: data.nombre,
         description: data.descripcion,
+        public_name: data.nombre_publico,
       });
       setError(null);
       setLoading(false);
@@ -176,6 +204,7 @@ const EditModal = ({
       data.pk_cargo,
       fields.description,
       fields.name,
+      fields.public_name,
     );
 
     if (request.ok) {
@@ -199,21 +228,38 @@ const EditModal = ({
     >
       <TextField
         fullWidth
+        inputProps={{
+          maxLength: "100",
+        }}
         label="Cargo"
-        margin="dense"
         name="name"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
         value={fields.name}
       />
       <TextField
         fullWidth
+        inputProps={{
+          maxLength: "255",
+        }}
         label="Descripción"
-        margin="dense"
+        multiline
         name="description"
-        onChange={(event) => handleChange(event)}
+        onChange={handleChange}
         required
+        rows={2}
         value={fields.description}
+      />
+      <TextField
+        fullWidth
+        inputProps={{
+          maxLength: "100",
+        }}
+        label="Cargo público"
+        name="public_name"
+        onChange={handleChange}
+        required
+        value={fields.public_name}
       />
     </DialogForm>
   );
@@ -277,10 +323,10 @@ const DeleteModal = ({
 
 export default () => {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
+  const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
+  const [is_edit_modal_open, setEditModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
   const [selected_position, setSelectedPosition] = useState({});
-  const [is_edit_modal_open, setEditModalOpen] = useState(false);
-  const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
 
   const handleEditModalOpen = async (id) => {
@@ -303,7 +349,7 @@ export default () => {
 
   return (
     <Fragment>
-      <Title title={"Cargo"} />
+      <Title title="Cargo" />
       <AddModal
         is_open={is_add_modal_open}
         setModalOpen={setAddModalOpen}
@@ -328,7 +374,7 @@ export default () => {
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setTableShouldUpdate(false)}
         update_table={tableShouldUpdate}
-        url={"organizacion/cargo/table"}
+        url="organizacion/cargo/table"
       />
     </Fragment>
   );

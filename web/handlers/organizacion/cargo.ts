@@ -1,4 +1,4 @@
-import type { RouterContext } from "oak";
+import Ajv from "ajv";
 import {
   createNew,
   findAll,
@@ -8,6 +8,33 @@ import {
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
+import { RouterContext } from "../../state.ts";
+import { STRING } from "../../../lib/ajv/types.js";
+
+const update_request = {
+  $id: "update",
+  properties: {
+    "name": STRING(100),
+    "description": STRING(255),
+    "public_name": STRING(100),
+  },
+};
+
+const create_request = Object.assign({}, update_request, {
+  $id: "create",
+  required: [
+    "name",
+    "description",
+    "public_name",
+  ],
+});
+
+const request_validator = new Ajv({
+  schemas: [
+    create_request,
+    update_request,
+  ],
+});
 
 export const getPositions = async ({ response }: RouterContext) => {
   response.body = await findAll();
@@ -22,21 +49,20 @@ export const getPositionsTable = async (context: RouterContext) =>
 export const createPosition = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    name,
-    description,
+  const value: {
+    name: string;
+    description: string;
+    public_name: string;
   } = await request.body({ type: "json" }).value;
-
-  if (!(name && description)) {
+  if (!request_validator.validate("create", value)) {
     throw new RequestSyntaxError();
   }
 
-  const position = await createNew(
-    name,
-    description,
+  response.body = await createNew(
+    value.name,
+    value.description,
+    value.public_name,
   );
-
-  response.body = position;
 };
 
 export const getPosition = async (
@@ -60,14 +86,19 @@ export const updatePosition = async (
   let position = await findById(id);
   if (!position) throw new NotFoundError();
 
-  const {
-    name,
-    description,
+  const value: {
+    name: string;
+    description: string;
+    public_name: string;
   } = await request.body({ type: "json" }).value;
+  if (!request_validator.validate("update", value)) {
+    throw new RequestSyntaxError();
+  }
 
-  position = await position.update(
-    name,
-    description,
+  await position.update(
+    value.name,
+    value.description,
+    value.public_name,
   );
 
   response.body = position;
