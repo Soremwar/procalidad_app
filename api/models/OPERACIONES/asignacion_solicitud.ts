@@ -74,7 +74,9 @@ export const createNew = async (
   );
 };
 
-export const findById = async (id: number): Promise<AssignationRequest> => {
+export const findById = async (
+  id: number,
+): Promise<AssignationRequest | null> => {
   const { rows } = await postgres.query(
     `SELECT
       PK_SOLICITUD,
@@ -90,7 +92,47 @@ export const findById = async (id: number): Promise<AssignationRequest> => {
     id,
   );
 
-  const result: [
+  if (!rows.length) {
+    return null;
+  }
+
+  return new AssignationRequest(
+    ...rows[0] as [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      string,
+    ],
+  );
+};
+
+export const findByPersonAndWeek = async (
+  person: number,
+  week: number,
+): Promise<AssignationRequest[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      A.PK_SOLICITUD,
+      A.FK_PERSONA,
+      A.FK_PRESUPUESTO,
+      A.FK_ROL,
+      A.FECHA,
+      A.HORAS,
+      A.DESCRIPCION
+    FROM
+      ${TABLE} A
+    JOIN MAESTRO.DIM_SEMANA S
+      ON TO_DATE(A.FECHA::VARCHAR, 'YYYYMMDD') BETWEEN S.FECHA_INICIO AND S.FECHA_FIN
+    WHERE A.FK_PERSONA = $1
+    AND S.PK_SEMANA = $2`,
+    person,
+    week,
+  );
+
+  return rows.map((row: [
     number,
     number,
     number,
@@ -98,9 +140,7 @@ export const findById = async (id: number): Promise<AssignationRequest> => {
     number,
     number,
     string,
-  ] = rows[0];
-
-  return new AssignationRequest(...result);
+  ]) => new AssignationRequest(...row));
 };
 
 export const getPersonRequestedHoursByWeek = async (

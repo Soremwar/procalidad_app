@@ -1,11 +1,13 @@
 import Ajv from "ajv";
-import type { RouterContext } from "oak";
 import {
   create,
   EarlyCloseRequest,
   findById,
   getTableData,
 } from "../../../api/models/OPERACIONES/early_close_request.ts";
+import {
+  findByPersonAndWeek as findAssignationRequests,
+} from "../../../api/models/OPERACIONES/asignacion_solicitud.ts";
 import { decodeToken } from "../../../lib/jwt.ts";
 import {
   findById as findControlWeek,
@@ -18,6 +20,7 @@ import {
 } from "../../../api/email/dispatchers.js";
 import { castStringToBoolean } from "../../../lib/utils/boolean.js";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import { RouterContext } from "../../state.ts";
 
 const create_request = {
   $id: "create",
@@ -60,12 +63,9 @@ const request_validator = new Ajv({
 });
 
 export const createEarlyCloseRequest = async (
-  { cookies, request, response }: RouterContext,
+  { response, state }: RouterContext,
 ) => {
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id } = await decodeToken(session_cookie);
-
-  const open_control = await findOpenWeek(id);
+  const open_control = await findOpenWeek(state.user.id);
   if (!open_control) {
     throw new RequestSyntaxError(
       "La persona solicitada no se encuentra habilitada para registrar horas",
@@ -129,6 +129,15 @@ export const updateEarlyCloseRequest = async (
   const approved = castStringToBoolean(value.approved);
 
   if (approved) {
+    const requests = await findAssignationRequests(
+      control.person,
+      control.week,
+    );
+
+    for (const request of requests) {
+      await request.delete();
+    }
+
     await control.close();
   }
 
@@ -148,10 +157,7 @@ export const updateEarlyCloseRequest = async (
 };
 
 export const getEarlyRequestRequestTable = async (
-  { cookies, response }: RouterContext,
+  { response, state }: RouterContext,
 ) => {
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id } = await decodeToken(session_cookie);
-
-  response.body = await getTableData(id);
+  response.body = await getTableData(state.user.id);
 };

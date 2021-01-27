@@ -25,6 +25,7 @@ import {
   getAssignationHoursByWeek as getWeekAssignation,
 } from "../../api/models/OPERACIONES/asignacion.ts";
 import {
+  findByPersonAndWeek as findRequests,
   getPersonRequestedHoursByWeek as getWeekRequests,
 } from "../../api/models/OPERACIONES/asignacion_solicitud.ts";
 import {
@@ -228,6 +229,16 @@ export const closePersonWeek = async (
         state.user.id,
         registry.reason || "",
       );
+    }
+  }
+
+  // Cleanup open requests only if it's the owner of these requests
+  // who is requesting the week close
+  if (!is_admin_request) {
+    const requests = await findRequests(week_control.person, week_control.week);
+
+    for (const request of requests) {
+      await request.delete();
     }
   }
 
