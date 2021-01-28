@@ -14,6 +14,7 @@ export class EarlyCloseRequest {
     public readonly id: number,
     public readonly week_control: number,
     public readonly message: string,
+    public readonly request_date: Date,
   ) {}
 
   static async isTaken(
@@ -45,18 +46,28 @@ export const create = async (
   const { rows } = await postgres.query(
     `INSERT INTO ${TABLE} (
       FK_CONTROL_SEMANA,
-      DESCRIPCION
+      DESCRIPCION,
+      FEC_SOLICITUD
     ) VALUES (
       $1,
-      $2
-    ) RETURNING PK_SOLICITUD`,
+      $2,
+      NOW()
+    ) RETURNING
+      PK_SOLICITUD,
+      FEC_SOLICITUD`,
     week_control,
     message,
   );
 
   const id: number = rows[0][0];
+  const request_date = new Date(rows[0][1]);
 
-  return new EarlyCloseRequest(id, week_control, message);
+  return new EarlyCloseRequest(
+    id,
+    week_control,
+    message,
+    request_date,
+  );
 };
 
 export const findById = async (id: number): Promise<EarlyCloseRequest> => {
@@ -64,7 +75,8 @@ export const findById = async (id: number): Promise<EarlyCloseRequest> => {
     `SELECT
       PK_SOLICITUD,
       FK_CONTROL_SEMANA,
-      DESCRIPCION
+      DESCRIPCION,
+      FEC_SOLICITUD
     FROM ${TABLE}
     WHERE PK_SOLICITUD = $1`,
     id,
@@ -75,6 +87,7 @@ export const findById = async (id: number): Promise<EarlyCloseRequest> => {
       number,
       number,
       string,
+      Date,
     ],
   );
 };
