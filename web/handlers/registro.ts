@@ -25,9 +25,12 @@ import {
   getAssignationHoursByWeek as getWeekAssignation,
 } from "../../api/models/OPERACIONES/asignacion.ts";
 import {
-  findByPersonAndWeek as findRequests,
+  findByPersonAndWeek as findAssignationRequest,
   getPersonRequestedHoursByWeek as getWeekRequests,
 } from "../../api/models/OPERACIONES/asignacion_solicitud.ts";
+import {
+  findByControl as findCloseRequest,
+} from "../../api/models/OPERACIONES/early_close_request.ts";
 import {
   ForbiddenAccessError,
   NotFoundError,
@@ -235,10 +238,18 @@ export const closePersonWeek = async (
   // Cleanup open requests only if it's the owner of these requests
   // who is requesting the week close
   if (!is_admin_request) {
-    const requests = await findRequests(week_control.person, week_control.week);
+    const assignation_requests = await findAssignationRequest(
+      week_control.person,
+      week_control.week,
+    );
 
-    for (const request of requests) {
+    for (const request of assignation_requests) {
       await request.delete();
+    }
+
+    const close_request = await findCloseRequest(week_control.id);
+    if (close_request) {
+      await close_request.delete();
     }
   }
 

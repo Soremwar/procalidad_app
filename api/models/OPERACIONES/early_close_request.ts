@@ -70,6 +70,34 @@ export const create = async (
   );
 };
 
+export const findByControl = async (
+  control: number,
+): Promise<EarlyCloseRequest | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_SOLICITUD,
+      FK_CONTROL_SEMANA,
+      DESCRIPCION,
+      FEC_SOLICITUD
+    FROM ${TABLE}
+    WHERE FK_CONTROL_SEMANA = $1`,
+    control,
+  );
+
+  if (!rows.length) {
+    return null;
+  }
+
+  return new EarlyCloseRequest(
+    ...rows[0] as [
+      number,
+      number,
+      string,
+      Date,
+    ],
+  );
+};
+
 export const findById = async (id: number): Promise<EarlyCloseRequest> => {
   const { rows } = await postgres.query(
     `SELECT
