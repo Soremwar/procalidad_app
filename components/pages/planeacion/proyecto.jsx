@@ -22,7 +22,7 @@ import {
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
 import { FrappeGantt, Task, ViewMode } from "frappe-gantt-react";
-import { formatResponseJson, Response } from "../../../lib/api/request.ts";
+import { formatResponseJson } from "../../../lib/api/request.ts";
 import { formatStandardNumberToStandardString } from "../../../lib/date/mod.js";
 import {
   fetchClientApi,
@@ -55,7 +55,6 @@ const getResourceGantt = (project) => {
   ].filter(([_index, value]) => value)));
   return fetchResourceApi(`gantt?${params.toString()}`).then((x) => x.json());
 };
-/** @return Promise<Response<Array<{pk_rol: number, nombre: string}>>> */
 const getRoles = (project) =>
   fetchRoleApi({
     params: {
