@@ -19,6 +19,7 @@ class AssignationRequest {
     public readonly date: number,
     public readonly hours: number,
     public readonly description: string,
+    public readonly request_date: Date,
   ) {}
 
   async delete(): Promise<void> {
@@ -44,15 +45,19 @@ export const createNew = async (
       FK_ROL,
       FECHA,
       HORAS,
-      DESCRIPCION
+      DESCRIPCION,
+      FEC_SOLICITUD
     ) VALUES (
       $1,
       $2,
       $3,
       $4,
       $5,
-      $6
-    ) RETURNING PK_SOLICITUD`,
+      $6,
+      NOW()
+    ) RETURNING
+      PK_SOLICITUD,
+      FEC_SOLICITUD`,
     person,
     budget,
     role,
@@ -62,6 +67,7 @@ export const createNew = async (
   );
 
   const id: number = rows[0][0];
+  const request_date = new Date(rows[0][1]);
 
   return new AssignationRequest(
     id,
@@ -71,6 +77,7 @@ export const createNew = async (
     date,
     horas,
     description,
+    request_date,
   );
 };
 
@@ -85,7 +92,8 @@ export const findById = async (
       FK_ROL,
       FECHA,
       HORAS,
-      DESCRIPCION
+      DESCRIPCION,
+      FEC_SOLICITUD
     FROM
       ${TABLE}
     WHERE PK_SOLICITUD = $1`,
@@ -105,6 +113,7 @@ export const findById = async (
       number,
       number,
       string,
+      Date,
     ],
   );
 };
@@ -121,7 +130,8 @@ export const findByPersonAndWeek = async (
       A.FK_ROL,
       A.FECHA,
       A.HORAS,
-      A.DESCRIPCION
+      A.DESCRIPCION,
+      A.FEC_SOLICITUD
     FROM
       ${TABLE} A
     JOIN MAESTRO.DIM_SEMANA S
@@ -140,6 +150,7 @@ export const findByPersonAndWeek = async (
     number,
     number,
     string,
+    Date,
   ]) => new AssignationRequest(...row));
 };
 
