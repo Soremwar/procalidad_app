@@ -20,6 +20,64 @@ Handlebars.registerHelper("Link", function (title, route) {
   );
 });
 
+Handlebars.registerHelper("if_equals", function (a, b, opts) {
+  if (a === b) {
+    return opts.fn(this);
+  } else {
+    return opts.inverse(this);
+  }
+});
+
+// This function can take two or more parameters
+// IT will render if any of the arguments passed to it is truthy
+Handlebars.registerHelper("if_or", function (a, b, ...args) {
+  if (!args.length) {
+    throw new Error('"if_or" expected two or more arguments');
+  }
+
+  const opts = args[args.length - 1];
+  const items = [a, b, ...args.slice(0, args.length - 1)];
+
+  if (items.some((item) => !!item)) {
+    return opts.fn(this);
+  } else {
+    return opts.inverse(this);
+  }
+});
+
+// Render element if the array supplied to it has items
+Handlebars.registerHelper("if_has_items", function (a, opts) {
+  if (!Array.isArray(a)) {
+    throw new TypeError('"if_has_items" expected an array');
+  }
+  if (a.length) {
+    return opts.fn(this);
+  } else {
+    return opts.inverse(this);
+  }
+});
+
+// Render element if one of the arrays supplied to it has items
+Handlebars.registerHelper("if_or_has_items", function (a, b, ...args) {
+  if (!args.length) {
+    throw new Error('"if_or_has_items" expected two or more arguments');
+  }
+
+  const opts = args[args.length - 1];
+  const items = [a, b, ...args.slice(0, args.length - 1)];
+
+  if (!items.every((item) => Array.isArray(item))) {
+    throw new TypeError(
+      '"if_or_has_items" expected its arguments to be arrays',
+    );
+  }
+
+  if (items.every((item) => !!item.length)) {
+    return opts.fn(this);
+  }
+  return opts.inverse(this);
+});
+
 const layout = await Deno.readTextFile(
   new URL("./templates/layout.html", import.meta.url),
 );
@@ -223,5 +281,73 @@ export const createCertificationExpirationEmail = async (
     name: html.encode(name),
     provider: html.encode(provider),
     type: html.encode(type),
+  });
+};
+
+const DEFAULT_GENERATION_PARAMETERS = {
+  show_certifications: true,
+  show_continuous_formation: true,
+  show_general_information: true,
+  show_project_contact: true,
+  show_project_functions: true,
+  show_project_participation_dates: true,
+  show_project_participation: true,
+};
+
+export const createResumeTemplate = async ({
+  academic_formation,
+  certifications,
+  continuous_formation,
+  experience_time,
+  laboral_experience,
+  language_skill,
+  local_experience_time,
+  name,
+  position,
+  professional_card,
+  project_experience,
+  start_date,
+  tool_administration,
+  tool_development_skill,
+  tool_installation,
+}, {
+  show_certifications,
+  show_continuous_formation,
+  show_general_information,
+  show_project_contact,
+  show_project_functions,
+  show_project_participation_dates,
+  show_project_participation,
+} = DEFAULT_GENERATION_PARAMETERS) => {
+  const raw_template = await Deno.readTextFile(
+    new URL("./templates/cv.html", import.meta.url),
+  );
+  const template = Handlebars.compile(raw_template, {
+    noEscape: true,
+  });
+
+  return template({
+    academic_formation,
+    certifications,
+    continuous_formation,
+    experience_time,
+    laboral_experience,
+    language_skill,
+    local_experience_time,
+    name,
+    position,
+    professional_card,
+    project_experience,
+    show_certifications,
+    show_continuous_formation,
+    show_general_information,
+    show_project_contact,
+    show_project_functions,
+    show_project_participation_dates,
+    show_project_participation,
+    start_date,
+    tool_administration,
+    tool_development_skill,
+    tool_installation,
   });
 };

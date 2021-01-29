@@ -2,6 +2,28 @@ import postgres from "../../services/postgres.js";
 import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { DataType, TABLE as REVIEW_TABLE } from "../users/data_review.ts";
+import { TABLE as POSITION_ASSIGNATION_TABLE } from "./asignacion_cargo.ts";
+import { TABLE as POSITION_TABLE } from "./cargo.ts";
+import {
+  SkillLevel as LanguageSkill,
+  TABLE as LANGUAGE_SKILL_TABLE,
+} from "../users/language_experience.ts";
+import { TABLE as LANGUAGE_TABLE } from "../MAESTRO/language.ts";
+import { TABLE as FORMATION_TABLE } from "../users/formation_title.ts";
+import {
+  FormationType,
+  TABLE as FORMATION_LEVEL_TABLE,
+} from "../users/formation_level.ts";
+import { TABLE as LABORAL_EXPERIENCE_TABLE } from "../users/laboral_experience.ts";
+import { TABLE as PROJECT_EXPERIENCE_TABLE } from "../users/project_experience.ts";
+import { TABLE as CERTIFICATION_TABLE } from "../users/certification.ts";
+import { TABLE as CERTIFICATION_TEMPLATE_TABLE } from "../users/certification_template.ts";
+import { TABLE as CERTIFICATION_PROVIDER_TABLE } from "../users/certification_provider.ts";
+import {
+  DevelopmentSkill as ToolSkill,
+  TABLE as TOOL_SKILL_TABLE,
+} from "../users/technical_skill.ts";
+import { TABLE as TOOL_TABLE } from "../MAESTRO/tool.ts";
 
 export const TABLE = "ORGANIZACION.PERSONA";
 const ERROR_DEPENDENCY =
@@ -527,5 +549,328 @@ export const getTableData = async (
   return new TableResult(
     count,
     models,
+  );
+};
+
+interface ResumeLanguageSkill {
+  language: string;
+  read_skill: LanguageSkill;
+  write_skill: LanguageSkill;
+  speak_skill: LanguageSkill;
+  listen_skill: LanguageSkill;
+}
+
+interface ResumeFormation {
+  title: string;
+  institution: string;
+  graduation_date: string;
+  type: string;
+}
+
+interface ResumeLaboralExperience {
+  company: string;
+  position: string;
+  start_date: string;
+  end_date: string;
+  time: number;
+}
+
+interface ResumeProjectExperience {
+  name: string;
+  client: string;
+  description: string;
+  address: string;
+  contact: string;
+  contact_phone: string;
+  start_date: string;
+  end_date: string;
+  participation: number;
+  functions: string;
+  roles: string[];
+  tools: string[];
+}
+
+interface ResumeCertification {
+  name: string;
+  certification: string;
+  provider: string;
+  version: string;
+}
+
+interface ResumeToolDevelopmentSkill {
+  tool: string;
+  development_skill: ToolSkill;
+}
+
+interface ResumeTool {
+  tool: string;
+}
+
+class Resume {
+  constructor(
+    public name: string,
+    public position: string,
+    public start_date: string,
+    public local_experience_time: number,
+    public professional_card: string | null,
+    public experience_time: number,
+    public language_skill: ResumeLanguageSkill[],
+    public academic_formation: ResumeFormation[],
+    public continuous_formation: ResumeFormation[],
+    public laboral_experience: ResumeLaboralExperience[],
+    public project_experience: ResumeProjectExperience[],
+    public certifications: ResumeCertification[],
+    public tool_development_skill: ResumeToolDevelopmentSkill[],
+    public tool_installation: ResumeTool[],
+    public tool_administration: ResumeTool[],
+  ) {}
+}
+
+export const getResume = async (
+  id: number,
+  all_project_experience: boolean,
+) => {
+  const { rows } = await postgres.query(
+    `SELECT
+      P.NOMBRE AS NAME,
+      C.NOMBRE_PUBLICO AS POSITION,
+      TO_CHAR(P.FEC_INICIO, 'DD/MM/YYYY') AS START_DATE,
+      ROUND((DATE_PART('DAY', NOW() - P.FEC_INICIO::TIMESTAMP) / 365)::NUMERIC, 1) AS LOCAL_EXPERIENCE_TIME,
+      TO_CHAR(P.EXPEDICION_TARJETA_PROFESIONAL, 'DD/MM/YYYY') AS PROFESSIONAL_CARD,
+      (
+        SELECT
+          DATE_PART('YEAR', AGE(CURRENT_DATE, MIN(FEC_INICIO)))
+        FROM ${LABORAL_EXPERIENCE_TABLE}
+        WHERE FK_USUARIO = P.PK_PERSONA
+      ) AS EXPERIENCE_TIME,
+      COALESCE(LA.DATA, '{}'::JSON[]) AS LANGUAGE_SKILL,
+      COALESCE(AF.DATA, '{}'::JSON[]) AS ACADEMIC_FORMATION,
+      COALESCE(CF.DATA, '{}'::JSON[]) AS CONTINUOUS_FORMATION,
+      COALESCE(L.DATA, '{}'::JSON[]) AS LABORAL_EXPERIENCE,
+      COALESCE(PE.DATA, '{}'::JSON[]) AS PROJECT_EXPERIENCE,
+      COALESCE(CE.DATA, '{}'::JSON[]) AS CERTIFICATIONS,
+      COALESCE(TD.DATA, '{}'::JSON[]) AS TOOL_DEVELOPMENT_SKILL,
+      COALESCE(TI.DATA, '{}'::JSON[]) AS TOOL_INSTALLATION,
+      COALESCE(TA.DATA, '{}'::JSON[]) AS TOOL_ADMINISTRATION
+    FROM ${TABLE} P
+    JOIN ${POSITION_ASSIGNATION_TABLE} AS AC
+      ON AC.FK_PERSONA = P.PK_PERSONA
+    JOIN ${POSITION_TABLE} AS C
+      ON C.PK_CARGO = AC.FK_CARGO
+    LEFT JOIN (
+      SELECT
+        LA.FK_PERSONA,
+        ARRAY_AGG(
+          JSON_BUILD_OBJECT(
+            'language', L.NOMBRE,
+            'read_skill', LA.ESTADO_LECTURA,
+            'write_skill', LA.ESTADO_ESCRITURA,
+            'speak_skill', LA.ESTADO_HABLA,
+            'listen_skill', LA.ESTADO_ESCUCHA
+          )
+          ORDER BY
+            L.NOMBRE
+        ) AS DATA
+      FROM ${LANGUAGE_SKILL_TABLE} LA
+      JOIN ${LANGUAGE_TABLE} L
+        ON L.PK_IDIOMA = LA.FK_IDIOMA
+      GROUP BY
+        LA.FK_PERSONA
+    ) AS LA
+      ON LA.FK_PERSONA = P.PK_PERSONA
+    LEFT JOIN (
+      SELECT
+        F.FK_USUARIO,
+        ARRAY_AGG(
+          JSON_BUILD_OBJECT(
+            'title', F.TITULO,
+            'institution', F.INSTITUCION,
+            'graduation_date', TO_CHAR(F.FECHA_FIN, 'DD/MM/YYYY'),
+            'type', N.NOMBRE
+          )
+          ORDER BY
+            F.FECHA_FIN DESC,
+            F.TITULO
+        ) AS DATA
+      FROM ${FORMATION_TABLE} F
+      JOIN ${FORMATION_LEVEL_TABLE} N
+        ON F.FK_NIVEL_FORMACION = N.PK_NIVEL
+      WHERE N.TIPO_FORMACION = '${FormationType.Academica}'
+      GROUP BY
+        F.FK_USUARIO
+    ) AS AF
+      ON AF.FK_USUARIO = P.PK_PERSONA
+    LEFT JOIN (
+      SELECT
+        F.FK_USUARIO,
+        ARRAY_AGG(
+          JSON_BUILD_OBJECT(
+            'title', F.TITULO,
+            'institution', F.INSTITUCION,
+            'graduation_date', TO_CHAR(F.FECHA_FIN, 'DD/MM/YYYY'),
+            'type', N.NOMBRE
+          )
+          ORDER BY
+            F.FECHA_FIN DESC,
+            F.TITULO
+        ) AS DATA
+      FROM ${FORMATION_TABLE} F
+      JOIN ${FORMATION_LEVEL_TABLE} N
+        ON F.FK_NIVEL_FORMACION = N.PK_NIVEL
+      WHERE N.TIPO_FORMACION = '${FormationType.Continuada}'
+      GROUP BY
+        F.FK_USUARIO
+    ) AS CF
+      ON CF.FK_USUARIO = P.PK_PERSONA
+    LEFT JOIN (
+      SELECT
+        FK_USUARIO,
+        ARRAY_AGG(
+          JSON_BUILD_OBJECT(
+            'company', EMPRESA,
+            'position', CARGO,
+            'start_date', TO_CHAR(FEC_INICIO, 'DD/MM/YYYY'),
+            'end_date', TO_CHAR(FEC_FIN, 'DD/MM/YYYY'),
+            'time', ROUND((DATE_PART('DAY', FEC_FIN::TIMESTAMP - FEC_INICIO::TIMESTAMP) / 365)::NUMERIC, 1)
+          )
+          ORDER BY
+            FEC_INICIO DESC
+        ) AS DATA
+      FROM ${LABORAL_EXPERIENCE_TABLE}
+      GROUP BY
+        FK_USUARIO
+    ) AS L
+      ON L.FK_USUARIO = P.PK_PERSONA
+    LEFT JOIN (
+      SELECT
+        FK_USUARIO,
+        ARRAY_AGG(
+          JSON_BUILD_OBJECT(
+            'name', PROYECTO,
+            'client', CLIENTE,
+            'description', DESCRIPCION,
+            'contact', NOMBRE_CONTACTO,
+            'contact_phone', TELEFONO_CONTACTO,
+            'start_date', TO_CHAR(FEC_INICIO, 'DD/MM/YYYY'),
+            'end_date', TO_CHAR(FEC_FIN, 'DD/MM/YYYY'),
+            'participation', PORCENTAJE_PARTICIPACION,
+            'functions', FUNCIONES,
+            'roles', ROLES,
+            'tools', ENTORNO_TECNOLOGICO
+          )
+          ORDER BY
+            FEC_INICIO DESC
+        ) AS DATA
+      FROM ${PROJECT_EXPERIENCE_TABLE}
+      ${all_project_experience ? "" : "WHERE BAN_PROYECTO_INTERNO = TRUE"}
+      GROUP BY
+        FK_USUARIO
+    ) AS PE
+      ON PE.FK_USUARIO = P.PK_PERSONA
+    LEFT JOIN (
+      SELECT
+        C.FK_USUARIO,
+        ARRAY_AGG(
+          JSON_BUILD_OBJECT(
+            'name', C.NOMBRE,
+            'certification', PLA.NOMBRE,
+            'provider', PRO.NOMBRE,
+            'version', C.VERSION
+          )
+          ORDER BY
+            PLA.NOMBRE,
+            C.NOMBRE
+        ) AS DATA
+      FROM ${CERTIFICATION_TABLE} C
+      JOIN ${CERTIFICATION_TEMPLATE_TABLE} PLA
+        ON PLA.PK_PLANTILLA = C.FK_PLANTILLA
+      JOIN ${CERTIFICATION_PROVIDER_TABLE} PRO
+        ON PRO.PK_PROVEEDOR = PLA.FK_PROVEEDOR
+      GROUP BY
+        C.FK_USUARIO
+    ) AS CE
+      ON CE.FK_USUARIO = P.PK_PERSONA
+    LEFT JOIN (
+      SELECT
+        TS.FK_USUARIO,
+        ARRAY_AGG(
+          JSON_BUILD_OBJECT(
+            'tool', T.NOMBRE,
+            'development_skill', TS.DESARROLLO
+          )
+          ORDER BY
+            T.NOMBRE
+        ) AS DATA
+      FROM ${TOOL_SKILL_TABLE} TS
+      JOIN ${TOOL_TABLE} T
+        ON T.PK_HERRAMIENTA = TS.FK_HERRAMIENTA
+      GROUP BY
+        TS.FK_USUARIO
+    ) AS TD
+      ON TD.FK_USUARIO = P.PK_PERSONA
+    LEFT JOIN (
+      SELECT
+        TS.FK_USUARIO,
+        ARRAY_AGG(
+          JSON_BUILD_OBJECT(
+            'tool', T.NOMBRE
+          )
+          ORDER BY
+            T.NOMBRE
+        ) AS DATA
+      FROM ${TOOL_SKILL_TABLE} TS
+      JOIN ${TOOL_TABLE} T
+        ON T.PK_HERRAMIENTA = TS.FK_HERRAMIENTA
+      WHERE
+        TS.INSTALACION = TRUE
+      GROUP BY
+        TS.FK_USUARIO
+    ) AS TI
+      ON TI.FK_USUARIO = P.PK_PERSONA
+    LEFT JOIN (
+      SELECT
+        TS.FK_USUARIO,
+        ARRAY_AGG(
+          JSON_BUILD_OBJECT(
+            'tool', T.NOMBRE
+          )
+          ORDER BY
+            T.NOMBRE
+        ) AS DATA
+      FROM ${TOOL_SKILL_TABLE} TS
+      JOIN ${TOOL_TABLE} T
+        ON T.PK_HERRAMIENTA = TS.FK_HERRAMIENTA
+      WHERE
+        TS.ADMINISTRACION = TRUE
+      GROUP BY
+        TS.FK_USUARIO
+    ) AS TA
+      ON TA.FK_USUARIO = P.PK_PERSONA
+    WHERE P.PK_PERSONA = $1`,
+    id,
+  );
+
+  if (!rows.length) {
+    return null;
+  }
+
+  return new Resume(
+    ...rows[0] as [
+      string,
+      string,
+      string,
+      number,
+      string | null,
+      number,
+      ResumeLanguageSkill[],
+      ResumeFormation[],
+      ResumeFormation[],
+      ResumeLaboralExperience[],
+      ResumeProjectExperience[],
+      ResumeCertification[],
+      ResumeToolDevelopmentSkill[],
+      ResumeTool[],
+      ResumeTool[],
+    ],
   );
 };

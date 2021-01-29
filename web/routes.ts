@@ -2918,6 +2918,16 @@ main_router
       Profiles.HUMAN_RESOURCES,
     ]),
     hr_person.updatePersonReview,
+  )
+  // POST based cause I need a reliable request body
+  .post<{ person: string }>(
+    "/api/humanos/persona/hv/:person",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hr_person.getResume,
   );
 
 main_router

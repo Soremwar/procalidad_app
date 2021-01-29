@@ -4,7 +4,7 @@ import { TABLE as TOOL_TABLE } from "../MAESTRO/tool.ts";
 
 export const TABLE = "USUARIOS.HABILIDAD_TECNICA";
 
-enum DevelopmentSkill {
+export enum DevelopmentSkill {
   "No" = "No",
   "Basico" = "Basico",
   "Intermedio" = "Intermedio",

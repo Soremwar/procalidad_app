@@ -3,7 +3,7 @@ Esta es una app empresarial para realizar planeación y asignación de recursos
 Para iniciar el servidor Deno ejecute el siguiente comando
 
 ```bash
-deno run --unstable --import-map=libraries.json --allow-read=./ --allow-write=storage --allow-net app.ts
+deno run --unstable --import-map=libraries.json --allow-read=./ --allow-write=storage --allow-net --allow-run app.ts
 ```
 
 Para compilar la aplicación React necesaria para correr la página
@@ -21,7 +21,9 @@ deno fmt api components config lib web
 
 ### Requerimientos
 
+- Sistema operativo Linux
 - Deno versión 1.6.3
+- wkhtmltopdf instalado en el sistema
 
 ### Notas:
 

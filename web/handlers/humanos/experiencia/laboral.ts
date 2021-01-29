@@ -1,4 +1,3 @@
-import type { RouterContext } from "oak";
 import Ajv from "ajv";
 import * as laboral_experience_model from "../../../../api/models/users/laboral_experience.ts";
 import { tableRequestHandler } from "../../../../api/common/table.ts";
@@ -8,6 +7,7 @@ import { castStringToBoolean } from "../../../../lib/utils/boolean.js";
 import { BOOLEAN, STRING_OR_NULL } from "../../../../lib/ajv/types.js";
 import { decodeToken } from "../../../../lib/jwt.ts";
 import { Message } from "../../../http_utils.ts";
+import { RouterContext } from "../../../state.ts";
 
 const review_request = {
   $id: "review",

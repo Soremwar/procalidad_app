@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Hoja de vida - {{ name }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.css" />
+  <style>
+    @font-face {
+      font-family: "Carlito";
+      src: url("{{ AssetUrl 'fonts/carlito.regular.ttf' }}");
+    }
+
+    @font-face {
+      font-family: "Carlito";
+      src: url("{{ AssetUrl 'fonts/carlito.bold.ttf' }}");
+      font-weight: bold;
+    }
+
+    /**
+       * A4 size 210mm x 297mm
+       */
+    html,
+    body {
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+          -ms-flex-direction: column;
+              flex-direction: column;
+      font-family: 'Carlito';
+      margin: 0;
+      padding: 0;
+      width: 210mm;
+    }
+
+    .page {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+          -ms-flex-direction: column;
+              flex-direction: column;
+    }
+
+    .uppercase {
+      text-transform: uppercase;
+    }
+
+    .title {
+      display: block;
+    }
+
+    .no-margin {
+      margin: 0;
+    }
+
+    hr {
+      background-color: black;
+      height: 1px;
+    }
+
+    span.dot {
+      background-color: #5d5d5d;
+      border-radius: 50%;
+      display: block;
+      height: 12px;
+      width: 12px;
+    }
+
+    ul {
+      list-style-type: none;
+      margin: 0 0 10px -30px;
+    }
+
+    #header {
+      background-color: #333333;
+      box-sizing: border-box;
+      color: #fff;
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      height: 15%;
+      padding: 4% 3%;
+      width: 100%;
+    }
+
+    #header .text {
+      width: 80%;
+    }
+
+    #header .text .title {
+      font-size: 35px;
+    }
+
+    #header .text .list {
+      font-size: 25px;
+      margin: 0 0 0 -40px;
+    }
+
+    #header .picture {
+      background-image: url("{{ AssetUrl 'img/icon.png' }}");
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      -webkit-box-flex: 1;
+          -ms-flex: 1;
+              flex: 1;
+    }
+
+    .main_content {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-flex: 1;
+          -ms-flex: 1;
+              flex: 1;
+    }
+
+    .main_content .section {
+      margin: 0 0 20px 0;
+    }
+
+    .main_content .section .subsection {
+      margin: 0 0 10px 0;
+    }
+
+    .main_content .section>.title {
+      font-size: 20px;
+    }
+
+    .main_content .section .subtitle {
+      color: #dc3522;
+      display: inline-block;
+      font-size: 15px;
+    }
+
+    .main_content .section ul li {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+    }
+
+    .main_content>.sidebar {
+      box-sizing: border-box;
+      background-color: #bfbfbf;
+      padding: 3% 2.5%;
+      width: 35%;
+    }
+
+    .main_content>.content {
+      box-sizing: border-box;
+      -webkit-box-flex: 1;
+              -ms-flex: 1;
+                  flex: 1;
+      padding: 3% 2.5%;
+    }
+
+    ul.simple li {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+    }
+
+    ul.simple li .title {
+      width: 70%;
+    }
+
+    ul.simple li .content {
+      -webkit-box-flex: 1;
+              -ms-flex: 1;
+                  flex: 1;
+      text-align: right;
+    }
+
+    ul.simple li .skill {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-pack: end;
+         -ms-flex-pack: end;
+       justify-content: right;
+    }
+
+    ul.simple li .skill .dot {
+      margin: 0 1px 0 1px;
+    }
+
+
+    ul.simple li .skill.low :nth-child(1) {
+      background-color: #dc3522;
+    }
+
+    ul.simple li .skill.mid :nth-child(1) {
+      background-color: #dc3522;
+    }
+
+    ul.simple li .skill.mid :nth-child(2) {
+      background-color: #dc3522;
+    }
+
+    ul.simple li .skill.mid :nth-child(3) {
+      background-color: #dc3522;
+    }
+
+    ul.simple li .skill.high :nth-child(1) {
+      background-color: #dc3522;
+    }
+
+    ul.simple li .skill.high :nth-child(2) {
+      background-color: #dc3522;
+    }
+
+    ul.simple li .skill.high :nth-child(3) {
+      background-color: #dc3522;
+    }
+
+    ul.simple li .skill.high :nth-child(4) {
+      background-color: #dc3522;
+    }
+
+    ul.simple li .skill.high :nth-child(5) {
+      background-color: #dc3522;
+    }
+
+    .main_content .section ul.detailed>li {
+      margin: 0 0 10px 0;
+    }
+
+    .main_content .section ul.detailed li .secondary {
+      width: 40%;
+    }
+
+    .main_content .section ul.detailed li .principal {
+      -webkit-box-flex: 1;
+          -ms-flex: 1;
+              flex: 1;
+    }
+
+    .main_content .section ul#projects>li {
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+          -ms-flex-direction: column;
+              flex-direction: column;
+      margin: 0 0 20px 0;
+    }
+
+    .main_content .section ul#projects .details {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-wrap: wrap;
+          flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .main_content .section ul#projects .details div {
+      margin: 0 10px 0 0;
+      -webkit-box-flex: 1;
+          -ms-flex: 1 0 45%;
+              flex: 1 0 45%;
+    }
+
+    .main_content .section ul#projects .role {
+      box-sizing: border-box;
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      width: 100%;
+    }
+
+    .main_content .section ul#projects .role .functions {
+      box-sizing: border-box;
+      padding-right: 20px;
+      width: 50%;
+    }
+
+    .main_content .section ul#projects .role .details {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-flex: 1;
+          -ms-flex: 1;
+              flex: 1;
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+          -ms-flex-direction: column;
+              flex-direction: column;
+    }
+
+    .main_content .section ul#projects .role .details .tools {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-wrap: wrap;
+          flex-wrap: wrap;
+    }
+
+    .main_content .section ul#projects .role .details .tools li {
+      -webkit-box-flex: 1;
+          -ms-flex: 1 0 45%;
+              flex: 1 0 45%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div id="header">
+      <div class="text">
+        <b class="title uppercase">
+          {{ name }}
+        </b>
+        <ul class="list">
+          <li>{{ position }}</li>
+          <li>
+            {{#if experience_time}}
+            {{ experience_time }}
+            {{else}}
+            {{ local_experience_time }}
+            {{/if}}
+            a&ntilde;os de experiencia
+          </li>
+        </ul>
+      </div>
+      <div class="picture"></div>
+    </div>
+    <div class="main_content">
+      <div class="sidebar">
+        {{#if show_general_information}}
+        <div class="section">
+          <b class="title">Informaci&oacute;n general</b>
+          <hr />
+          <ul class="simple">
+            {{#if start_date}}
+            <li>
+              <b class="subtitle">Fecha de ingreso:</b>
+              <span class="content">{{ start_date }}</span>
+            </li>
+            {{/if}}
+            {{#if local_experience_time}}
+            <li>
+              <b class="subtitle">A&ntilde;os en Procalidad:</b>
+              <span class="content">
+                {{ local_experience_time }} a&ntilde;os
+              </span>
+            </li>
+            {{/if}}
+            <li>
+              <b class="subtitle">Expedici&oacute;n de tarjeta profesional:</b>
+              <span class="content">
+                {{#if professional_card}}
+                {{ professional_card }}
+                {{/if}}
+                {{#unless professional_card}}
+                No expedida
+                {{/unless}}
+              </span>
+            </li>
+          </ul>
+        </div>
+        {{/if}}
+        {{#if_has_items language_skill}}
+        <div class="section">
+          <b class="title">Idiomas</b>
+          <hr />
+          {{#each language_skill}}
+          {{#with this}}
+          <div class="subsection">
+            <b class="subtitle">{{ language }}</b>
+            <ul class="simple">
+              <li>
+                <b class="title">Lectura:</b>
+                {{#if_equals read_skill 'A'}}
+                <span class="content skill high">
+                {{else if_equals read_skill 'B'}}
+                <span class="content skill mid">
+                {{else}}
+                <span class="content skill low">
+                {{/if_equals}}
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </span>
+              </li>
+              <li>
+                <b class="title">Escritura:</b>
+                {{#if_equals write_skill 'A'}}
+                <span class="content skill high">
+                {{else if_equals write_skill 'B'}}
+                <span class="content skill mid">
+                {{else}}
+                <span class="content skill low">
+                {{/if_equals}}
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </span>
+              </li>
+              <li>
+                <b class="title">Habla:</b>
+                {{#if_equals speak_skill 'A'}}
+                <span class="content skill high">
+                {{else if_equals speak_skill 'B'}}
+                <span class="content skill mid">
+                {{else}}
+                <span class="content skill low">
+                {{/if_equals}}
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </span>
+              </li>
+              <li class="title">
+                <b>Escucha:</b>
+                {{#if_equals listen_skill 'A'}}
+                <span class="content skill high">
+                {{else if_equals listen_skill 'B'}}
+                <span class="content skill mid">
+                {{else}}
+                <span class="content skill low">
+                {{/if_equals}}
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </span>
+              </li>
+            </ul>
+          </div>
+          {{/with}}
+          {{/each}}
+        </div>
+        {{/if_has_items}}
+        {{#if_or_has_items tool_development_skill tool_administration tool_installation}}
+        <div class="section">
+          <b class="title">Herramientas</b>
+          <hr />
+          {{#if_has_items tool_development_skill}}
+          <div class="subsection">
+            <b class="subtitle">Desarrollo</b>
+            <ul class="simple">
+              {{#each tool_development_skill}}
+              {{#with this}}
+              <li>
+                <b class="title">{{ tool }}</b>
+                {{#if_equals development_skill 'Avanzado'}}
+                <div class="content skill high">
+                {{else if_equals development_skill 'Intermedio'}}
+                <div class="content skill mid">
+                {{else if_equals development_skill 'Basico'}}
+                <div class="content skill low">
+                {{else}}
+                <div class="content skill">
+                {{/if_equals}}
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </div>
+              </li>
+              {{/with}}
+              {{/each}}
+            </ul>
+          </div>
+          {{/if_has_items}}
+          {{#if_has_items tool_installation}}
+          <div class="subsection">
+            <b class="subtitle">Instalaci&oacute;n</b>
+            <ul class="simple">
+              {{#each tool_installation}}
+              {{#with this}}
+              <li><b>{{ tool }}</b></li>
+              {{/with}}
+              {{/each}}
+            </ul>
+          </div>
+          {{/if_has_items}}
+          {{#if_has_items tool_administration}}
+          <div class="subsection">
+            <b class="subtitle">Administraci&oacute;n</b>
+            <ul class="simple">
+              {{#each tool_administration}}
+              {{#with this}}
+              <li><b>{{ tool }}</b></li>
+              {{/with}}
+              {{/each}}
+            </ul>
+          </div>
+          {{/if_has_items}}
+        </div>
+        {{/if_or_has_items}}
+      </div>
+      <div class="content">
+        {{#if_has_items academic_formation}}
+        <div class="section">
+          <b class="title">Formaci&oacute;n acad&eacute;mica</b>
+          <hr />
+          <ul class="detailed">
+            {{#each academic_formation }}
+            {{#with this}}
+            <li>
+              <div class="secondary">
+                <ul>
+                  <li><i class="fas fa-cogs"></i>&nbsp;{{ type }}</li>
+                  <li><i class="fas fa-map-marker-alt"></i>&nbsp;{{ institution }}</li>
+                </ul>
+              </div>
+              <div class="principal">
+                <b>{{ title }}</b>
+                <div class="status">
+                  {{#if graduation_date }}
+                  Finalizado
+                  <br />
+                  {{ graduation_date }}
+                  {{/if }}
+                  {{#unless graduation_date }}
+                  En curso
+                  {{/unless }}
+                </div>
+              </div>
+            </li>
+            {{/with}}
+            {{/each }}
+          </ul>
+        </div>
+        {{/if_has_items}}
+        {{#if show_continuous_formation}}
+        {{#if_has_items continuous_formation}}
+        <div class="section">
+          <b class="title">Formaci&oacute;n continua</b>
+          <hr />
+          <ul class="detailed">
+            {{#each continuous_formation }}
+            {{#with this}}
+            <li>
+              <div class="secondary">
+                <ul>
+                  <li><i class="fas fa-cogs"></i>&nbsp;{{ type }}</li>
+                  <li><i class="fas fa-map-marker-alt"></i>&nbsp;{{ institution }}</li>
+                </ul>
+              </div>
+              <div class="principal">
+                <b>{{ title }}</b>
+                <div class="status">
+                  {{#if graduation_date }}
+                  Finalizado
+                  <br />
+                  {{ graduation_date }}
+                  {{/if }}
+                  {{#unless graduation_date }}
+                  En curso
+                  {{/unless }}
+                </div>
+              </div>
+            </li>
+            {{/with}}
+            {{/each }}
+          </ul>
+        </div>
+        {{/if_has_items}}
+        {{/if}}
+        {{#if_has_items laboral_experience}}
+        <div class="section">
+          <b class="title">Experiencia laboral complementaria</b>
+          <hr />
+          <ul class="detailed">
+            {{#each laboral_experience}}
+            {{#with this}}
+            <li>
+              <div class="secondary">
+                <ul>
+                  <li><i class="fas fa-calendar-alt"></i>&nbsp;{{ time }} a&ntilde;os</li>
+                  <li><i class="far fa-calendar-minus"></i>&nbsp;{{ start_date }}</li>
+                  <li><i class="far fa-calendar-plus"></i>&nbsp;{{ end_date }}</li>
+                </ul>
+              </div>
+              <div class="principal">
+                <b>{{ company }}</b>
+                <div class="status">{{ position }}</div>
+              </div>
+            </li>
+            {{/with}}
+            {{/each}}
+          </ul>
+        </div>
+        {{/if_has_items}}
+        {{#if show_certifications}}
+        {{#if_has_items certifications}}
+        <div class="section">
+          <b class="title">Certificaciones</b>
+          <hr />
+          <ul class="detailed">
+            {{#each certifications}}
+            {{#with this}}
+            <li>
+              <div class="secondary">
+                <ul>
+                  <li><i class="fas fa-home"></i>&nbsp;{{ provider }}</li>
+                  <li><i class="fas fa-cogs"></i>&nbsp;Versi&oacute;n {{ version }}</li>
+                </ul>
+              </div>
+              <div class="principal">
+                <b>{{ name }}</b>
+                <br />
+                {{ certification }}
+              </div>
+            </li>
+            {{/with}}
+            {{/each}}
+          </ul>
+        </div>
+        {{/if_has_items}}
+        {{/if}}
+      </div>
+    </div>
+  </div>
+  {{! Only display third-page if one of the project options was set to true}}
+  {{#if_or show_project_contact show_project_functions show_project_participation_dates show_project_participation }}
+  {{#if_has_items project_experience}}
+  <div class="page">
+    <div class="main_content">
+      <div class="content">
+        <div class="section">
+          <b class="title">Experiencia en proyectos</b>
+          <hr />
+          <ul id="projects">
+            {{#each project_experience}}
+            {{#with this}}
+            <li>
+              <b class="title">{{ client }} - {{ name }}</b>
+              <p>
+                {{ description }}
+              </p>
+              <div class="details">
+                {{! External scope variable}}
+                {{#if ../show_project_contact}}
+                <div><b>Contacto: </b>{{ contact }}</div>
+                <div><b>Telefono: </b>{{ contact_phone }}</div>
+                {{/if}}
+                {{! External scope variable}}
+                {{#if ../show_project_participation_dates}}
+                <div><b>Inicio de participación: </b>{{ start_date }}</div>
+                <div><b>Fin de participación: </b>{{ end_date }}</div>
+                {{/if}}
+                {{! External scope variable}}
+                {{#if ../show_project_participation}}
+                <div><b>Porcentaje de participación: </b>{{ participation }}&percnt;</div>
+                <div></div>
+                {{/if}}
+              </div>
+              {{! External scope variable}}
+              {{#if ../show_project_functions}}
+              <div class="role">
+                <p class="functions no-margin">
+                  <b class="title">Funciones</b>
+                  {{ functions }}
+                </p>
+                <div class="details">
+                  <b class="title">Roles</b>
+                  <ul>
+                    {{#each roles}}
+                    <li>{{ this }}</li>
+                    {{/each}}
+                  </ul>
+                  <b class="title">Herramientas</b>
+                  <ul class="tools">
+                    {{#each tools}}
+                    <li>{{ this }}</li>
+                    {{/each}}
+                  </ul>
+                </div>
+              </div>
+              {{/if}}
+            </li>
+            {{/with}}
+            {{/each}}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{/if_has_items}}
+  {{/if_or}}
+</body>
+
+</html>
