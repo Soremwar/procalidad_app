@@ -88,6 +88,13 @@ const headers = [
     searchable: true,
   },
   {
+    id: "client",
+    numeric: false,
+    disablePadding: false,
+    label: "Cliente",
+    searchable: true,
+  },
+  {
     id: "name",
     numeric: false,
     disablePadding: false,

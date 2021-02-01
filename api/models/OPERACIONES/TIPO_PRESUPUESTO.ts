@@ -2,7 +2,7 @@ import postgres from "../../services/postgres.js";
 import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 
-const TABLE = "OPERACIONES.TIPO_PRESUPUESTO";
+export const TABLE = "OPERACIONES.TIPO_PRESUPUESTO";
 const ERROR_DEPENDENCY =
   "No se puede eliminar el tipo de presupuesto por que hay componentes que dependen de el";
 

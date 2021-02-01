@@ -1,7 +1,9 @@
 import postgres from "../../services/postgres.js";
 import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
-import { findById as findProject } from "./PROYECTO.ts";
+import { findById as findProject, TABLE as PROJECT_TABLE } from "./PROYECTO.ts";
+import { TABLE as BUDGET_TYPE_TABLE } from "./TIPO_PRESUPUESTO.ts";
+import { TABLE as CLIENT_TABLE } from "../CLIENTES/CLIENTE.ts";
 
 export const TABLE = "OPERACIONES.PRESUPUESTO";
 const ERROR_DEPENDENCY =
@@ -217,6 +219,7 @@ class TableData {
     public id: number,
     public name: string,
     public project: string,
+    public client: string,
     public budget_type: string,
     public status: string,
   ) {}
@@ -231,12 +234,15 @@ export const getTableData = async (
 ): Promise<TableResult> => {
   const base_query = (
     `SELECT
-      PK_PRESUPUESTO AS ID,
-      NOMBRE AS NAME,
-      (SELECT NOMBRE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = FK_PROYECTO) AS PROJECT,
-      (SELECT NOMBRE FROM OPERACIONES.TIPO_PRESUPUESTO WHERE PK_TIPO = FK_TIPO_PRESUPUESTO) AS BUDGET_TYPE,
-      CASE WHEN ESTADO = TRUE THEN 'Abierto' ELSE 'Cerrado' END AS STATUS
-    FROM ${TABLE}`
+      PRE.PK_PRESUPUESTO AS ID,
+      PRE.NOMBRE AS NAME,
+      PRO.NOMBRE AS PROJECT,
+      (SELECT NOMBRE FROM ${CLIENT_TABLE} WHERE PRO.FK_CLIENTE = PK_CLIENTE) AS CLIENT,
+      (SELECT NOMBRE FROM ${BUDGET_TYPE_TABLE} WHERE PK_TIPO = PRE.FK_TIPO_PRESUPUESTO) AS BUDGET_TYPE,
+      CASE WHEN PRE.ESTADO = TRUE THEN 'Abierto' ELSE 'Cerrado' END AS STATUS
+    FROM ${TABLE} PRE
+    JOIN ${PROJECT_TABLE} PRO
+    ON PRO.PK_PROYECTO = PRE.FK_PROYECTO`
   );
 
   const { count, data } = await getTableModels(
@@ -250,6 +256,7 @@ export const getTableData = async (
 
   const models = data.map((x: [
     number,
+    string,
     string,
     string,
     string,
