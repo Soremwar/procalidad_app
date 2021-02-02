@@ -24,8 +24,7 @@
     body {
       -webkit-box-orient: vertical;
       -webkit-box-direction: normal;
-          -ms-flex-direction: column;
-              flex-direction: column;
+      flex-direction: column;
       font-family: 'Carlito';
       margin: 0;
       padding: 0;
@@ -34,12 +33,19 @@
 
     .page {
       display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
       -webkit-box-orient: vertical;
       -webkit-box-direction: normal;
-          -ms-flex-direction: column;
-              flex-direction: column;
+      flex-direction: column;
+    }
+
+    .page:not(#first-page) {
+      box-sizing: border-box;
+      padding: 2.5% 3%;
+    }
+
+    .print-contained-element {
+      page-break-inside: avoid;
     }
 
     .uppercase {
@@ -69,7 +75,7 @@
 
     ul {
       list-style-type: none;
-      margin: 0 0 10px -30px;
+      margin: 0 0 0 -30px;
     }
 
     #header {
@@ -77,7 +83,6 @@
       box-sizing: border-box;
       color: #fff;
       display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
       height: 15%;
       padding: 4% 3%;
@@ -102,17 +107,14 @@
       background-repeat: no-repeat;
       background-size: 100% 100%;
       -webkit-box-flex: 1;
-          -ms-flex: 1;
-              flex: 1;
+      flex: 1;
     }
 
     .main_content {
       display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
       -webkit-box-flex: 1;
-          -ms-flex: 1;
-              flex: 1;
+      flex: 1;
     }
 
     .main_content .section {
@@ -120,7 +122,8 @@
     }
 
     .main_content .section .subsection {
-      margin: 0 0 10px 0;
+      box-sizing: border-box;
+      padding-top: 15px;
     }
 
     .main_content .section>.title {
@@ -133,12 +136,6 @@
       font-size: 15px;
     }
 
-    .main_content .section ul li {
-      display: -webkit-box;
-      display: -ms-flexbox;
-      display: flex;
-    }
-
     .main_content>.sidebar {
       box-sizing: border-box;
       background-color: #bfbfbf;
@@ -149,14 +146,12 @@
     .main_content>.content {
       box-sizing: border-box;
       -webkit-box-flex: 1;
-              -ms-flex: 1;
-                  flex: 1;
+      flex: 1;
       padding: 3% 2.5%;
     }
 
     ul.simple li {
       display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
     }
 
@@ -166,24 +161,20 @@
 
     ul.simple li .content {
       -webkit-box-flex: 1;
-              -ms-flex: 1;
-                  flex: 1;
+      flex: 1;
       text-align: right;
     }
 
     ul.simple li .skill {
       display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
       -webkit-box-pack: end;
-         -ms-flex-pack: end;
-       justify-content: right;
+      justify-content: right;
     }
 
     ul.simple li .skill .dot {
       margin: 0 1px 0 1px;
     }
-
 
     ul.simple li .skill.low :nth-child(1) {
       background-color: #dc3522;
@@ -221,89 +212,105 @@
       background-color: #dc3522;
     }
 
-    .main_content .section ul.detailed>li {
-      margin: 0 0 10px 0;
+    ul.detailed>li {
+      display: block;
     }
 
-    .main_content .section ul.detailed li .secondary {
+    ul.detailed>li .content {
+      box-sizing: border-box;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      padding-top: 20px;
+    }
+
+    ul.detailed>li .content .secondary {
       width: 40%;
     }
 
-    .main_content .section ul.detailed li .principal {
+    ul.detailed>li .content .principal {
       -webkit-box-flex: 1;
-          -ms-flex: 1;
-              flex: 1;
+      flex: 1;
     }
 
-    .main_content .section ul#projects>li {
+    #projects {
+      width: 100%;
+    }
+
+    #projects>li {
+      box-sizing: border-box;
+      display: block;
       -webkit-box-orient: vertical;
       -webkit-box-direction: normal;
-          -ms-flex-direction: column;
-              flex-direction: column;
-      margin: 0 0 20px 0;
-    }
-
-    .main_content .section ul#projects .details {
-      display: -webkit-box;
-      display: -ms-flexbox;
-      display: flex;
-      -ms-flex-wrap: wrap;
-          flex-wrap: wrap;
+      flex-direction: column;
+      padding-top: 20px;
       width: 100%;
     }
 
-    .main_content .section ul#projects .details div {
-      margin: 0 10px 0 0;
-      -webkit-box-flex: 1;
-          -ms-flex: 1 0 45%;
-              flex: 1 0 45%;
+    #projects .details {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      flex-direction: row;
+      -webkit-flex-wrap: wrap;
+      flex-wrap: wrap;
     }
 
-    .main_content .section ul#projects .role {
+    #projects .details div {
+      box-sizing: border-box;
+      display: inline-block;
+      -webkit-flex-basis: 50%;
+      flex-basis: 50%;
+      -webkit-flex-grow: 0;
+      flex-grow: 0;
+      -webkit-flex-shrink: 1;
+      flex-shrink: 1;
+      padding-right: 30px;
+    }
+
+    #projects .role {
       box-sizing: border-box;
       display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
       width: 100%;
     }
 
-    .main_content .section ul#projects .role .functions {
+    #projects .role .functions {
       box-sizing: border-box;
       padding-right: 20px;
       width: 50%;
     }
 
-    .main_content .section ul#projects .role .details {
+    #projects .role .details {
       display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
       -webkit-box-flex: 1;
-          -ms-flex: 1;
-              flex: 1;
+      flex: 1;
       -webkit-box-orient: vertical;
       -webkit-box-direction: normal;
-          -ms-flex-direction: column;
-              flex-direction: column;
+      flex-direction: column;
     }
 
-    .main_content .section ul#projects .role .details .tools {
+    #projects .role .details .tools {
       display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
-      -ms-flex-wrap: wrap;
-          flex-wrap: wrap;
+      -webkit-flex-wrap: wrap;
+      flex-wrap: wrap;
     }
 
-    .main_content .section ul#projects .role .details .tools li {
+    #projects .role .details .tools li {
+      box-sizing: border-box;
+      display: inline-block;
       -webkit-box-flex: 1;
-          -ms-flex: 1 0 45%;
-              flex: 1 0 45%;
+      -webkit-flex: 1;
+      flex: 1;
+      padding-right: 20px;
     }
   </style>
 </head>
 
 <body>
-  <div class="page">
+  <div class="page" id="first-page">
     <div id="header">
       <div class="text">
         <b class="title uppercase">
@@ -364,7 +371,7 @@
           <hr />
           {{#each language_skill}}
           {{#with this}}
-          <div class="subsection">
+          <div class="subsection print-contained-element">
             <b class="subtitle">{{ language }}</b>
             <ul class="simple">
               <li>
@@ -447,7 +454,7 @@
             <ul class="simple">
               {{#each tool_development_skill}}
               {{#with this}}
-              <li>
+              <li class="print-contained-element">
                 <b class="title">{{ tool }}</b>
                 {{#if_equals development_skill 'Avanzado'}}
                 <div class="content skill high">
@@ -471,7 +478,7 @@
           </div>
           {{/if_has_items}}
           {{#if_has_items tool_installation}}
-          <div class="subsection">
+          <div class="subsection print-contained-element">
             <b class="subtitle">Instalaci&oacute;n</b>
             <ul class="simple">
               {{#each tool_installation}}
@@ -483,7 +490,7 @@
           </div>
           {{/if_has_items}}
           {{#if_has_items tool_administration}}
-          <div class="subsection">
+          <div class="subsection print-contained-element">
             <b class="subtitle">Administraci&oacute;n</b>
             <ul class="simple">
               {{#each tool_administration}}
@@ -505,24 +512,26 @@
           <ul class="detailed">
             {{#each academic_formation }}
             {{#with this}}
-            <li>
-              <div class="secondary">
-                <ul>
-                  <li><i class="fas fa-cogs"></i>&nbsp;{{ type }}</li>
-                  <li><i class="fas fa-map-marker-alt"></i>&nbsp;{{ institution }}</li>
-                </ul>
-              </div>
-              <div class="principal">
-                <b>{{ title }}</b>
-                <div class="status">
-                  {{#if graduation_date }}
-                  Finalizado
-                  <br />
-                  {{ graduation_date }}
-                  {{/if }}
-                  {{#unless graduation_date }}
-                  En curso
-                  {{/unless }}
+            <li class="print-contained-element">
+              <div class="content">
+                <div class="secondary">
+                  <ul>
+                    <li><i class="fas fa-cogs"></i>&nbsp;{{ type }}</li>
+                    <li><i class="fas fa-map-marker-alt"></i>&nbsp;{{ institution }}</li>
+                  </ul>
+                </div>
+                <div class="principal">
+                  <b>{{ title }}</b>
+                  <div class="status">
+                    {{#if graduation_date }}
+                    Finalizado
+                    <br />
+                    {{ graduation_date }}
+                    {{/if }}
+                    {{#unless graduation_date }}
+                    En curso
+                    {{/unless }}
+                  </div>
                 </div>
               </div>
             </li>
@@ -539,24 +548,26 @@
           <ul class="detailed">
             {{#each continuous_formation }}
             {{#with this}}
-            <li>
-              <div class="secondary">
-                <ul>
-                  <li><i class="fas fa-cogs"></i>&nbsp;{{ type }}</li>
-                  <li><i class="fas fa-map-marker-alt"></i>&nbsp;{{ institution }}</li>
-                </ul>
-              </div>
-              <div class="principal">
-                <b>{{ title }}</b>
-                <div class="status">
-                  {{#if graduation_date }}
-                  Finalizado
-                  <br />
-                  {{ graduation_date }}
-                  {{/if }}
-                  {{#unless graduation_date }}
-                  En curso
-                  {{/unless }}
+            <li class="print-contained-element">
+              <div class="content">
+                <div class="secondary">
+                  <ul>
+                    <li><i class="fas fa-cogs"></i>&nbsp;{{ type }}</li>
+                    <li><i class="fas fa-map-marker-alt"></i>&nbsp;{{ institution }}</li>
+                  </ul>
+                </div>
+                <div class="principal">
+                  <b>{{ title }}</b>
+                  <div class="status">
+                    {{#if graduation_date }}
+                    Finalizado
+                    <br />
+                    {{ graduation_date }}
+                    {{/if }}
+                    {{#unless graduation_date }}
+                    En curso
+                    {{/unless }}
+                  </div>
                 </div>
               </div>
             </li>
@@ -573,17 +584,19 @@
           <ul class="detailed">
             {{#each laboral_experience}}
             {{#with this}}
-            <li>
-              <div class="secondary">
-                <ul>
-                  <li><i class="fas fa-calendar-alt"></i>&nbsp;{{ time }} a&ntilde;os</li>
-                  <li><i class="far fa-calendar-minus"></i>&nbsp;{{ start_date }}</li>
-                  <li><i class="far fa-calendar-plus"></i>&nbsp;{{ end_date }}</li>
-                </ul>
-              </div>
-              <div class="principal">
-                <b>{{ company }}</b>
-                <div class="status">{{ position }}</div>
+            <li class="print-contained-element">
+              <div class="content">
+                <div class="secondary">
+                  <ul>
+                    <li><i class="fas fa-calendar-alt"></i>&nbsp;{{ time }} a&ntilde;os</li>
+                    <li><i class="far fa-calendar-minus"></i>&nbsp;{{ start_date }}</li>
+                    <li><i class="far fa-calendar-plus"></i>&nbsp;{{ end_date }}</li>
+                  </ul>
+                </div>
+                <div class="principal">
+                  <b>{{ company }}</b>
+                  <div class="status">{{ position }}</div>
+                </div>
               </div>
             </li>
             {{/with}}
@@ -599,7 +612,7 @@
           <ul class="detailed">
             {{#each certifications}}
             {{#with this}}
-            <li>
+            <li class="print-contained-element">
               <div class="secondary">
                 <ul>
                   <li><i class="fas fa-home"></i>&nbsp;{{ provider }}</li>
@@ -626,14 +639,14 @@
   {{#if_has_items project_experience}}
   <div class="page">
     <div class="main_content">
-      <div class="content">
-        <div class="section">
-          <b class="title">Experiencia en proyectos</b>
-          <hr />
-          <ul id="projects">
-            {{#each project_experience}}
-            {{#with this}}
-            <li>
+      <div class="section">
+        <b class="title">Experiencia en proyectos</b>
+        <hr />
+        <ul id="projects">
+          {{#each project_experience}}
+          {{#with this}}
+          <li class="print-contained-element">
+            <article>
               <b class="title">{{ client }} - {{ name }}</b>
               <p>
                 {{ description }}
@@ -678,11 +691,11 @@
                 </div>
               </div>
               {{/if}}
-            </li>
-            {{/with}}
-            {{/each}}
-          </ul>
-        </div>
+            </article>
+          </li>
+          {{/with}}
+          {{/each}}
+        </ul>
       </div>
     </div>
   </div>

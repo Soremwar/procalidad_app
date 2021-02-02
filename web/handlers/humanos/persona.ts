@@ -87,6 +87,7 @@ async function convertHtmlToPdf(html: string) {
       "--margin-bottom",
       "0",
       "--disable-smart-shrinking",
+      "--print-media-type", // Enable print only css
       "-q", // Quiet mode
       "-", // Write to sdtin
       "-", // Output to stdout
