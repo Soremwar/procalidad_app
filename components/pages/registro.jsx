@@ -411,7 +411,6 @@ export default function Registro({
   const [week_details, setWeekDetails] = useState({
     assignated_hours: 0,
     date: null,
-    executed_hours: 0,
     expected_hours: 0,
     id: null,
     requested_hours: 0,

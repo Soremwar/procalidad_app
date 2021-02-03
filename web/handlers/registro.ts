@@ -320,7 +320,6 @@ export const getWeekInformation = async (
   const week_information: {
     assignated_hours: number;
     date: number;
-    executed_hours: number;
     expected_hours: number;
     id: number | null;
     is_current_week: boolean | null;
@@ -328,7 +327,6 @@ export const getWeekInformation = async (
   } = {
     assignated_hours: 0,
     date: 20001231,
-    executed_hours: 0,
     expected_hours: 0,
     id: null,
     is_current_week: null,
@@ -346,7 +344,6 @@ export const getWeekInformation = async (
       week.id,
     );
     week_information.date = await week.getStartDate();
-    week_information.executed_hours = await getWeekRegistry(control_week.id);
     week_information.expected_hours = await week.getLaboralHours();
     week_information.id = control_week.week;
     week_information.is_current_week = await week.isCurrentWeek();

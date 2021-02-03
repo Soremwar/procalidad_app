@@ -196,11 +196,13 @@ export default function RegistryTable({
                       Horas asignadas: {week_details.assignated_hours || 0}
                     </Typography>
                     <Typography variant="subtitle2">
-                      Horas registradas: {week_details.executed_hours || 0}
+                      Horas solicitadas:
+                      {week_details.requested_hours || 0}
                     </Typography>
                     <Typography variant="subtitle2">
-                      Horas solicitadas pendientes:
-                      {week_details.requested_hours || 0}
+                      Horas asignadas + solicitadas:
+                      {Number(week_details.assignated_hours || 0) +
+                        Number(week_details.requested_hours || 0)}
                     </Typography>
                   </div>
                 )}
