@@ -5,12 +5,14 @@ import { TABLE as BUDGET_TABLE } from "./budget.ts";
 import { TABLE as PROJECT_TABLE } from "./PROYECTO.ts";
 import { TABLE as ROLE_TABLE } from "./ROL.ts";
 import { TABLE as PERSON_TABLE } from "../ORGANIZACION/people.ts";
+import { TABLE as POSITION_ASSIGNATION_TABLE } from "../ORGANIZACION/asignacion_cargo.ts";
 import { TABLE as SUB_AREA_TABLE } from "../ORGANIZACION/sub_area.ts";
+import { TABLE as AREA_TABLE } from "../ORGANIZACION/AREA.ts";
+import { TABLE as AREA_TYPE_TABLE } from "../ORGANIZACION/area_type.ts";
 import { TABLE as WEEK_TABLE, Week } from "../MAESTRO/dim_semana.ts";
 import { TABLE as ACCESS_TABLE } from "../MAESTRO/access.ts";
 import {
   findByPersonAndWeek as findControl,
-  isWeekOpen as isControlOpen,
   TABLE as CONTROL_TABLE,
 } from "./control_semana.ts";
 
@@ -177,15 +179,25 @@ export const getAvailableWeeks = async (): Promise<Week[]> => {
       SELECT
         COALESCE(
           MIN(TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD')::INTEGER),
-            (SELECT MIN(FECHA) FROM ${TABLE})
+          (SELECT MIN(FECHA) FROM ${TABLE})
         ) AS MIN,
         COALESCE(
           MAX(TO_CHAR(S.FECHA_INICIO, 'YYYYMMDD')::INTEGER),
-            (SELECT MAX(FECHA) FROM ${TABLE})
+          (SELECT MAX(FECHA) FROM ${TABLE})
         ) AS MAX
       FROM ${CONTROL_TABLE} C
-      JOIN ${WEEK_TABLE} S ON C.FK_SEMANA = S.PK_SEMANA	
+      JOIN ${WEEK_TABLE} S
+      	ON C.FK_SEMANA = S.PK_SEMANA
+      JOIN ${POSITION_ASSIGNATION_TABLE} PA
+      	ON PA.FK_PERSONA = C.FK_PERSONA
+      JOIN ${SUB_AREA_TABLE} SA
+      	ON SA.PK_SUB_AREA = PA.FK_SUB_AREA
+      JOIN ${AREA_TABLE} A
+      	ON A.PK_AREA = SA.FK_AREA
+      JOIN ${AREA_TYPE_TABLE} TA
+      	ON TA.PK_TIPO = A.FK_TIPO_AREA
       WHERE C.BAN_CERRADO = FALSE
+      AND TA.BAN_REGISTRABLE = TRUE
     )
     SELECT
       PK_SEMANA AS ID,

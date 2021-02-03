@@ -209,7 +209,7 @@ export const getAssignationWeeks = async (
     ].includes(profile)
   );
 
-  if (has_admin_access) {
+  if (!has_admin_access) {
     const current_week = await getCurrentWeek();
 
     const start_date = new Date(current_week.start_date.getTime());
