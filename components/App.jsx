@@ -5,7 +5,7 @@ import theme from "./utils/themes/index.js";
 import { CssBaseline } from "@material-ui/core";
 import { UserProvider } from "./context/User.jsx";
 import { LayoutProvider } from "./context/Layout.jsx";
-import { ThemeProvider } from "@material-ui/styles";
+import { ThemeProvider } from "@material-ui/core/styles";
 import { CookiesProvider } from "react-cookie";
 
 const App = () => {

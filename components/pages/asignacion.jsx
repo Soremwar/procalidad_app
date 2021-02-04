@@ -15,7 +15,7 @@ import {
   Tabs,
   TextField,
 } from "@material-ui/core";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import { Alert } from "@material-ui/lab";
 import { UserContext } from "../context/User.jsx";
 import { formatResponseJson } from "../../lib/api/request.ts";

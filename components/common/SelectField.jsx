@@ -5,11 +5,11 @@ import hashGenerator from "../../lib/hash_generator/mod.js";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
-    //margin: theme.spacing(1),
+    margin: theme.spacing(1),
     minWidth: 120,
   },
   selectEmpty: {
-    //marginTop: theme.spacing(2),
+    marginTop: theme.spacing(2),
   },
 }));
 
@@ -34,7 +34,7 @@ export default function SelectField({
   onChange = false,
   default_value = false,
   required = false,
-  shrink = false,
+  shrink = undefined,
   ...props
 }) {
   const classes = useStyles();
@@ -59,6 +59,7 @@ export default function SelectField({
         {label}
       </InputLabel>
       <NativeSelect
+        className={blank_value ? classes.selectEmpty : ""}
         inputProps={{
           id: input_id,
           name,

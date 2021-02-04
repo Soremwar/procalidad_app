@@ -8,7 +8,7 @@ import {
   DialogTitle,
   Typography,
 } from "@material-ui/core";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import ObservationsDialog from "./ObservationsDialog.jsx";
 
 const useStyles = makeStyles((theme) => ({

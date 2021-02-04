@@ -4,11 +4,10 @@
 import React from "react";
 import {
   Badge as BadgeBase,
-  Button as ButtonBase,
   Typography as TypographyBase,
   withStyles,
 } from "@material-ui/core";
-import { makeStyles, useTheme } from "@material-ui/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 
 // styles
 var useStyles = makeStyles((theme) => ({

@@ -6,15 +6,10 @@ import {
   CardContent,
   CircularProgress,
   colors,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Grid,
-  TextField,
   Typography,
 } from "@material-ui/core";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import ObservationsDialog from "../../common/ObservationsDialog.jsx";
 
 const useStyles = makeStyles((theme) => ({

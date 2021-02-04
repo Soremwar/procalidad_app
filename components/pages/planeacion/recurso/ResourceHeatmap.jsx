@@ -1,5 +1,5 @@
 import React, { Fragment, useContext, useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import { Grid, TableRow, Tooltip } from "@material-ui/core";
 import Heatmap, {
   CleanTableCell,

@@ -5,7 +5,7 @@ import {
   ArrowBack as ArrowBackIcon,
   Home as HomeIcon,
 } from "@material-ui/icons";
-import { useTheme } from "@material-ui/styles";
+import { useTheme } from "@material-ui/core/styles";
 import { withRouter } from "react-router-dom";
 
 // styles

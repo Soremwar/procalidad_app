@@ -8,7 +8,7 @@ import {
   Toolbar,
   Typography,
 } from "@material-ui/core";
-import { makeStyles } from "@material-ui/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import { Close as CloseIcon } from "@material-ui/icons";
 import { fetchUserApi } from "../../../lib/api/generator.js";
 import Heatmap from "./PlanningModal/Heatmap.jsx";
