@@ -68,6 +68,13 @@ const hasProfile = (user_profiles, profiles) => {
   return user_profiles.some((profile) => profiles.includes(profile));
 };
 
+/**
+ * This component will render the component if no profiles are passed to it
+ * or one of the profiles matches those of the user
+ *
+ * @param {Object} props
+ * @param {number[]} props.allowed_profiles
+ * */
 const ProfiledRoute = ({
   allowed_profiles,
   component,
@@ -79,7 +86,8 @@ const ProfiledRoute = ({
     <Route
       {...props}
       render={(children_props) =>
-        hasProfile(context.profiles, allowed_profiles)
+        (!allowed_profiles?.length ||
+            hasProfile(context.profiles, allowed_profiles))
           ? React.createElement(component, children_props)
           : <Redirect to={"/"} />}
     />
@@ -430,58 +438,34 @@ const Layout = (props) => {
               path="/registro"
             />
             <ProfiledRoute
-              allowed_profiles={[
-                Profiles.CONSULTANT,
-              ]}
               component={Perfil}
               path="/usuario/perfil"
             />
             <ProfiledRoute
-              allowed_profiles={[
-                Profiles.CONSULTANT,
-              ]}
               component={FormacionAcademica}
               path="/usuario/formacion/academica"
             />
             <ProfiledRoute
-              allowed_profiles={[
-                Profiles.CONSULTANT,
-              ]}
               component={FormacionContinuada}
               path="/usuario/formacion/continuada"
             />
             <ProfiledRoute
-              allowed_profiles={[
-                Profiles.CONSULTANT,
-              ]}
               component={FormacionCapacitacion}
               path="/usuario/formacion/capacitacion"
             />
             <ProfiledRoute
-              allowed_profiles={[
-                Profiles.CONSULTANT,
-              ]}
               component={ExperienciaLaboral}
               path="/usuario/experiencia/laboral"
             />
             <ProfiledRoute
-              allowed_profiles={[
-                Profiles.CONSULTANT,
-              ]}
               component={ExperienciaProyecto}
               path="/usuario/experiencia/proyecto"
             />
             <ProfiledRoute
-              allowed_profiles={[
-                Profiles.CONSULTANT,
-              ]}
               component={HabilidadTecnica}
               path="/usuario/habilidad/tecnica"
             />
             <ProfiledRoute
-              allowed_profiles={[
-                Profiles.CONSULTANT,
-              ]}
               component={Certificacion}
               path="/usuario/certificacion"
             />
