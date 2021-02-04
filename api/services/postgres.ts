@@ -1,5 +1,9 @@
 import { Pool } from "deno_postgres";
-import { QueryObjectConfig } from "deno_postgres/query/query.ts";
+import {
+  QueryArrayResult,
+  QueryObjectConfig,
+  QueryObjectResult,
+} from "deno_postgres/query/query.ts";
 import {
   database,
   host,
@@ -20,7 +24,7 @@ const pool = new Pool({
 export async function queryArray<T extends unknown[] = any>(
   query: string,
   ...params: unknown[]
-) {
+): Promise<QueryArrayResult<T>> {
   const client = await pool.connect();
   const result = await client.queryArray<T>(query, ...params);
   await client.release();
@@ -29,7 +33,7 @@ export async function queryArray<T extends unknown[] = any>(
 
 export async function queryObject<T extends Record<string, unknown>>(
   config: QueryObjectConfig,
-) {
+): Promise<QueryObjectResult<T>> {
   const client = await pool.connect();
   const result = await client.queryObject<T>(config);
   await client.release();

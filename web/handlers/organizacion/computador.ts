@@ -1,17 +1,65 @@
-import type { RouterContext } from "oak";
+import Ajv from "ajv";
 import {
-  createNew,
-  findAll,
+  create,
   findById,
   getTableData,
-} from "../../../api/models/ORGANIZACION/computador.ts";
+} from "../../../api/models/ORGANIZACION/computer.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
-import { formatResponse, Message, Status } from "../../http_utils.ts";
+import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import { RouterContext } from "../../state.ts";
+import {
+  INTEGER,
+  STANDARD_DATE_STRING,
+  STRING,
+} from "../../../lib/ajv/types.js";
+import { Computer, ComputerData } from "../../../api/models/interfaces.ts";
 
-export const getComputers = async ({ response }: RouterContext) => {
-  response.body = await findAll();
+const costs = {
+  properties: {
+    "cost": INTEGER({ min: 1 }),
+    "end_date": STANDARD_DATE_STRING,
+    "id": INTEGER({ min: 1 }),
+    "start_date": STANDARD_DATE_STRING,
+  },
+  required: [
+    "cost",
+    "end_date",
+    "start_date",
+  ],
 };
+
+const update_request = {
+  $id: "update",
+  properties: {
+    "costs": {
+      type: "array",
+      items: costs,
+    },
+    "description": STRING(255),
+    "name": STRING(100),
+  },
+  required: [
+    "costs",
+  ],
+};
+
+const create_request = Object.assign({}, update_request, {
+  $id: "create",
+  required: [
+    "costs",
+    "description",
+    "name",
+  ],
+});
+
+const request_validator = new Ajv({
+  coerceTypes: true,
+  schemas: [
+    create_request,
+    update_request,
+  ],
+});
 
 export const getComputersTable = async (context: RouterContext) =>
   tableRequestHandler(
@@ -22,21 +70,12 @@ export const getComputersTable = async (context: RouterContext) =>
 export const createComputer = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    name,
-    description,
-    cost,
-  } = await request.body({ type: "json" }).value;
-
-  if (!(name && description && !isNaN(Number(cost)))) {
+  const value: ComputerData = await request.body({ type: "json" }).value;
+  if (!request_validator.validate("create", value)) {
     throw new RequestSyntaxError();
   }
 
-  const computer = await createNew(
-    name,
-    description,
-    Number(cost),
-  );
+  const computer = await create(value);
 
   response.body = computer;
 };
@@ -44,7 +83,7 @@ export const createComputer = async ({ request, response }: RouterContext) => {
 export const getComputer = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
   const computer = await findById(id);
@@ -56,23 +95,18 @@ export const getComputer = async (
 export const updateComputer = async (
   { params, request, response }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  let computer = await findById(id);
+  const computer = await findById(id);
   if (!computer) throw new NotFoundError();
 
-  const {
-    name,
-    description,
-    cost,
-  } = await request.body({ type: "json" }).value;
+  const value: ComputerData = await request.body({ type: "json" }).value;
+  if (!request_validator.validate("create", value)) {
+    throw new RequestSyntaxError();
+  }
 
-  computer = await computer.update(
-    name,
-    description,
-    !(isNaN(Number(cost)) || cost) ? undefined : Number(cost),
-  );
+  await computer.update(value);
 
   response.body = computer;
 };
@@ -80,16 +114,13 @@ export const updateComputer = async (
 export const deleteComputer = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  let computer = await findById(id);
+  const computer = await findById(id);
   if (!computer) throw new NotFoundError();
 
   await computer.delete();
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
+
+  response.body = Message.OK;
 };

@@ -686,7 +686,7 @@ export default function Registro({
 
   return (
     <Fragment>
-      <Title title={"Registro"} />
+      <Title title="Registro" />
       {admin_access
         ? (<Grid container spacing={3}>
           <Grid item md={6}>
@@ -725,11 +725,13 @@ export default function Registro({
                   })()}
                 </option>
               ))}
-              {// Render current week option only when the selected user
-              // is the current one
-              Number(selected_person) === Number(context.id) && (
-                <option value={week_details.id}>Semana actual</option>
-              )}
+              {
+                // Render current week option only when the selected user
+                // is the current one
+                Number(selected_person) === Number(context.id) && (
+                  <option value={week_details.id}>Semana actual</option>
+                )
+              }
             </SelectField>
           </Grid>
         </Grid>)

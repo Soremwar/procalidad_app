@@ -2,15 +2,19 @@ import React, { Fragment, useEffect, useState } from "react";
 import { DialogContentText, TextField } from "@material-ui/core";
 import { formatResponseJson } from "../../../lib/api/request.ts";
 import { fetchPeopleApi } from "../../../lib/api/generator.js";
+
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
 import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 
+import { EmployeeType } from "../../../api/models/enums.ts";
+
 const getPerson = (id) => fetchPeopleApi(id).then((x) => x.json());
 
 const createPerson = async (
+  employee_type,
   email,
   identification,
   name,
@@ -20,6 +24,7 @@ const createPerson = async (
 ) =>
   fetchPeopleApi("", {
     body: JSON.stringify({
+      employee_type,
       email,
       identification,
       name,
@@ -35,6 +40,7 @@ const createPerson = async (
 
 const updatePerson = async (
   id,
+  employee_type,
   email,
   identification,
   name,
@@ -45,6 +51,7 @@ const updatePerson = async (
 ) =>
   fetchPeopleApi(id, {
     body: JSON.stringify({
+      employee_type,
       email,
       identification,
       name,
@@ -95,32 +102,29 @@ const headers = [
   },
 ];
 
+const DEFAULT_FIELDS = {
+  email: "",
+  employee_type: EmployeeType.INTERNAL,
+  identification: "",
+  name: "",
+  phone: "",
+  retirement_date: "",
+  start_date: "",
+  type: "",
+};
+
 const AddModal = ({
   is_open,
   setModalOpen,
   updateTable,
 }) => {
-  const [fields, setFields] = useState({
-    email: "",
-    identification: "",
-    name: "",
-    phone: "",
-    start_date: "",
-    type: "",
-  });
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (is_open) {
-      setFields({
-        email: "",
-        identification: "",
-        name: "",
-        phone: "",
-        start_date: "",
-        type: "",
-      });
+      setFields(DEFAULT_FIELDS);
       setError(null);
       setLoading(false);
     }
@@ -136,6 +140,7 @@ const AddModal = ({
     setError(null);
 
     const request = await createPerson(
+      fields.employee_type,
       fields.email,
       fields.identification,
       fields.name,
@@ -214,6 +219,18 @@ const AddModal = ({
         required
         value={fields.email}
       />
+      <SelectField
+        blank_value={false}
+        fullWidth
+        label="Tipo de empleado"
+        name="employee_type"
+        onChange={handleChange}
+        required
+        value={fields.employee_type}
+      >
+        <option value={EmployeeType.INTERNAL}>Interno</option>
+        <option value={EmployeeType.EXTERNAL}>Externo</option>
+      </SelectField>
       <DateField
         fullWidth
         label="Fecha de inicio(en la compañía)"
@@ -232,28 +249,21 @@ const EditModal = ({
   setModalOpen,
   updateTable,
 }) => {
-  const [fields, setFields] = useState({
-    email: "",
-    identification: "",
-    name: "",
-    phone: "",
-    retirement_date: "",
-    start_date: "",
-    type: "",
-  });
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (is_open) {
       setFields({
-        type: data.tipo_identificacion,
+        employee_type: data.tipo_empleado,
+        email: data.correo,
         identification: data.identificacion,
         name: data.nombre,
+        phone: data.telefono,
         retirement_date: data.fecha_retiro || "",
         start_date: data.fecha_inicio || "",
-        phone: data.telefono,
-        email: data.correo,
+        type: data.tipo_identificacion,
       });
       setError(null);
       setLoading(false);
@@ -271,6 +281,7 @@ const EditModal = ({
 
     const request = await updatePerson(
       data.pk_persona,
+      fields.employee_type,
       fields.email,
       fields.identification,
       fields.name,
@@ -350,6 +361,18 @@ const EditModal = ({
         type="email"
         value={fields.email}
       />
+      <SelectField
+        blank_value={false}
+        fullWidth
+        label="Tipo de empleado"
+        name="employee_type"
+        onChange={handleChange}
+        required
+        value={fields.employee_type}
+      >
+        <option value={EmployeeType.INTERNAL}>Interno</option>
+        <option value={EmployeeType.EXTERNAL}>Externo</option>
+      </SelectField>
       <DateField
         fullWidth
         label="Fecha de inicio(en la compañía)"

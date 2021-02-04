@@ -24,6 +24,7 @@
     "@unicef/material-ui-currency-textfield": "0.8.6",
     "react-frappe-gantt": "0.2.3",
     "jwt-decode": "2.2.0",
+    "mui-datatables": "3.7.6",
     "randomcolor": "0.6.2",
     "react": "16.13.1",
     "react-cookie": "4.0.3",

@@ -15,9 +15,9 @@ import AsignacionCargo from "../pages/organizacion/asignacion_cargo.jsx";
 import Cargo from "../pages/organizacion/cargo.jsx";
 import Certificacion from "../pages/usuario/certificacion.jsx";
 import Cliente from "../pages/clientes/Cliente.jsx";
-import Computador from "../pages/organizacion/computador.jsx";
+import Computador from "../pages/organizacion/computador";
 import Contacto from "../pages/clientes/Contacto.jsx";
-import CostoEmpleado from "../pages/organizacion/costo_empleado.jsx";
+import CostoEmpleado from "../pages/organizacion/costo_empleado.tsx";
 import ExperienciaLaboral from "../pages/usuario/experiencia/laboral.jsx";
 import ExperienciaProyecto from "../pages/usuario/experiencia/proyecto.jsx";
 import FormacionAcademica from "../pages/usuario/formacion/academica.jsx";
@@ -111,10 +111,12 @@ const Layout = (props) => {
           ].join(" ")}
         >
           <div className={classes.fakeToolbar} />
-          {/*
+          {
+            /*
             TODO
             Find a way to encapsulate routes over section
-          */}
+          */
+          }
           <Switch>
             <Route component={Perfil} path="/usuario/perfil" />
             <ProfiledRoute

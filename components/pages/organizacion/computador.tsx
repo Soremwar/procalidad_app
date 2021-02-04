@@ -1,25 +1,23 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { DialogContentText, TextField } from "@material-ui/core";
-import { formatResponseJson } from "../../../lib/api/request.ts";
+import { formatResponseJson, Response } from "../../../lib/api/request";
 import { fetchComputerApi } from "../../../lib/api/generator.js";
+import { Computer, ComputerData } from "../../../api/models/interfaces";
+import { useMountReference } from "../../common/hooks";
+
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
+import DataTable from "../../common/DataTable";
 import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 
-const getComputer = (id) => fetchComputerApi(id).then((x) => x.json());
+type ComputerParameters = Omit<Computer, "id">;
 
-const createComputer = async (
-  cost,
-  description,
-  name,
-) =>
+const getComputer = (id) => fetchComputerApi<ComputerData>(id);
+
+const createComputer = async (computer_data: ComputerParameters) =>
   fetchComputerApi("", {
-    body: JSON.stringify({
-      cost,
-      description,
-      name,
-    }),
+    body: JSON.stringify(computer_data),
     headers: {
       "Content-Type": "application/json",
     },
@@ -27,24 +25,18 @@ const createComputer = async (
   });
 
 const updateComputer = async (
-  id,
-  cost,
-  description,
-  name,
+  id: number,
+  computer_data: ComputerParameters,
 ) =>
   fetchComputerApi(id, {
-    body: JSON.stringify({
-      cost,
-      description,
-      name,
-    }),
+    body: JSON.stringify(computer_data),
     headers: {
       "Content-Type": "application/json",
     },
     method: "PUT",
   });
 
-const deleteComputer = async (id) =>
+const deleteComputer = async (id: number) =>
   fetchComputerApi(id, {
     method: "DELETE",
   });
@@ -66,28 +58,27 @@ const headers = [
   },
 ];
 
+const DEFAULT_COMPUTER_FIELDS: ComputerParameters = {
+  description: "",
+  name: "",
+};
+
 const AddModal = ({
+  closeModal,
   is_open,
-  setModalOpen,
   updateTable,
 }) => {
-  const [fields, setFields] = useState({
-    cost: 0,
-    description: "",
-    name: "",
-  });
+  const [fields, setFields] = useState<ComputerParameters>(
+    DEFAULT_COMPUTER_FIELDS,
+  );
   const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (is_open) {
-      setFields({
-        cost: 0,
-        description: "",
-        name: "",
-      });
+      setFields(DEFAULT_COMPUTER_FIELDS);
       setLoading(false);
-      setError(null);
+      setError("");
     }
   }, [is_open]);
 
@@ -100,14 +91,10 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createComputer(
-      fields.cost,
-      fields.description,
-      fields.name,
-    );
+    const request = await createComputer(fields);
 
     if (request.ok) {
-      setModalOpen(false);
+      closeModal();
       updateTable();
     } else {
       const { message } = await request.json();
@@ -122,11 +109,14 @@ const AddModal = ({
       handleSubmit={handleSubmit}
       is_loading={is_loading}
       is_open={is_open}
-      setIsOpen={setModalOpen}
+      setIsOpen={closeModal}
       title={"Crear Nuevo"}
     >
       <TextField
         fullWidth
+        inputProps={{
+          maxLength: 100,
+        }}
         label="Computador"
         name="name"
         onChange={handleChange}
@@ -135,53 +125,43 @@ const AddModal = ({
       />
       <TextField
         fullWidth
+        inputProps={{
+          maxLength: 255,
+        }}
         label="Descripción"
         name="description"
         onChange={handleChange}
         required
         value={fields.description}
       />
-      <CurrencyField
-        currencySymbol="$"
-        fullWidth
-        label="Costo"
-        minimumValue="0"
-        name="cost"
-        onChange={(_event, value) =>
-          setFields((fields) => ({ ...fields, cost: value }))}
-        outputFormat="number"
-        required
-        value={fields.cost}
-      />
     </DialogForm>
   );
 };
 
 const EditModal = ({
+  closeModal,
   data,
-  is_open,
-  setModalOpen,
+  open,
   updateTable,
+}: {
+  data: Computer;
+  open: boolean;
+  closeModal: () => void;
+  updateTable: () => void;
 }) => {
-  const [fields, setFields] = useState({
-    cost: 0,
-    description: "",
-    name: "",
-  });
-  const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const [fields, setFields] = useState<ComputerParameters>(
+    DEFAULT_COMPUTER_FIELDS,
+  );
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (is_open) {
-      setFields({
-        cost: Number(data.costo),
-        description: data.descripcion,
-        name: data.nombre,
-      });
+    if (open) {
+      setFields(data);
       setLoading(false);
-      setError(null);
+      setError("");
     }
-  }, [is_open]);
+  }, [open]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -193,14 +173,12 @@ const EditModal = ({
     setError(null);
 
     const request = await updateComputer(
-      data.pk_computador,
-      fields.cost,
-      fields.description,
-      fields.name,
+      data.id,
+      fields,
     );
 
     if (request.ok) {
-      setModalOpen(false);
+      closeModal();
       updateTable();
     } else {
       const { message } = await request.json();
@@ -213,9 +191,9 @@ const EditModal = ({
     <DialogForm
       error={error}
       handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
+      is_loading={loading}
+      is_open={open}
+      setIsOpen={closeModal}
       title={"Editar"}
     >
       <TextField
@@ -234,26 +212,14 @@ const EditModal = ({
         required
         value={fields.description}
       />
-      <CurrencyField
-        currencySymbol="$"
-        fullWidth
-        label="Costo"
-        minimumValue="0"
-        name="cost"
-        onChange={(_event, value) =>
-          setFields((fields) => ({ ...fields, cost: value }))}
-        outputFormat="number"
-        required
-        value={fields.cost}
-      />
     </DialogForm>
   );
 };
 
 const DeleteModal = ({
+  closeModal,
   is_open,
   selected,
-  setModalOpen,
   updateTable,
 }) => {
   const [is_loading, setLoading] = useState(false);
@@ -280,7 +246,7 @@ const DeleteModal = ({
         if (errors.length) {
           setError(errors[0]);
         } else {
-          setModalOpen(false);
+          closeModal();
         }
         setLoading(false);
         updateTable();
@@ -293,7 +259,7 @@ const DeleteModal = ({
       handleSubmit={handleSubmit}
       is_loading={is_loading}
       is_open={is_open}
-      setIsOpen={setModalOpen}
+      setIsOpen={closeModal}
       title={"Eliminar Elementos"}
       confirmButtonText={"Confirmar"}
     >
@@ -306,17 +272,32 @@ const DeleteModal = ({
   );
 };
 
-export default () => {
-  const [is_add_modal_open, setAddModalOpen] = useState(false);
+export default function Computador() {
+  const mounted = useMountReference();
+
+  const [add_modal_open, setAddModalOpen] = useState(false);
+  const [delete_modal_open, setDeleteModalOpen] = useState(false);
+  const [edit_modal_open, setEditModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_computer, setSelectedComputer] = useState({});
-  const [is_edit_modal_open, setEditModalOpen] = useState(false);
-  const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
-  const [tableShouldUpdate, setTableShouldUpdate] = useState(false);
+  const [selected_computer, setSelectedComputer] = useState<ComputerData>();
+  const [update_table, setUpdateTable] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    setSelectedComputer(await getComputer(id));
-    setEditModalOpen(true);
+    const computer = await getComputer(id)
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error();
+      })
+      .catch((error) =>
+        console.error("Couldn't load the selected computer", error)
+      );
+
+    if (mounted.current) {
+      setSelectedComputer(computer);
+      setEditModalOpen(true);
+    }
   };
 
   const handleDeleteModalOpen = async (selected) => {
@@ -325,7 +306,7 @@ export default () => {
   };
 
   const updateTable = () => {
-    setTableShouldUpdate(true);
+    setUpdateTable(true);
   };
 
   useEffect(() => {
@@ -336,19 +317,19 @@ export default () => {
     <Fragment>
       <Title title={"Computador"} />
       <AddModal
-        is_open={is_add_modal_open}
-        setModalOpen={setAddModalOpen}
+        closeModal={() => setAddModalOpen(false)}
+        is_open={add_modal_open}
         updateTable={updateTable}
       />
       <EditModal
+        closeModal={() => setEditModalOpen(false)}
         data={selected_computer}
-        is_open={is_edit_modal_open}
-        setModalOpen={setEditModalOpen}
+        open={edit_modal_open}
         updateTable={updateTable}
       />
       <DeleteModal
-        is_open={is_delete_modal_open}
-        setModalOpen={setDeleteModalOpen}
+        closeModal={() => setDeleteModalOpen(false)}
+        is_open={delete_modal_open}
         selected={selected}
         updateTable={updateTable}
       />
@@ -357,10 +338,10 @@ export default () => {
         onAddClick={() => setAddModalOpen(true)}
         onEditClick={(id) => handleEditModalOpen(id)}
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
-        onTableUpdate={() => setTableShouldUpdate(false)}
-        update_table={tableShouldUpdate}
-        url={"organizacion/computador/table"}
+        onTableUpdate={() => setUpdateTable(false)}
+        update_table={update_table}
+        url="organizacion/computador/table"
       />
     </Fragment>
   );
-};
+}

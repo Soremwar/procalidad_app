@@ -10,7 +10,7 @@ import { requestReview as requestDocumentsReview } from "../../../api/reviews/us
 import { requestReview as requestIdentificationReview } from "../../../api/reviews/user_identification.ts";
 import { requestReview as requestPersonalDataReview } from "../../../api/reviews/user_personal_data.ts";
 import { requestReview as requestResidenceReview } from "../../../api/reviews/user_residence.ts";
-import { TipoSangre } from "../../../api/models/ORGANIZACION/people.ts";
+import { TipoSangre } from "../../../api/models/enums.ts";
 import {
   findByCode as findParameter,
 } from "../../../api/models/MAESTRO/parametro.ts";

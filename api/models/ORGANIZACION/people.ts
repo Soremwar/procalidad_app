@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.ts";
+import postgres, { queryObject } from "../../services/postgres.ts";
 import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { DataType, TABLE as REVIEW_TABLE } from "../users/data_review.ts";
@@ -24,33 +24,39 @@ import {
   TABLE as TOOL_SKILL_TABLE,
 } from "../users/technical_skill.ts";
 import { TABLE as TOOL_TABLE } from "../MAESTRO/tool.ts";
+import { People as PeopleInterface } from "../interfaces.ts";
+import { EmployeeType, TipoIdentificacion, TipoSangre } from "../enums.ts";
 
 export const TABLE = "ORGANIZACION.PERSONA";
 const ERROR_DEPENDENCY =
   "No se puede eliminar la persona por que hay componentes que dependen de el";
 
-export enum TipoIdentificacion {
-  CC = "CC",
-  CE = "CE",
-  PA = "PA",
-  RC = "RC",
-  TI = "TI",
-}
+const fields = [
+  "pk_persona",
+  "tipo_identificacion",
+  "identificacion",
+  "fec_expedicion_identificacion",
+  "fk_ciudad_expedicion_identificacion",
+  "nombre",
+  "telefono",
+  "correo",
+  "tipo_empleado",
+  "fec_nacimiento",
+  "fk_ciudad_nacimiento",
+  "libreta_militar",
+  "fk_genero",
+  "fk_estado_civil",
+  "correo_personal",
+  "telefono_fijo",
+  "tipo_sangre",
+  "fk_ciudad_residencia",
+  "direccion_residencia",
+  "fecha_inicio",
+  "fecha_retiro",
+  "expedicion_tarjeta_profesional",
+];
 
-export enum TipoSangre {
-  "A+" = "A+",
-  "A-" = "A-",
-  "B+" = "B+",
-  "B-" = "B-",
-  "AB+" = "AB+",
-  "AB-" = "AB-",
-  "C+" = "C+",
-  "C-" = "C-",
-  "O+" = "O+",
-  "O-" = "O-",
-}
-
-export class People {
+export class People implements PeopleInterface {
   constructor(
     public readonly pk_persona: number,
     public tipo_identificacion: TipoIdentificacion,
@@ -73,6 +79,7 @@ export class People {
     public fecha_inicio: string | null,
     public fecha_retiro: string | null,
     public expedicion_tarjeta_profesional: string | null,
+    public tipo_empleado: EmployeeType,
   ) {}
 
   async delete(): Promise<void> {
@@ -89,28 +96,27 @@ export class People {
   }
 
   async update(
-    tipo_identificacion: TipoIdentificacion = this.tipo_identificacion,
-    identificacion: string = this.identificacion,
-    fec_expedicion_identificacion: string | null =
-      this.fec_expedicion_identificacion,
-    fk_ciudad_expedicion_identificacion: number | null =
+    tipo_identificacion = this.tipo_identificacion,
+    identificacion = this.identificacion,
+    fec_expedicion_identificacion = this.fec_expedicion_identificacion,
+    fk_ciudad_expedicion_identificacion =
       this.fk_ciudad_expedicion_identificacion,
-    nombre: string = this.nombre,
-    telefono: string = this.telefono,
-    fec_nacimiento: string | null = this.fec_nacimiento,
-    fk_ciudad_nacimiento: number | null = this.fk_ciudad_nacimiento,
-    libreta_militar: number | null = this.libreta_militar,
-    fk_genero: number | null = this.fk_genero,
-    fk_estado_civil: number | null = this.fk_estado_civil,
-    correo_personal: string | null = this.correo_personal,
-    telefono_fijo: number | null = this.telefono_fijo,
-    tipo_sangre: TipoSangre | null = this.tipo_sangre,
-    fk_ciudad_residencia: number | null = this.fk_ciudad_residencia,
-    direccion_residencia: string | null = this.direccion_residencia,
-    fecha_inicio: string | null = this.fecha_inicio,
-    fecha_retiro: string | null = this.fecha_retiro,
-    expedicion_tarjeta_profesional: string | null =
-      this.expedicion_tarjeta_profesional,
+    nombre = this.nombre,
+    telefono = this.telefono,
+    fec_nacimiento = this.fec_nacimiento,
+    fk_ciudad_nacimiento = this.fk_ciudad_nacimiento,
+    libreta_militar = this.libreta_militar,
+    fk_genero = this.fk_genero,
+    fk_estado_civil = this.fk_estado_civil,
+    correo_personal = this.correo_personal,
+    telefono_fijo = this.telefono_fijo,
+    tipo_sangre = this.tipo_sangre,
+    fk_ciudad_residencia = this.fk_ciudad_residencia,
+    direccion_residencia = this.direccion_residencia,
+    fecha_inicio = this.fecha_inicio,
+    fecha_retiro = this.fecha_retiro,
+    expedicion_tarjeta_profesional = this.expedicion_tarjeta_profesional,
+    tipo_empleado = this.tipo_empleado,
   ): Promise<People> {
     Object.assign(this, {
       tipo_identificacion,
@@ -132,6 +138,7 @@ export class People {
       fecha_inicio,
       fecha_retiro,
       expedicion_tarjeta_profesional,
+      tipo_empleado,
     });
 
     await postgres.query(
@@ -154,7 +161,8 @@ export class People {
         DIRECCION_RESIDENCIA = $17,
         FEC_INICIO = $18,
         FEC_RETIRO = $19,
-        EXPEDICION_TARJETA_PROFESIONAL = $20
+        EXPEDICION_TARJETA_PROFESIONAL = $20,
+        TIPO_EMPLEADO = $21
       WHERE PK_PERSONA = $1`,
       this.pk_persona,
       this.tipo_identificacion,
@@ -176,6 +184,7 @@ export class People {
       this.fecha_inicio,
       this.fecha_retiro,
       this.expedicion_tarjeta_profesional,
+      this.tipo_empleado,
     );
 
     return this;
@@ -211,6 +220,7 @@ class PeopleReview extends People {
     public identificacion_observaciones: string | null,
     public residencia_aprobada: boolean | null,
     public residencia_observaciones: string | null,
+    public tipo_empleado: EmployeeType,
   ) {
     super(
       pk_persona,
@@ -234,6 +244,7 @@ class PeopleReview extends People {
       fecha_inicio,
       fecha_retiro,
       expedicion_tarjeta_profesional,
+      tipo_empleado,
     );
   }
 }
@@ -244,6 +255,7 @@ export const create = async (
   nombre: string,
   telefono: string,
   correo: string,
+  tipo_empleado: EmployeeType,
   fecha_inicio: string,
 ) => {
   const { rows } = await postgres.query(
@@ -253,6 +265,7 @@ export const create = async (
       NOMBRE,
       TELEFONO,
       CORREO,
+      TIPO_EMPLEADO,
       FEC_INICIO
     ) VALUES (
       $1,
@@ -260,13 +273,15 @@ export const create = async (
       $3,
       $4,
       $5,
-      $6
+      $6,
+      $7
     ) RETURNING PK_PERSONA`,
     tipo_identificacion,
     identificacion,
     nombre,
     telefono,
     correo,
+    tipo_empleado,
     fecha_inicio,
   );
 
@@ -294,6 +309,7 @@ export const create = async (
     fecha_inicio,
     null,
     null,
+    tipo_empleado,
   );
 };
 
@@ -324,7 +340,8 @@ export const getAll = async (
       DIRECCION_RESIDENCIA,
       TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
       TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD'),
-      TO_CHAR(EXPEDICION_TARJETA_PROFESIONAL, 'YYYY-MM-DD')
+      TO_CHAR(EXPEDICION_TARJETA_PROFESIONAL, 'YYYY-MM-DD'),
+      TIPO_EMPLEADO
     FROM ${TABLE}
     ${
       include_retired
@@ -355,66 +372,68 @@ export const getAll = async (
     string | null,
     string | null,
     string | null,
+    EmployeeType,
   ]) => new People(...row));
 };
 
-//TODO
-//Replace string call with enum call
 export const findById = async (id: number): Promise<People | null> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      PK_PERSONA,
-      TIPO_IDENTIFICACION::VARCHAR,
-      IDENTIFICACION,
-      TO_CHAR(FEC_EXPEDICION_IDENTIFICACION, 'YYYY-MM-DD'),
-      FK_CIUDAD_EXPEDICION_IDENTIFICACION,
-      NOMBRE,
-      TELEFONO,
-      CORREO,
-      TO_CHAR(FEC_NACIMIENTO, 'YYYY-MM-DD'),
-      FK_CIUDAD_NACIMIENTO,
-      LIBRETA_MILITAR,
-      FK_GENERO,
-      FK_ESTADO_CIVIL,
-      CORREO_PERSONAL,
-      TELEFONO_FIJO,
-      TIPO_SANGRE::VARCHAR,
-      FK_CIUDAD_RESIDENCIA,
-      DIRECCION_RESIDENCIA,
-      TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
-      TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD'),
-      TO_CHAR(EXPEDICION_TARJETA_PROFESIONAL, 'YYYY-MM-DD')
-    FROM ${TABLE}
-    WHERE PK_PERSONA = $1`,
-    id,
-  );
+  const { rows } = await queryObject<PeopleInterface>({
+    text: (
+      `SELECT
+        PK_PERSONA,
+        TIPO_IDENTIFICACION,
+        IDENTIFICACION,
+        TO_CHAR(FEC_EXPEDICION_IDENTIFICACION, 'YYYY-MM-DD'),
+        FK_CIUDAD_EXPEDICION_IDENTIFICACION,
+        NOMBRE,
+        TELEFONO,
+        CORREO,
+        TIPO_EMPLEADO,
+        TO_CHAR(FEC_NACIMIENTO, 'YYYY-MM-DD'),
+        FK_CIUDAD_NACIMIENTO,
+        LIBRETA_MILITAR,
+        FK_GENERO,
+        FK_ESTADO_CIVIL,
+        CORREO_PERSONAL,
+        TELEFONO_FIJO,
+        TIPO_SANGRE,
+        FK_CIUDAD_RESIDENCIA,
+        DIRECCION_RESIDENCIA,
+        TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
+        TO_CHAR(FEC_RETIRO, 'YYYY-MM-DD'),
+        TO_CHAR(EXPEDICION_TARJETA_PROFESIONAL, 'YYYY-MM-DD')
+      FROM ${TABLE}
+      WHERE PK_PERSONA = $1`
+    ),
+    args: [id],
+    fields,
+  });
 
   if (!rows.length) return null;
 
   return new People(
-    ...rows[0] as [
-      number,
-      TipoIdentificacion,
-      string,
-      string | null,
-      number | null,
-      string,
-      string,
-      string,
-      string | null,
-      number | null,
-      number | null,
-      number | null,
-      number | null,
-      string | null,
-      number | null,
-      TipoSangre | null,
-      number | null,
-      string | null,
-      string | null,
-      string | null,
-      string | null,
-    ],
+    rows[0].pk_persona,
+    rows[0].tipo_identificacion,
+    rows[0].identificacion,
+    rows[0].fec_expedicion_identificacion,
+    rows[0].fk_ciudad_expedicion_identificacion,
+    rows[0].nombre,
+    rows[0].telefono,
+    rows[0].correo,
+    rows[0].fec_nacimiento,
+    rows[0].fk_ciudad_nacimiento,
+    rows[0].libreta_militar,
+    rows[0].fk_genero,
+    rows[0].fk_estado_civil,
+    rows[0].correo_personal,
+    rows[0].telefono_fijo,
+    rows[0].tipo_sangre,
+    rows[0].fk_ciudad_residencia,
+    rows[0].direccion_residencia,
+    rows[0].fecha_inicio,
+    rows[0].fecha_retiro,
+    rows[0].expedicion_tarjeta_profesional,
+    rows[0].tipo_empleado,
   );
 };
 
@@ -449,7 +468,8 @@ export const findReviewById = async (
       R2.BAN_APROBADO,
       R2.OBSERVACION,
       R3.BAN_APROBADO,
-      R3.OBSERVACION
+      R3.OBSERVACION,
+      P.TIPO_EMPLEADO
     FROM ${TABLE} P
     LEFT JOIN ${REVIEW_TABLE} R1
       ON R1.FK_DATOS = PK_PERSONA::VARCHAR
@@ -498,6 +518,7 @@ export const findReviewById = async (
       string | null,
       boolean | null,
       string | null,
+      EmployeeType,
     ],
   );
 };
@@ -545,6 +566,53 @@ export const getTableData = async (
     string,
     string,
   ]) => new TableData(...x));
+
+  return new TableResult(
+    count,
+    models,
+  );
+};
+
+class CostTableData {
+  constructor(
+    public id: number,
+    public name: string,
+    public employee_type: string,
+  ) {}
+}
+
+export const getCostTableData = async (
+  order: TableOrder,
+  page: number,
+  rows: number | null,
+  filters: { [key: string]: string },
+  search: { [key: string]: string },
+): Promise<TableResult> => {
+  const base_query = (
+    `SELECT
+      PK_PERSONA AS ID,
+      NOMBRE AS NAME,
+      CASE
+        WHEN TIPO_EMPLEADO = 'INTERNO' THEN 'Interno'
+        ELSE 'Externo'
+      END AS EMPLOYEE_TYPE
+    FROM ${TABLE}`
+  );
+
+  const { count, data } = await getTableModels(
+    base_query,
+    order,
+    page,
+    rows,
+    filters,
+    search,
+  );
+
+  const models = data.map((x: [
+    number,
+    string,
+    string,
+  ]) => new CostTableData(...x));
 
   return new TableResult(
     count,

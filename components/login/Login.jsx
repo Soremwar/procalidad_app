@@ -22,10 +22,12 @@ const Login = ({ history }) => {
           className={classes.logotypeImage}
         />
         <Typography className={classes.logotypeText}>
-          {/*
+          {
+            /*
             TODO
             Replace with real app name
-          */}
+          */
+          }
           Procalidad App
         </Typography>
       </div>
@@ -35,8 +37,9 @@ const Login = ({ history }) => {
             <Typography variant="h1" className={classes.greeting}>
               Bienvenido!
             </Typography>
-            {//TODO
-            //Google login key should be configurable
+            {
+              //TODO
+              //Google login key should be configurable
             }
             <GoogleLogin
               className={classes.googleButton}

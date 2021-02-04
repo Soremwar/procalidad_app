@@ -7,9 +7,10 @@ import {
   findById,
   findReviewById,
   getAll,
+  getCostTableData,
   getTableData,
-  TipoIdentificacion,
 } from "../../../api/models/ORGANIZACION/people.ts";
+import { EmployeeType, TipoIdentificacion } from "../../../api/models/enums.ts";
 import {
   findByDate as findWeekByDate,
 } from "../../../api/models/MAESTRO/dim_semana.ts";
@@ -65,6 +66,11 @@ const list_request = {
 const update_request = {
   $id: "update",
   properties: {
+    "employee_type": STRING(
+      undefined,
+      undefined,
+      Object.values(EmployeeType),
+    ),
     "email": EMAIL,
     "identification": STRING(15),
     "name": STRING(255),
@@ -74,7 +80,7 @@ const update_request = {
     "type": STRING(
       undefined,
       undefined,
-      Object.values(TipoIdentificacion),
+      Object.keys(TipoIdentificacion),
     ),
   },
 };
@@ -82,6 +88,7 @@ const update_request = {
 const create_request = Object.assign({}, update_request, {
   $id: "create",
   required: [
+    "employee_type",
     "email",
     "identification",
     "name",
@@ -128,6 +135,7 @@ export const createPerson = async (
     value.name,
     value.phone,
     value.email,
+    value.employee_type,
     value.start_date,
   );
 
@@ -200,6 +208,12 @@ export const deletePerson = async (
   response.body = Message.OK;
 };
 
+export const getCostTable = (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    getCostTableData,
+  );
+
 export const getPeople = async (ctx: RouterContext) => {
   const query_params = helpers.getQuery(ctx);
 
@@ -215,7 +229,7 @@ export const getPeople = async (ctx: RouterContext) => {
   );
 };
 
-export const getPeopleTable = async (context: RouterContext) =>
+export const getPeopleTable = (context: RouterContext) =>
   tableRequestHandler(
     context,
     getTableData,
@@ -279,6 +293,8 @@ export const updatePerson = async (
     undefined,
     undefined,
     value.retirement_date,
+    undefined,
+    value.employee_type,
   )
     .catch(() => {
       throw new Error(

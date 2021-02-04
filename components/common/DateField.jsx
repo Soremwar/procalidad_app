@@ -20,6 +20,7 @@ import { TextField } from "@material-ui/core";
 export default function DateField({
   disabled = false,
   fullWidth = false,
+  InputProps,
   label,
   name,
   onChange,
@@ -30,6 +31,7 @@ export default function DateField({
     <TextField
       disabled={disabled}
       fullWidth={fullWidth}
+      InputProps={InputProps}
       label={label}
       name={name}
       onChange={onChange}

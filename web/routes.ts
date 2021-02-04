@@ -93,14 +93,7 @@ import {
   getPositionsTable,
   updatePosition,
 } from "./handlers/organizacion/cargo.ts";
-import {
-  createComputer,
-  deleteComputer,
-  getComputer,
-  getComputers,
-  getComputersTable,
-  updateComputer,
-} from "./handlers/organizacion/computador.ts";
+import * as computers from "./handlers/organizacion/computador.ts";
 import {
   createLicence,
   deleteLicence,
@@ -109,15 +102,8 @@ import {
   getLicencesTable,
   updateLicence,
 } from "./handlers/organizacion/licencia.ts";
-import {
-  createSalary,
-  deleteSalary,
-  getCalculatedSalary,
-  getSalaries,
-  getSalariesTable,
-  getSalary,
-  updateSalary,
-} from "./handlers/organizacion/salario.ts";
+import * as hourly_cost from "./handlers/organizacion/costo_interno.ts";
+import * as external_cost from "./handlers/organizacion/costo_externo.ts";
 import {
   createAssignation as createPositionAssignation,
   deleteAssignation as deletePositionAssignation,
@@ -1921,11 +1907,6 @@ main_router
   );
 
 main_router
-  .get(
-    "/api/organizacion/computador",
-    checkUserAccess(),
-    getComputers,
-  )
   .post(
     "/api/organizacion/computador/table",
     checkUserAccess([
@@ -1934,12 +1915,12 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getComputersTable,
+    computers.getComputersTable,
   )
   .get<{ id: string }>(
     "/api/organizacion/computador/:id",
     checkUserAccess(),
-    getComputer,
+    computers.getComputer,
   )
   .post(
     "/api/organizacion/computador",
@@ -1948,7 +1929,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    createComputer,
+    computers.createComputer,
   )
   .put<{ id: string }>(
     "/api/organizacion/computador/:id",
@@ -1957,7 +1938,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    updateComputer,
+    computers.updateComputer,
   )
   .delete<{ id: string }>(
     "/api/organizacion/computador/:id",
@@ -1966,7 +1947,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    deleteComputer,
+    computers.deleteComputer,
   );
 
 main_router
@@ -2019,62 +2000,63 @@ main_router
   );
 
 main_router
-  .get(
-    "/api/organizacion/salario",
-    checkUserAccess(),
-    getSalaries,
-  )
   .post(
-    "/api/organizacion/salario/table",
+    "/api/organizacion/costo",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getSalariesTable,
+    person.getCostTable,
   )
   .post(
-    "/api/organizacion/salario/calculo",
+    "/api/organizacion/costo/interno/calculo",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.AREA_MANAGER,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getCalculatedSalary,
+    hourly_cost.getCalculatedCost,
   )
-  .get<{ id: string }>(
-    "/api/organizacion/salario/:id",
-    checkUserAccess(),
-    getSalary,
+  .get<{ person: string }>(
+    "/api/organizacion/costo/interno/:person",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    hourly_cost.getCost,
   )
-  .post(
-    "/api/organizacion/salario",
+  .put<{ person: string }>(
+    "/api/organizacion/costo/interno/:person",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    createSalary,
+    hourly_cost.updateCost,
   )
-  .put<{ id: string }>(
-    "/api/organizacion/salario/:id",
+  .get<{ person: string }>(
+    "/api/organizacion/costo/externo/:person",
+    checkUserAccess([
+      Profiles.ADMINISTRATOR,
+      Profiles.AREA_MANAGER,
+      Profiles.CONTROLLER,
+      Profiles.HUMAN_RESOURCES,
+    ]),
+    external_cost.getCosts,
+  )
+  .put<{ person: string }>(
+    "/api/organizacion/costo/externo/:person",
     checkUserAccess([
       Profiles.ADMINISTRATOR,
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    updateSalary,
-  )
-  .delete<{ id: string }>(
-    "/api/organizacion/salario/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
-    deleteSalary,
+    external_cost.updateCosts,
   );
 
 main_router
