@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import { PostgresError } from "deno_postgres";
 
 export const TABLE = "PLANEACION.RECURSO_DETALLE";

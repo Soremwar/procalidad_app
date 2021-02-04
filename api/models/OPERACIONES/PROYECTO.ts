@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { TABLE as CLIENT_TABLE } from "../CLIENTES/CLIENTE.ts";

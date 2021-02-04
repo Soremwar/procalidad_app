@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import { TABLE as LANGUAGE_TABLE } from "../MAESTRO/language.ts";
 
 export const TABLE = "USUARIOS.IDIOMA_REGISTRO";

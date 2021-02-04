@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 
 export const TABLE = "USUARIOS.REVISION_CAMBIOS";
 

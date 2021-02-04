@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 
 export const TABLE = "USUARIOS.PROVEEDOR_CERTIFICACION";

@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import { Profiles } from "../../common/profiles.ts";
 import { TABLE as ACCESS_TABLE } from "../MAESTRO/access.ts";
 import { TABLE as PERSON_TABLE } from "../ORGANIZACION/people.ts";

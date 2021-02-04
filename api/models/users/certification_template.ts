@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { TABLE as PROVIDER_TABLE } from "./certification_provider.ts";
 

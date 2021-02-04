@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import {
   findById as findControl,
   TABLE as CONTROL_TABLE,

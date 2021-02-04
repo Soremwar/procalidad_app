@@ -1,6 +1,6 @@
 import { helpers } from "oak";
 import type { RouterContext } from "oak";
-import { PostgresError } from "deno_postgres/error.ts";
+import { PostgresError } from "deno_postgres";
 import Ajv from "ajv";
 import {
   create,

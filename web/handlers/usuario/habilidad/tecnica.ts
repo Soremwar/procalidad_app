@@ -1,5 +1,5 @@
 import type { RouterContext } from "oak";
-import { PostgresError } from "deno_postgres/error.ts";
+import { PostgresError } from "deno_postgres";
 import Ajv from "ajv";
 import * as tecnical_experience_model from "../../../../api/models/users/technical_skill.ts";
 import { NotFoundError, RequestSyntaxError } from "../../../exceptions.ts";

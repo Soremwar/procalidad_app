@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import { TABLE as TIME_TABLE } from "../MAESTRO/dim_tiempo.ts";
 import { TABLE as WEEK_TABLE } from "../MAESTRO/dim_semana.ts";
 import { TABLE as ASSIGNATION_TABLE } from "./asignacion.ts";

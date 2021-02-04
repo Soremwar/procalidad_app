@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import { getFileFormatCode } from "../../parameters.ts";
 import { TABLE as TEMPLATE_TABLE } from "./template.ts";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";

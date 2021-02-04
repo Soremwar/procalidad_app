@@ -1,5 +1,5 @@
 import { sendNewEmail } from "../services/smtp.js";
-import postgres from "../services/postgres.js";
+import postgres from "../services/postgres.ts";
 import {
   createAssignationRequestEmail,
   createAssignationRequestReviewEmail,

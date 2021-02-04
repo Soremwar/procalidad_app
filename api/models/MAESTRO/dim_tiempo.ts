@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 
 export const TABLE = "MAESTRO.DIM_TIEMPO";
 
@@ -32,7 +32,7 @@ export const getLaboralDaysBetween = async (
   start_date: number,
   end_date: number,
 ): Promise<number[]> => {
-  const { rows } = await postgres.query(
+  const { rows } = await postgres.query<[number]>(
     `SELECT 
       COD_FECHA
     FROM ${TABLE}
@@ -53,7 +53,7 @@ export const getNonLaboralDaysBetween = async (
   start_date: number,
   end_date: number,
 ): Promise<number[]> => {
-  const { rows } = await postgres.query(
+  const { rows } = await postgres.query<[number]>(
     `SELECT 
       COD_FECHA
     FROM ${TABLE}

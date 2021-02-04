@@ -1,6 +1,6 @@
 import type { RouterContext } from "oak";
 import { RequestSyntaxError } from "../../web/exceptions.ts";
-import postgres from "../services/postgres.js";
+import postgres from "../services/postgres.ts";
 import type { QueryResult } from "deno_postgres/query.ts";
 
 type SearchParameter = [boolean, [string, string]];
@@ -168,9 +168,9 @@ export const getTableModels = async (
     search,
   );
 
-  const { rows: data }: QueryResult = await postgres.query(data_query);
+  const { rows: data } = await postgres.query(data_query);
   const count: number = await postgres.query(count_query).then((
-    { rows }: QueryResult,
+    { rows },
   ) => Number(rows[0][0]));
 
   return {

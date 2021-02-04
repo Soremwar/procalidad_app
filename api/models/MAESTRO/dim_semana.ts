@@ -1,4 +1,4 @@
-import postgres from "../../services/postgres.js";
+import postgres from "../../services/postgres.ts";
 import { TABLE as TIME_TABLE } from "./dim_tiempo.ts";
 
 export const TABLE = "MAESTRO.DIM_SEMANA";
