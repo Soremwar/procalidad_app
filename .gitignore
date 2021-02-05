@@ -3,7 +3,8 @@
 .parcel-cache/
 node_modules/
 /storage
-config.json
+api_config.json
+app_config.json
 *.bat
 *.sh
 *.log

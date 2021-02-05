@@ -2,7 +2,7 @@ import { NotFoundError } from "../../web/exceptions.ts";
 
 const config: any = await Deno.readTextFile(
   new URL(
-    "../../config.json",
+    "../../api_config.json",
     import.meta.url,
   ),
 )

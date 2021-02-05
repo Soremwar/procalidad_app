@@ -4,7 +4,7 @@ import { NotFoundError } from "../web/exceptions.ts";
 
 const config = await Deno.readTextFile(
   new URL(
-    "../config.json",
+    "../app_config.json",
     import.meta.url,
   ),
 )
@@ -19,9 +19,9 @@ const config = await Deno.readTextFile(
     }
   });
 
-const address = config?.app?.address || "127.0.0.1";
-const port = Number(config?.app?.port) || "80";
-const protocol = config?.app?.protocol || "http";
-const version = config?.app?.version || "NA";
+const address = config?.address || "127.0.0.1";
+const port = Number(config?.port) || "80";
+const protocol = config?.protocol || "http";
+const version = config?.version || "NA";
 
 export { address, port, protocol, version };

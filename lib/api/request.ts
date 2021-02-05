@@ -1,5 +1,4 @@
-import { address, port, protocol } from "../../config/app.js";
-import { prefix } from "../../config/api.js";
+import { address, api, port, protocol } from "../../config/app.js";
 import { messages } from "../errors/mod.js";
 import { isObject } from "../utils/object.js";
 
@@ -58,7 +57,7 @@ export function requestGenerator(
   ) {
     if (typeof url === "string" || typeof url === "number") {
       const url_parameters = [
-        prefix,
+        api.prefix,
         base_url,
         sanitizeUrl(String(url)),
       ].filter((x) => x);
@@ -70,7 +69,7 @@ export function requestGenerator(
       );
     } else {
       const url_parameters = [
-        prefix,
+        api.prefix,
         base_url,
         url.path || "",
       ].filter((x) => x);

@@ -1,16 +1,8 @@
 {
-  "api": {
-    "address": "localhost",
-    "encryption_key": "secret-key",
-    "port": 8000,
-    "prefix": "api"
-  },
-  "app": {
-    "address": null,
-    "port": null,
-    "protocol": "http",
-    "version": "0.18.0"
-  },
+  "address": "localhost",
+  "encryption_key": "secret-key",
+  "port": 8000,
+  "prefix": "api",
   "services": {
     "postgresql": {
       "user": "postgres",

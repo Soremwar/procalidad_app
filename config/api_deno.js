@@ -5,7 +5,7 @@ import { NotFoundError } from "../web/exceptions.ts";
 
 const config = await Deno.readTextFile(
   new URL(
-    "../config.json",
+    "../api_config.json",
     import.meta.url,
   ),
 )
@@ -20,7 +20,7 @@ const config = await Deno.readTextFile(
     }
   });
 
-export const address = config?.api?.address || "127.0.0.1";
-export const encryption_key = config?.api?.encryption_key || "secret-key";
-export const port = Number(config?.api?.port) || 8000;
-export const prefix = config?.api?.prefix || "api";
+export const address = config?.address || "127.0.0.1";
+export const encryption_key = config?.encryption_key || "secret-key";
+export const port = Number(config?.port) || 8000;
+export const prefix = config?.prefix || "api";
