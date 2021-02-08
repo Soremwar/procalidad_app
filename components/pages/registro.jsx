@@ -792,9 +792,6 @@ export default function Registro({
           week_details={week_details}
         />
       )}
-      {console.log(
-        Array.from(table_data.values()).map(({ used_hours }) => used_hours),
-      )}
       <Snackbar
         anchorOrigin={{
           vertical: "bottom",

@@ -314,336 +314,244 @@ main_router
 main_router
   .get(
     "/api/usuario/formacion/academica",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_academic_title.getAcademicFormationTitles,
   )
   .post(
     "/api/usuario/formacion/academica/table",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_academic_title.getAcademicFormationTitlesTable,
   )
   .put<{ id: string }>(
     "/api/usuario/formacion/academica/certificado/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_academic_title.updateAcademicFormationTitleCertificate,
   )
   .get<{ id: string }>(
     "/api/usuario/formacion/academica/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_academic_title.getAcademicFormationTitle,
   )
   .post(
     "/api/usuario/formacion/academica",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_academic_title.createAcademicFormationTitle,
   )
   .put<{ id: string }>(
     "/api/usuario/formacion/academica/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_academic_title.updateAcademicFormationTitle,
   )
   .delete<{ id: string }>(
     "/api/usuario/formacion/academica/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_academic_title.deleteAcademicFormationTitle,
   );
 
 main_router
   .get(
     "/api/usuario/formacion/continuada",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_continuous_title.getContinuousFormationTitles,
   )
   .post(
     "/api/usuario/formacion/continuada/table",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_continuous_title.getContinuousFormationTitlesTable,
   )
   .put<{ id: string }>(
     "/api/usuario/formacion/continuada/certificado/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_continuous_title.updateContinuousFormationTitleCertificate,
   )
   .get<{ id: string }>(
     "/api/usuario/formacion/continuada/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_continuous_title.getContinuousFormationTitle,
   )
   .post(
     "/api/usuario/formacion/continuada",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_continuous_title.createContinuousFormationTitle,
   )
   .put<{ id: string }>(
     "/api/usuario/formacion/continuada/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_continuous_title.updateContinuousFormationTitle,
   )
   .delete<{ id: string }>(
     "/api/usuario/formacion/continuada/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_continuous_title.deleteContinuousFormationTitle,
   );
 
 main_router
   .get(
     "/api/usuario/formacion/capacitacion",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_training_title.getTrainingTitles,
   )
   .post(
     "/api/usuario/formacion/capacitacion/table",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_training_title.getTrainingTitlesTable,
   )
   .get<{ id: string }>(
     "/api/usuario/formacion/capacitacion/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_training_title.getTrainingTitle,
   )
   .post(
     "/api/usuario/formacion/capacitacion",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_training_title.createTrainingTitle,
   )
   .put<{ id: string }>(
     "/api/usuario/formacion/capacitacion/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_training_title.updateTrainingTitle,
   )
   .delete<{ id: string }>(
     "/api/usuario/formacion/capacitacion/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_training_title.deleteTrainingTitle,
   );
 
 main_router
   .get(
     "/api/usuario/experiencia/laboral",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_laboral_experience.getLaboralExperiences,
   )
   .post(
     "/api/usuario/experiencia/laboral/table",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_laboral_experience.getLaboralExperiencesTable,
   )
   .put<{ id: string }>(
     "/api/usuario/experiencia/laboral/certificado/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_laboral_experience.updateLaboralExperienceCertificate,
   )
   .get<{ id: string }>(
     "/api/usuario/experiencia/laboral/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_laboral_experience.getLaboralExperience,
   )
   .post(
     "/api/usuario/experiencia/laboral",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_laboral_experience.createLaboralExperience,
   )
   .put<{ id: string }>(
     "/api/usuario/experiencia/laboral/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_laboral_experience.updateLaboralExperience,
   )
   .delete<{ id: string }>(
     "/api/usuario/experiencia/laboral/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_laboral_experience.deleteLaboralExperience,
   );
 
 main_router
   .get(
     "/api/usuario/experiencia/proyecto",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_project_experience.getProjectExperiences,
   )
   .post(
     "/api/usuario/experiencia/proyecto/table",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_project_experience.getProjectExperiencesTable,
   )
   .get<{ id: string }>(
     "/api/usuario/experiencia/proyecto/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_project_experience.getProjectExperience,
   )
   .post(
     "/api/usuario/experiencia/proyecto",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_project_experience.createProjectExperience,
   )
   .put<{ id: string }>(
     "/api/usuario/experiencia/proyecto/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_project_experience.updateProjectExperience,
   )
   .delete<{ id: string }>(
     "/api/usuario/experiencia/proyecto/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_project_experience.deleteProjectExperience,
   );
 
 main_router
   .get(
     "/api/usuario/habilidad/tecnica",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_technical_skill.getTechnicalSkills,
   )
   .post(
     "/api/usuario/habilidad/tecnica/table",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_technical_skill.getTechnicalSkillsTable,
   )
   .get<{ id: string }>(
     "/api/usuario/habilidad/tecnica/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_technical_skill.getTechnicalSkill,
   )
   .post(
     "/api/usuario/habilidad/tecnica",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_technical_skill.createTechnicalSkill,
   )
   .put<{ id: string }>(
     "/api/usuario/habilidad/tecnica/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_technical_skill.updateTechnicalSkill,
   )
   .delete<{ id: string }>(
     "/api/usuario/habilidad/tecnica/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_technical_skill.deleteTechnicalSkill,
   );
 
 main_router
   .get(
     "/api/usuario/certificacion",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_certification.getCertifications,
   )
   .post(
     "/api/usuario/certificacion/table",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_certification.getCertificationsTable,
   )
   .put<{ id: string }>(
     "/api/usuario/certificacion/certificado/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_certification.updateCertificationFile,
   )
   .get<{ id: string }>(
     "/api/usuario/certificacion/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_certification.getCertification,
   )
   .post(
     "/api/usuario/certificacion",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_certification.createCertification,
   )
   .put<{ id: string }>(
     "/api/usuario/certificacion/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_certification.updateCertification,
   )
   .delete<{ id: string }>(
     "/api/usuario/certificacion/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     user_certification.deleteCertification,
   );
 

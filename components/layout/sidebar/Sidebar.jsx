@@ -383,6 +383,8 @@ const structure = [
     children: [
       {
         allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.CONTROLLER,
           Profiles.CONSULTANT,
         ],
         label: "Registro",
@@ -396,56 +398,104 @@ const structure = [
     children: [
       {
         allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
           Profiles.CONSULTANT,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
         ],
         label: "Datos personales",
         link: "/usuario/perfil",
       },
       {
         allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
           Profiles.CONSULTANT,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
         ],
         label: "Formación académica",
         link: "/usuario/formacion/academica",
       },
       {
         allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
           Profiles.CONSULTANT,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
         ],
         label: "Formación continuada",
         link: "/usuario/formacion/continuada",
       },
       {
         allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
           Profiles.CONSULTANT,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
         ],
         label: "Capacitaciones internas",
         link: "/usuario/formacion/capacitacion",
       },
       {
         allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
           Profiles.CONSULTANT,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
         ],
         label: "Experiencia laboral",
         link: "/usuario/experiencia/laboral",
       },
       {
         allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
           Profiles.CONSULTANT,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
         ],
         label: "Experiencia en proyecto",
         link: "/usuario/experiencia/proyecto",
       },
       {
         allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
           Profiles.CONSULTANT,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
         ],
         label: "Habilidades técnicas",
         link: "/usuario/habilidad/tecnica",
       },
       {
         allowed_profiles: [
+          Profiles.ADMINISTRATOR,
+          Profiles.AREA_MANAGER,
           Profiles.CONSULTANT,
+          Profiles.CONTROLLER,
+          Profiles.HUMAN_RESOURCES,
+          Profiles.PROYECT_MANAGER,
+          Profiles.SALES,
         ],
         label: "Certificaciones",
         link: "/usuario/certificacion",
