@@ -32,7 +32,6 @@ import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { formatStandardStringToStandardNumber } from "../../../lib/date/mod.js";
 import {
   INTEGER,
-  NUMBER,
   STANDARD_DATE_STRING,
   TRUTHY_INTEGER,
   TRUTHY_INTEGER_OR_EMPTY,
@@ -43,7 +42,7 @@ const update_request = {
   $id: "update",
   properties: {
     "assignation": INTEGER({ min: 1, max: 100 }),
-    "hours": NUMBER({ min: 0.5 }),
+    "hours": INTEGER({ min: 1 }),
     "person": INTEGER({ min: 1 }),
     "role": INTEGER({ min: 1 }),
     "start_date": STANDARD_DATE_STRING,
