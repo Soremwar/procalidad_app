@@ -1,5 +1,4 @@
 import Ajv from "ajv";
-import type { RouterContext } from "oak";
 import { decodeToken } from "../../../lib/jwt.ts";
 import {
   createNew,
@@ -30,11 +29,7 @@ import { parseOrderFromObject } from "../../../api/common/table.ts";
 import { Profiles } from "../../../api/common/profiles.ts";
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
-import {
-  formatStandardStringToStandardNumber,
-  parseDateToStandardNumber,
-  parseStandardNumber,
-} from "../../../lib/date/mod.js";
+import { formatStandardStringToStandardNumber } from "../../../lib/date/mod.js";
 import {
   INTEGER,
   NUMBER,
@@ -42,6 +37,7 @@ import {
   TRUTHY_INTEGER,
   TRUTHY_INTEGER_OR_EMPTY,
 } from "../../../lib/ajv/types.js";
+import { RouterContext } from "../../state.ts";
 
 const update_request = {
   $id: "update",
@@ -96,6 +92,7 @@ const heatmap_detail_request = {
 
 // @ts-ignore
 const request_validator = new Ajv({
+  coerceTypes: true,
   schemas: [
     create_request,
     update_request,
@@ -343,7 +340,7 @@ export const getResourcesTable = async (
 };
 
 export const updateResource = async (
-  { cookies, params, request, response }: RouterContext<{ id: string }>,
+  { params, request, response, state }: RouterContext<{ id: string }>,
 ) => {
   const id = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
@@ -356,19 +353,10 @@ export const updateResource = async (
     throw new RequestSyntaxError();
   }
 
-  const session_cookie = cookies.get("PA_AUTH") || "";
   const {
     id: user_id,
     profiles: user_profiles,
-  } = await decodeToken(session_cookie);
-
-  const {
-    person,
-    role,
-    start_date: stard_date_string,
-    assignation,
-    hours,
-  } = await request.body({ type: "json" }).value;
+  } = state.user;
 
   let start_date = formatStandardStringToStandardNumber(value.start_date);
 
@@ -404,7 +392,7 @@ export const updateResource = async (
   //Reemplazar 9 por calculo de horas laborales diarias
   const end_date = await addLaboralDays(
     start_date,
-    Math.ceil(Number(hours) / 9 * 100 / Number(assignation)),
+    Math.ceil(Number(value.hours) / 9 * 100 / Number(value.assignation)),
   );
 
   const start_date_week = await findWeekByDate(start_date);

@@ -25,7 +25,6 @@ import { FrappeGantt, Task, ViewMode } from "frappe-gantt-react";
 import { formatResponseJson } from "../../../lib/api/request.ts";
 import {
   formatStandardNumberToStandardString,
-  formatStandardStringToStandardNumber,
   parseDateToStandardNumber,
 } from "../../../lib/date/mod.js";
 import {
@@ -44,6 +43,7 @@ import {
 import AdvancedSelectField from "../../common/AdvancedSelectField.jsx";
 import AsyncSelectField from "../../common/AsyncSelectField.jsx";
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
+import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
@@ -111,7 +111,7 @@ const getDetailHeatmap = (
 
 const createResource = async (
   assignation,
-  budget,
+  project,
   hours,
   person,
   role,
@@ -120,7 +120,7 @@ const createResource = async (
   fetchResourceApi("", {
     body: JSON.stringify({
       assignation,
-      budget,
+      project,
       hours,
       person,
       role,
@@ -135,7 +135,7 @@ const createResource = async (
 const updateResource = async (
   id,
   assignation,
-  budget,
+  project,
   hours,
   person,
   role,
@@ -144,7 +144,7 @@ const updateResource = async (
   fetchResourceApi(id, {
     body: JSON.stringify({
       assignation,
-      budget,
+      project,
       hours,
       person,
       role,
@@ -319,7 +319,7 @@ const AddModal = ({
     hours: "",
     project: "",
     role: null,
-    start_date: parseDateToStandardNumber(new Date()),
+    start_date: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -335,7 +335,7 @@ const AddModal = ({
 
     createResource(
       fields.assignation,
-      fields.budget,
+      fields.project,
       fields.hours,
       person,
       fields.role?.value,
@@ -364,7 +364,7 @@ const AddModal = ({
         person: "",
         project: "",
         role: null,
-        start_date: parseDateToStandardNumber(new Date()),
+        start_date: "",
       });
       setError(null);
       setLoading(false);
@@ -386,7 +386,6 @@ const AddModal = ({
             <SelectField
               fullWidth
               label="Cliente"
-              margin="dense"
               name="client"
               onChange={handleChange}
               required
@@ -400,7 +399,6 @@ const AddModal = ({
               disabled={!fields.client}
               fullWidth
               label="Proyecto"
-              margin="dense"
               name="project"
               onChange={handleChange}
               required
@@ -418,7 +416,6 @@ const AddModal = ({
               disabled={!fields.client && !fields.project}
               fullWidth
               label="Presupuesto"
-              margin="dense"
               name="budget"
               onChange={handleChange}
               required
@@ -467,21 +464,13 @@ const AddModal = ({
                 setFields((prev_state) => ({ ...prev_state, role: value }))}
               value={fields.role}
             />
-            <TextField
+            <DateField
               fullWidth
               label="Fecha inicio"
-              margin="dense"
               name="start_date"
-              onChange={(event) => {
-                const { value } = event.target;
-                setFields((fields) => ({
-                  ...fields,
-                  start_date: formatStandardStringToStandardNumber(value),
-                }));
-              }}
+              onChange={handleChange}
               required
-              type="date"
-              value={formatStandardNumberToStandardString(fields.start_date)}
+              value={fields.start_date}
             />
             <TextField
               fullWidth
@@ -492,7 +481,6 @@ const AddModal = ({
                 },
               }}
               label="% Asignación"
-              margin="dense"
               name="assignation"
               onChange={handleChange}
               required
@@ -507,7 +495,6 @@ const AddModal = ({
                 },
               }}
               label="Horas"
-              margin="dense"
               name="hours"
               onChange={handleChange}
               required
@@ -547,7 +534,7 @@ const EditModal = ({
     hours: "",
     project: "",
     role: "",
-    start_date: parseDateToStandardNumber(new Date()),
+    start_date: "",
   });
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -562,7 +549,7 @@ const EditModal = ({
         hours: data.horas,
         project: data.fk_proyecto,
         role: data.fk_rol,
-        start_date: data.fecha_inicio,
+        start_date: formatStandardNumberToStandardString(data.fecha_inicio),
       });
       setError(null);
       setLoading(false);
@@ -581,7 +568,7 @@ const EditModal = ({
     updateResource(
       data.pk_recurso,
       fields.assignation,
-      fields.budget,
+      fields.project,
       fields.hours,
       person,
       fields.role,
@@ -636,7 +623,6 @@ const EditModal = ({
             <SelectField
               fullWidth
               label="Cliente"
-              margin="dense"
               name="client"
               onChange={handleChange}
               required
@@ -650,7 +636,6 @@ const EditModal = ({
               disabled={!fields.client}
               fullWidth
               label="Proyecto"
-              margin="dense"
               name="project"
               onChange={handleChange}
               required
@@ -668,7 +653,6 @@ const EditModal = ({
               disabled={!(fields.client && fields.project)}
               fullWidth
               label="Presupuesto"
-              margin="dense"
               name="budget"
               onChange={handleChange}
               required
@@ -686,7 +670,6 @@ const EditModal = ({
               disabled={!(fields.client && fields.project && fields.budget)}
               fullWidth
               label="Rol"
-              margin="dense"
               name="role"
               onChange={handleChange}
               required
@@ -698,21 +681,13 @@ const EditModal = ({
                   <option key={pk_rol} value={pk_rol}>{nombre}</option>
                 ))}
             </SelectField>
-            <TextField
+            <DateField
               fullWidth
               label="Fecha inicio"
-              margin="dense"
               name="start_date"
-              onChange={(event) => {
-                const { value } = event.target;
-                setFields((fields) => ({
-                  ...fields,
-                  start_date: formatStandardStringToStandardNumber(value),
-                }));
-              }}
+              onChange={handleChange}
               required
-              type="date"
-              value={formatStandardNumberToStandardString(fields.start_date)}
+              value={fields.start_date}
             />
             <TextField
               fullWidth
@@ -723,7 +698,6 @@ const EditModal = ({
                 },
               }}
               label="% Asignación"
-              margin="dense"
               name="assignation"
               onChange={handleChange}
               required
@@ -738,7 +712,6 @@ const EditModal = ({
                 },
               }}
               label="Horas"
-              margin="dense"
               name="hours"
               onChange={handleChange}
               required
@@ -839,7 +812,7 @@ const MAX_DATE_HEATMAP = (() => {
   return parseDateToStandardNumber(date);
 })();
 
-export default () => {
+export default function ResourcePlanning() {
   const classes = useStyles();
 
   const [parameters, setParameters] = useState({
@@ -1140,4 +1113,4 @@ export default () => {
       </div>
     </Fragment>
   );
-};
+}
