@@ -43,7 +43,7 @@ const update_request = {
   $id: "update",
   properties: {
     "assignation": INTEGER({ min: 1, max: 100 }),
-    "hours": NUMBER(0.5),
+    "hours": NUMBER({ min: 0.5 }),
     "person": INTEGER({ min: 1 }),
     "role": INTEGER({ min: 1 }),
     "start_date": STANDARD_DATE_STRING,

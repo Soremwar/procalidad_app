@@ -31,7 +31,7 @@ const update_request = {
     "project_end_date": STANDARD_DATE_STRING,
     "project_is_internal": BOOLEAN,
     "project_name": STRING(200),
-    "project_participation": NUMBER(0, 100),
+    "project_participation": NUMBER({ min: 0, max: 100 }),
     "project_start_date": STANDARD_DATE_STRING,
     "roles": {
       items: {

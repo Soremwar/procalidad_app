@@ -30,16 +30,16 @@ interface Role {
 const update_request = {
   $id: "update",
   properties: {
-    "budget_type": NUMBER(1),
+    "budget_type": NUMBER({ min: 1 }),
     "description": STRING(255),
     "name": STRING(255),
-    "project": NUMBER(1),
+    "project": NUMBER({ min: 1 }),
     "roles": {
       type: "object",
       properties: {
-        "id": NUMBER(1),
-        "price": NUMBER(0),
-        "time": NUMBER(0),
+        "id": NUMBER({ min: 1 }),
+        "price": NUMBER({ min: 0 }),
+        "time": NUMBER({ min: 0 }),
       },
       required: [
         "id",
