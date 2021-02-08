@@ -33,12 +33,12 @@ import {
   formatDateToStandardString,
   parseStandardNumber,
 } from "../../lib/date/mod.js";
-import { INTEGER } from "../../lib/ajv/types.js";
+import { NUMBER } from "../../lib/ajv/types.js";
 
 const update_request = {
   $id: "update",
   properties: {
-    "hours": INTEGER({ min: 0 }),
+    "hours": NUMBER({ min: 0, multipleOf: 0.5 }),
   },
   required: [
     "hours",
