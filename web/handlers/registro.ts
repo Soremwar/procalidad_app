@@ -39,6 +39,7 @@ import {
 import {
   BOOLEAN,
   INTEGER,
+  NUMBER,
   STRING,
   TRUTHY_INTEGER,
   UNSIGNED_NUMBER,
@@ -58,7 +59,7 @@ const close_request = {
       items: {
         properties: {
           "budget": INTEGER({ min: 0 }),
-          "hours": INTEGER({ min: 0 }),
+          "hours": NUMBER({ min: 0, multipleOf: 0.5 }),
           "role": INTEGER({ min: 0 }),
           "reason": STRING(100),
         },

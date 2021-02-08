@@ -86,29 +86,54 @@ export default function RegistryTable({
       id: "used_hours",
       label: "Horas ejecutadas",
       orderable: false,
-      displayAs: (value, index, row) => (
-        <TableCell>
-          <TextField
-            fullWidth
-            error={Number(row.expected_hours) <
-              Number(row.used_hours)}
-            helperText={Number(row.expected_hours) <
-                Number(row.used_hours) &&
-              "Las horas usadas exceden las asignadas"}
-            onChange={(event) => {
-              const value = event.target.value === ""
-                ? ""
-                : parseInt(event.target.value) || 0;
-              onHourChange(
-                `${row.budget_id}_${row.role_id}`,
-                value,
-              );
-            }}
-            style={{ maxWidth: "250px" }}
-            value={row.used_hours}
-          />
-        </TableCell>
-      ),
+      displayAs: (value, index, row) => {
+        const assignation_exceeded =
+          Number(row.expected_hours) < Number(row.used_hours);
+        const assignation_exceeded_text =
+          "Las horas usadas exceden las asignadas";
+
+        return (
+          <TableCell>
+            <TextField
+              fullWidth
+              error={assignation_exceeded}
+              helperText={assignation_exceeded && assignation_exceeded_text}
+              inputProps={{
+                min: 0.5,
+                step: 0.5,
+              }}
+              onInvalid={(event) => {
+                const value = event.target.value;
+
+                if (Number.isNaN(Number.parseInt(value))) {
+                  onHourChange(
+                    `${row.budget_id}_${row.role_id}`,
+                    0.5,
+                  );
+                } else {
+                  // Handles zero value
+                  const numeric_value = Number(value) || 0.5;
+                  onHourChange(
+                    `${row.budget_id}_${row.role_id}`,
+                    0.5 * Math.ceil(numeric_value / 0.5),
+                  );
+                }
+              }}
+              onChange={(event) => {
+                if (event.target.checkValidity()) {
+                  const value = event.target.value;
+                  onHourChange(
+                    `${row.budget_id}_${row.role_id}`,
+                    value,
+                  );
+                }
+              }}
+              type="number"
+              value={row.used_hours}
+            />
+          </TableCell>
+        );
+      },
     },
   ];
   if (edit_mode) {

@@ -317,11 +317,9 @@ const AddModal = ({
       />
       <TextField
         fullWidth
-        InputProps={{
-          inputProps: {
-            min: 0.5,
-            step: 0.5,
-          },
+        inputProps={{
+          min: 0.5,
+          step: 0.5,
         }}
         label="Horas"
         name="hours"
@@ -766,11 +764,12 @@ export default function Registro({
           footer={<Grid container style={{ textAlign: "center" }}>
             <Grid item md={6} xs={12}>
               <Button
-                //Disable only if reasons are not filled out
-                disabled={!disable_admin_mode &&
-                  !Array.from(table_data).every(([_index, { reason }]) =>
-                    !!reason.trim()
-                  )}
+                //Disable if reasons are not filled out in admin mode or or hours are not valid
+                disabled={!Array.from(table_data).every((
+                  [_index, { reason, used_hours }],
+                ) =>
+                  (disable_admin_mode ? true : !!reason.trim()) && used_hours
+                )}
                 onClick={() => handleWeekSave(false)}
                 variant="contained"
               >
@@ -792,6 +791,9 @@ export default function Registro({
           onReasonChange={updateReason}
           week_details={week_details}
         />
+      )}
+      {console.log(
+        Array.from(table_data.values()).map(({ used_hours }) => used_hours),
       )}
       <Snackbar
         anchorOrigin={{
