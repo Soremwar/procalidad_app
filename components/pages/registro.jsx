@@ -42,7 +42,7 @@ import DialogForm from "../common/DialogForm.jsx";
 import PlanningModal from "./registro/PlanningModal.jsx";
 import SelectField from "../common/SelectField.jsx";
 import Title from "../common/Title.jsx";
-import Table from "./registro/Table.jsx";
+import Table, { usedHoursHaveError } from "./registro/Table.jsx";
 
 const getAvailableWeeks = (person) => fetchWeekDetailApi(`semanas/${person}`);
 const getBlacklistedDates = (start_date, end_date) =>
@@ -768,7 +768,8 @@ export default function Registro({
                 disabled={!Array.from(table_data).every((
                   [_index, { reason, used_hours }],
                 ) =>
-                  (disable_admin_mode ? true : !!reason.trim()) && used_hours
+                  (disable_admin_mode ? true : !!reason.trim()) &&
+                  !usedHoursHaveError(used_hours)
                 )}
                 onClick={() => handleWeekSave(false)}
                 variant="contained"

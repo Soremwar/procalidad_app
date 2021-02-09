@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
   AppBar,
-  Button,
   Grid,
-  IconButton,
   Paper,
   Table,
   TableBody,
@@ -15,15 +13,44 @@ import {
   Toolbar,
   Typography,
 } from "@material-ui/core";
-import {
-  CloudDone as OnlineIcon,
-  OfflinePin as OfflineIcon,
-} from "@material-ui/icons";
 import { months } from "../../../lib/date/lang.js";
 import { parseStandardNumber } from "../../../lib/date/mod.js";
 
 import TableHeaders from "./Table/Header.jsx";
 import TableFooter from "./Table/Footer.jsx";
+
+/**
+ * This function will return an error message if the passed value doesn't
+ * match the expected validations
+ *
+ * @param {string} value The numeric string to validate
+ * */
+export const usedHoursHaveError = (value, expected_hours) => {
+  const is_numeric = !Number.isNaN(Number(value));
+
+  // If the number is invalid or ends with dot or comma
+  const invalid = !is_numeric || /[\.,]$/.test(value);
+  if (invalid) {
+    return "El valor ingresado no es un número valido";
+  }
+
+  const assignation_exceeded = is_numeric &&
+    Number(value) > Number(expected_hours);
+  if (assignation_exceeded) {
+    return "Las horas usadas exceden las asignadas";
+  }
+
+  const less_than_zero = is_numeric && Number(value) < 0;
+  if (less_than_zero) {
+    return "El valor ingresado no puede ser menor a cero";
+  }
+
+  // Check if it's a 0.5 multiple
+  const not_correct_multiple = is_numeric && Number(value) % 0.5 !== 0;
+  if (not_correct_multiple) {
+    return "El valor ingresado debe ser un multiplo de 0.5";
+  }
+};
 
 const parseStandardNumberAsWeek = (standard_date) => {
   const date = parseStandardNumber(standard_date);
@@ -87,48 +114,21 @@ export default function RegistryTable({
       label: "Horas ejecutadas",
       orderable: false,
       displayAs: (value, index, row) => {
-        const assignation_exceeded =
-          Number(row.expected_hours) < Number(row.used_hours);
-        const assignation_exceeded_text =
-          "Las horas usadas exceden las asignadas";
+        const error = usedHoursHaveError(value, row.expected_hours);
 
         return (
           <TableCell>
             <TextField
               fullWidth
-              error={assignation_exceeded}
-              helperText={assignation_exceeded && assignation_exceeded_text}
-              inputProps={{
-                min: 0.5,
-                step: 0.5,
-              }}
-              onInvalid={(event) => {
-                const value = event.target.value;
-
-                if (Number.isNaN(Number.parseInt(value))) {
-                  onHourChange(
-                    `${row.budget_id}_${row.role_id}`,
-                    0.5,
-                  );
-                } else {
-                  // Handles zero value
-                  const numeric_value = Number(value) || 0.5;
-                  onHourChange(
-                    `${row.budget_id}_${row.role_id}`,
-                    0.5 * Math.ceil(numeric_value / 0.5),
-                  );
-                }
-              }}
+              error={!!error}
+              helperText={error || ""}
               onChange={(event) => {
-                if (event.target.checkValidity()) {
-                  const value = event.target.value;
-                  onHourChange(
-                    `${row.budget_id}_${row.role_id}`,
-                    value,
-                  );
-                }
+                const value = event.target.value;
+                onHourChange(
+                  `${row.budget_id}_${row.role_id}`,
+                  value,
+                );
               }}
-              type="number"
               value={row.used_hours}
             />
           </TableCell>
