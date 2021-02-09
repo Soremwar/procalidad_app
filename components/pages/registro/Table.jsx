@@ -19,6 +19,20 @@ import { parseStandardNumber } from "../../../lib/date/mod.js";
 import TableHeaders from "./Table/Header.jsx";
 import TableFooter from "./Table/Footer.jsx";
 
+export const reasonHasError = (value, used_hours, previous_used_hours) => {
+  if (usedHoursHaveError(used_hours)) {
+    return;
+  }
+
+  const needs_reason = Number(used_hours) !== Number(previous_used_hours);
+  if (needs_reason) {
+    const reason_empty = !value.trim();
+    if (reason_empty) {
+      return "Especifique una justificación para el cambio";
+    }
+  }
+};
+
 /**
  * This function will return an error message if the passed value doesn't
  * match the expected validations
@@ -142,27 +156,34 @@ export default function RegistryTable({
         id: "reason",
         label: "Justificación",
         orderable: false,
-        displayAs: (value, index, row) => (
-          <TableCell>
-            <TextField
-              error={!row.reason}
-              fullWidth
-              helperText={!row.reason &&
-                "Especifique una justificación para el cambio"}
-              inputProps={{
-                maxLength: "100",
-              }}
-              multiline
-              onChange={(event) =>
-                onReasonChange(
-                  `${row.budget_id}_${row.role_id}`,
-                  event.target.value,
-                )}
-              style={{ maxWidth: "400px" }}
-              value={row.reason}
-            />
-          </TableCell>
-        ),
+        displayAs: (value, index, row) => {
+          const error = reasonHasError(
+            value,
+            row.used_hours,
+            row.previous_used_hours,
+          );
+
+          return (
+            <TableCell>
+              <TextField
+                error={!!error}
+                fullWidth
+                helperText={error || ""}
+                inputProps={{
+                  maxLength: "100",
+                }}
+                multiline
+                onChange={(event) =>
+                  onReasonChange(
+                    `${row.budget_id}_${row.role_id}`,
+                    event.target.value,
+                  )}
+                style={{ maxWidth: "400px" }}
+                value={row.reason}
+              />
+            </TableCell>
+          );
+        },
       },
     );
   }

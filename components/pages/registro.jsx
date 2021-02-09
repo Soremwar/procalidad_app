@@ -42,7 +42,10 @@ import DialogForm from "../common/DialogForm.jsx";
 import PlanningModal from "./registro/PlanningModal.jsx";
 import SelectField from "../common/SelectField.jsx";
 import Title from "../common/Title.jsx";
-import Table, { usedHoursHaveError } from "./registro/Table.jsx";
+import Table, {
+  reasonHasError,
+  usedHoursHaveError,
+} from "./registro/Table.jsx";
 
 const getAvailableWeeks = (person) => fetchWeekDetailApi(`semanas/${person}`);
 const getBlacklistedDates = (start_date, end_date) =>
@@ -583,6 +586,7 @@ export default function Registro({
               (registry) => [`${registry.budget_id}_${registry.role_id}`, {
                 ...registry,
                 reason: "",
+                previous_used_hours: registry.used_hours,
               }],
             ),
           ),
@@ -614,7 +618,7 @@ export default function Registro({
         }
       })
       .catch(() => {
-        console.log("couldnt complete the early close request");
+        console.error("couldnt complete the early close request");
         setError("Ocurrio un error al enviar la solicitud");
       })
       .finally(() => setAlertOpen(true));
@@ -764,12 +768,17 @@ export default function Registro({
           footer={<Grid container style={{ textAlign: "center" }}>
             <Grid item md={6} xs={12}>
               <Button
-                //Disable if reasons are not filled out in admin mode or or hours are not valid
-                disabled={!Array.from(table_data).every((
-                  [_index, { reason, used_hours }],
-                ) =>
-                  (disable_admin_mode ? true : !!reason.trim()) &&
-                  !usedHoursHaveError(used_hours)
+                // Disable if reasons are not filled out in admin mode or or hours are not valid
+                disabled={Array.from(table_data).some(([_index, {
+                  expected_hours,
+                  previous_used_hours,
+                  reason,
+                  used_hours,
+                }]) =>
+                  // Check only if admin mode is enabled
+                  (!disable_admin_mode &&
+                    reasonHasError(reason, used_hours, previous_used_hours)) ||
+                  usedHoursHaveError(used_hours, expected_hours)
                 )}
                 onClick={() => handleWeekSave(false)}
                 variant="contained"
