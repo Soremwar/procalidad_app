@@ -22,7 +22,7 @@
     "@material-ui/icons": "4.11.2",
     "@material-ui/lab": "4.0.0-alpha.56",
     "@unicef/material-ui-currency-textfield": "0.8.6",
-    "frappe-gantt-react": "0.2.2",
+    "react-frappe-gantt": "0.2.3",
     "jwt-decode": "2.2.0",
     "randomcolor": "0.6.2",
     "react": "16.13.1",
@@ -36,6 +36,6 @@
   "devDependencies": {
     "@babel/plugin-transform-runtime": "7.12.10",
     "@babel/preset-typescript": "7.12.7",
-    "parcel": "2.0.0-nightly.524"
+    "parcel": "2.0.0-nightly.577"
   }
 }
