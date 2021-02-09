@@ -578,15 +578,7 @@ main_router
   )
   .get<{ code: string }>(
     "/api/maestro/parametro/valor/:code",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     parameter.getParameterValue,
   )
   .get<{ id: string }>(
@@ -683,43 +675,19 @@ main_router
 main_router
   .get(
     "/api/maestro/tiempo/blacklist",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getBlacklistedDays,
   );
 
 main_router
   .get(
     "/api/maestro/permiso",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getProfiles,
   )
   .get<{ id: string }>(
     "/api/maestro/permiso/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getProfile,
   );
 
@@ -770,123 +738,51 @@ main_router
 main_router
   .get(
     "/api/maestro/pais",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getCountries,
   )
   .get(
     "/api/maestro/pais/search",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     searchCountry,
   )
   .get<{ id: string }>(
     "/api/maestro/pais/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getCountry,
   );
 
 main_router
   .get(
     "/api/maestro/estado",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getStates,
   )
   .get(
     "/api/maestro/estado/search",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     searchState,
   )
   .get<{ id: string }>(
     "/api/maestro/estado/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getState,
   );
 
 main_router
   .get(
     "/api/maestro/ciudad",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getCities,
   )
   .get(
     "/api/maestro/ciudad/search",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     searchCity,
   )
   .get<{ id: string }>(
     "/api/maestro/ciudad/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getCity,
   );
 
@@ -945,11 +841,7 @@ main_router
 main_router
   .get(
     "/api/maestro/idioma",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     language.getLanguages,
   )
   .post(
@@ -962,11 +854,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/idioma/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     language.getLanguage,
   )
   .post(
@@ -1029,12 +917,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/plantilla/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
+    checkUserAccess(),
     people_supports.getSupportFormat,
   )
   .post(
@@ -1068,12 +951,7 @@ main_router
 main_router
   .get(
     "/api/maestro/nivel_formacion",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
+    checkUserAccess(),
     formation_level.getFormationLevels,
   )
   .post(
@@ -1086,12 +964,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/nivel_formacion/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
+    checkUserAccess(),
     formation_level.getFormationLevel,
   )
   .post(
@@ -1122,11 +995,7 @@ main_router
 main_router
   .get(
     "/api/maestro/herramienta",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     tool.getTools,
   )
   .post(
@@ -1139,11 +1008,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/herramienta/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     tool.getTool,
   )
   .post(
@@ -1174,11 +1039,7 @@ main_router
 main_router
   .get(
     "/api/maestro/certificacion/tipo",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     certification_type.getTypes,
   )
   .post(
@@ -1191,11 +1052,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/certificacion/tipo/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     certification_type.getType,
   )
   .post(
@@ -1226,11 +1083,7 @@ main_router
 main_router
   .get(
     "/api/maestro/certificacion/proveedor",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     certification_provider.getProviders,
   )
   .post(
@@ -1243,11 +1096,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/certificacion/proveedor/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     certification_provider.getProvider,
   )
   .post(
@@ -1278,11 +1127,7 @@ main_router
 main_router
   .get(
     "/api/maestro/certificacion/plantilla",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     certification_template.getTemplates,
   )
   .post(
@@ -1295,11 +1140,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/maestro/certificacion/plantilla/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     certification_template.getTemplate,
   )
   .post(
@@ -1330,15 +1171,7 @@ main_router
 main_router
   .get(
     "/api/clientes/cliente",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     clients.getClients,
   )
   .post(
@@ -1355,15 +1188,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/clientes/cliente/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     clients.getClient,
   )
   .post(
@@ -1397,15 +1222,7 @@ main_router
 main_router
   .get(
     "/api/clientes/contacto",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getContacts,
   )
   .post(
@@ -1422,15 +1239,7 @@ main_router
   )
   .post(
     "/api/clientes/contacto",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     createContact,
   )
   .get<{ id: string }>(
@@ -1473,15 +1282,7 @@ main_router
 main_router
   .get(
     "/api/clientes/sector",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getSectors,
   )
   .post(
@@ -1498,15 +1299,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/clientes/sector/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getSector,
   )
   .post(
@@ -1540,15 +1333,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/tipo_proyecto",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getProjectTypes,
   )
   .post(
@@ -1562,15 +1347,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/operaciones/tipo_proyecto/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getProjectType,
   )
   .post(
@@ -1601,15 +1378,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/proyecto",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getProjects,
   )
   .post(
@@ -1626,15 +1395,7 @@ main_router
   )
   .get(
     "/api/operaciones/proyecto/search",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     searchProject,
   )
   .get<{ id: string }>(
@@ -1686,15 +1447,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/tipo_presupuesto",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getBudgetTypes,
   )
   .post(
@@ -1711,15 +1464,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/operaciones/tipo_presupuesto/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getBudgetType,
   )
   .post(
@@ -1750,15 +1495,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/rol",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getRoles,
   )
   .post(
@@ -1775,28 +1512,12 @@ main_router
   )
   .get(
     "/api/operaciones/rol/search",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     searchRoles,
   )
   .get<{ id: string }>(
     "/api/operaciones/rol/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getRole,
   )
   .post(
@@ -1827,15 +1548,7 @@ main_router
 main_router
   .get(
     "/api/operaciones/presupuesto",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getBudgets,
   )
   .post(
@@ -1852,15 +1565,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/operaciones/presupuesto/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getBudget,
   )
   .post(
@@ -1900,30 +1605,14 @@ main_router
 main_router
   .get<{ id: string }>(
     "/api/operaciones/presupuesto_detalle/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     searchBudgetDetails,
   );
 
 main_router
   .get(
     "/api/organizacion/tipo_area",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getAreaTypes,
   )
   .post(
@@ -1938,15 +1627,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/tipo_area/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getAreaType,
   )
   .post(
@@ -1977,15 +1658,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/area",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getAreas,
   )
   .post(
@@ -2000,15 +1673,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/area/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getArea,
   )
   .post(
@@ -2039,15 +1704,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/sub_area",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getSubAreas,
   )
   .post(
@@ -2062,15 +1719,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/sub_area/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getSubArea,
   )
   .post(
@@ -2174,15 +1823,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/cargo",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getPositions,
   )
   .post(
@@ -2198,15 +1839,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/cargo/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getPosition,
   )
   .post(
@@ -2240,15 +1873,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/asignacion_cargo",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getPositionAssignations,
   )
   .post(
@@ -2264,15 +1889,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/asignacion_cargo/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getPositionAssignation,
   )
   .post(
@@ -2306,15 +1923,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/computador",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getComputers,
   )
   .post(
@@ -2329,15 +1938,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/computador/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getComputer,
   )
   .post(
@@ -2371,15 +1972,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/licencia",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getLicences,
   )
   .post(
@@ -2394,15 +1987,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/licencia/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getLicence,
   )
   .post(
@@ -2436,15 +2021,7 @@ main_router
 main_router
   .get(
     "/api/organizacion/salario",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getSalaries,
   )
   .post(
@@ -2469,15 +2046,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/organizacion/salario/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getSalary,
   )
   .post(
@@ -2511,15 +2080,7 @@ main_router
 main_router
   .get(
     "/api/planeacion/recurso",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getResources,
   )
   .get(
@@ -2560,15 +2121,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/planeacion/recurso/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getResource,
   )
   .post(
@@ -2611,15 +2164,7 @@ main_router
 main_router
   .get(
     "/api/asignacion/asignacion",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getAssignations,
   )
   .get(
@@ -2636,15 +2181,7 @@ main_router
   )
   .get<{ id: string }>(
     "/api/asignacion/asignacion/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.AREA_MANAGER,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-      Profiles.PROYECT_MANAGER,
-      Profiles.SALES,
-    ]),
+    checkUserAccess(),
     getAssignation,
   )
   .post(
@@ -2699,22 +2236,12 @@ main_router
 main_router
   .get(
     "/api/registro",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
+    checkUserAccess(),
     registry.getWeekDetailTable,
   )
   .put(
     "/api/registro",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-      Profiles.HUMAN_RESOURCES,
-    ]),
+    checkUserAccess(),
     registry.closePersonWeek,
   )
   //TODO
@@ -2775,11 +2302,7 @@ main_router
 main_router
   .get<{ id: string }>(
     "/api/archivos/generico/:id",
-    checkUserAccess([
-      Profiles.ADMINISTRATOR,
-      Profiles.CONSULTANT,
-      Profiles.CONTROLLER,
-    ]),
+    checkUserAccess(),
     file.getGenericFile,
   )
   .get<{ person: string; id: string }>(
@@ -2793,9 +2316,7 @@ main_router
   )
   .get<{ person: string; id: string }>(
     "/api/archivos/plantilla/:id",
-    checkUserAccess([
-      Profiles.CONSULTANT,
-    ]),
+    checkUserAccess(),
     file.getTemplateFile,
   );
 
