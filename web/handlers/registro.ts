@@ -227,6 +227,8 @@ export const closePersonWeek = async (
       );
     }
 
+    // TODO
+    // This should also validate that every changed registry has a reason
     if (is_admin_request) {
       await createRegistryLog(
         updated_registry.id,
