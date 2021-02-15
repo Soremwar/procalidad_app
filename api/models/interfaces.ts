@@ -15,7 +15,7 @@ export type Computer = {
 export type ComputerCost = {
   computer: number;
   cost: number;
-  end_date: string;
+  end_date: string | null;
   id: number;
   start_date: string;
 };

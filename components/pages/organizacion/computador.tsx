@@ -1,17 +1,38 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { DialogContentText, TextField } from "@material-ui/core";
+import {
+  DialogContentText,
+  Grid,
+  IconButton,
+  TextField,
+  Tooltip,
+} from "@material-ui/core";
+import {
+  Add as AddIcon,
+  CalendarToday as DateIcon,
+  Create as EditIcon,
+  Delete as DeleteIcon,
+} from "@material-ui/icons";
 import { formatResponseJson, Response } from "../../../lib/api/request";
 import { fetchComputerApi } from "../../../lib/api/generator.js";
-import { Computer, ComputerData } from "../../../api/models/interfaces";
+import {
+  Computer,
+  ComputerCost,
+  ComputerData,
+} from "../../../api/models/interfaces";
 import { useMountReference } from "../../common/hooks";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
-import DataTable from "../../common/DataTable";
+import DataTable, { Column, Options } from "../../common/DataTable";
+import DateField from "../../common/DateField.jsx";
 import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 
 type ComputerParameters = Omit<Computer, "id">;
+type ComputerCostParameters = Omit<ComputerCost, "id" | "computer">;
+type ComputerDataParameters = ComputerParameters & {
+  costs: ComputerCostParameters[];
+};
 
 const getComputer = (id) => fetchComputerApi<ComputerData>(id);
 
@@ -26,10 +47,14 @@ const createComputer = async (computer_data: ComputerParameters) =>
 
 const updateComputer = async (
   id: number,
-  computer_data: ComputerParameters,
+  computer: ComputerParameters,
+  costs: ComputerCostParameters[],
 ) =>
   fetchComputerApi(id, {
-    body: JSON.stringify(computer_data),
+    body: JSON.stringify({
+      ...computer,
+      costs,
+    } as ComputerDataParameters),
     headers: {
       "Content-Type": "application/json",
     },
@@ -138,26 +163,161 @@ const AddModal = ({
   );
 };
 
+const computer_columns: Column[] = [
+  {
+    name: "start_date",
+    label: "Inicio vigencia",
+    options: {
+      customBodyRender: (value) => (
+        <Grid container>
+          <Grid item md={9}>{value}</Grid>
+          <Grid item md={3}>
+            <DateIcon />
+          </Grid>
+        </Grid>
+      ),
+    },
+  },
+  {
+    name: "end_date",
+    label: "Fin vigencia",
+    options: {
+      customBodyRender: (value: string) => (
+        <Grid container>
+          <Grid item md={9}>{value}</Grid>
+          <Grid item md={3}>
+            <DateIcon />
+          </Grid>
+        </Grid>
+      ),
+    },
+  },
+  {
+    name: "cost",
+    label: "Costo",
+    options: {
+      customBodyRender: (value: string) => value,
+    },
+  },
+];
+
+const DEFAULT_COST_FIELDS = {
+  cost: 0,
+  end_date: "",
+  start_date: "",
+} as ComputerCostParameters;
+
+const ItemModal = ({
+  data,
+  id,
+  onClose,
+  onSubmit,
+  open,
+}: {
+  data?: ComputerCostParameters;
+  id?: number;
+  onClose: () => void;
+  onSubmit: (
+    id: number | undefined,
+    computer_cost: ComputerCostParameters,
+  ) => void;
+  open: boolean;
+}) => {
+  const [fields, setFields] = useState<ComputerCostParameters>(
+    DEFAULT_COST_FIELDS,
+  );
+
+  useEffect(() => {
+    if (open) {
+      setFields(data || DEFAULT_COST_FIELDS);
+    }
+  }, [open]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFields((prev_state) => ({ ...prev_state, [name]: value }));
+  };
+
+  const handleSubmit = () => {
+    onSubmit(id, {
+      ...fields,
+      end_date: fields.end_date || null,
+    });
+    onClose();
+  };
+
+  return (
+    <DialogForm
+      handleSubmit={handleSubmit}
+      is_open={open}
+      setIsOpen={onClose}
+      size="md"
+    >
+      <DateField
+        fullWidth
+        label="Fecha de inicio"
+        name="start_date"
+        onChange={handleChange}
+        required
+        value={fields.start_date}
+      />
+      <DateField
+        fullWidth
+        label="Fecha fin"
+        name="end_date"
+        onChange={handleChange}
+        value={fields.end_date}
+      />
+      <CurrencyField
+        currencySymbol="$"
+        decimalPlaces={0}
+        fullWidth
+        label="Costo"
+        minimumValue="0"
+        name="cost"
+        onChange={(_ev, value: number) => {
+          setFields((prevState) => ({ ...prevState, cost: value }));
+        }}
+        outputFormat="number"
+        required
+        value={fields.cost}
+      />
+    </DialogForm>
+  );
+};
+
 const EditModal = ({
   closeModal,
   data,
   open,
   updateTable,
 }: {
-  data: Computer;
+  data: ComputerData;
   open: boolean;
   closeModal: () => void;
   updateTable: () => void;
 }) => {
+  const [entries, setEntries] = useState<ComputerCostParameters[]>([]);
   const [error, setError] = useState("");
   const [fields, setFields] = useState<ComputerParameters>(
     DEFAULT_COMPUTER_FIELDS,
   );
+  const [item_modal_open, setItemModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selected_item, setSelectedItem] = useState<
+    { data: ComputerCostParameters; index: number } | undefined
+  >();
 
   useEffect(() => {
     if (open) {
-      setFields(data);
+      const {
+        costs,
+        ...fields
+      } = data;
+
+      setEntries(costs);
+      setFields(fields);
+
       setLoading(false);
       setError("");
     }
@@ -175,6 +335,7 @@ const EditModal = ({
     const request = await updateComputer(
       data.id,
       fields,
+      entries,
     );
 
     if (request.ok) {
@@ -187,32 +348,108 @@ const EditModal = ({
     setLoading(false);
   };
 
+  const options: Options = {
+    customToolbar: () => (
+      <Tooltip title="Agregar">
+        <IconButton
+          onClick={() => {
+            setSelectedItem(undefined);
+            setItemModalOpen(true);
+          }}
+        >
+          <AddIcon />
+        </IconButton>
+      </Tooltip>
+    ),
+    customToolbarSelect: ({ data }, _display_data, setSelectedRows) => (
+      <Fragment>
+        <Tooltip title="Editar">
+          <IconButton
+            onClick={() => {
+              setSelectedItem({
+                data: entries[data[0].dataIndex],
+                index: data[0].dataIndex,
+              });
+              setItemModalOpen(true);
+              setSelectedRows([]);
+            }}
+          >
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Eliminar">
+          <IconButton
+            onClick={() => {
+              const new_entries = entries.filter((_entry, index) =>
+                index !== data[0].dataIndex
+              );
+              setEntries(new_entries);
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </Fragment>
+    ),
+    download: false,
+    filter: false,
+    print: false,
+    responsive: "vertical",
+    rowsPerPage: 10,
+    search: false,
+    selectableRows: "single",
+  };
+
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={loading}
-      is_open={open}
-      setIsOpen={closeModal}
-      title={"Editar"}
-    >
-      <TextField
-        fullWidth
-        label="Computador"
-        name="name"
-        onChange={handleChange}
-        required
-        value={fields.name}
+    <Fragment>
+      <DialogForm
+        error={error}
+        handleSubmit={handleSubmit}
+        is_loading={loading}
+        is_open={open}
+        setIsOpen={closeModal}
+        size="lg"
+        title="Editar"
+      >
+        <TextField
+          fullWidth
+          label="Computador"
+          name="name"
+          onChange={handleChange}
+          required
+          value={fields.name}
+        />
+        <TextField
+          fullWidth
+          label="Descripción"
+          name="description"
+          onChange={handleChange}
+          required
+          value={fields.description}
+        />
+        <br />
+        <br />
+        <DataTable
+          columns={computer_columns}
+          data={entries}
+          options={options}
+        />
+      </DialogForm>
+      <ItemModal
+        data={selected_item?.data}
+        id={selected_item?.index}
+        onClose={() => setItemModalOpen(false)}
+        onSubmit={(id, external_cost) => {
+          if (id === undefined) {
+            setEntries((prev_state) => [...prev_state, external_cost]);
+          } else {
+            entries[id] = external_cost;
+            setEntries([...entries]);
+          }
+        }}
+        open={item_modal_open}
       />
-      <TextField
-        fullWidth
-        label="Descripción"
-        name="description"
-        onChange={handleChange}
-        required
-        value={fields.description}
-      />
-    </DialogForm>
+    </Fragment>
   );
 };
 
