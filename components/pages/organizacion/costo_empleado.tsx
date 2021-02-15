@@ -617,7 +617,10 @@ const ExternalItemModal = ({
   const handleSubmit = async () => {
     if (error) return;
 
-    onSubmit(id, fields);
+    onSubmit(id, {
+      ...fields,
+      computer: fields.computer || null,
+    });
     closeModal();
   };
 
@@ -650,7 +653,6 @@ const ExternalItemModal = ({
         label="Computador"
         name="computer"
         onChange={handleChange}
-        required
         value={fields.computer}
       >
         {computers.map(({ id, name }) => (
