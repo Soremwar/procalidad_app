@@ -6,7 +6,7 @@ import {
   InternalCostCalculation,
 } from "../interfaces.ts";
 
-const TABLE = "ORGANIZACION.COSTO_INTERNO";
+export const TABLE = "ORGANIZACION.COSTO_INTERNO";
 
 const fields = [
   "id",

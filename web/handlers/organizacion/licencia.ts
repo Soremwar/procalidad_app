@@ -76,14 +76,20 @@ export const deleteLicense = async (
   const id = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  const license = await license_model.findById(id);
-  if (!license) throw new NotFoundError();
+  const licence = await license_model.findById(id);
+  if (!licence) throw new NotFoundError();
+
+  if (await licence.isUsed()) {
+    throw new RequestSyntaxError(
+      "No es posible eliminar una licencia que se encuentre en uso",
+    );
+  }
 
   for (const cost of await license_cost_model.findByLicence(id)) {
     await cost.delete();
   }
 
-  await license.delete();
+  await licence.delete();
 
   response.body = Message.OK;
 };

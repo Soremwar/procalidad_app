@@ -1,5 +1,7 @@
 import { queryObject } from "../../services/postgres.ts";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
+import { TABLE as INTERNAL_COST_TABLE } from "./internal_cost.ts";
+import { TABLE as EXTERNAL_COST_TABLE } from "./external_cost.ts";
 import { Licence as LicenceInterface } from "../interfaces.ts";
 
 export const TABLE = "ORGANIZACION.LICENCIA";
@@ -19,6 +21,31 @@ class Licence implements LicenceInterface {
     this.description = licence.description;
     this.id = licence.id;
     this.name = licence.name;
+  }
+
+  async isUsed(): Promise<boolean> {
+    const { rows } = await queryObject<{ count: BigInt }>({
+      text: (
+        `SELECT COALESCE(SUM(COUNT), 0)
+        FROM (
+          SELECT
+            1 AS COUNT
+          FROM ${INTERNAL_COST_TABLE}
+          WHERE $1 = ANY(LICENCIAS)
+          UNION ALL
+          SELECT
+            1 AS COUNT
+          FROM ${EXTERNAL_COST_TABLE}
+          WHERE $1 = ANY(LICENCIAS)
+        ) A`
+      ),
+      args: [
+        this.id,
+      ],
+      fields: ["count"],
+    });
+
+    return rows[0].count > 0n;
   }
 
   async update({
