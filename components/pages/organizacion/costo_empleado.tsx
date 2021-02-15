@@ -179,10 +179,12 @@ const InternalItemModal = ({
   const [result, setResult] = useState<InternalCostCalculation>(null);
 
   useEffect(() => {
-    setFields(data || DEFAULT_INTERNAL_FIELDS);
-    setError("");
-    setLoading(false);
-  }, []);
+    if (open) {
+      setFields(data || DEFAULT_INTERNAL_FIELDS);
+      setError("");
+      setLoading(false);
+    }
+  }, [open]);
 
   useEffect(() => {
     let active = true;

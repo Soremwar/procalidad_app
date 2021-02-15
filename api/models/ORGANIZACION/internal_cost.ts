@@ -73,9 +73,9 @@ class InternalCost implements InternalCostInterface {
           LICENCIAS = '{${licenses.join(",")}}',
           VALOR_PRESTACIONAL = $4,
           VALOR_BONOS = $5,
-          OTROS = $5,
-          FEC_INICIO = $6,
-          FEC_FIN = $7
+          OTROS = $6,
+          FEC_INICIO = $7,
+          FEC_FIN = $8
         WHERE PK_COSTO = $1`
       ),
       args: [
@@ -85,7 +85,6 @@ class InternalCost implements InternalCostInterface {
         this.base_cost,
         this.bonus_cost,
         this.other_costs,
-        this.type,
         this.start_date,
         this.end_date,
       ],
