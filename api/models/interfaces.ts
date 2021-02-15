@@ -54,6 +54,24 @@ export type InternalCostCalculation = {
   total_cost: number;
 };
 
+export type Licence = {
+  description: string;
+  id: number;
+  name: string;
+};
+
+export type LicenceCost = {
+  licence: number;
+  cost: number;
+  end_date: string | null;
+  id: number;
+  start_date: string;
+};
+
+export type LicenceData = Computer & {
+  costs: LicenceCost[];
+};
+
 export type People = {
   pk_persona: number;
   tipo_identificacion: TipoIdentificacion;

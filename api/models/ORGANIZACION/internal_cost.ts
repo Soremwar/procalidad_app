@@ -1,5 +1,5 @@
 import { queryObject } from "../../services/postgres.ts";
-import { TABLE as LICENSE_TABLE } from "./licencia.ts";
+import { TABLE as LICENSE_TABLE } from "./licence.ts";
 import { InternalCostType } from "../enums.ts";
 import {
   InternalCost as InternalCostInterface,

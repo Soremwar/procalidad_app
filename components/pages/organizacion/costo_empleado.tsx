@@ -37,9 +37,11 @@ import {
   InternalCostType,
 } from "../../../api/models/enums";
 import {
+  Computer,
   ExternalCost,
   InternalCost,
   InternalCostCalculation,
+  Licence,
   People,
 } from "../../../api/models/interfaces";
 
@@ -53,10 +55,8 @@ import Title from "../../common/Title.jsx";
 import Widget from "../../common/Widget.jsx";
 
 const getPeople = () => fetchPeopleApi<People[]>();
-/** @return Promise<Array<{nombre: string}>> */
-const getComputers = () => fetchComputerApi().then((x) => x.json());
-/** @return Promise<Array<{nombre: string}>> */
-const getLicenses = () => fetchLicenseApi().then((x) => x.json());
+const getComputers = () => fetchComputerApi<Computer[]>();
+const getLicenses = () => fetchLicenseApi<Licence[]>();
 
 const getPersonInternalCost = (id) =>
   fetchPersonCostApi<InternalCost>(["interno", id].join("/"));
@@ -130,8 +130,8 @@ const headers = [
 ];
 
 const DEFAULT_PARAMETERS = {
-  computers: [],
-  licenses: [],
+  computers: [] as Computer[],
+  licenses: [] as Licence[],
   people: [] as People[],
 };
 const ParameterContext = createContext(DEFAULT_PARAMETERS);
@@ -248,8 +248,8 @@ const InternalItemModal = ({
         required
         value={fields.computer}
       >
-        {computers.map(({ pk_computador, nombre }) => (
-          <option key={pk_computador} value={pk_computador}>{nombre}</option>
+        {computers.map(({ id, name }) => (
+          <option key={id} value={id}>{name}</option>
         ))}
       </SelectField>
       <CurrencyField
@@ -651,8 +651,8 @@ const ExternalItemModal = ({
         required
         value={fields.computer}
       >
-        {computers.map(({ pk_computador, nombre }) => (
-          <option key={pk_computador} value={pk_computador}>{nombre}</option>
+        {computers.map(({ id, name }) => (
+          <option key={id} value={id}>{name}</option>
         ))}
       </SelectField>
       <MultipleSelectField
@@ -946,22 +946,36 @@ export default function CostoEmpleado() {
   const [parameters, setParameters] = useState(DEFAULT_PARAMETERS);
 
   useEffect(() => {
-    getComputers().then((computers) =>
-      setParameters((prev_state) => ({
-        ...prev_state,
-        computers: computers.sort(({ nombre: x }, { nombre: y }) =>
-          x.localeCompare(y)
-        ),
-      }))
-    );
-    getLicenses().then((licenses) => {
-      setParameters((prev_state) => ({
-        ...prev_state,
-        licenses: licenses
-          .map(({ pk_licencia, nombre }) => [pk_licencia, nombre])
-          .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
-      }));
-    });
+    getComputers()
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error();
+      })
+      .then((computers) =>
+        setParameters((prev_state) => ({
+          ...prev_state,
+          computers: computers.sort(({ name: x }, { name: y }) =>
+            x.localeCompare(y)
+          ),
+        }))
+      );
+    getLicenses()
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error();
+      })
+      .then((licenses) => {
+        setParameters((prev_state) => ({
+          ...prev_state,
+          licenses: licenses
+            .map(({ id, name }) => [id, name])
+            .sort(([_x, x], [_y, y]) => x.localeCompare(y)),
+        }));
+      });
     getPeople()
       .then((response) => {
         if (response.ok) {

@@ -13,7 +13,7 @@ import {
   Delete as DeleteIcon,
 } from "@material-ui/icons";
 import { formatResponseJson } from "../../../lib/api/request";
-import { fetchComputerApi } from "../../../lib/api/generator.js";
+import { fetchLicenseApi } from "../../../lib/api/generator.js";
 import {
   Computer,
   ComputerCost,
@@ -28,16 +28,16 @@ import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 
-type ComputerParameters = Omit<Computer, "id">;
-type ComputerCostParameters = Omit<ComputerCost, "id" | "computer">;
-type ComputerDataParameters = ComputerParameters & {
-  costs: ComputerCostParameters[];
+type LicenseParameters = Omit<Computer, "id">;
+type LicenseCostParameters = Omit<ComputerCost, "id" | "computer">;
+type LicenseDataParameters = LicenseParameters & {
+  costs: LicenseCostParameters[];
 };
 
-const getComputer = (id) => fetchComputerApi<ComputerData>(id);
+const getLicense = (id) => fetchLicenseApi<ComputerData>(id);
 
-const createComputer = async (computer_data: ComputerParameters) =>
-  fetchComputerApi("", {
+const createLicense = async (computer_data: LicenseParameters) =>
+  fetchLicenseApi("", {
     body: JSON.stringify(computer_data),
     headers: {
       "Content-Type": "application/json",
@@ -45,24 +45,24 @@ const createComputer = async (computer_data: ComputerParameters) =>
     method: "POST",
   });
 
-const updateComputer = async (
+const updateLicense = async (
   id: number,
-  computer: ComputerParameters,
-  costs: ComputerCostParameters[],
+  license: LicenseParameters,
+  costs: LicenseCostParameters[],
 ) =>
-  fetchComputerApi(id, {
+  fetchLicenseApi(id, {
     body: JSON.stringify({
-      ...computer,
+      ...license,
       costs,
-    } as ComputerDataParameters),
+    } as LicenseDataParameters),
     headers: {
       "Content-Type": "application/json",
     },
     method: "PUT",
   });
 
-const deleteComputer = async (id: number) =>
-  fetchComputerApi(id, {
+const deleteLicense = async (id: number) =>
+  fetchLicenseApi(id, {
     method: "DELETE",
   });
 
@@ -83,7 +83,7 @@ const headers = [
   },
 ];
 
-const DEFAULT_COMPUTER_FIELDS: ComputerParameters = {
+const DEFAULT_LICENSE_FIELDS: LicenseParameters = {
   description: "",
   name: "",
 };
@@ -93,15 +93,15 @@ const AddModal = ({
   is_open,
   updateTable,
 }) => {
-  const [fields, setFields] = useState<ComputerParameters>(
-    DEFAULT_COMPUTER_FIELDS,
+  const [fields, setFields] = useState<LicenseParameters>(
+    DEFAULT_LICENSE_FIELDS,
   );
   const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (is_open) {
-      setFields(DEFAULT_COMPUTER_FIELDS);
+      setFields(DEFAULT_LICENSE_FIELDS);
       setLoading(false);
       setError("");
     }
@@ -116,7 +116,7 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createComputer(fields);
+    const request = await createLicense(fields);
 
     if (request.ok) {
       closeModal();
@@ -142,7 +142,7 @@ const AddModal = ({
         inputProps={{
           maxLength: 100,
         }}
-        label="Computador"
+        label="Licencia"
         name="name"
         onChange={handleChange}
         required
@@ -163,7 +163,7 @@ const AddModal = ({
   );
 };
 
-const computer_columns: Column[] = [
+const license_columns: Column[] = [
   {
     name: "start_date",
     label: "Inicio vigencia",
@@ -205,7 +205,7 @@ const DEFAULT_COST_FIELDS = {
   cost: 0,
   end_date: "",
   start_date: "",
-} as ComputerCostParameters;
+} as LicenseCostParameters;
 
 const ItemModal = ({
   data,
@@ -214,16 +214,16 @@ const ItemModal = ({
   onSubmit,
   open,
 }: {
-  data?: ComputerCostParameters;
+  data?: LicenseCostParameters;
   id?: number;
   onClose: () => void;
   onSubmit: (
     id: number | undefined,
-    computer_cost: ComputerCostParameters,
+    license_cost: LicenseCostParameters,
   ) => void;
   open: boolean;
 }) => {
-  const [fields, setFields] = useState<ComputerCostParameters>(
+  const [fields, setFields] = useState<LicenseCostParameters>(
     DEFAULT_COST_FIELDS,
   );
 
@@ -297,15 +297,15 @@ const EditModal = ({
   closeModal: () => void;
   updateTable: () => void;
 }) => {
-  const [entries, setEntries] = useState<ComputerCostParameters[]>([]);
+  const [entries, setEntries] = useState<LicenseCostParameters[]>([]);
   const [error, setError] = useState("");
-  const [fields, setFields] = useState<ComputerParameters>(
-    DEFAULT_COMPUTER_FIELDS,
+  const [fields, setFields] = useState<LicenseParameters>(
+    DEFAULT_LICENSE_FIELDS,
   );
   const [item_modal_open, setItemModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selected_item, setSelectedItem] = useState<
-    { data: ComputerCostParameters; index: number } | undefined
+    { data: LicenseCostParameters; index: number } | undefined
   >();
 
   useEffect(() => {
@@ -332,7 +332,7 @@ const EditModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await updateComputer(
+    const request = await updateLicense(
       data.id,
       fields,
       entries,
@@ -413,7 +413,7 @@ const EditModal = ({
       >
         <TextField
           fullWidth
-          label="Computador"
+          label="Licencia"
           name="name"
           onChange={handleChange}
           required
@@ -430,7 +430,7 @@ const EditModal = ({
         <br />
         <br />
         <DataTable
-          columns={computer_columns}
+          columns={license_columns}
           data={entries}
           options={options}
         />
@@ -466,7 +466,7 @@ const DeleteModal = ({
     setLoading(true);
     setError(null);
 
-    const delete_progress = selected.map((id) => deleteComputer(id));
+    const delete_progress = selected.map((id) => deleteLicense(id));
 
     Promise.allSettled(delete_progress)
       .then((results) =>
@@ -509,18 +509,18 @@ const DeleteModal = ({
   );
 };
 
-export default function Computador() {
+export default function Licencia() {
   const mounted = useMountReference();
 
   const [add_modal_open, setAddModalOpen] = useState(false);
   const [delete_modal_open, setDeleteModalOpen] = useState(false);
   const [edit_modal_open, setEditModalOpen] = useState(false);
   const [selected, setSelected] = useState([]);
-  const [selected_computer, setSelectedComputer] = useState<ComputerData>();
+  const [selected_license, setSelectedLicense] = useState<ComputerData>();
   const [update_table, setUpdateTable] = useState(false);
 
   const handleEditModalOpen = async (id) => {
-    const computer = await getComputer(id)
+    const license = await getLicense(id)
       .then((response) => {
         if (response.ok) {
           return response.json();
@@ -528,11 +528,11 @@ export default function Computador() {
         throw new Error();
       })
       .catch((error) =>
-        console.error("Couldn't load the selected computer", error)
+        console.error("Couldn't load the selected license", error)
       );
 
     if (mounted.current) {
-      setSelectedComputer(computer);
+      setSelectedLicense(license);
       setEditModalOpen(true);
     }
   };
@@ -552,7 +552,7 @@ export default function Computador() {
 
   return (
     <Fragment>
-      <Title title={"Computador"} />
+      <Title title="Licencias" />
       <AddModal
         closeModal={() => setAddModalOpen(false)}
         is_open={add_modal_open}
@@ -560,7 +560,7 @@ export default function Computador() {
       />
       <EditModal
         closeModal={() => setEditModalOpen(false)}
-        data={selected_computer}
+        data={selected_license}
         open={edit_modal_open}
         updateTable={updateTable}
       />
@@ -577,7 +577,7 @@ export default function Computador() {
         onDeleteClick={(selected) => handleDeleteModalOpen(selected)}
         onTableUpdate={() => setUpdateTable(false)}
         update_table={update_table}
-        url="organizacion/computador/table"
+        url="organizacion/licencia/table"
       />
     </Fragment>
   );

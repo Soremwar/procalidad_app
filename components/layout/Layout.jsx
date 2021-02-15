@@ -27,7 +27,7 @@ import Formato from "../pages/maestro/formato.jsx";
 import HabilidadTecnica from "../pages/usuario/habilidad/tecnica.jsx";
 import Herramienta from "../pages/maestro/herramienta.jsx";
 import Idioma from "../pages/maestro/idioma.jsx";
-import Licencia from "../pages/organizacion/licencia.jsx";
+import Licencia from "../pages/organizacion/licencia";
 import NivelFormacion from "../pages/maestro/nivel_formacion.jsx";
 import Parametro from "../pages/maestro/parametro.jsx";
 import Perfil from "../pages/usuario/perfil.jsx";

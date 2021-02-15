@@ -1,95 +1,196 @@
-import type { RouterContext } from "oak";
-import {
-  createNew,
-  findAll,
-  findById,
-  getTableData,
-} from "../../../api/models/ORGANIZACION/licencia.ts";
-import { formatResponse, Message, Status } from "../../http_utils.ts";
-import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import Ajv from "ajv";
+import * as license_model from "../../../api/models/ORGANIZACION/licence.ts";
+import * as license_cost_model from "../../../api/models/ORGANIZACION/licence_cost.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
+import { Message } from "../../http_utils.ts";
+import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
+import { RouterContext } from "../../state.ts";
+import {
+  INTEGER,
+  STANDARD_DATE_STRING,
+  STANDARD_DATE_STRING_OR_NULL,
+  STRING,
+} from "../../../lib/ajv/types.js";
+import { LicenceData } from "../../../api/models/interfaces.ts";
+import { multipleDateRangesOverlap } from "../../../lib/date/util.ts";
 
-export const getLicences = async ({ response }: RouterContext) => {
-  response.body = await findAll();
+const costs = {
+  properties: {
+    "cost": INTEGER({ min: 1 }),
+    "end_date": STANDARD_DATE_STRING_OR_NULL,
+    "id": INTEGER({ min: 1 }),
+    "start_date": STANDARD_DATE_STRING,
+  },
+  required: [
+    "cost",
+    "end_date",
+    "start_date",
+  ],
 };
 
-export const getLicencesTable = async (context: RouterContext) =>
-  tableRequestHandler(
-    context,
-    getTableData,
-  );
+const update_request = {
+  $id: "update",
+  properties: {
+    "costs": {
+      type: "array",
+      items: costs,
+    },
+    "description": STRING(255),
+    "name": STRING(100),
+  },
+  required: [
+    "costs",
+  ],
+};
 
-export const createLicence = async ({ request, response }: RouterContext) => {
+const create_request = Object.assign({}, update_request, {
+  $id: "create",
+  required: [
+    "description",
+    "name",
+  ],
+});
+
+const request_validator = new Ajv({
+  coerceTypes: true,
+  schemas: [
+    create_request,
+    update_request,
+  ],
+});
+
+export const createLicense = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  const {
-    name,
-    description,
-    cost,
-  } = await request.body({ type: "json" }).value;
-
-  if (!(name && description && !isNaN(Number(cost)))) {
+  const value: LicenceData = await request.body({ type: "json" }).value;
+  if (!request_validator.validate("create", value)) {
     throw new RequestSyntaxError();
   }
 
-  const licencia = await createNew(
-    name,
-    description,
-    Number(cost),
-  );
-
-  response.body = licencia;
+  response.body = await license_model.create(value);
 };
 
-export const getLicence = async (
+export const deleteLicense = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  const licencia = await findById(id);
-  if (!licencia) throw new NotFoundError();
+  const license = await license_model.findById(id);
+  if (!license) throw new NotFoundError();
 
-  response.body = licencia;
+  for (const cost of await license_cost_model.findByLicence(id)) {
+    await cost.delete();
+  }
+
+  await license.delete();
+
+  response.body = Message.OK;
 };
 
-export const updateLicence = async (
+export const getLicense = async (
+  { params, response }: RouterContext<{ id: string }>,
+) => {
+  const id = Number(params.id);
+  if (!id) throw new RequestSyntaxError();
+
+  const license = await license_model.findById(id);
+  if (!license) throw new NotFoundError();
+
+  const licence_cost = await license_cost_model.findByLicence(id);
+
+  response.body = {
+    ...license,
+    costs: licence_cost,
+  } as LicenceData;
+};
+
+export const getLicenses = async ({ response }: RouterContext) => {
+  response.body = await license_model.getAll();
+};
+
+export const getLicencesTable = (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    license_model.getTableData,
+  );
+
+export const updateLicense = async (
   { params, request, response }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  let licencia = await findById(id);
-  if (!licencia) throw new NotFoundError();
+  const license = await license_model.findById(id);
+  if (!license) throw new NotFoundError();
 
-  const {
-    name,
-    description,
-    cost,
-  } = await request.body({ type: "json" }).value;
+  const value: LicenceData = await request.body({ type: "json" }).value;
+  if (!request_validator.validate("create", value)) {
+    throw new RequestSyntaxError();
+  }
 
-  licencia = await licencia.update(
-    name,
-    description,
-    !(isNaN(Number(cost)) || cost) ? undefined : Number(cost),
-  );
+  // Test end date is greater than start date
+  const date_range_is_valid = value.costs.every(({ start_date, end_date }) => {
+    if (!end_date) {
+      return true;
+    }
 
-  response.body = licencia;
-};
+    const start = new Date(start_date);
+    const end = new Date(end_date);
 
-export const deleteLicence = async (
-  { params, response }: RouterContext<{ id: string }>,
-) => {
-  const id: number = Number(params.id);
-  if (!id) throw new RequestSyntaxError();
+    // If dates match it is the same day, so valid
+    if (start.getTime() === end.getTime()) {
+      return true;
+    }
 
-  let licencia = await findById(id);
-  if (!licencia) throw new NotFoundError();
+    return end > start;
+  });
 
-  await licencia.delete();
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
+  if (!date_range_is_valid) {
+    throw new RequestSyntaxError(
+      "La fecha de inicio de cada periodo debe ser menor a su fecha final",
+    );
+  }
+
+  if (
+    value.costs.length > 1 &&
+    multipleDateRangesOverlap(
+      value.costs.map((
+        { start_date, end_date },
+        // Use the max possible date in case the end date was not specified
+      ) => [new Date(start_date), new Date(end_date || 8640000000000000)]),
+    )
+  ) {
+    throw new RequestSyntaxError(
+      "Los rangos de los periodos no pueden entrecuzarse",
+    );
+  }
+
+  await license.update(value);
+
+  // Delete any items that aren't included in the updated values
+  const updated_items = value.costs.map(({ id }) => Number(id));
+  for (const cost of await license_cost_model.findByLicence(id)) {
+    if (!updated_items.includes(Number(cost.id))) {
+      await cost.delete();
+    }
+  }
+
+  for (const cost of value.costs) {
+    if (cost.id) {
+      const previous_cost = await license_cost_model.findById(cost.id);
+      if (!previous_cost) {
+        await license_cost_model.create(cost);
+        continue;
+      }
+      await previous_cost.update(cost);
+    } else {
+      await license_cost_model.create({
+        ...cost,
+        licence: id,
+      });
+    }
+  }
+
+  response.body = Message.OK;
 };

@@ -94,14 +94,7 @@ import {
   updatePosition,
 } from "./handlers/organizacion/cargo.ts";
 import * as computers from "./handlers/organizacion/computador.ts";
-import {
-  createLicence,
-  deleteLicence,
-  getLicence,
-  getLicences,
-  getLicencesTable,
-  updateLicence,
-} from "./handlers/organizacion/licencia.ts";
+import * as licences from "./handlers/organizacion/licencia.ts";
 import * as hourly_cost from "./handlers/organizacion/costo_interno.ts";
 import * as external_cost from "./handlers/organizacion/costo_externo.ts";
 import {
@@ -1907,6 +1900,11 @@ main_router
   );
 
 main_router
+  .get(
+    "/api/organizacion/computador",
+    checkUserAccess(),
+    computers.getComputers,
+  )
   .post(
     "/api/organizacion/computador/table",
     checkUserAccess([
@@ -1954,7 +1952,7 @@ main_router
   .get(
     "/api/organizacion/licencia",
     checkUserAccess(),
-    getLicences,
+    licences.getLicenses,
   )
   .post(
     "/api/organizacion/licencia/table",
@@ -1964,12 +1962,12 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    getLicencesTable,
+    licences.getLicencesTable,
   )
   .get<{ id: string }>(
     "/api/organizacion/licencia/:id",
     checkUserAccess(),
-    getLicence,
+    licences.getLicense,
   )
   .post(
     "/api/organizacion/licencia",
@@ -1978,7 +1976,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    createLicence,
+    licences.createLicense,
   )
   .put<{ id: string }>(
     "/api/organizacion/licencia/:id",
@@ -1987,7 +1985,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    updateLicence,
+    licences.updateLicense,
   )
   .delete<{ id: string }>(
     "/api/organizacion/licencia/:id",
@@ -1996,7 +1994,7 @@ main_router
       Profiles.CONTROLLER,
       Profiles.HUMAN_RESOURCES,
     ]),
-    deleteLicence,
+    licences.deleteLicense,
   );
 
 main_router

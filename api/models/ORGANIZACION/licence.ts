@@ -1,8 +1,8 @@
 import { queryObject } from "../../services/postgres.ts";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
-import { Computer as ComputerInterface } from "../interfaces.ts";
+import { Licence as LicenceInterface } from "../interfaces.ts";
 
-export const TABLE = "ORGANIZACION.COMPUTADOR";
+export const TABLE = "ORGANIZACION.LICENCIA";
 
 const fields = [
   "id",
@@ -10,22 +10,22 @@ const fields = [
   "description",
 ];
 
-class Computer implements ComputerInterface {
+class Licence implements LicenceInterface {
   public description: string;
   public id: number;
   public name: string;
 
-  constructor(computer: ComputerInterface) {
-    this.description = computer.description;
-    this.id = computer.id;
-    this.name = computer.name;
+  constructor(licence: LicenceInterface) {
+    this.description = licence.description;
+    this.id = licence.id;
+    this.name = licence.name;
   }
 
   async update({
     description = this.description,
     name = this.name,
-  }: ComputerInterface): Promise<
-    Computer
+  }: LicenceInterface): Promise<
+    Licence
   > {
     Object.assign(this, { description, name });
 
@@ -34,7 +34,7 @@ class Computer implements ComputerInterface {
         `UPDATE ${TABLE} SET
           NOMBRE = $2,
           DESCRIPCION = $3
-        WHERE PK_COMPUTADOR = $1`
+        WHERE PK_LICENCIA = $1`
       ),
       args: [
         this.id,
@@ -48,7 +48,7 @@ class Computer implements ComputerInterface {
 
   async delete(): Promise<void> {
     await queryObject({
-      text: `DELETE FROM ${TABLE} WHERE PK_COMPUTADOR = $1`,
+      text: `DELETE FROM ${TABLE} WHERE PK_LICENCIA = $1`,
       args: [this.id],
     });
   }
@@ -57,7 +57,7 @@ class Computer implements ComputerInterface {
 export const create = async ({
   name,
   description,
-}: ComputerInterface): Promise<Computer> => {
+}: LicenceInterface): Promise<Licence> => {
   const { rows } = await queryObject<{ id: number }>({
     text: (
       `INSERT INTO ${TABLE} (
@@ -67,7 +67,7 @@ export const create = async ({
         $1,
         $2
       ) RETURNING
-        PK_COMPUTADOR`
+        PK_LICENCIA`
     ),
     args: [
       name,
@@ -76,37 +76,18 @@ export const create = async ({
     fields: ["id"],
   });
 
-  return new Computer({
+  return new Licence({
     description,
     id: rows[0].id,
     name,
   });
 };
 
-export const findById = async (id: number): Promise<Computer | null> => {
-  const { rows } = await queryObject<ComputerInterface>({
+export const getAll = async (): Promise<Licence[]> => {
+  const { rows } = await queryObject<LicenceInterface>({
     text: (
       `SELECT
-        PK_COMPUTADOR,
-        NOMBRE,
-        DESCRIPCION
-      FROM ${TABLE}
-      WHERE PK_COMPUTADOR = $1`
-    ),
-    args: [id],
-    fields,
-  });
-
-  if (!rows.length) return null;
-
-  return new Computer(rows[0]);
-};
-
-export const getAll = async (): Promise<Computer[]> => {
-  const { rows } = await queryObject<ComputerInterface>({
-    text: (
-      `SELECT
-        PK_COMPUTADOR,
+        PK_LICENCIA,
         NOMBRE,
         DESCRIPCION
       FROM ${TABLE}`
@@ -114,7 +95,26 @@ export const getAll = async (): Promise<Computer[]> => {
     fields,
   });
 
-  return rows.map((row) => new Computer(row));
+  return rows.map((row) => new Licence(row));
+};
+
+export const findById = async (id: number): Promise<Licence | null> => {
+  const { rows } = await queryObject<LicenceInterface>({
+    text: (
+      `SELECT
+        PK_LICENCIA,
+        NOMBRE,
+        DESCRIPCION
+      FROM ${TABLE}
+      WHERE PK_LICENCIA = $1`
+    ),
+    args: [id],
+    fields,
+  });
+
+  if (!rows.length) return null;
+
+  return new Licence(rows[0]);
 };
 
 class TableData {
@@ -134,7 +134,7 @@ export const getTableData = async (
 ): Promise<TableResult> => {
   const base_query = (
     `SELECT
-      PK_COMPUTADOR AS ID,
+      PK_LICENCIA AS ID,
       NOMBRE AS NAME,
       DESCRIPCION AS DESCRIPTION
     FROM ${TABLE}`

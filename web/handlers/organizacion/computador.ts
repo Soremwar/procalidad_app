@@ -11,7 +11,7 @@ import {
   STANDARD_DATE_STRING_OR_NULL,
   STRING,
 } from "../../../lib/ajv/types.js";
-import { Computer, ComputerData } from "../../../api/models/interfaces.ts";
+import { ComputerData } from "../../../api/models/interfaces.ts";
 import { multipleDateRangesOverlap } from "../../../lib/date/util.ts";
 
 const costs = {
@@ -59,12 +59,6 @@ const request_validator = new Ajv({
   ],
 });
 
-export const getComputersTable = (context: RouterContext) =>
-  tableRequestHandler(
-    context,
-    computer_model.getTableData,
-  );
-
 export const createComputer = async ({ request, response }: RouterContext) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
@@ -92,6 +86,16 @@ export const getComputer = async (
     costs: computer_cost,
   } as ComputerData;
 };
+
+export const getComputers = async ({ response }: RouterContext) => {
+  response.body = await computer_model.getAll();
+};
+
+export const getComputersTable = (context: RouterContext) =>
+  tableRequestHandler(
+    context,
+    computer_model.getTableData,
+  );
 
 export const updateComputer = async (
   { params, request, response }: RouterContext<{ id: string }>,
