@@ -1,7 +1,7 @@
 import type { RouterContext } from "oak";
 import { RequestSyntaxError } from "../../web/exceptions.ts";
 import postgres from "../services/postgres.ts";
-import type { QueryResult } from "deno_postgres/query.ts";
+import type { QueryResult } from "deno_postgres/query/query.ts";
 
 type SearchParameter = [boolean, [string, string]];
 

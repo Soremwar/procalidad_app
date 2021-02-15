@@ -1,5 +1,5 @@
 import { Pool } from "deno_postgres";
-import { QueryObjectConfig } from "deno_postgres/query.ts";
+import { QueryObjectConfig } from "deno_postgres/query/query.ts";
 import {
   database,
   host,
