@@ -52,15 +52,17 @@ class InternalCost implements InternalCostInterface {
     computer = this.computer,
     end_date = this.end_date,
     licenses = this.licenses,
+    other_costs = this.other_costs,
     start_date = this.start_date,
     type = this.type,
-  }): Promise<InternalCost> {
+  }: InternalCostInterface): Promise<InternalCost> {
     Object.assign(this, {
       base_cost,
       bonus_cost,
       computer,
       end_date,
       licenses,
+      other_costs,
       start_date,
       type,
     });
@@ -255,9 +257,9 @@ export const findById = async (id: number): Promise<InternalCost | null> => {
         TIPO_COSTO,
         FK_COMPUTADOR,
         LICENCIAS,
-        VALOR_PRESTACIONAL,
-        VALOR_BONOS,
-        OTROS,
+        CASE WHEN VALOR_PRESTACIONAL::VARCHAR ~ '^[0-9]+$' THEN VALOR_PRESTACIONAL::INTEGER ELSE 0 END,
+        CASE WHEN VALOR_BONOS::VARCHAR ~ '^[0-9]+$' THEN VALOR_BONOS::INTEGER ELSE 0 END,
+        CASE WHEN OTROS::VARCHAR ~ '^[0-9]+$' THEN OTROS::INTEGER ELSE 0 END,
         TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
         TO_CHAR(FEC_FIN, 'YYYY-MM-DD')
       FROM ${TABLE}
@@ -283,9 +285,9 @@ export const findByPerson = async (
         TIPO_COSTO,
         FK_COMPUTADOR,
         LICENCIAS,
-        VALOR_PRESTACIONAL,
-        VALOR_BONOS,
-        OTROS,
+        CASE WHEN VALOR_PRESTACIONAL::VARCHAR ~ '^[0-9]+$' THEN VALOR_PRESTACIONAL::INTEGER ELSE 0 END,
+        CASE WHEN VALOR_BONOS::VARCHAR ~ '^[0-9]+$' THEN VALOR_BONOS::INTEGER ELSE 0 END,
+        CASE WHEN OTROS::VARCHAR ~ '^[0-9]+$' THEN OTROS::INTEGER ELSE 0 END,
         TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
         TO_CHAR(FEC_FIN, 'YYYY-MM-DD')
       FROM ${TABLE}
