@@ -1,15 +1,25 @@
-import postgres from "../../services/postgres.ts";
+import postgres, { queryObject } from "../../services/postgres.ts";
 import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { findById as findProject, TABLE as PROJECT_TABLE } from "./PROYECTO.ts";
 import { TABLE as BUDGET_TYPE_TABLE } from "./TIPO_PRESUPUESTO.ts";
 import { TABLE as CLIENT_TABLE } from "../CLIENTES/CLIENTE.ts";
+import { Budget as BudgetInterface } from "../interfaces.ts";
 
 export const TABLE = "OPERACIONES.PRESUPUESTO";
 const ERROR_DEPENDENCY =
   "No se puede eliminar el presupuesto por que hay componentes que dependen de el";
 
-class Budget {
+const fields = [
+  "PK_PRESUPUESTO",
+  "FK_PROYECTO",
+  "FK_TIPO_PRESUPUESTO",
+  "NOMBRE",
+  "DESCRIPCION",
+  "ESTADO",
+];
+
+class Budget implements BudgetInterface {
   constructor(
     public readonly pk_presupuesto: number,
     public fk_cliente: number | undefined,
@@ -85,28 +95,41 @@ class Budget {
   }
 }
 
-export const findAll = async (): Promise<Budget[]> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      PK_PRESUPUESTO,
-      NULL,
-      FK_PROYECTO,
-      FK_TIPO_PRESUPUESTO,
-      NOMBRE,
-      DESCRIPCION,
-      ESTADO
-    FROM ${TABLE}`,
-  );
+export const findAll = async ({
+  open,
+  project,
+}: {
+  open?: boolean;
+  project?: number;
+}): Promise<Budget[]> => {
+  const { rows } = await queryObject<BudgetInterface>({
+    text: (
+      `SELECT
+        PK_PRESUPUESTO,
+        FK_PROYECTO,
+        FK_TIPO_PRESUPUESTO,
+        NOMBRE,
+        DESCRIPCION,
+        ESTADO
+      FROM ${TABLE}
+      WHERE 1 = 1
+      ${open ? `AND ESTADO = ${open}` : ""}
+      ${project ? `AND FK_PROYECTO = ${project}` : ""}`
+    ),
+    fields,
+  });
 
-  return rows.map((row: [
-    number,
-    undefined,
-    number,
-    number,
-    string,
-    string,
-    boolean,
-  ]) => new Budget(...row));
+  return rows.map((row) =>
+    new Budget(
+      row.pk_presupuesto,
+      undefined,
+      row.fk_proyecto,
+      row.fk_tipo_presupuesto,
+      row.nombre,
+      row.descripcion,
+      row.estado,
+    )
+  );
 };
 
 export const findById = async (id: number): Promise<Budget | null> => {

@@ -109,7 +109,7 @@ const getDetailHeatmap = (
   }).then((x) => x.json());
 };
 
-const createResource = async (
+const createResource = (
   assignation,
   project,
   hours,
@@ -132,7 +132,7 @@ const createResource = async (
     method: "POST",
   });
 
-const updateResource = async (
+const updateResource = (
   id,
   assignation,
   project,
@@ -300,6 +300,16 @@ function a11yProps(index) {
   };
 }
 
+const DEFAULT_FIELDS = {
+  assignation: "",
+  budget: "",
+  client: "",
+  hours: "",
+  project: "",
+  role: null,
+  start_date: "",
+};
+
 const AddModal = ({
   callback,
   is_open,
@@ -312,17 +322,32 @@ const AddModal = ({
     projects,
   } = useContext(ParameterContext);
 
-  const [fields, setFields] = useState({
-    assignation: "",
-    budget: "",
-    client: "",
-    hours: "",
-    project: "",
-    role: null,
-    start_date: "",
-  });
-  const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const selected_budget = fields.project
+    ? budgets.find(({ estado, fk_proyecto }) =>
+      estado === true && Number(fk_proyecto) === Number(fields.project)
+    )
+    : undefined;
+
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        assignation: "",
+        budget: "",
+        client: "",
+        hours: "",
+        person: "",
+        project: "",
+        role: null,
+        start_date: "",
+      });
+      setError("");
+      setLoading(false);
+    }
+  }, [is_open]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -331,7 +356,7 @@ const AddModal = ({
 
   const handleSubmit = async () => {
     setLoading(true);
-    setError(null);
+    setError("");
 
     createResource(
       fields.assignation,
@@ -354,34 +379,18 @@ const AddModal = ({
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    if (is_open) {
-      setFields({
-        assignation: "",
-        budget: "",
-        client: "",
-        hours: "",
-        person: "",
-        project: "",
-        role: null,
-        start_date: "",
-      });
-      setError(null);
-      setLoading(false);
-    }
-  }, [is_open]);
-
   return (
     <Fragment>
       {person
         ? (
           <DialogForm
+            disabled={!selected_budget}
             error={error}
             handleSubmit={handleSubmit}
-            is_loading={is_loading}
+            is_loading={loading}
             is_open={is_open}
             setIsOpen={setModalOpen}
-            title={"Crear Nuevo"}
+            title="Crear Nuevo"
           >
             <SelectField
               fullWidth
@@ -396,8 +405,12 @@ const AddModal = ({
               ))}
             </SelectField>
             <SelectField
+              error={!selected_budget && fields.project}
               disabled={!fields.client}
               fullWidth
+              helperText={!selected_budget && fields.project
+                ? "No hay presupuestos abiertos para este proyecto"
+                : ""}
               label="Proyecto"
               name="project"
               onChange={handleChange}
@@ -412,58 +425,53 @@ const AddModal = ({
                   </option>
                 ))}
             </SelectField>
-            <SelectField
-              disabled={!fields.client && !fields.project}
-              fullWidth
-              label="Presupuesto"
-              name="budget"
-              onChange={handleChange}
-              required
-              value={fields.client && fields.project && fields.budget}
-            >
-              {budgets
-                .filter(({ fk_proyecto, estado }) =>
-                  fk_proyecto == fields.project && estado
-                )
-                .map(({ pk_presupuesto, nombre }) => (
-                  <option key={pk_presupuesto} value={pk_presupuesto}>
-                    {nombre}
-                  </option>
-                ))}
-            </SelectField>
-            <AsyncSelectField
-              disabled={!fields.budget}
-              fullWidth
-              fetchOptions={async () => {
-                const roles = await fetchRoleApi()
-                  .then(async (response) => {
-                    if (response.ok) {
-                      return await response.json();
-                    }
-                    throw new Error();
-                  });
+            {!!selected_budget && (
+              <Fragment>
+                <TextField
+                  disabled
+                  fullWidth
+                  label="Presupuesto"
+                  name="budget"
+                  readonly
+                  value={selected_budget.nombre}
+                />
+                <AsyncSelectField
+                  disabled={!selected_budget}
+                  fullWidth
+                  fetchOptions={async () => {
+                    const roles = await fetchRoleApi()
+                      .then(async (response) => {
+                        if (response.ok) {
+                          return await response.json();
+                        }
+                        throw new Error();
+                      });
 
-                const available_roles = await getBudgetDetails(fields.budget)
-                  .then((details) =>
-                    details.reduce((res, { fk_rol }) => {
-                      res.push(fk_rol);
-                      return res;
-                    }, [])
-                  );
+                    const available_roles = await getBudgetDetails(
+                      selected_budget.pk_presupuesto,
+                    )
+                      .then((details) =>
+                        details.reduce((res, { fk_rol }) => {
+                          res.push(fk_rol);
+                          return res;
+                        }, [])
+                      );
 
-                return roles
-                  .filter(({ pk_rol }) => available_roles.includes(pk_rol))
-                  .map(({
-                    pk_rol,
-                    nombre,
-                  }) => ({ text: nombre, value: String(pk_rol) }));
-              }}
-              label="Rol"
-              required
-              setValue={(value) =>
-                setFields((prev_state) => ({ ...prev_state, role: value }))}
-              value={fields.role}
-            />
+                    return roles
+                      .filter(({ pk_rol }) => available_roles.includes(pk_rol))
+                      .map(({
+                        pk_rol,
+                        nombre,
+                      }) => ({ text: nombre, value: String(pk_rol) }));
+                  }}
+                  label="Rol"
+                  required
+                  setValue={(value) =>
+                    setFields((prev_state) => ({ ...prev_state, role: value }))}
+                  value={fields.role}
+                />
+              </Fragment>
+            )}
             <DateField
               fullWidth
               label="Fecha inicio"
@@ -474,11 +482,9 @@ const AddModal = ({
             />
             <TextField
               fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0,
-                  max: 100,
-                },
+              inputProps={{
+                min: 0,
+                max: 100,
               }}
               label="% Asignación"
               name="assignation"
@@ -489,10 +495,8 @@ const AddModal = ({
             />
             <TextField
               fullWidth
-              InputProps={{
-                inputProps: {
-                  min: 0,
-                },
+              inputProps={{
+                min: 0,
               }}
               label="Horas"
               name="hours"
@@ -527,34 +531,52 @@ const EditModal = ({
     roles,
   } = useContext(ParameterContext);
 
-  const [fields, setFields] = useState({
-    assignation: "",
-    budget: "",
-    client: "",
-    hours: "",
-    project: "",
-    role: "",
-    start_date: "",
-  });
-  const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [available_roles, setAvailableRoles] = useState([]);
+  const [error, setError] = useState("");
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
+  const [loading, setLoading] = useState(false);
+
+  const selected_budget = fields.project
+    ? budgets.find(({ estado, fk_proyecto }) =>
+      estado === true && Number(fk_proyecto) === Number(fields.project)
+    )
+    : undefined;
 
   useEffect(() => {
     if (is_open) {
       setFields({
         assignation: data.porcentaje,
-        budget: data.fk_presupuesto,
         client: data.fk_cliente,
         hours: data.horas,
         project: data.fk_proyecto,
         role: data.fk_rol,
         start_date: formatStandardNumberToStandardString(data.fecha_inicio),
       });
-      setError(null);
+      setError("");
       setLoading(false);
     }
   }, [is_open]);
+
+  useEffect(() => {
+    if (selected_budget) {
+      getBudgetDetails(selected_budget.pk_presupuesto)
+        .then((details) =>
+          details.reduce((res, { fk_rol }) => {
+            res.push(fk_rol);
+            return res;
+          }, [])
+        )
+        .then((available_roles) =>
+          roles.filter(({ pk_rol }) => available_roles.includes(pk_rol))
+        )
+        .then((available_roles) => {
+          setAvailableRoles(available_roles);
+        });
+    } else {
+      setFields((fields) => ({ ...fields, role: "" }));
+      setAvailableRoles([]);
+    }
+  }, [selected_budget]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -563,7 +585,7 @@ const EditModal = ({
 
   const handleSubmit = async () => {
     setLoading(true);
-    setError(null);
+    setError("");
 
     updateResource(
       data.pk_recurso,
@@ -587,38 +609,18 @@ const EditModal = ({
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    if (fields.budget) {
-      getBudgetDetails(fields.budget)
-        .then((details) =>
-          details.reduce((res, { fk_rol }) => {
-            res.push(fk_rol);
-            return res;
-          }, [])
-        )
-        .then((available_roles) =>
-          roles.filter(({ pk_rol }) => available_roles.includes(pk_rol))
-        )
-        .then((available_roles) => {
-          setAvailableRoles(available_roles);
-        });
-    } else {
-      setFields((fields) => ({ ...fields, role: "" }));
-      setAvailableRoles([]);
-    }
-  }, [fields.budget]);
-
   return (
     <Fragment>
       {person
         ? (
           <DialogForm
+            disabled={!selected_budget}
             error={error}
             handleSubmit={handleSubmit}
-            is_loading={is_loading}
+            is_loading={loading}
             is_open={is_open}
             setIsOpen={setModalOpen}
-            title={"Editar"}
+            title="Editar"
           >
             <SelectField
               fullWidth
@@ -634,8 +636,12 @@ const EditModal = ({
             </SelectField>
             <SelectField
               disabled={!fields.client}
+              error={!selected_budget && fields.project}
               fullWidth
               label="Proyecto"
+              helperText={!selected_budget && fields.project
+                ? "No hay presupuestos abiertos para este proyecto"
+                : ""}
               name="project"
               onChange={handleChange}
               required
@@ -649,38 +655,31 @@ const EditModal = ({
                   </option>
                 ))}
             </SelectField>
-            <SelectField
-              disabled={!(fields.client && fields.project)}
-              fullWidth
-              label="Presupuesto"
-              name="budget"
-              onChange={handleChange}
-              required
-              value={fields.client && fields.project && fields.budget}
-            >
-              {budgets
-                .filter(({ fk_proyecto }) => fk_proyecto == fields.project)
-                .map(({ pk_presupuesto, nombre }) => (
-                  <option key={pk_presupuesto} value={pk_presupuesto}>
-                    {nombre}
-                  </option>
-                ))}
-            </SelectField>
-            <SelectField
-              disabled={!(fields.client && fields.project && fields.budget)}
-              fullWidth
-              label="Rol"
-              name="role"
-              onChange={handleChange}
-              required
-              value={fields.client && fields.project && fields.budget &&
-                fields.role}
-            >
-              {available_roles
-                .map(({ pk_rol, nombre }) => (
-                  <option key={pk_rol} value={pk_rol}>{nombre}</option>
-                ))}
-            </SelectField>
+            {!!selected_budget && (
+              <Fragment>
+                <TextField
+                  disabled
+                  fullWidth
+                  label="Presupuesto"
+                  name="budget"
+                  readonly
+                  value={selected_budget.nombre}
+                />
+                <SelectField
+                  fullWidth
+                  label="Rol"
+                  name="role"
+                  onChange={handleChange}
+                  required
+                  value={fields.role}
+                >
+                  {available_roles
+                    .map(({ pk_rol, nombre }) => (
+                      <option key={pk_rol} value={pk_rol}>{nombre}</option>
+                    ))}
+                </SelectField>
+              </Fragment>
+            )}
             <DateField
               fullWidth
               label="Fecha inicio"

@@ -122,14 +122,7 @@ import {
   searchRoles,
   updateRole,
 } from "./handlers/operaciones/rol.ts";
-import {
-  createBudget,
-  deleteBudget,
-  getBudget,
-  getBudgets,
-  getBudgetTable,
-  updateBudget,
-} from "./handlers/operaciones/presupuesto.ts";
+import * as budget from "./handlers/operaciones/presupuesto.ts";
 import { searchBudgetDetails } from "./handlers/operaciones/presupuesto_detalle.ts";
 import * as parameter from "./handlers/maestro/parametro.ts";
 import * as parameter_definition from "./handlers/maestro/parametro_definicion.ts";
@@ -1528,7 +1521,7 @@ main_router
   .get(
     "/api/operaciones/presupuesto",
     checkUserAccess(),
-    getBudgets,
+    budget.getBudgets,
   )
   .post(
     "/api/operaciones/presupuesto/table",
@@ -1540,12 +1533,12 @@ main_router
       Profiles.PROYECT_MANAGER,
       Profiles.SALES,
     ]),
-    getBudgetTable,
+    budget.getBudgetTable,
   )
   .get<{ id: string }>(
     "/api/operaciones/presupuesto/:id",
     checkUserAccess(),
-    getBudget,
+    budget.getBudget,
   )
   .post(
     "/api/operaciones/presupuesto",
@@ -1556,7 +1549,7 @@ main_router
       Profiles.HUMAN_RESOURCES,
       Profiles.SALES,
     ]),
-    createBudget,
+    budget.createBudget,
   )
   .put<{ id: string }>(
     "/api/operaciones/presupuesto/:id",
@@ -1567,7 +1560,7 @@ main_router
       Profiles.HUMAN_RESOURCES,
       Profiles.SALES,
     ]),
-    updateBudget,
+    budget.updateBudget,
   )
   .delete<{ id: string }>(
     "/api/operaciones/presupuesto/:id",
@@ -1578,7 +1571,7 @@ main_router
       Profiles.HUMAN_RESOURCES,
       Profiles.SALES,
     ]),
-    deleteBudget,
+    budget.deleteBudget,
   );
 
 main_router

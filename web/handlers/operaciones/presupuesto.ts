@@ -1,11 +1,6 @@
-import type { RouterContext } from "oak";
+import { helpers } from "oak";
 import Ajv from "ajv";
-import {
-  createNew as createBudgetItem,
-  findAll as findBudgetItems,
-  findById as findBudgetItem,
-  getTableData as getBudgetItemTable,
-} from "../../../api/models/OPERACIONES/budget.ts";
+import * as budget_model from "../../../api/models/OPERACIONES/budget.ts";
 import {
   createNew as createBudgetDetail,
   deleteByBudget as deleteBudgetDetail,
@@ -15,11 +10,11 @@ import {
   findById as findProject,
 } from "../../../api/models/OPERACIONES/PROYECTO.ts";
 import { Profiles } from "../../../api/common/profiles.ts";
-import { decodeToken } from "../../../lib/jwt.ts";
 import { formatResponse, Message, Status } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
-import { BOOLEAN, NUMBER, STRING } from "../../../lib/ajv/types.js";
+import { BOOLEAN, INTEGER, NUMBER, STRING } from "../../../lib/ajv/types.js";
+import { RouterContext } from "../../state.ts";
 
 interface Role {
   id: number;
@@ -27,17 +22,25 @@ interface Role {
   time: number;
 }
 
+const list_request = {
+  $id: "list",
+  properties: {
+    "abierto": BOOLEAN,
+    "proyecto": INTEGER({ min: 1 }),
+  },
+};
+
 const update_request = {
   $id: "update",
   properties: {
-    "budget_type": NUMBER({ min: 1 }),
+    "budget_type": INTEGER({ min: 1 }),
     "description": STRING(255),
     "name": STRING(255),
     "project": NUMBER({ min: 1 }),
     "roles": {
       type: "object",
       properties: {
-        "id": NUMBER({ min: 1 }),
+        "id": INTEGER({ min: 1 }),
         "price": NUMBER({ min: 0 }),
         "time": NUMBER({ min: 0 }),
       },
@@ -63,24 +66,19 @@ const create_request = Object.assign({}, update_request, {
   ],
 });
 
-//@ts-ignore
 const request_validator = new Ajv({
+  coerceTypes: true,
   schemas: [
     create_request,
+    list_request,
     update_request,
   ],
 });
 
 export const createBudget = async (
-  { cookies, request, response }: RouterContext,
+  { request, response, state }: RouterContext,
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
-
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const {
-    id: user_id,
-    profiles: user_profiles,
-  } = await decodeToken(session_cookie);
 
   const value: {
     budget_type: number;
@@ -98,9 +96,9 @@ export const createBudget = async (
   if (!project_model) throw new Error("El proyecto seleccionado no existe");
 
   const allowed_editors = await project_model.getSupervisors();
-  if (!allowed_editors.includes(user_id)) {
+  if (!allowed_editors.includes(state.user.id)) {
     if (
-      !user_profiles.some((profile: number) =>
+      !state.user.profiles.some((profile: number) =>
         [
           Profiles.ADMINISTRATOR,
           Profiles.CONTROLLER,
@@ -111,7 +109,7 @@ export const createBudget = async (
     }
   }
 
-  const budget_id = await createBudgetItem(
+  const budget_id = await budget_model.createNew(
     value.project,
     value.budget_type,
     value.name,
@@ -141,7 +139,7 @@ export const deleteBudget = async (
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  let budget = await findBudgetItem(id);
+  let budget = await budget_model.findById(id);
   if (!budget) throw new NotFoundError();
 
   await deleteBudgetDetail(id);
@@ -160,7 +158,7 @@ export const getBudget = async (
   const id: number = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
-  const budget = await findBudgetItem(id);
+  const budget = await budget_model.findById(id);
   if (!budget) throw new NotFoundError();
 
   const roles = await findBudgetDetail(id);
@@ -168,29 +166,34 @@ export const getBudget = async (
   response.body = { ...budget, roles };
 };
 
-export const getBudgets = async ({ response }: RouterContext) => {
-  response.body = await findBudgetItems();
+export const getBudgets = async (context: RouterContext) => {
+  const value: {
+    abierto?: boolean;
+    proyecto?: number;
+  } = helpers.getQuery(context);
+  if (!request_validator.validate(value, "list")) {
+    throw new RequestSyntaxError();
+  }
+
+  context.response.body = await budget_model.findAll({
+    open: value.abierto,
+    project: value.proyecto,
+  });
 };
 
 export const getBudgetTable = async (context: RouterContext) =>
   tableRequestHandler(
     context,
-    getBudgetItemTable,
+    budget_model.getTableData,
   );
 
 export const updateBudget = async (
-  { cookies, params, request, response }: RouterContext<{ id: string }>,
+  { params, request, response, state }: RouterContext<{ id: string }>,
 ) => {
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const {
-    id: user_id,
-    profiles: user_profiles,
-  } = await decodeToken(session_cookie);
-
-  let budget = await findBudgetItem(id);
+  let budget = await budget_model.findById(id);
   if (!budget) throw new NotFoundError();
   if (!budget.estado) {
     throw new Error("No es posible editar un presupuesto cerrado");
@@ -200,9 +203,9 @@ export const updateBudget = async (
   if (!project) throw new Error("El proyecto seleccionado no existe");
 
   const allowed_editors = await project.getSupervisors();
-  if (!allowed_editors.includes(user_id)) {
+  if (!allowed_editors.includes(state.user.id)) {
     if (
-      !user_profiles.some((profile: number) =>
+      !state.user.profiles.some((profile: number) =>
         [
           Profiles.ADMINISTRATOR,
           Profiles.CONTROLLER,

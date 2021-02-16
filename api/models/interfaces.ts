@@ -6,6 +6,15 @@ import {
   TipoSangre,
 } from "./enums.ts";
 
+export type Budget = {
+  descripcion: string;
+  estado: boolean;
+  fk_proyecto: number;
+  fk_tipo_presupuesto: number;
+  nombre: string;
+  pk_presupuesto: number;
+};
+
 export type Computer = {
   description: string;
   id: number;

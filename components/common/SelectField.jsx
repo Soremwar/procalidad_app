@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { FormControl, InputLabel, NativeSelect } from "@material-ui/core";
+import {
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  NativeSelect,
+} from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import hashGenerator from "../../lib/hash_generator/mod.js";
 
@@ -23,12 +28,14 @@ const useStyles = makeStyles((theme) => ({
 export default function SelectField({
   blank_value = true,
   children,
+  default_value = false,
+  error = false,
   id = false,
   fullWidth = false,
+  helperText = "",
   label,
   name,
   onChange = false,
-  default_value = false,
   required = false,
   shrink = undefined,
   ...props
@@ -45,6 +52,7 @@ export default function SelectField({
   return (
     <FormControl
       className={classes.formControl}
+      error={error}
       fullWidth={fullWidth}
       required={required}
     >
@@ -67,6 +75,7 @@ export default function SelectField({
         {blank_value && <option aria-label="None" value="" />}
         {children}
       </NativeSelect>
+      <FormHelperText>{helperText}</FormHelperText>
     </FormControl>
   );
 }

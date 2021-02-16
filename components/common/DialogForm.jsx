@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { Fragment, useEffect, useRef } from "react";
 import {
   Button,
   CircularProgress,
@@ -24,8 +24,13 @@ const useStyles = makeStyles((theme) => ({
 
 const CONFIRM_BUTTON_TEXT = "Guardar";
 
-export default ({
+/**
+ * @param {Object} props
+ * @param props.disabled This property disables the submit button when set to true
+ * */
+export default function DialogForm({
   children,
+  disabled = false,
   confirmButtonText = CONFIRM_BUTTON_TEXT,
   error = null,
   handleSubmit,
@@ -34,7 +39,7 @@ export default ({
   setIsOpen,
   size = "sm",
   title,
-}) => {
+}) {
   const classes = useStyles();
 
   const submitForm = (event) => {
@@ -80,9 +85,6 @@ export default ({
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setIsOpen(false)} color="primary">
-              Cancelar
-            </Button>
             {is_loading
               ? (
                 <CircularProgress
@@ -91,17 +93,23 @@ export default ({
                 />
               )
               : (
-                <Button
-                  type="submit"
-                  color="primary"
-                  onClick={((event) => event.stopPropagation())}
-                >
-                  {confirmButtonText}
-                </Button>
+                <Fragment>
+                  <Button onClick={() => setIsOpen(false)} color="primary">
+                    Cancelar
+                  </Button>
+                  <Button
+                    color="primary"
+                    disabled={disabled}
+                    type="submit"
+                    onClick={((event) => event.stopPropagation())}
+                  >
+                    {confirmButtonText}
+                  </Button>
+                </Fragment>
               )}
           </DialogActions>
         </form>
       </Dialog>
     </div>
   );
-};
+}
