@@ -40,6 +40,7 @@ import AdvancedSelectField from "../common/AdvancedSelectField.jsx";
 import AssignationRequestTable from "./asignacion/AssignationRequestTable.jsx";
 import AsyncSelectField from "../common/AsyncSelectField.jsx";
 import AsyncTable from "../common/AsyncTable/Table.jsx";
+import DateField from "../common/DateField.jsx";
 import DialogForm from "../common/DialogForm.jsx";
 import EarlyCloseRequestTable from "./asignacion/EarlyCloseRequestTable.jsx";
 import SelectField from "../common/SelectField.jsx";
@@ -66,18 +67,18 @@ const getWeeks = () => fetchAssignationApi("semanas").then((x) => x.json());
 const getAssignation = (id) => fetchAssignationApi(id).then((x) => x.json());
 
 const createAssignation = async (
-  budget,
   date,
   hours,
   person,
+  project,
   role,
 ) =>
   fetchAssignationApi("", {
     body: JSON.stringify({
-      budget,
       date,
       hours,
       person,
+      project,
       role,
     }),
     headers: {
@@ -88,20 +89,10 @@ const createAssignation = async (
 
 const updateAssignation = async (
   id,
-  budget,
-  date,
-  hours,
-  person,
-  role,
+  request,
 ) =>
   fetchAssignationApi(id, {
-    body: JSON.stringify({
-      budget,
-      date,
-      hours,
-      person,
-      role,
-    }),
+    body: JSON.stringify(request),
     headers: {
       "Content-Type": "application/json",
     },
@@ -174,13 +165,16 @@ const headers = [
   },
 ];
 
-const ParameterContext = createContext({
+const DEFAULT_PARAMETERS = {
   budgets: [],
   clients: [],
   people: [],
   projects: [],
   roles: [],
-});
+  weeks: [],
+};
+
+const ParameterContext = createContext(DEFAULT_PARAMETERS);
 
 const TabPanel = ({ children, index, value }) => (
   <div
@@ -196,6 +190,16 @@ const TabPanel = ({ children, index, value }) => (
   </div>
 );
 
+const DEFAULT_FIELDS = {
+  budget: "",
+  client: "",
+  date: "",
+  hours: "",
+  person: "",
+  project: "",
+  role: null,
+};
+
 const AddModal = ({
   callback,
   is_open,
@@ -209,17 +213,35 @@ const AddModal = ({
     projects,
   } = useContext(ParameterContext);
 
-  const [fields, setFields] = useState({
-    budget: "",
-    client: "",
-    date: parseDateToStandardNumber(new Date()),
-    hours: "",
-    person: "",
-    project: project,
-    role: null,
-  });
-  const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
+  const [loading, setLoading] = useState(false);
+
+  const budget = fields.project
+    ? budgets.find(({ fk_proyecto, estado }) => {
+      return Number(fk_proyecto) === Number(fields.project) && estado;
+    })
+    : undefined;
+
+  useEffect(() => {
+    if (is_open) {
+      setFields({
+        ...DEFAULT_FIELDS,
+        project,
+      });
+      setError("");
+      setLoading(false);
+
+      // If project was set before hand, display an error on the form if there is no eligible budget
+      if (project && !budget) {
+        setError("No hay presupuestos abiertos para el proyecto seleccionado");
+      }
+    }
+  }, [is_open]);
+
+  useEffect(() => {
+    setFields((prev_state) => ({ ...prev_state, project }));
+  }, [project]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -228,13 +250,13 @@ const AddModal = ({
 
   const handleSubmit = async () => {
     setLoading(true);
-    setError(null);
+    setError("");
 
     createAssignation(
-      fields.budget,
       fields.date,
       fields.hours,
       fields.person,
+      fields.project,
       fields.role?.value,
     )
       .then(async (request) => {
@@ -250,35 +272,16 @@ const AddModal = ({
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    if (is_open) {
-      setFields({
-        budget: "",
-        client: "",
-        date: parseDateToStandardNumber(new Date()),
-        hours: "",
-        person: "",
-        project: project,
-        role: null,
-      });
-      setError(null);
-      setLoading(false);
-    }
-  }, [is_open]);
-
-  useEffect(() => {
-    setFields((prev_state) => ({ ...prev_state, project }));
-  }, [project]);
-
   return (
     <Fragment>
       <DialogForm
+        disabled={!budget}
         error={error}
         handleSubmit={handleSubmit}
-        is_loading={is_loading}
+        is_loading={loading}
         is_open={is_open}
         setIsOpen={setModalOpen}
-        title={"Crear Nuevo"}
+        title="Crear Nuevo"
       >
         <AdvancedSelectField
           fullWidth
@@ -290,118 +293,108 @@ const AddModal = ({
           required
           value={fields.person}
         />
-        {!project
-          ? (
-            <Fragment>
-              <AdvancedSelectField
-                fullWidth
-                label="Cliente"
-                margin="dense"
-                name="client"
-                onChange={(_e, client) =>
-                  setFields((prev_state) => ({ ...prev_state, client }))}
-                options={clients.sort(([_a, a], [_b, b]) => a.localeCompare(b))}
-                required
-                value={fields.client}
-              />
-              <AdvancedSelectField
-                disabled={!fields.client}
-                fullWidth
-                label="Proyecto"
-                margin="dense"
-                onChange={(_e, project) =>
-                  setFields((prev_state) => ({ ...prev_state, project }))}
-                options={projects
-                  .filter(([_x, _y, client]) => client == fields.client)
-                  .sort(([_a, a], [_b, b]) => a.localeCompare(b))}
-                required
-                value={fields.project}
-              />
-            </Fragment>
-          )
-          : null}
-        <SelectField
-          fullWidth
-          label="Presupuesto"
-          margin="dense"
-          name="budget"
-          onChange={handleChange}
-          required
-          value={fields.budget}
-        >
-          {budgets
-            .filter(({ fk_proyecto, estado }) => {
-              if (fields.project) {
-                return fk_proyecto == fields.project && estado;
-              } else {
-                return estado;
-              }
-            })
-            .map(({ pk_presupuesto, nombre }) => (
-              <option key={pk_presupuesto} value={pk_presupuesto}>
-                {nombre}
-              </option>
-            ))}
-        </SelectField>
-        <AsyncSelectField
-          disabled={!fields.budget}
-          fullWidth
-          fetchOptions={async () => {
-            const roles = await fetchRoleApi()
-              .then(async (response) => {
-                if (response.ok) {
-                  return await response.json();
-                }
-                throw new Error();
-              });
+        {!project && (
+          <Fragment>
+            <AdvancedSelectField
+              fullWidth
+              label="Cliente"
+              name="client"
+              onChange={(_e, client) =>
+                setFields((prev_state) => ({ ...prev_state, client }))}
+              options={clients.sort(([_a, a], [_b, b]) => a.localeCompare(b))}
+              required
+              value={fields.client}
+            />
+            <SelectField
+              disabled={!fields.client}
+              error={!!(fields.project && !budget)}
+              fullWidth
+              helperText={fields.project && !budget
+                ? "No hay presupuestos abiertos para este proyecto"
+                : ""}
+              label="Proyecto"
+              name="project"
+              onChange={handleChange}
+              required
+              value={fields.project}
+            >
+              {projects
+                .filter(({ fk_cliente }) => fk_cliente == fields.client)
+                .map(({ pk_proyecto, nombre }) => (
+                  <option key={pk_proyecto} value={pk_proyecto}>
+                    {nombre}
+                  </option>
+                ))}
+            </SelectField>
+          </Fragment>
+        )}
+        {!!budget && (
+          <Fragment>
+            <SelectField
+              disabled
+              fullWidth
+              label="Presupuesto"
+              name="budget"
+              value={budget.pk_presupuesto}
+            >
+              {budgets
+                .map(({ pk_presupuesto, nombre }) => (
+                  <option key={pk_presupuesto} value={pk_presupuesto}>
+                    {nombre}
+                  </option>
+                ))}
+            </SelectField>
+            <AsyncSelectField
+              fullWidth
+              fetchOptions={async () => {
+                const roles = await fetchRoleApi()
+                  .then(async (response) => {
+                    if (response.ok) {
+                      return await response.json();
+                    }
+                    throw new Error();
+                  });
 
-            const available_roles = await getBudgetDetails(fields.budget)
-              .then((details) =>
-                details.reduce((res, { fk_rol }) => {
-                  res.push(fk_rol);
-                  return res;
-                }, [])
-              );
+                const available_roles = await getBudgetDetails(
+                  budget.pk_presupuesto,
+                )
+                  .then((details) =>
+                    details.reduce((res, { fk_rol }) => {
+                      res.push(fk_rol);
+                      return res;
+                    }, [])
+                  );
 
-            return roles
-              .filter(({ pk_rol }) => available_roles.includes(pk_rol))
-              .map(({
-                pk_rol,
-                nombre,
-              }) => ({ text: nombre, value: String(pk_rol) }));
-          }}
-          label="Rol"
-          required
-          setValue={(value) =>
-            setFields((prev_state) => ({ ...prev_state, role: value }))}
-          value={fields.role}
-        />
-        <TextField
+                return roles
+                  .filter(({ pk_rol }) => available_roles.includes(pk_rol))
+                  .map(({
+                    pk_rol,
+                    nombre,
+                  }) => ({ text: nombre, value: String(pk_rol) }));
+              }}
+              label="Rol"
+              required
+              setValue={(value) =>
+                setFields((prev_state) => ({ ...prev_state, role: value }))}
+              value={fields.role}
+            />
+          </Fragment>
+        )}
+        <DateField
           fullWidth
           label="Fecha de asignación"
-          margin="dense"
           name="date"
-          onChange={(event) => {
-            const { value } = event.target;
-            setFields((fields) => ({
-              ...fields,
-              date: formatStandardStringToStandardNumber(value),
-            }));
-          }}
+          onChange={handleChange}
           required
-          type="date"
-          value={formatStandardNumberToStandardString(fields.date)}
+          value={fields.date}
         />
         <TextField
           fullWidth
-          InputProps={{
-            inputProps: {
-              min: 0.5,
-              step: 0.5,
-            },
+          inputProps={{
+            min: 0.5,
+            step: 0.5,
           }}
           label="Horas"
-          margin="dense"
           name="hours"
           onChange={handleChange}
           required
@@ -425,27 +418,20 @@ const EditModal = ({
     roles,
   } = useContext(ParameterContext);
 
-  const [fields, setFields] = useState({
-    budget: "",
-    date: "",
-    hours: "",
-    person: "",
-    role: "",
-  });
-  const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [available_roles, setAvailableRoles] = useState([]);
+  const [error, setError] = useState("");
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (is_open) {
       setFields({
         budget: data.budget,
-        date: data.date,
+        date: formatStandardNumberToStandardString(data.date),
         hours: data.hours,
         person: data.person,
         role: data.role,
       });
-      setError(null);
+      setError("");
       setLoading(false);
     }
   }, [is_open]);
@@ -457,15 +443,13 @@ const EditModal = ({
 
   const handleSubmit = async () => {
     setLoading(true);
-    setError(null);
+    setError("");
 
     updateAssignation(
       data.id,
-      fields.budget,
-      fields.date,
-      fields.hours,
-      fields.person,
-      fields.role,
+      {
+        hours: fields.hours,
+      },
     )
       .then(async (request) => {
         if (request.ok) {
@@ -480,56 +464,29 @@ const EditModal = ({
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    if (fields.budget) {
-      getBudgetDetails(fields.budget)
-        .then((details) =>
-          details.reduce((res, { fk_rol }) => {
-            res.push(fk_rol);
-            return res;
-          }, [])
-        )
-        .then((available_roles) =>
-          roles.filter(({ pk_rol }) => available_roles.includes(pk_rol))
-        )
-        .then((available_roles) => {
-          setAvailableRoles(available_roles);
-        });
-    } else {
-      setFields((fields) => ({ ...fields, role: "" }));
-      setAvailableRoles([]);
-    }
-  }, [fields.budget]);
-
   return (
     <Fragment>
       <DialogForm
         error={error}
         handleSubmit={handleSubmit}
-        is_loading={is_loading}
+        is_loading={loading}
         is_open={is_open}
         setIsOpen={setModalOpen}
-        title={"Editar"}
+        title="Editar"
       >
         <AdvancedSelectField
           disabled
           fullWidth
           name="person"
           label="Recurso"
-          onChange={(_event, value) =>
-            setFields((prev_value) => ({ ...prev_value, person: value }))}
           options={people}
-          required
           value={fields.person}
         />
         <SelectField
           disabled
           fullWidth
           label="Presupuesto"
-          margin="dense"
           name="budget"
-          onChange={handleChange}
-          required
           value={fields.budget}
         >
           {budgets
@@ -543,44 +500,29 @@ const EditModal = ({
           disabled
           fullWidth
           label="Rol"
-          margin="dense"
           name="role"
-          onChange={handleChange}
-          required
-          value={fields.budget && fields.role}
+          value={fields.role}
         >
-          {available_roles
+          {roles
             .map(({ pk_rol, nombre }) => (
               <option key={pk_rol} value={pk_rol}>{nombre}</option>
             ))}
         </SelectField>
-        <TextField
+        <DateField
           disabled
           fullWidth
           label="Fecha de asignación"
-          margin="dense"
           name="date"
-          onChange={(event) => {
-            const { value } = event.target;
-            setFields((fields) => ({
-              ...fields,
-              date: formatStandardStringToStandardNumber(value),
-            }));
-          }}
-          required
           type="date"
-          value={formatStandardNumberToStandardString(fields.date)}
+          value={fields.date}
         />
         <TextField
           fullWidth
-          InputProps={{
-            inputProps: {
-              min: 0.5,
-              step: 0.5,
-            },
+          inputProps={{
+            min: 0.5,
+            step: 0.5,
           }}
           label="Horas"
-          margin="dense"
           name="hours"
           onChange={handleChange}
           required
@@ -661,14 +603,7 @@ export default function Asignacion() {
   const classes = useStyles();
 
   const { id: user_id } = useContext(UserContext)[0];
-  const [parameters, setParameters] = useState({
-    budgets: [],
-    clients: [],
-    people: [],
-    projects: [],
-    roles: [],
-    weeks: [],
-  });
+  const [parameters, setParameters] = useState(DEFAULT_PARAMETERS);
   const [alert_open, setAlertOpen] = useState(false);
   const [assignation_table_should_update, setAssignationTableShouldUpdate] =
     useState(false);
@@ -817,14 +752,12 @@ export default function Asignacion() {
       ) => [pk_persona, nombre]);
       setParameters((prev_state) => ({ ...prev_state, people: entries }));
     });
-    getProjects().then((projects) => {
-      const entries = projects
-        .map((
-          { pk_proyecto, nombre, fk_cliente },
-        ) => [pk_proyecto, nombre, fk_cliente])
-        .filter((x, y) => x[1].localeCompare(y[1]));
-      setParameters((prev_state) => ({ ...prev_state, projects: entries }));
-    });
+    getProjects()
+      .then((projects) => {
+        const entries = projects
+          .sort(({ nombre: x }, { nombre: y }) => x.localeCompare(y));
+        setParameters((prev_state) => ({ ...prev_state, projects: entries }));
+      });
     getRoles().then((roles) =>
       setParameters((prev_state) => ({ ...prev_state, roles }))
     );
@@ -876,22 +809,28 @@ export default function Asignacion() {
               options={parameters.clients.sort(([_a, a], [_b, b]) =>
                 a.localeCompare(b)
               )}
-              required
               value={selected_client}
             />
           </Grid>
           <Grid item xs={4}>
-            <AdvancedSelectField
+            <SelectField
               disabled={!selected_client || selected_tab === 2}
               fullWidth
               label="Proyecto"
-              onChange={(_event, value) => setSelectedProject(value)}
-              options={parameters.projects
-                .sort(([_a, a], [_b, b]) => a.localeCompare(b))
-                .filter(([_x, _y, client]) => client == selected_client)}
-              required
+              onChange={(event) => {
+                const { value } = event.target;
+                setSelectedProject(value);
+              }}
               value={selected_project}
-            />
+            >
+              {parameters.projects
+                .filter(({ fk_cliente }) => fk_cliente == selected_client)
+                .map(({ pk_proyecto, nombre }) => (
+                  <option key={pk_proyecto} value={pk_proyecto}>
+                    {nombre}
+                  </option>
+                ))}
+            </SelectField>
           </Grid>
           <Grid item xs={4}>
             <SelectField

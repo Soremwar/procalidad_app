@@ -97,6 +97,9 @@ export default function AsyncSelectField({
           className={inputClassName}
           error={error}
           helperText={error ? "Error al cargar la informacion" : ""}
+          InputLabelProps={{
+            shrink: true,
+          }}
           InputProps={{
             ...params.InputProps,
             endAdornment: (

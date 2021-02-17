@@ -7,7 +7,10 @@ import {
   getAvailableWeeks,
   getTableData,
 } from "../../api/models/OPERACIONES/asignacion.ts";
-import { findById as findBudget } from "../../api/models/OPERACIONES/budget.ts";
+import {
+  findById as findBudget,
+  findOpenBudgetByProject as findOpenBudget,
+} from "../../api/models/OPERACIONES/budget.ts";
 import {
   findById as findProject,
 } from "../../api/models/OPERACIONES/PROYECTO.ts";
@@ -31,23 +34,41 @@ import {
 } from "../exceptions.ts";
 import {
   formatDateToStandardString,
+  formatStandardStringToStandardNumber,
   parseStandardNumber,
+  parseStandardString,
 } from "../../lib/date/mod.js";
-import { NUMBER } from "../../lib/ajv/types.js";
+import { INTEGER, NUMBER, STANDARD_DATE_STRING } from "../../lib/ajv/types.js";
 
 const update_request = {
   $id: "update",
   properties: {
+    "date": STANDARD_DATE_STRING,
     "hours": NUMBER({ min: 0, multipleOf: 0.5 }),
+    "person": INTEGER({ min: 1 }),
+    "project": INTEGER({ min: 1 }),
+    "role": INTEGER({ min: 1 }),
   },
   required: [
     "hours",
   ],
 };
 
+const create_request = Object.assign({}, update_request, {
+  $id: "create",
+  required: [
+    "budget",
+    "date",
+    "hours",
+    "person",
+    "role",
+  ],
+});
+
 const request_validator = new Ajv({
   coerceTypes: true,
   schemas: [
+    create_request,
     update_request,
   ],
 });
@@ -57,39 +78,25 @@ export const createAssignation = async (
 ) => {
   if (!request.hasBody) throw new RequestSyntaxError();
 
-  //TODO
-  //Add JSON validation
-  const {
-    person,
-    budget,
-    role,
-    date,
-    hours,
+  const value: {
+    date: string;
+    hours: number;
+    person: number;
+    project: number;
+    role: number;
   } = await request.body({ type: "json" }).value;
-
-  if (
-    !(
-      Number(person) &&
-      Number(budget) &&
-      Number(role) &&
-      parseStandardNumber(date) &&
-      Number(hours)
-    )
-  ) {
+  if (!request_validator.validate(value, "create")) {
     throw new RequestSyntaxError();
   }
 
-  const budget_data = await findBudget(Number(budget));
-  if (!budget_data) {
-    throw new NotFoundError("El presupuesto seleccionado no existe");
-  }
-  if (!budget_data.estado) {
-    throw new Error("El presupuesto para esta asignacion se encuentra cerrado");
+  const project = await findProject(value.project);
+  if (!project) {
+    throw new NotFoundError("El proyecto seleccionado no existe");
   }
 
-  const project_data = await findProject(budget_data.fk_proyecto);
-  if (!project_data) {
-    throw new NotFoundError("El proyecto seleccionado no existe");
+  const budget = await findOpenBudget(project.pk_proyecto);
+  if (!budget) {
+    throw new Error("No existe un presupuesto abierto para este proyecto");
   }
 
   const has_admin_access = state.user.profiles.some((profile) =>
@@ -100,7 +107,7 @@ export const createAssignation = async (
     ].includes(profile)
   );
 
-  const allowed_editors = await project_data.getSupervisors();
+  const allowed_editors = await project.getSupervisors();
   const has_project_access = allowed_editors.includes(state.user.id);
   if (!has_project_access && !has_admin_access) {
     throw new ForbiddenAccessError(
@@ -108,9 +115,9 @@ export const createAssignation = async (
     );
   }
 
-  const parsed_date = parseStandardNumber(date);
+  const parsed_date = parseStandardString(value.date);
 
-  const open_week_control = await findOpenWeekOfPerson(person);
+  const open_week_control = await findOpenWeekOfPerson(value.person);
   if (!open_week_control) {
     throw new RequestSyntaxError(
       "La persona solicitada no se encuentra habilitada para registrar horas",
@@ -136,18 +143,18 @@ export const createAssignation = async (
     }
   }
 
-  const week = await findWeek(Number(date));
+  const week = await findWeek(formatStandardStringToStandardNumber(value.date));
   if (!week) {
     throw new Error("La fecha de la asignación es inválida");
   }
 
   response.body = await createNew(
-    Number(person),
-    Number(budget),
-    Number(role),
+    value.person,
+    budget.pk_presupuesto,
+    value.role,
     week.id,
-    Number(date),
-    Number(hours),
+    formatStandardStringToStandardNumber(value.date),
+    value.hours,
   );
 };
 
@@ -227,10 +234,10 @@ export const getAssignationWeeks = async (
 export const updateAssignation = async (
   { params, request, response, state }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
-  let resource = await findById(id);
+  const resource = await findById(id);
   if (!resource) throw new NotFoundError();
 
   const budget_data = await findBudget(resource.budget);
