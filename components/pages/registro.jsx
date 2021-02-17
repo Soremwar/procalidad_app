@@ -19,6 +19,7 @@ import {
 import { Alert } from "@material-ui/lab";
 import {
   fetchAssignationRequestApi,
+  fetchBudgetApi,
   fetchClientApi,
   fetchEarlyCloseRequestApi,
   fetchPeopleApi,
@@ -58,7 +59,14 @@ const getBlacklistedDates = (start_date, end_date) =>
   });
 const getClients = () => fetchClientApi().then((x) => x.json());
 const getPeople = () => fetchPeopleApi();
-const getProjects = () => fetchProjectApi().then((x) => x.json());
+const getProjects = () => fetchProjectApi();
+const getProjectBudget = (project) =>
+  fetchBudgetApi({
+    params: {
+      abierto: true,
+      proyecto: project,
+    },
+  });
 const getTableData = (person, week) => {
   let params = {};
   if (person && week) {
@@ -182,6 +190,16 @@ const EarlyCloseDialog = ({
   );
 };
 
+const DEFAULT_FIELDS = {
+  budget: "",
+  client: "",
+  date: "",
+  description: "",
+  hours: "",
+  project: "",
+  role: null,
+};
+
 const AddModal = ({
   is_open,
   person_id,
@@ -193,27 +211,16 @@ const AddModal = ({
     projects,
   } = useContext(ParameterContext);
 
-  const [fields, setFields] = useState({
-    client: "",
-    date: parseDateToStandardNumber(new Date()),
-    description: "",
-    hours: "",
-    project: "",
-    role: null,
-  });
-  const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [fields, setFields] = useState(DEFAULT_FIELDS);
+  const [loading, setLoading] = useState(false);
+
+  const setBudget = (budget) =>
+    setFields((prev_state) => ({ ...prev_state, budget }));
 
   useEffect(() => {
     if (is_open) {
-      setFields({
-        client: "",
-        date: parseDateToStandardNumber(new Date()),
-        description: "",
-        hours: "",
-        project: "",
-        role: null,
-      });
+      setFields(DEFAULT_FIELDS);
       setLoading(false);
       setError(null);
     }
@@ -222,6 +229,34 @@ const AddModal = ({
   useEffect(() => {
     setFields((prev_state) => ({ ...prev_state, project: "" }));
   }, [fields.client]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (fields.project) {
+      getProjectBudget(fields.project)
+        .then(async (response) => {
+          if (response.ok) {
+            const budgets = await response.json();
+
+            if (!active) return;
+
+            if (budgets.length) {
+              setBudget(budgets[0].nombre);
+            } else {
+              setBudget();
+            }
+          } else {
+            throw new Error();
+          }
+        })
+        .catch((e) => console.error("Couldn't load the budget name", e));
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [fields.project]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -252,9 +287,10 @@ const AddModal = ({
 
   return (
     <DialogForm
+      disabled={!fields.budget}
       error={error}
       handleSubmit={handleSubmit}
-      is_loading={is_loading}
+      is_loading={loading}
       is_open={is_open}
       setIsOpen={setModalOpen}
       title="Formato de solicitud de horas"
@@ -269,40 +305,66 @@ const AddModal = ({
         required
         value={fields.client}
       />
-      <AdvancedSelectField
+      <SelectField
         disabled={!fields.client}
+        error={fields.project && !fields.budget}
         label="Proyecto"
         fullWidth
+        helperText={fields.project && !fields.budget
+          ? "No hay presupuestos abiertos para este proyecto"
+          : ""}
         name="project"
-        onChange={(_e, value) =>
-          setFields((prev_state) => ({ ...prev_state, project: value }))}
-        options={projects.filter(([_x, _y, client]) => client == fields.client)}
+        onChange={handleChange}
         required
         value={fields.project}
-      />
-      <AsyncSelectField
-        disabled={!fields.project}
-        fullWidth
-        fetchOptions={async () => {
-          const roles = await fetchRoleApi(`search?proyecto=${fields.project}`)
-            .then(async (response) => {
-              if (response.ok) {
-                return await response.json();
-              }
-              throw new Error();
-            });
+      >
+        {projects
+          .filter(({ fk_cliente }) =>
+            Number(fk_cliente) === Number(fields.client)
+          )
+          .map(({ pk_proyecto, nombre }) => (
+            <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
+          ))}
+      </SelectField>
+      {!!(fields.project && fields.budget) && (
+        <Fragment>
+          <TextField
+            disabled
+            fullWidth
+            label="Presupuesto"
+            name="budget"
+            required
+            InputLabelProps={{
+              shrink: true,
+            }}
+            value={fields.budget}
+          />
+          <AsyncSelectField
+            fullWidth
+            fetchOptions={async () => {
+              const roles = await fetchRoleApi(
+                `search?proyecto=${fields.project}`,
+              )
+                .then(async (response) => {
+                  if (response.ok) {
+                    return await response.json();
+                  }
+                  throw new Error();
+                });
 
-          return roles.map(({
-            pk_rol,
-            nombre,
-          }) => ({ text: nombre, value: String(pk_rol) }));
-        }}
-        label="Rol"
-        required
-        setValue={(value) =>
-          setFields((prev_state) => ({ ...prev_state, role: value }))}
-        value={fields.role}
-      />
+              return roles.map(({
+                pk_rol,
+                nombre,
+              }) => ({ text: nombre, value: String(pk_rol) }));
+            }}
+            label="Rol"
+            required
+            setValue={(value) =>
+              setFields((prev_state) => ({ ...prev_state, role: value }))}
+            value={fields.role}
+          />
+        </Fragment>
+      )}
       <DateField
         fullWidth
         label="Fecha"
@@ -485,17 +547,22 @@ export default function Registro({
         }
       })
       .catch(() => console.error("Failed to load people"));
-    getProjects().then((projects) => {
-      const entries = projects
-        .map((
-          { pk_proyecto, nombre, fk_cliente },
-        ) => [pk_proyecto, nombre, fk_cliente])
-        .sort((x, y) => x[1].localeCompare(y[1]));
+    getProjects()
+      .then(async (response) => {
+        if (response.ok) {
+          const projects = (await response.json()).sort((
+            { nombre: a },
+            { nombre: b },
+          ) => a.localeCompare(b));
 
-      if (active) {
-        setParameters((prev_state) => ({ ...prev_state, projects: entries }));
-      }
-    });
+          if (active) {
+            setParameters((prev_state) => ({ ...prev_state, projects }));
+          }
+        } else {
+          throw new Error();
+        }
+      })
+      .catch((e) => console.error("Couldnt load projects", e));
 
     return () => {
       active = false;
