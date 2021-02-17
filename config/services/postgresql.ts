@@ -20,9 +20,16 @@ const config: any = await Deno.readTextFile(
 const postgresql = config?.services?.postgresql;
 
 const database: string = postgresql?.database || "";
+const encryption_key = postgresql?.encryption_key;
 const host: string = postgresql?.host || "127.0.0.1";
 const password: string = postgresql?.password || "";
 const port: number = Number(postgresql?.port) || 5432;
 const user: string = postgresql?.user || "postgres";
 
-export { database, host, password, port, user };
+if (!encryption_key) {
+  throw new Error(
+    "La llave de encriptacion para la base de datos no fue definida",
+  );
+}
+
+export { database, encryption_key, host, password, port, user };

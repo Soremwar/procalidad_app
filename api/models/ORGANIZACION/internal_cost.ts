@@ -1,4 +1,5 @@
 import { queryObject } from "../../services/postgres.ts";
+import { encryption_key } from "../../../config/services/postgresql.ts";
 import { TABLE as LICENSE_TABLE } from "./licence.ts";
 import { InternalCostType } from "../enums.ts";
 import {
@@ -73,9 +74,9 @@ class InternalCost implements InternalCostInterface {
           TIPO_COSTO = $2,
           FK_COMPUTADOR = $3,
           LICENCIAS = '{${licenses.join(",")}}',
-          VALOR_PRESTACIONAL = $4,
-          VALOR_BONOS = $5,
-          OTROS = $6,
+          VALOR_PRESTACIONAL = PGP_SYM_ENCRYPT($4, $9),
+          VALOR_BONOS = PGP_SYM_ENCRYPT($5, $9),
+          OTROS = PGP_SYM_ENCRYPT($6, $9),
           FEC_INICIO = $7,
           FEC_FIN = $8
         WHERE PK_COSTO = $1`
@@ -89,6 +90,7 @@ class InternalCost implements InternalCostInterface {
         this.other_costs,
         this.start_date,
         this.end_date,
+        encryption_key,
       ],
     });
 
@@ -131,9 +133,9 @@ export const create = async ({
         $2,
         $3,
         '{${licenses.join(",")}}',
-        $4,
-        $5,
-        $6,
+        PGP_SYM_ENCRYPT($4::VARCHAR, $9),
+        PGP_SYM_ENCRYPT($5::VARCHAR, $9),
+        PGP_SYM_ENCRYPT($6::VARCHAR, $9),
         $7,
         $8
       )
@@ -149,6 +151,7 @@ export const create = async ({
       other_costs,
       start_date,
       end_date,
+      encryption_key,
     ],
     fields: ["id"],
   });
@@ -257,15 +260,15 @@ export const findById = async (id: number): Promise<InternalCost | null> => {
         TIPO_COSTO,
         FK_COMPUTADOR,
         LICENCIAS,
-        CASE WHEN VALOR_PRESTACIONAL::VARCHAR ~ '^[0-9]+$' THEN VALOR_PRESTACIONAL::INTEGER ELSE 0 END,
-        CASE WHEN VALOR_BONOS::VARCHAR ~ '^[0-9]+$' THEN VALOR_BONOS::INTEGER ELSE 0 END,
-        CASE WHEN OTROS::VARCHAR ~ '^[0-9]+$' THEN OTROS::INTEGER ELSE 0 END,
+        CASE WHEN PGP_SYM_DECRYPT(VALOR_PRESTACIONAL::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(VALOR_PRESTACIONAL::BYTEA, $2)::INTEGER ELSE 0 END,
+        CASE WHEN PGP_SYM_DECRYPT(VALOR_BONOS::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(VALOR_BONOS::BYTEA, $2)::INTEGER ELSE 0 END,
+        CASE WHEN PGP_SYM_DECRYPT(OTROS::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(OTROS::BYTEA, $2)::INTEGER ELSE 0 END,
         TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
         TO_CHAR(FEC_FIN, 'YYYY-MM-DD')
       FROM ${TABLE}
       WHERE PK_COSTO = $1`
     ),
-    args: [id],
+    args: [id, encryption_key],
     fields,
   });
 
@@ -285,15 +288,15 @@ export const findByPerson = async (
         TIPO_COSTO,
         FK_COMPUTADOR,
         LICENCIAS,
-        CASE WHEN VALOR_PRESTACIONAL::VARCHAR ~ '^[0-9]+$' THEN VALOR_PRESTACIONAL::INTEGER ELSE 0 END,
-        CASE WHEN VALOR_BONOS::VARCHAR ~ '^[0-9]+$' THEN VALOR_BONOS::INTEGER ELSE 0 END,
-        CASE WHEN OTROS::VARCHAR ~ '^[0-9]+$' THEN OTROS::INTEGER ELSE 0 END,
+        CASE WHEN PGP_SYM_DECRYPT(VALOR_PRESTACIONAL::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(VALOR_PRESTACIONAL::BYTEA, $2)::INTEGER ELSE 0 END,
+        CASE WHEN PGP_SYM_DECRYPT(VALOR_BONOS::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(VALOR_BONOS::BYTEA, $2)::INTEGER ELSE 0 END,
+        CASE WHEN PGP_SYM_DECRYPT(OTROS::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(OTROS::BYTEA, $2)::INTEGER ELSE 0 END,
         TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
         TO_CHAR(FEC_FIN, 'YYYY-MM-DD')
       FROM ${TABLE}
       WHERE FK_PERSONA = $1`
     ),
-    args: [person],
+    args: [person, encryption_key],
     fields,
   });
 

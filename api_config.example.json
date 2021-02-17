@@ -5,6 +5,7 @@
   "prefix": "api",
   "services": {
     "postgresql": {
+      "encryption_key": "secret-key",
       "user": "postgres",
       "password": "password",
       "database": "postgres",

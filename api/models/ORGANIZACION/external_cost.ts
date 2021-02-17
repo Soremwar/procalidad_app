@@ -1,4 +1,5 @@
 import { queryObject } from "../../services/postgres.ts";
+import { encryption_key } from "../../../config/services/postgresql.ts";
 import { ExternalCost as ExternalCostInterface } from "../interfaces.ts";
 import { CostType } from "../enums.ts";
 
@@ -64,10 +65,10 @@ class ExternalCost implements ExternalCostInterface {
           TIPO_COSTO = $2,
           FK_COMPUTADOR = $3,
           LICENCIAS = '{${this.licenses.join(",")}}',
-          OTROS = $4,
+          OTROS = PGP_SYM_ENCRYPT($4, $8),
           FEC_INICIO = $5,
           FEC_FIN = $6,
-          COSTO = $7
+          COSTO = PGP_SYM_ENCRYPT($7, $8)
         WHERE PK_COSTO = $1`
       ),
       args: [
@@ -78,6 +79,7 @@ class ExternalCost implements ExternalCostInterface {
         this.start_date,
         this.end_date,
         this.cost,
+        encryption_key,
       ],
     });
 
@@ -122,10 +124,10 @@ export const create = async ({
         $2,
         $3,
         '{${licenses.join(",")}}',
-        $4,
+        PGP_SYM_ENCRYPT($4, $8),
         $5,
         $6,
-        $7
+        PGP_SYM_ENCRYPT($7, $8)
       )
       RETURNING
         PK_COSTO`
@@ -138,6 +140,7 @@ export const create = async ({
       start_date,
       end_date,
       cost,
+      encryption_key,
     ],
     fields: ["id"],
   });
@@ -164,15 +167,16 @@ export const findById = async (id: number): Promise<ExternalCost | null> => {
         TIPO_COSTO,
         FK_COMPUTADOR,
         LICENCIAS,
-        OTROS,
+        CASE WHEN PGP_SYM_DECRYPT(OTROS::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(OTROS::BYTEA, $2)::INTEGER ELSE 0 END,
         TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
         TO_CHAR(FEC_FIN, 'YYYY-MM-DD'),
-        COSTO
+        CASE WHEN PGP_SYM_DECRYPT(COSTO::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(COSTO::BYTEA, $2)::INTEGER ELSE 0 END
       FROM ${TABLE}
       WHERE PK_COSTO = $1`
     ),
     args: [
       id,
+      encryption_key,
     ],
     fields,
   });
@@ -193,15 +197,16 @@ export const findByPerson = async (person: number): Promise<ExternalCost[]> => {
         TIPO_COSTO,
         FK_COMPUTADOR,
         LICENCIAS,
-        OTROS,
+        CASE WHEN PGP_SYM_DECRYPT(OTROS::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(OTROS::BYTEA, $2)::INTEGER ELSE 0 END,
         TO_CHAR(FEC_INICIO, 'YYYY-MM-DD'),
         TO_CHAR(FEC_FIN, 'YYYY-MM-DD'),
-        COSTO
+        CASE WHEN PGP_SYM_DECRYPT(COSTO::BYTEA, $2) ~ '^[0-9]+$' THEN PGP_SYM_DECRYPT(COSTO::BYTEA, $2)::INTEGER ELSE 0 END
       FROM ${TABLE}
       WHERE FK_PERSONA = $1`
     ),
     args: [
       person,
+      encryption_key,
     ],
     fields,
   });
