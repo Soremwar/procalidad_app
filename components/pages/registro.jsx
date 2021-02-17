@@ -47,6 +47,7 @@ import Table, {
   reasonHasError,
   usedHoursHaveError,
 } from "./registro/Table.jsx";
+import { useMountReference } from "../common/hooks";
 
 const getAvailableWeeks = (person) => fetchWeekDetailApi(`semanas/${person}`);
 const getBlacklistedDates = (start_date, end_date) =>
@@ -102,14 +103,22 @@ const closeWeek = async (registry, person, week, overflow = false) => {
 
 const createAssignationRequest = async (
   person,
-  client,
-  date,
-  description,
-  hours,
-  project,
-  role,
+  sale_budget,
+  {
+    client,
+    date,
+    description,
+    hours,
+    project,
+    role,
+  },
 ) =>
-  fetchAssignationRequestApi(person, {
+  fetchAssignationRequestApi({
+    params: {
+      presupuesto_preventa: sale_budget,
+    },
+    path: person,
+  }, {
     body: JSON.stringify({
       client,
       date,
@@ -200,7 +209,7 @@ const DEFAULT_FIELDS = {
   role: null,
 };
 
-const AddModal = ({
+const HourRequestModal = ({
   is_open,
   person_id,
   onSuccess,
@@ -214,6 +223,9 @@ const AddModal = ({
   const [error, setError] = useState(null);
   const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [loading, setLoading] = useState(false);
+  const [sale_budget_modal_open, setSaleBudgetModalOpen] = useState(false);
+
+  const mounted = useMountReference();
 
   const setBudget = (budget) =>
     setFields((prev_state) => ({ ...prev_state, budget }));
@@ -263,151 +275,180 @@ const AddModal = ({
     setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (
+    sale_budget = false,
+  ) => {
+    setError("");
     setLoading(true);
+
     const request = await createAssignationRequest(
       person_id,
-      fields.client,
-      fields.date,
-      fields.description,
-      fields.hours,
-      fields.project,
-      fields.role?.value,
+      sale_budget,
+      {
+        client: fields.client,
+        date: fields.date,
+        description: fields.description,
+        hours: fields.hours,
+        project: fields.project,
+        role: fields.role?.value,
+      },
     );
 
+    const { code, message } = await request.json();
+
+    if (!mounted.current) return;
+
     if (request.ok) {
-      setModalOpen(false);
-      onSuccess();
+      if (request.status === 202) {
+        if (code === "ASSIGNATION_REQUEST_SALE_BUDGET") {
+          setSaleBudgetModalOpen(true);
+        }
+      } else {
+        setModalOpen(false);
+        onSuccess();
+      }
     } else {
-      const { message } = await request.json();
       setError(message);
     }
     setLoading(false);
   };
 
   return (
-    <DialogForm
-      disabled={!fields.budget}
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title="Formato de solicitud de horas"
-    >
-      <AdvancedSelectField
-        label="Cliente"
-        fullWidth
-        name="client"
-        onChange={(_e, value) =>
-          setFields((prev_state) => ({ ...prev_state, client: value }))}
-        options={clients}
-        required
-        value={fields.client}
-      />
-      <SelectField
-        disabled={!fields.client}
-        error={fields.project && !fields.budget}
-        label="Proyecto"
-        fullWidth
-        helperText={fields.project && !fields.budget
-          ? "No hay presupuestos abiertos para este proyecto"
-          : ""}
-        name="project"
-        onChange={handleChange}
-        required
-        value={fields.project}
+    <Fragment>
+      <DialogForm
+        disabled={!fields.budget}
+        error={error}
+        handleSubmit={() => handleSubmit()}
+        is_loading={loading}
+        is_open={is_open}
+        setIsOpen={setModalOpen}
+        title="Formato de solicitud de horas"
       >
-        {projects
-          .filter(({ fk_cliente }) =>
-            Number(fk_cliente) === Number(fields.client)
-          )
-          .map(({ pk_proyecto, nombre }) => (
-            <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
-          ))}
-      </SelectField>
-      {!!(fields.project && fields.budget) && (
-        <Fragment>
-          <TextField
-            disabled
-            fullWidth
-            label="Presupuesto"
-            name="budget"
-            required
-            InputLabelProps={{
-              shrink: true,
-            }}
-            value={fields.budget}
-          />
-          <AsyncSelectField
-            fullWidth
-            fetchOptions={async () => {
-              const roles = await fetchRoleApi(
-                `search?proyecto=${fields.project}`,
-              )
-                .then(async (response) => {
-                  if (response.ok) {
-                    return await response.json();
-                  }
-                  throw new Error();
-                });
+        <AdvancedSelectField
+          label="Cliente"
+          fullWidth
+          name="client"
+          onChange={(_e, value) =>
+            setFields((prev_state) => ({ ...prev_state, client: value }))}
+          options={clients}
+          required
+          value={fields.client}
+        />
+        <SelectField
+          disabled={!fields.client}
+          error={fields.project && !fields.budget}
+          label="Proyecto"
+          fullWidth
+          helperText={fields.project && !fields.budget
+            ? "No hay presupuestos abiertos para este proyecto"
+            : ""}
+          name="project"
+          onChange={handleChange}
+          required
+          value={fields.project}
+        >
+          {projects
+            .filter(({ fk_cliente }) =>
+              Number(fk_cliente) === Number(fields.client)
+            )
+            .map(({ pk_proyecto, nombre }) => (
+              <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
+            ))}
+        </SelectField>
+        {!!(fields.project && fields.budget) && (
+          <Fragment>
+            <TextField
+              disabled
+              fullWidth
+              label="Presupuesto"
+              name="budget"
+              required
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={fields.budget}
+            />
+            <AsyncSelectField
+              fullWidth
+              fetchOptions={async () => {
+                const roles = await fetchRoleApi(
+                  `search?proyecto=${fields.project}`,
+                )
+                  .then(async (response) => {
+                    if (response.ok) {
+                      return await response.json();
+                    }
+                    throw new Error();
+                  });
 
-              return roles.map(({
-                pk_rol,
-                nombre,
-              }) => ({ text: nombre, value: String(pk_rol) }));
-            }}
-            label="Rol"
-            required
-            setValue={(value) =>
-              setFields((prev_state) => ({ ...prev_state, role: value }))}
-            value={fields.role}
-          />
-        </Fragment>
-      )}
-      <DateField
-        fullWidth
-        label="Fecha"
-        name="date"
-        onChange={(event) => {
-          //Dont calculate event.target.value inside hook (asyncronous stuff)
-          const date = formatStandardStringToStandardNumber(event.target.value);
-          setFields((prev_state) => ({
-            ...prev_state,
-            date,
-          }));
-        }}
-        required
-        value={formatStandardNumberToStandardString(fields.date)}
-      />
-      <TextField
-        fullWidth
-        inputProps={{
-          min: 0.5,
-          step: 0.5,
-        }}
-        label="Horas"
-        name="hours"
-        onChange={handleChange}
-        required
-        type="number"
-        value={fields.hours}
-      />
-      <TextField
-        fullWidth
-        InputProps={{
-          inputProps: {
-            maxLength: 255,
-          },
-        }}
-        label="Descripción"
-        name="description"
-        onChange={handleChange}
-        required
-        rows="2"
-        value={fields.description}
-      />
-    </DialogForm>
+                return roles.map(({
+                  pk_rol,
+                  nombre,
+                }) => ({ text: nombre, value: String(pk_rol) }));
+              }}
+              label="Rol"
+              required
+              setValue={(value) =>
+                setFields((prev_state) => ({ ...prev_state, role: value }))}
+              value={fields.role}
+            />
+          </Fragment>
+        )}
+        <DateField
+          fullWidth
+          label="Fecha"
+          name="date"
+          onChange={(event) => {
+            //Dont calculate event.target.value inside hook (asyncronous stuff)
+            const date = formatStandardStringToStandardNumber(
+              event.target.value,
+            );
+            setFields((prev_state) => ({
+              ...prev_state,
+              date,
+            }));
+          }}
+          required
+          value={formatStandardNumberToStandardString(fields.date)}
+        />
+        <TextField
+          fullWidth
+          inputProps={{
+            min: 0.5,
+            step: 0.5,
+          }}
+          label="Horas"
+          name="hours"
+          onChange={handleChange}
+          required
+          type="number"
+          value={fields.hours}
+        />
+        <TextField
+          fullWidth
+          InputProps={{
+            inputProps: {
+              maxLength: 255,
+            },
+          }}
+          label="Descripción"
+          name="description"
+          onChange={handleChange}
+          required
+          rows="2"
+          value={fields.description}
+        />
+      </DialogForm>
+      <ConfirmDialog
+        onConfirm={() => handleSubmit(true)}
+        onClose={() => setSaleBudgetModalOpen(false)}
+        open={sale_budget_modal_open}
+        title="Advertencia"
+      >
+        El proyecto seleccionado se encuentra en estado de preventa. Esta seguro
+        que desea solicitar horas a este proyecto?
+      </ConfirmDialog>
+    </Fragment>
   );
 };
 
@@ -805,7 +846,7 @@ export default function Registro({
         : null}
       <ParameterContext.Provider value={parameters}>
         <br />
-        <AddModal
+        <HourRequestModal
           is_open={request_modal_open}
           person_id={context.id}
           onSuccess={() => {

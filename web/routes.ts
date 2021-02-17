@@ -2235,9 +2235,7 @@ main_router
       Profiles.HUMAN_RESOURCES,
     ]),
     registry.getRegistrableWeeks,
-  );
-
-main_router
+  )
   //TODO
   //Person should be inferred not passed through query
   .get<{ person: string }>(

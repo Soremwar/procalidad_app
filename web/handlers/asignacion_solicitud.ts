@@ -1,6 +1,5 @@
+import { helpers, Status } from "oak";
 import Ajv from "ajv";
-import { decodeToken } from "../../lib/jwt.ts";
-import type { RouterContext } from "oak";
 import {
   createNew,
   findById,
@@ -17,6 +16,9 @@ import {
   findById as findWeekById,
   getCurrentWeek,
 } from "../../api/models/MAESTRO/dim_semana.ts";
+import {
+  findById as findBudgetType,
+} from "../../api/models/OPERACIONES/TIPO_PRESUPUESTO.ts";
 import {
   findById as findBudget,
   findOpenBudgetByProject as findBudgetByProject,
@@ -38,6 +40,14 @@ import {
 } from "../../lib/ajv/types.js";
 import { parseStandardNumber } from "../../lib/date/mod.js";
 import { castStringToBoolean } from "../../lib/utils/boolean.js";
+import { RouterContext } from "../state.ts";
+
+const parameters = {
+  $id: "parameters",
+  properties: {
+    presupuesto_preventa: BOOLEAN,
+  },
+};
 
 const post_structure = {
   $id: "post",
@@ -84,18 +94,24 @@ const put_structure = {
 
 const request_validator = new Ajv({
   schemas: [
+    parameters,
     post_structure,
     put_structure,
   ],
 });
 
 export const createAssignationRequest = async (
-  { params, request, response }: RouterContext<{ person: string }>,
+  context: RouterContext<{ person: string }>,
 ) => {
-  const person = Number(params.person);
-  if (!person || !request.hasBody) throw new RequestSyntaxError();
+  const parameters = helpers.getQuery(context);
+  if (!request_validator.validate(parameters, "parameters")) {
+    throw new RequestSyntaxError();
+  }
 
-  const value = await request.body({ type: "json" }).value;
+  const person = Number(context.params.person);
+  if (!person || !context.request.hasBody) throw new RequestSyntaxError();
+
+  const value = await context.request.body({ type: "json" }).value;
 
   const parsed_date = parseStandardNumber(Number(value.date));
 
@@ -111,6 +127,24 @@ export const createAssignationRequest = async (
     throw new Error(
       "No existe un presupuesto abierto para el projecto seleccionado",
     );
+  }
+
+  if (parameters.presupuesto_preventa !== "true") {
+    const budget_type = await findBudgetType(budget.fk_tipo_presupuesto);
+    if (!budget_type) {
+      throw new Error(
+        "El presupuesto seleccionado no tiene tipo de presupuesto",
+      );
+    }
+
+    if (budget_type.nombre.toLowerCase().includes("preventa")) {
+      context.response.status = Status.Accepted;
+      context.response.body = {
+        code: "ASSIGNATION_REQUEST_SALE_BUDGET",
+        message: "El proyecto seleccionado se encuentra en estado de preventa",
+      };
+      return;
+    }
   }
 
   const open_control = await findOpenWeekOfPerson(
@@ -153,11 +187,11 @@ export const createAssignationRequest = async (
       throw new Error("No fue posible enviar el correo de solicitud");
     });
 
-  response.body = assignation_request;
+  context.response.body = assignation_request;
 };
 
 export const updateAssignationRequest = async (
-  { cookies, params, request, response }: RouterContext<{ id: string }>,
+  { params, request, response, state }: RouterContext<{ id: string }>,
 ) => {
   const id = Number(params.id);
   if (!id || !request.hasBody) throw new RequestSyntaxError();
@@ -186,21 +220,14 @@ export const updateAssignationRequest = async (
       );
     }
 
-    //Ignore cause this is already validated but TypeScript is too dumb to notice
-    const session_cookie = cookies.get("PA_AUTH") || "";
-    const {
-      id: user_id,
-      profiles: user_profiles,
-    } = await decodeToken(session_cookie);
-
     const project_data = await findProject(budget_data.fk_proyecto);
     if (!project_data) {
       throw new NotFoundError("El proyecto seleccionado no existe");
     }
     const allowed_editors = await project_data.getSupervisors();
-    if (!allowed_editors.includes(user_id)) {
+    if (!allowed_editors.includes(state.user.id)) {
       if (
-        !user_profiles.some((profile: number) =>
+        !state.user.profiles.some((profile: number) =>
           [
             Profiles.ADMINISTRATOR,
             Profiles.CONTROLLER,
