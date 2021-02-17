@@ -32,6 +32,10 @@ import {
   fetchPersonCostApi,
 } from "../../../lib/api/generator.js";
 import {
+  formatDateToStandardString,
+  parseStandardString,
+} from "../../../lib/date/mod.js";
+import {
   CostType,
   EmployeeType,
   InternalCostType,
@@ -46,6 +50,7 @@ import {
 } from "../../../api/models/interfaces";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
+import ConfirmDialog from "../../common/ConfirmDialog.jsx";
 import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
@@ -328,7 +333,7 @@ const InternalItemModal = ({
         label="Final de vigencia"
         name="end_date"
         onChange={handleChange}
-        value={fields.end_date}
+        value={fields.end_date || ""}
       />
       <br />
       <br />
@@ -419,8 +424,9 @@ const InternalCostModal = ({
   const [error, setError] = useState();
   const [item_modal_open, setItemModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [open_date_modal_open, setOpenDateModalOpen] = useState(false);
   const [selected_item, setSelectedItem] = useState<
-    { data: InternalCostParameters; index: number }
+    { data: InternalCostParameters; index: number | undefined }
   >();
 
   useEffect(() => {
@@ -452,8 +458,46 @@ const InternalCostModal = ({
       <Tooltip title="Agregar">
         <IconButton
           onClick={() => {
-            setSelectedItem(undefined);
-            setItemModalOpen(true);
+            // To create a new item, all previous dates must be closed (end date must not be null)
+            // Then take the entry with the latest end date and copy it's data to a new entry
+            // Change the start date and end date accordingly
+
+            const open_date = entries.find(({ end_date }) => end_date === null);
+            if (open_date) {
+              setOpenDateModalOpen(true);
+            } else {
+              if (entries.length) {
+                const latest_entry = entries.reduce((curr, next) => {
+                  if (curr.end_date > next.end_date) {
+                    return curr;
+                  } else {
+                    return next;
+                  }
+                });
+
+                // Increase latest entry end date in one so dates don't overlap
+                const latest_entry_end_date = parseStandardString(
+                  latest_entry.end_date,
+                );
+                latest_entry_end_date.setDate(
+                  latest_entry_end_date.getDate() + 1,
+                );
+
+                const new_entry = {
+                  ...latest_entry,
+                  start_date: formatDateToStandardString(
+                    latest_entry_end_date,
+                    false,
+                  ),
+                  end_date: null,
+                };
+
+                setSelectedItem({ data: new_entry, index: undefined });
+              } else {
+                setSelectedItem(undefined);
+              }
+              setItemModalOpen(true);
+            }
           }}
         >
           <AddIcon />
@@ -549,6 +593,15 @@ const InternalCostModal = ({
             )}
         </DialogActions>
       </Dialog>
+      <ConfirmDialog
+        title="Advertencia"
+        onClose={() => setOpenDateModalOpen(false)}
+        onConfirm={() => setOpenDateModalOpen(false)}
+        open={open_date_modal_open}
+      >
+        Usted tiene un periodo de costeo sin fecha de finalizacion. Para poder
+        registrar un nuevo costeo defina una fecha de cierre para este periodo
+      </ConfirmDialog>
       <InternalItemModal
         closeModal={() => setItemModalOpen(false)}
         data={selected_item?.data}
