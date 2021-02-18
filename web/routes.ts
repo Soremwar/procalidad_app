@@ -2221,11 +2221,11 @@ main_router
   //Maybe add a route to get the requested week info
   //Not just current week
   .get(
-    "/api/registro/semana",
+    "/api/registro/detalle",
     checkUserAccess([
       Profiles.CONSULTANT,
     ]),
-    registry.getWeekInformation,
+    registry.getWeekDetail,
   )
   .get<{ person: string }>(
     "/api/registro/semanas/:person",

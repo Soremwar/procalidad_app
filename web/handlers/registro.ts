@@ -5,17 +5,17 @@ import {
   create as createRegistry,
   findByIdentifiers,
   getCurrentWeekData,
-  getRegistryHoursByControlWeek as getWeekRegistry,
   getWeekData,
 } from "../../api/models/OPERACIONES/registro.ts";
 import {
   create as createRegistryLog,
 } from "../../api/models/OPERACIONES/registry_log.ts";
 import {
-  findByPersonAndWeek,
+  findByPersonAndWeek as findControlByPersonAndWeek,
   findOpenWeek,
   getOpenWeekAsDate,
   validateWeek,
+  WeekControl,
 } from "../../api/models/OPERACIONES/control_semana.ts";
 import {
   findById as findWeek,
@@ -79,6 +79,14 @@ const close_request = {
   ],
 };
 
+const detail_request = {
+  $id: "detail",
+  properties: {
+    "persona": INTEGER({ min: 1 }),
+    "semana": INTEGER({ min: 1 }),
+  },
+};
+
 const list_request = {
   $id: "list",
   properties: {
@@ -120,6 +128,7 @@ const request_validator = new Ajv({
   coerceTypes: true,
   schemas: [
     close_request,
+    detail_request,
     list_request,
     post_structure,
     put_structure,
@@ -162,7 +171,7 @@ export const closePersonWeek = async (
     }
 
     person = value.person;
-    week_control = await findByPersonAndWeek(person, value.week);
+    week_control = await findControlByPersonAndWeek(person, value.week);
   } else {
     person = state.user.id;
     week_control = await findOpenWeek(person);
@@ -256,8 +265,16 @@ export const closePersonWeek = async (
     }
   }
 
-  //Don't open a new week if registered in admin mode
-  response.body = await week_control.close(!is_admin_request);
+  if (is_admin_request) {
+    const open_week = await findOpenWeek(person);
+
+    const edited_week_is_current = open_week?.id === week_control.id;
+
+    // Create new week if the week being edited is the open one
+    response.body = await week_control.close(edited_week_is_current);
+  } else {
+    response.body = await week_control.close();
+  }
 };
 
 export const getRegistrableWeeks = async ({
@@ -285,7 +302,7 @@ export const getRegistrableWeeks = async ({
 
   response.body = await getWeeksBetween(
     formatDateToStandardString(start_date),
-    formatDateToStandardString(week.start_date),
+    formatDateToStandardString(week.end_date),
   );
 };
 
@@ -317,9 +334,17 @@ export const getWeekDetailTable = async (
   ctx.response.body = await getCurrentWeekData(ctx.state.user.id);
 };
 
-export const getWeekInformation = async (
-  { response, state }: RouterContext,
+export const getWeekDetail = async (
+  context: RouterContext,
 ) => {
+  const query_params: {
+    persona?: string;
+    semana?: string;
+  } = helpers.getQuery(context);
+  if (!request_validator.validate(query_params, "detail")) {
+    throw new RequestSyntaxError();
+  }
+
   const week_information: {
     assignated_hours: number;
     date: number;
@@ -336,14 +361,31 @@ export const getWeekInformation = async (
     requested_hours: 0,
   };
 
-  const control_week = await findOpenWeek(state.user.id);
+  let person: number;
+  let control_week: WeekControl | null;
+
+  if (query_params.persona) {
+    person = Number(query_params.persona);
+  } else {
+    person = context.state.user.id;
+  }
+
+  if (query_params.semana) {
+    control_week = await findControlByPersonAndWeek(
+      person,
+      Number(query_params.semana),
+    );
+  } else {
+    control_week = await findOpenWeek(person);
+  }
+
   if (control_week) {
     const week = await findWeek(control_week.week);
     if (!week) {
       throw new NotFoundError("Semana de registro no encontrada");
     }
     week_information.assignated_hours = await getWeekAssignation(
-      state.user.id,
+      person,
       week.id,
     );
     week_information.date = await week.getStartDate();
@@ -351,12 +393,12 @@ export const getWeekInformation = async (
     week_information.id = control_week.week;
     week_information.is_current_week = await week.isCurrentWeek();
     week_information.requested_hours = await getWeekRequests(
-      state.user.id,
+      person,
       control_week.week,
     );
   } else {
-    week_information.date = await getOpenWeekAsDate(state.user.id);
+    week_information.date = await getOpenWeekAsDate(person);
   }
 
-  response.body = week_information;
+  context.response.body = week_information;
 };

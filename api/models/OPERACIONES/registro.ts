@@ -1,8 +1,5 @@
 import postgres from "../../services/postgres.ts";
-import {
-  findById as findControl,
-  TABLE as CONTROL_TABLE,
-} from "./control_semana.ts";
+import { TABLE as CONTROL_TABLE } from "./control_semana.ts";
 import { TABLE as ASSIGNATION_TABLE } from "./asignacion.ts";
 import { TABLE as BUDGET_TABLE } from "./budget.ts";
 import { TABLE as ROLE_TABLE } from "./ROL.ts";

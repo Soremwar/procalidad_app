@@ -226,32 +226,30 @@ export default function RegistryTable({
           <Toolbar>
             <Grid container alignItems="center">
               <Grid container item xs={6} justify="flex-start">
-                {!edit_mode && (
-                  <div>
-                    <Typography variant="h5">
-                      {week_details.date
-                        ? parseStandardNumberAsWeek(week_details.date)
-                        : "Semana no disponible"}
-                    </Typography>
-                    <Typography variant="subtitle2">
-                      Horas totales de la semana:
-                      {week_details.expected_hours ||
-                        0}
-                    </Typography>
-                    <Typography variant="subtitle2">
-                      Horas asignadas: {week_details.assignated_hours || 0}
-                    </Typography>
-                    <Typography variant="subtitle2">
-                      Horas solicitadas:
-                      {week_details.requested_hours || 0}
-                    </Typography>
-                    <Typography variant="subtitle2">
-                      Horas asignadas + solicitadas:
-                      {Number(week_details.assignated_hours || 0) +
-                        Number(week_details.requested_hours || 0)}
-                    </Typography>
-                  </div>
-                )}
+                <div>
+                  <Typography variant="h5">
+                    {week_details.date
+                      ? parseStandardNumberAsWeek(week_details.date)
+                      : "Semana no disponible"}
+                  </Typography>
+                  <Typography variant="subtitle2">
+                    Horas totales de la semana:
+                    {week_details.expected_hours ||
+                      0}
+                  </Typography>
+                  <Typography variant="subtitle2">
+                    Horas asignadas: {week_details.assignated_hours || 0}
+                  </Typography>
+                  <Typography variant="subtitle2">
+                    Horas solicitadas:
+                    {week_details.requested_hours || 0}
+                  </Typography>
+                  <Typography variant="subtitle2">
+                    Horas asignadas + solicitadas:
+                    {Number(week_details.assignated_hours || 0) +
+                      Number(week_details.requested_hours || 0)}
+                  </Typography>
+                </div>
               </Grid>
               <Grid container item xs={6}>{header}</Grid>
             </Grid>

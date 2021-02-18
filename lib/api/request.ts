@@ -79,7 +79,9 @@ export function requestGenerator(
       );
       if (isObject(url.params)) {
         for (const key in url.params) {
-          targetURI.searchParams.append(key, url.params[key]);
+          // Filter undefined values
+          url.params[key] &&
+            targetURI.searchParams.append(key, url.params[key]);
         }
       }
 

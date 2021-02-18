@@ -79,7 +79,14 @@ const getTableData = (person, week) => {
 
   return fetchWeekDetailApi({ params }).then((x) => x.json());
 };
-const getWeekDate = () => fetchWeekDetailApi("semana");
+const getWeekDetail = ({
+  person,
+  week,
+} = {}) =>
+  fetchWeekDetailApi({
+    path: "detalle",
+    params: { persona: person, semana: week },
+  });
 
 /**
  * This will send the filled registry and check for inconsistencies
@@ -498,6 +505,7 @@ export default function Registro({
   admin_access = false,
 }) {
   const [context] = useContext(UserContext);
+  const mounted = useMountReference();
 
   const [alert_open, setAlertOpen] = useState(false);
   const [confirm_request_modal_open, setConfirmRequestModalOpen] = useState(
@@ -535,9 +543,6 @@ export default function Registro({
 
   useEffect(() => {
     let active = true;
-    //TODO
-    //Add unmount handling
-    updateCurrentWeekDetails();
 
     getBlacklistedDates(
       TODAY,
@@ -605,6 +610,10 @@ export default function Registro({
       })
       .catch((e) => console.error("Couldnt load projects", e));
 
+    if (disable_admin_mode) {
+      updateCurrentWeekDetails();
+    }
+
     return () => {
       active = false;
     };
@@ -613,13 +622,16 @@ export default function Registro({
   useEffect(() => {
     let active = true;
 
-    setSelectedWeek();
     setParameters((prev_state) => ({
       ...prev_state,
       available_weeks: [],
     }));
 
-    if (selected_person) {
+    if (!admin_access) {
+      updateTable();
+    }
+
+    if (selected_person && admin_access) {
       getAvailableWeeks(selected_person)
         .then(async (response) => {
           if (response.ok) {
@@ -648,25 +660,26 @@ export default function Registro({
   }, [selected_person]);
 
   useEffect(() => {
-    // TODO
-    // Add unmount handling
-    updateTable();
+    if (selected_person && selected_week) {
+      // TODO
+      // Add unmount handling
+      updateTable();
+      updateCurrentWeekDetails();
+    }
   }, [selected_person, selected_week]);
 
   const updateCurrentWeekDetails = () => {
-    getWeekDate()
+    getWeekDetail({ person: selected_person, week: selected_week })
       .then(async (response) => {
         if (response.ok) {
           const week_details = await response.json();
           setWeekDetails(week_details);
-          //TODO
-          //Different handling for null id(when user doesn't use the registry)
-          setSelectedWeek(week_details.id);
         } else {
           throw new Error();
         }
       })
       .catch(() => {
+        if (!mounted.active) return;
         setAlertOpen(false);
         setError("No fue posible actualizar la fecha de registro");
         setAlertOpen(true);
@@ -685,6 +698,7 @@ export default function Registro({
         selected_week,
       ];
     }
+
     getTableData(...parameters)
       .then((data) => {
         setTableData(
@@ -767,8 +781,8 @@ export default function Registro({
           } else {
             setError(null);
             setAlertOpen(true);
+            updateCurrentWeekDetails();
             if (disable_admin_mode) {
-              updateCurrentWeekDetails();
               updateTable();
             }
           }
@@ -820,26 +834,25 @@ export default function Registro({
               shrink={true}
               value={selected_week}
             >
-              {parameters.available_weeks.map(({ id, start_date }) => (
+              {parameters.available_weeks.map(({ id, start_date }, index) => (
                 <option key={id} value={id}>
                   {(() => {
                     const parsed_date = new Date(start_date);
-                    return formatDateAsWeekLocal(
+                    let week = formatDateAsWeekLocal(
                       new Date(
                         parsed_date.getTime() +
                           (parsed_date.getTimezoneOffset() * 60 * 1000),
                       ),
                     );
+
+                    if (index === parameters.available_weeks.length - 1) {
+                      week += " (Semana actual)";
+                    }
+
+                    return week;
                   })()}
                 </option>
               ))}
-              {
-                // Render current week option only when the selected user
-                // is the current one
-                Number(selected_person) === Number(context.id) && (
-                  <option value={week_details.id}>Semana actual</option>
-                )
-              }
             </SelectField>
           </Grid>
         </Grid>)
