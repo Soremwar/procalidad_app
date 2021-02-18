@@ -28,12 +28,14 @@ import {
   fetchProjectApi,
   fetchRoleApi,
 } from "../../../lib/api/generator.js";
+
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
+import ConfirmDialog from "../../common/ConfirmDialog.jsx";
+import CurrencyField from "@unicef/material-ui-currency-textfield";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
-import CurrencyField from "@unicef/material-ui-currency-textfield";
 
 /** @return Promise<Array<{nombre: string}>> */
 const getClients = () => fetchClientApi().then((x) => x.json());
@@ -56,8 +58,13 @@ const createBudget = async (form_data) => {
   });
 };
 
-const updateBudget = async (id, form_data) => {
-  return await fetchBudgetApi(id, {
+const updateBudget = async (id, delete_open_items, form_data) => {
+  return await fetchBudgetApi({
+    path: id,
+    params: {
+      sobreescribir: delete_open_items,
+    },
+  }, {
     method: "PUT",
     body: JSON.stringify(form_data),
     headers: {
@@ -538,6 +545,12 @@ const AddModal = ({
   );
 };
 
+const DEFAULT_BUDGET_USE_COUNT = {
+  assignation: 0,
+  assignation_request: 0,
+  planning: 0,
+};
+
 const EditModal = ({
   data,
   is_open,
@@ -550,6 +563,11 @@ const EditModal = ({
     projects,
   } = useContext(ParameterContext);
 
+  const [budget_use_count, setBudgetUseCount] = useState(
+    DEFAULT_BUDGET_USE_COUNT,
+  );
+  const [budget_use_modal_open, setBudgetUseModalOpen] = useState(false);
+  const [error, setError] = useState(null);
   const [fields, setFields] = useState({
     project: "",
     budget_type: "",
@@ -557,12 +575,15 @@ const EditModal = ({
     description: "",
     status: false,
   });
-  const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [roles, setRoles] = useState([]);
 
   useEffect(() => {
     if (is_open) {
+      setError("");
+      setLoading(false);
+      setBudgetUseCount(DEFAULT_BUDGET_USE_COUNT);
+
       setFields({
         client: data.fk_cliente,
         project: String(data.fk_proyecto),
@@ -584,7 +605,7 @@ const EditModal = ({
     setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (delete_open_items = false) => {
     setLoading(true);
     setError(null);
 
@@ -601,112 +622,136 @@ const EditModal = ({
 
     const request = await updateBudget(
       data.pk_presupuesto,
+      delete_open_items,
       { ...fields, roles },
     );
 
+    const { code, message } = await request.json();
+
     if (request.ok) {
-      setModalOpen(false);
-      updateTable();
+      if (request.status === 202) {
+        if (code === "BUDGET_IN_USE") {
+          setBudgetUseCount(message);
+          setBudgetUseModalOpen(true);
+        }
+      } else {
+        setModalOpen(false);
+        updateTable();
+      }
     } else {
-      const { message } = await request.json();
       setError(message);
     }
     setLoading(false);
   };
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      size="md"
-      title={"Editar"}
-    >
-      <SelectField
-        disabled
-        margin="dense"
-        name="client"
-        label="Cliente"
-        fullWidth
-        onChange={handleChange}
-        required
-        value={fields.client}
+    <Fragment>
+      <DialogForm
+        error={error}
+        handleSubmit={() => handleSubmit()}
+        is_loading={loading}
+        is_open={is_open}
+        setIsOpen={setModalOpen}
+        size="md"
+        title="Editar"
       >
-        {clients.map(({ pk_cliente, nombre }) => (
-          <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
-        ))}
-      </SelectField>
-      <SelectField
-        disabled
-        name="project"
-        label="Proyecto"
-        fullWidth
-        onChange={handleChange}
-        required
-        value={fields.project}
-      >
-        {projects
-          .filter(({ fk_cliente }) => fk_cliente == fields.client)
-          .map(({ pk_proyecto, nombre }) => (
-            <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
+        <SelectField
+          disabled
+          name="client"
+          label="Cliente"
+          fullWidth
+          onChange={handleChange}
+          required
+          value={fields.client}
+        >
+          {clients.map(({ pk_cliente, nombre }) => (
+            <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
           ))}
-      </SelectField>
-      <SelectField
-        margin="dense"
-        name="budget_type"
-        label="Tipo de presupuesto"
-        fullWidth
-        onChange={handleChange}
-        required
-        value={fields.budget_type}
+        </SelectField>
+        <SelectField
+          disabled
+          name="project"
+          label="Proyecto"
+          fullWidth
+          onChange={handleChange}
+          required
+          value={fields.project}
+        >
+          {projects
+            .filter(({ fk_cliente }) => fk_cliente == fields.client)
+            .map(({ pk_proyecto, nombre }) => (
+              <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
+            ))}
+        </SelectField>
+        <SelectField
+          name="budget_type"
+          label="Tipo de presupuesto"
+          fullWidth
+          onChange={handleChange}
+          required
+          value={fields.budget_type}
+        >
+          {budget_types.map(({ pk_tipo, nombre }) => (
+            <option key={pk_tipo} value={pk_tipo}>{nombre}</option>
+          ))}
+        </SelectField>
+        <TextField
+          name="name"
+          label="Nombre"
+          fullWidth
+          onChange={handleChange}
+          required
+          value={fields.name}
+        />
+        <TextField
+          name="description"
+          label="Descripción"
+          fullWidth
+          onChange={handleChange}
+          required
+          value={fields.description}
+        />
+        <SelectField
+          fullWidth
+          name="status"
+          label="Estado"
+          onChange={(event) => {
+            const status = Boolean(Number(event.target.value));
+            setFields((prev_state) => ({ ...prev_state, status }));
+          }}
+          required
+          value={Number(fields.status)}
+        >
+          <option value="0">Cerrado</option>
+          <option value="1">Abierto</option>
+        </SelectField>
+        <br />
+        <br />
+        <br />
+        <BudgetDetail
+          roles={roles}
+          setRoles={setRoles}
+        />
+      </DialogForm>
+      <ConfirmDialog
+        onConfirm={() => handleSubmit(true)}
+        onClose={() => setBudgetUseModalOpen(false)}
+        open={budget_use_modal_open}
+        title="Advertencia"
       >
-        {budget_types.map(({ pk_tipo, nombre }) => (
-          <option key={pk_tipo} value={pk_tipo}>{nombre}</option>
-        ))}
-      </SelectField>
-      <TextField
-        margin="dense"
-        name="name"
-        label="Nombre"
-        fullWidth
-        onChange={handleChange}
-        required
-        value={fields.name}
-      />
-      <TextField
-        margin="dense"
-        name="description"
-        label="Descripción"
-        fullWidth
-        onChange={handleChange}
-        required
-        value={fields.description}
-      />
-      <SelectField
-        fullWidth
-        name="status"
-        margin="dense"
-        label="Estado"
-        onChange={(event) => {
-          const status = Boolean(Number(event.target.value));
-          setFields((prev_state) => ({ ...prev_state, status }));
-        }}
-        required
-        value={Number(fields.status)}
-      >
-        <option value="0">Cerrado</option>
-        <option value="1">Abierto</option>
-      </SelectField>
-      <br />
-      <br />
-      <br />
-      <BudgetDetail
-        roles={roles}
-        setRoles={setRoles}
-      />
-    </DialogForm>
+        Actualmente los siguientes elementos estan usando este presupuesto.
+        <br />
+        <br />
+        Planeaciones: {budget_use_count.planning}
+        <br />
+        Asignaciones activas: {budget_use_count.assignation}
+        <br />
+        Solicitudes de asignación: {budget_use_count.assignation_request}
+        <br />
+        <br />
+        Al continuar, estos elementos seran eliminados. ¿Desea confirmar?
+      </ConfirmDialog>
+    </Fragment>
   );
 };
 
@@ -766,9 +811,7 @@ const DeleteModal = ({
   );
 };
 
-export default () => {
-  const [budget_types, setBudgetTypes] = useState([]);
-  const [clients, setClients] = useState([]);
+export default function Budget() {
   const [is_add_modal_open, setAddModalOpen] = useState(false);
   const [is_delete_modal_open, setDeleteModalOpen] = useState(false);
   const [is_edit_modal_open, setEditModalOpen] = useState(false);
@@ -863,4 +906,4 @@ export default () => {
       </Grid>
     </Fragment>
   );
-};
+}

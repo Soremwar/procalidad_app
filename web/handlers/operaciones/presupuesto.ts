@@ -1,6 +1,15 @@
-import { helpers } from "oak";
+import { helpers, Status } from "oak";
 import Ajv from "ajv";
 import * as budget_model from "../../../api/models/OPERACIONES/budget.ts";
+import {
+  findByBudget as findPlanningByBudget,
+} from "../../../api/models/planeacion/recurso.ts";
+import {
+  findOpenByBudget as findOpenAssignationByBudget,
+} from "../../../api/models/OPERACIONES/asignacion.ts";
+import {
+  findByBudget as findAsignationRequestByBudget,
+} from "../../../api/models/OPERACIONES/asignacion_solicitud.ts";
 import {
   createNew as createBudgetDetail,
   deleteByBudget as deleteBudgetDetail,
@@ -10,10 +19,11 @@ import {
   findById as findProject,
 } from "../../../api/models/OPERACIONES/PROYECTO.ts";
 import { Profiles } from "../../../api/common/profiles.ts";
-import { formatResponse, Message, Status } from "../../http_utils.ts";
+import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
 import { BOOLEAN, INTEGER, NUMBER, STRING } from "../../../lib/ajv/types.js";
+import { castStringToBoolean } from "../../../lib/utils/boolean.js";
 import { RouterContext } from "../../state.ts";
 
 interface Role {
@@ -54,6 +64,13 @@ const update_request = {
   },
 };
 
+const update_params = {
+  $id: "update_params",
+  properties: {
+    "sobreescribir": BOOLEAN,
+  },
+};
+
 const create_request = Object.assign({}, update_request, {
   $id: "create",
   required: [
@@ -71,6 +88,7 @@ const request_validator = new Ajv({
   schemas: [
     create_request,
     list_request,
+    update_params,
     update_request,
   ],
 });
@@ -126,11 +144,7 @@ export const createBudget = async (
     );
   }
 
-  response.body = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
+  response.body = Message.OK;
 };
 
 export const deleteBudget = async (
@@ -145,11 +159,8 @@ export const deleteBudget = async (
   await deleteBudgetDetail(id);
 
   await budget.delete();
-  response = formatResponse(
-    response,
-    Status.OK,
-    Message.OK,
-  );
+
+  response.body = Message.OK;
 };
 
 export const getBudget = async (
@@ -188,8 +199,20 @@ export const getBudgetTable = async (context: RouterContext) =>
   );
 
 export const updateBudget = async (
-  { params, request, response, state }: RouterContext<{ id: string }>,
+  context: RouterContext<{ id: string }>,
 ) => {
+  const query_params: {
+    sobreescribir?: string;
+  } = helpers.getQuery(context);
+  if (!request_validator.validate(query_params, "update_params")) {
+    throw new RequestSyntaxError();
+  }
+
+  const delete_open_items = !!query_params.sobreescribir &&
+    castStringToBoolean(query_params.sobreescribir);
+
+  const { params, request, response, state } = context;
+
   const id: number = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
@@ -225,6 +248,48 @@ export const updateBudget = async (
   } = await request.body({ type: "json" }).value;
   if (request_validator.validate("update", value)) {
     throw new RequestSyntaxError();
+  }
+
+  const open_assignation = await findOpenAssignationByBudget(
+    budget.pk_presupuesto,
+  );
+  const open_assignation_request = await findAsignationRequestByBudget(
+    budget.pk_presupuesto,
+  );
+  const open_planning = await findPlanningByBudget(budget.pk_presupuesto);
+
+  const count = {
+    assignation: open_assignation.length,
+    assignation_request: open_assignation_request.length,
+    planning: open_planning.length,
+  };
+
+  // Only open budgets can be edited
+  // If their state is set to false, request user permissions to delete everything that depends on the budget
+  if (value.status === false) {
+    if (
+      (count.assignation || count.assignation_request || count.planning) &&
+      delete_open_items === false
+    ) {
+      response.status = Status.Accepted;
+      response.body = {
+        code: "BUDGET_IN_USE",
+        message: count,
+      };
+      return;
+    }
+
+    for (const planning of open_planning) {
+      await planning.delete();
+    }
+
+    for (const assignation_request of open_assignation_request) {
+      await assignation_request.delete();
+    }
+
+    for (const assignation of open_assignation) {
+      await assignation.delete();
+    }
   }
 
   await budget.update(

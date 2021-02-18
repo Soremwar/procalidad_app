@@ -81,6 +81,40 @@ export const createNew = async (
   );
 };
 
+export const findByBudget = async (
+  id: number,
+): Promise<AssignationRequest[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_SOLICITUD,
+      FK_PERSONA,
+      FK_PRESUPUESTO,
+      FK_ROL,
+      FECHA,
+      HORAS,
+      DESCRIPCION,
+      FEC_SOLICITUD
+    FROM ${TABLE}
+    WHERE FK_PRESUPUESTO = $1`,
+    id,
+  );
+
+  return rows.map((row) =>
+    new AssignationRequest(
+      ...row as [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        string,
+        Date,
+      ],
+    )
+  );
+};
+
 export const findById = async (
   id: number,
 ): Promise<AssignationRequest | null> => {

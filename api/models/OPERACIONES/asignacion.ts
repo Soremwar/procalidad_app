@@ -31,13 +31,15 @@ class Asignacion {
 
   async delete(): Promise<void> {
     const control = await findControl(this.person, this.week);
-    if (!control || control.closed) {
+    if (control?.closed) {
       throw new Error(
         "La semana asociada a esta asignacion se encuentra cerrada",
       );
     }
 
-    await control.clearRegistry(this.budget, this.role);
+    if (control) {
+      await control.clearRegistry(this.budget, this.role);
+    }
 
     await postgres.query(
       `DELETE FROM ${TABLE} WHERE PK_ASIGNACION = $1`,
@@ -68,6 +70,53 @@ class Asignacion {
     return this;
   }
 }
+
+export const createNew = async (
+  person: number,
+  budget: number,
+  role: number,
+  week: number,
+  date: number,
+  hours: number,
+) => {
+  const { rows } = await postgres.query(
+    `INSERT INTO ${TABLE} AS A (
+      FK_PERSONA,
+      FK_PRESUPUESTO,
+      FK_ROL,
+      FK_SEMANA,
+      FECHA,
+      HORAS
+    ) VALUES (
+      $1,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6
+    ) ON CONFLICT (FK_PRESUPUESTO, FK_PERSONA, FK_ROL, FECHA) DO
+    UPDATE SET HORAS = $6 + A.HORAS
+    RETURNING PK_ASIGNACION, HORAS`,
+    person,
+    budget,
+    role,
+    week,
+    date,
+    hours,
+  );
+
+  const [id, final_hours]: [number, number] = rows[0];
+
+  return new Asignacion(
+    id,
+    person,
+    budget,
+    role,
+    week,
+    date,
+    final_hours,
+  );
+};
 
 export const findAll = async (): Promise<Asignacion[]> => {
   const { rows } = await postgres.query(
@@ -123,50 +172,47 @@ export const findById = async (id: number): Promise<Asignacion | null> => {
   return new Asignacion(...result);
 };
 
-export const createNew = async (
-  person: number,
+// This query is executed this way so it returns all assignation
+// that doesn't have a matching control week as well
+export const findOpenByBudget = async (
   budget: number,
-  role: number,
-  week: number,
-  date: number,
-  hours: number,
-) => {
+): Promise<Asignacion[]> => {
   const { rows } = await postgres.query(
-    `INSERT INTO ${TABLE} AS A (
+    `SELECT
+      PK_ASIGNACION,
       FK_PERSONA,
       FK_PRESUPUESTO,
       FK_ROL,
       FK_SEMANA,
       FECHA,
       HORAS
-    ) VALUES (
-      $1,
-      $2,
-      $3,
-      $4,
-      $5,
-      $6
-    ) ON CONFLICT (FK_PRESUPUESTO, FK_PERSONA, FK_ROL, FECHA) DO
-    UPDATE SET HORAS = $6 + A.HORAS
-    RETURNING PK_ASIGNACION, HORAS`,
-    person,
+    FROM ${TABLE}
+    WHERE FK_PRESUPUESTO = $1
+    AND PK_ASIGNACION NOT IN (
+      SELECT
+        A.PK_ASIGNACION
+      FROM ${TABLE} A
+      JOIN ${CONTROL_TABLE} CS
+        ON A.FK_PERSONA = CS.FK_PERSONA 
+        AND A.FK_SEMANA = CS.FK_SEMANA
+        AND CS.BAN_CERRADO = TRUE
+      WHERE A.FK_PRESUPUESTO = $1
+    )`,
     budget,
-    role,
-    week,
-    date,
-    hours,
   );
 
-  const [id, final_hours]: [number, number] = rows[0];
-
-  return new Asignacion(
-    id,
-    person,
-    budget,
-    role,
-    week,
-    date,
-    final_hours,
+  return rows.map((row) =>
+    new Asignacion(
+      ...row as [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+      ],
+    )
   );
 };
 

@@ -123,71 +123,6 @@ class Recurso {
   }
 }
 
-export const findAll = async (): Promise<Recurso[]> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      PK_RECURSO,
-      FK_PERSONA,
-      (SELECT FK_CLIENTE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
-      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
-      FK_PRESUPUESTO,
-      FK_ROL,
-      FECHA_INICIO,
-      FECHA_FIN,
-      PORCENTAJE,
-      HORAS
-    FROM ${TABLE}`,
-  );
-
-  return rows.map((row: [
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-  ]) => new Recurso(...row));
-};
-
-export const findById = async (id: number): Promise<Recurso | null> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      PK_RECURSO,
-      FK_PERSONA,
-      (SELECT FK_CLIENTE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
-      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
-      FK_PRESUPUESTO,
-      FK_ROL,
-      FECHA_INICIO,
-      FECHA_FIN,
-      PORCENTAJE,
-      HORAS
-    FROM ${TABLE}
-    WHERE PK_RECURSO = $1`,
-    id,
-  );
-
-  if (!rows[0]) return null;
-
-  const result: [
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-    number,
-  ] = rows[0];
-  return new Recurso(...result);
-};
-
 export const createNew = async (
   fk_persona: number,
   fk_presupuesto: number,
@@ -291,6 +226,107 @@ const assignationIsAvailable = async (
   );
 
   return !rows.length;
+};
+
+export const findAll = async (): Promise<Recurso[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_RECURSO,
+      FK_PERSONA,
+      (SELECT FK_CLIENTE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
+      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
+      FK_PRESUPUESTO,
+      FK_ROL,
+      FECHA_INICIO,
+      FECHA_FIN,
+      PORCENTAJE,
+      HORAS
+    FROM ${TABLE}`,
+  );
+
+  return rows.map((row: [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ]) => new Recurso(...row));
+};
+
+export const findByBudget = async (budget: number): Promise<Recurso[]> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_RECURSO,
+      FK_PERSONA,
+      NULL,
+      NULL,
+      FK_PRESUPUESTO,
+      FK_ROL,
+      FECHA_INICIO,
+      FECHA_FIN,
+      PORCENTAJE,
+      HORAS
+    FROM ${TABLE}
+    WHERE FK_PRESUPUESTO = $1`,
+    budget,
+  );
+
+  return rows.map((row) =>
+    new Recurso(
+      ...row as [
+        number,
+        number,
+        undefined,
+        undefined,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+      ],
+    )
+  );
+};
+
+export const findById = async (id: number): Promise<Recurso | null> => {
+  const { rows } = await postgres.query(
+    `SELECT
+      PK_RECURSO,
+      FK_PERSONA,
+      (SELECT FK_CLIENTE FROM ${PROJECT_TABLE} WHERE PK_PROYECTO = (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO)),
+      (SELECT FK_PROYECTO FROM ${BUDGET_TABLE} WHERE PK_PRESUPUESTO = FK_PRESUPUESTO),
+      FK_PRESUPUESTO,
+      FK_ROL,
+      FECHA_INICIO,
+      FECHA_FIN,
+      PORCENTAJE,
+      HORAS
+    FROM ${TABLE}
+    WHERE PK_RECURSO = $1`,
+    id,
+  );
+
+  if (!rows[0]) return null;
+
+  const result: [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ] = rows[0];
+  return new Recurso(...result);
 };
 
 class ProjectTableData {
