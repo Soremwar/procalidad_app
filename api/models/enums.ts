@@ -13,6 +13,16 @@ export enum InternalCostType {
   ORDINARY = "ORDINARIO",
 }
 
+export enum Profiles {
+  ADMINISTRATOR = 1,
+  CONTROLLER = 2,
+  AREA_MANAGER = 3,
+  PROYECT_MANAGER = 4,
+  HUMAN_RESOURCES = 5,
+  SALES = 6,
+  CONSULTANT = 7,
+}
+
 export enum TipoIdentificacion {
   CC = "CC",
   CE = "CE",
