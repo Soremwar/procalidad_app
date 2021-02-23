@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { Fade, Grid, Typography } from "@material-ui/core";
+import { Button, Fade, Grid, Typography } from "@material-ui/core";
 import { withRouter } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { authentication } from "../../config/app";
@@ -54,9 +54,11 @@ class MicrosoftAuthenticationService {
 }
 
 const AuthenticationButton = ({
+  className,
   onAuthenticated,
   onError,
 }: {
+  className?: string;
   onAuthenticated: (user: AccountInfo) => void;
   onError: (error: string) => void;
 }) => {
@@ -76,12 +78,12 @@ const AuthenticationButton = ({
   };
 
   return (
-    <button
+    <Button
+      className={className}
       disabled={!authenticationModule.isAuthenticationConfigured}
       onClick={logIn}
     >
-      Log in
-    </button>
+    </Button>
   );
 };
 
@@ -100,6 +102,7 @@ const useStyles = makeStyles((theme) => ({
     textAlign: "center",
   },
   form: {
+    padding: "10%",
     width: 320,
   },
   formContainer: {
@@ -115,14 +118,14 @@ const useStyles = makeStyles((theme) => ({
   },
   greeting: {
     fontWeight: 500,
-    textAlign: "center",
+    marginBottom: theme.spacing(4),
     marginTop: theme.spacing(4),
   },
   loginButton: {
-    marginTop: theme.spacing(6),
-    backgroundColor: "white",
-    width: "100%",
-    textTransform: "none",
+    backgroundImage: 'url("/resources/img/microsoft-login.png")',
+    backgroundSize: "100% 100%",
+    height: "41px",
+    width: "215px",
   },
   logotypeContainer: {
     backgroundColor: theme.palette.primary.light,
@@ -173,29 +176,25 @@ const Login = ({ history }) => {
       </div>
       <div className={classes.formContainer}>
         <div className={classes.form}>
-          <React.Fragment>
-            <Typography variant="h1" className={classes.greeting}>
-              Bienvenido
+          <Typography variant="h1" className={classes.greeting}>
+            Bienvenido
+          </Typography>
+          <AuthenticationButton
+            className={classes.loginButton}
+            onAuthenticated={({ username }) =>
+              attemptServerAuthentication(
+                userDispatch,
+                username,
+                history,
+                setLoginError,
+              )}
+            onError={(error) => setLoginError(error)}
+          />
+          <Fade in={!!login_error}>
+            <Typography color="primary" className={classes.errorMessage}>
+              {login_error}
             </Typography>
-            {
-              // loginButton
-            }
-            <AuthenticationButton
-              onAuthenticated={({ username }) =>
-                attemptServerAuthentication(
-                  userDispatch,
-                  username,
-                  history,
-                  setLoginError,
-                )}
-              onError={(error) => setLoginError(error)}
-            />
-            <Fade in={!!login_error}>
-              <Typography color="primary" className={classes.errorMessage}>
-                {login_error}
-              </Typography>
-            </Fade>
-          </React.Fragment>
+          </Fade>
         </div>
       </div>
     </Grid>
