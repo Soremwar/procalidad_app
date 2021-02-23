@@ -1,7 +1,7 @@
 import { queryObject } from "../../services/postgres.ts";
 import { ComputerCost as ComputerCostInterface } from "../interfaces.ts";
 
-const TABLE = "ORGANIZACION.COMPUTADOR_COSTO";
+export const TABLE = "ORGANIZACION.COMPUTADOR_COSTO";
 
 const fields = [
   "id",

@@ -1,6 +1,9 @@
 import { queryObject } from "../../services/postgres.ts";
 import { encryption_key } from "../../../config/services/postgresql.ts";
-import { TABLE as LICENSE_TABLE } from "./licence.ts";
+import { TABLE as LICENCE_COST_TABLE } from "./licence_cost.ts";
+import { TABLE as COMPUTER_COST_TABLE } from "./computer_cost.ts";
+import { TABLE as PARAMETER_TABLE } from "../MAESTRO/parametro.ts";
+import { TABLE as PARAMETER_DEFINITION_TABLE } from "../MAESTRO/parametro_definicion.ts";
 import { InternalCostType } from "../enums.ts";
 import {
   InternalCost as InternalCostInterface,
@@ -187,16 +190,16 @@ export const getCalculatedResult = async ({
 }) => {
   const { rows } = await queryObject<InternalCostCalculation>({
     text: (
-      `WITH
-      PARAMETROS AS (
+      // deno-fmt-ignore
+      `WITH PARAMETROS AS (
         SELECT
           SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_SMMLV' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_SMMLV,
           SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_Porc_Parafiscales' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_PORC_PARAFISCALES,
           SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_Factor_Integral' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_FACTOR_INTEGRAL,
           SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_Aux_Transporte' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_AUX_TRANSPORTE,
           SUM(CASE WHEN PAR.NOMBRE ILIKE 'V_Bono_Dotacion_Cuatrimestral' THEN DEF.VALOR::NUMERIC ELSE 0 END )AS V_BONO_DOTACION_CUATRIMESTRAL
-        FROM MAESTRO.PARAMETRO AS PAR
-        JOIN MAESTRO.PARAMETRO_DEFINICION AS DEF
+        FROM ${PARAMETER_TABLE} AS PAR
+        JOIN ${PARAMETER_DEFINITION_TABLE} AS DEF
         ON PAR.PK_PARAMETRO = DEF.FK_PARAMETRO
         WHERE CURRENT_DATE BETWEEN DEF.FEC_INICIO AND DEF.FEC_FIN
       ),
@@ -205,15 +208,33 @@ export const getCalculatedResult = async ({
           CAST($1 AS NUMERIC) AS VALOR_PRESTACIONAL,
           CAST($2 AS NUMERIC) AS VALOR_BONOS,
           ${
-        licenses.length
-          ? `(SELECT
-                COALESCE(SUM(COSTO), 0)
-              FROM ${LICENSE_TABLE}
-              WHERE PK_LICENCIA IN (${licenses.join(",")}))`
-          : `0`
-      } AS LICENCIAS,
+            licenses.length
+              ? `(
+                  SELECT
+                    COALESCE(SUM(COSTO), 0)
+                  FROM ${LICENCE_COST_TABLE}
+                  WHERE FK_LICENCIA IN (${licenses.join(",")})
+                  AND CURRENT_DATE BETWEEN FEC_INICIO AND COALESCE(FEC_FIN, CURRENT_DATE)
+                )`
+              : `0`
+          } AS LICENCIAS,
           CAST($3 AS NUMERIC) AS OTROS,
           $4 AS TIPO_SALARIO
+      ),
+      COSTO_COMPUTADOR AS (
+        SELECT
+          SUM(COSTO) AS COSTO
+        FROM (
+          SELECT
+            COSTO
+          FROM ${COMPUTER_COST_TABLE}
+          WHERE FK_COMPUTADOR = $5
+          AND CURRENT_DATE BETWEEN FEC_INICIO AND COALESCE(FEC_FIN, CURRENT_DATE)
+          -- Append union all so that cost can be coalesced when no date range matches
+          -- or no computer cost has been defined
+          UNION ALL
+          SELECT 0 AS COSTO
+        ) A
       ),
       COSTO_EMPLEADO AS (
         SELECT
@@ -230,7 +251,7 @@ export const getCalculatedResult = async ({
       )
       SELECT
         CAST(COSTO AS INTEGER) AS COSTO,
-        CAST(COSTO + COSTOS.LICENCIAS + (SELECT COSTO FROM ORGANIZACION.COMPUTADOR WHERE PK_COMPUTADOR = $5) AS INTEGER) AS COSTO_TOTAL
+        CAST(COSTO + COSTOS.LICENCIAS + (SELECT COSTO FROM COSTO_COMPUTADOR) AS INTEGER) AS COSTO_TOTAL
       FROM COSTO_EMPLEADO
       JOIN COSTOS ON 1 = 1`
     ),

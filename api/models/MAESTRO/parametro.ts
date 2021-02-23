@@ -3,7 +3,7 @@ import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { TABLE as PARAMETER_VALUE_TABLE } from "./parametro_definicion.ts";
 
-const TABLE = "MAESTRO.PARAMETRO";
+export const TABLE = "MAESTRO.PARAMETRO";
 const ERROR_DEPENDENCY =
   "No se puede eliminar el parametro por que hay componentes que dependen de el";
 

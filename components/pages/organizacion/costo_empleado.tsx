@@ -200,14 +200,18 @@ const InternalItemModal = ({
           async (response) => {
             if (response.ok) {
               const result = await response.json();
-              if (active) {
-                setResult(result);
-              }
+              if (!active) return;
+
+              setResult(result);
+            } else {
+              throw new Error();
             }
-            throw new Error();
           },
         )
-        .catch(() => console.error("Couldn't fetch the cost result"));
+        .catch(() => {
+          setResult(null);
+          console.error("Couldn't fetch the cost result");
+        });
     } else {
       setResult(null);
     }
@@ -216,6 +220,7 @@ const InternalItemModal = ({
       active = false;
     };
   }, [
+    open,
     fields.base_cost,
     fields.bonus_cost,
     fields.computer,
