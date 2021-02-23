@@ -1,9 +1,12 @@
 {
   "address": null,
-  "port": null,
-  "protocol": "http",
-  "version": "0.18.2",
   "api": {
     "prefix": "api"
-  }
+  },
+  "authentication": {
+    "client_id": ""
+  },
+  "port": null,
+  "protocol": "http",
+  "version": "0.18.2"
 }

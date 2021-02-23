@@ -4,5 +4,6 @@
     "jsx": "react",
     "lib": ["es2020"],
     "preserveConstEnums": true,
+    "resolveJsonModule": true,
   }
 }

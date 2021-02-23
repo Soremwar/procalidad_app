@@ -1,4 +1,4 @@
-import { address, api, port, protocol } from "../../config/app.js";
+import { address, api, port, protocol } from "../../config/app";
 import { messages } from "../errors/mod.js";
 import { isObject } from "../utils/object.js";
 
