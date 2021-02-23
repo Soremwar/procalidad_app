@@ -131,21 +131,19 @@ export default function RegistryTable({
         const error = usedHoursHaveError(value, row.expected_hours);
 
         return (
-          <TableCell>
-            <TextField
-              fullWidth
-              error={!!error}
-              helperText={error || ""}
-              onChange={(event) => {
-                const value = event.target.value;
-                onHourChange(
-                  `${row.budget_id}_${row.role_id}`,
-                  value,
-                );
-              }}
-              value={row.used_hours}
-            />
-          </TableCell>
+          <TextField
+            fullWidth
+            error={!!error}
+            helperText={error || ""}
+            onChange={(event) => {
+              const value = event.target.value;
+              onHourChange(
+                `${row.budget_id}_${row.role_id}`,
+                value,
+              );
+            }}
+            value={row.used_hours || 0}
+          />
         );
       },
     },
@@ -164,24 +162,22 @@ export default function RegistryTable({
           );
 
           return (
-            <TableCell>
-              <TextField
-                error={!!error}
-                fullWidth
-                helperText={error || ""}
-                inputProps={{
-                  maxLength: "100",
-                }}
-                multiline
-                onChange={(event) =>
-                  onReasonChange(
-                    `${row.budget_id}_${row.role_id}`,
-                    event.target.value,
-                  )}
-                style={{ maxWidth: "400px" }}
-                value={row.reason}
-              />
-            </TableCell>
+            <TextField
+              error={!!error}
+              fullWidth
+              helperText={error || ""}
+              inputProps={{
+                maxLength: "100",
+              }}
+              multiline
+              onChange={(event) =>
+                onReasonChange(
+                  `${row.budget_id}_${row.role_id}`,
+                  event.target.value,
+                )}
+              style={{ maxWidth: "400px" }}
+              value={row.reason}
+            />
           );
         },
       },
@@ -264,7 +260,6 @@ export default function RegistryTable({
           >
             <TableHeaders
               classes={classes}
-              edit_mode={edit_mode}
               columns={columns}
               orderBy={orderBy}
               updateSortingDirection={updateSortingDirection}
@@ -292,10 +287,10 @@ export default function RegistryTable({
                   }
                   return 0;
                 })
-                .map((row, index) => (
+                .map((row, row_index) => (
                   <TableRow
+                    key={row_index}
                     tabIndex={-1}
-                    key={index}
                   >
                     {Object.entries(row)
                       .filter(([key]) => {
@@ -309,10 +304,13 @@ export default function RegistryTable({
                       )
                       .map(([index, value]) => {
                         const column = columns.find(({ id }) => id === index);
+                        let content;
                         if (column.displayAs) {
-                          return column.displayAs(value, index, row);
+                          content = column.displayAs(value, index, row);
+                        } else {
+                          content = value;
                         }
-                        return <TableCell key={index}>{value}</TableCell>;
+                        return <TableCell key={index}>{content}</TableCell>;
                       })}
                   </TableRow>
                 ))}

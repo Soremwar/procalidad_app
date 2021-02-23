@@ -541,6 +541,11 @@ export default function Registro({
     (Number(selected_week) === Number(week_details.id))
   );
 
+  const selected_week_is_current_week = parameters.available_weeks?.length &&
+    Number(
+        parameters.available_weeks[parameters.available_weeks.length - 1].id,
+      ) === Number(selected_week);
+
   useEffect(() => {
     let active = true;
 
@@ -906,7 +911,9 @@ export default function Registro({
                 onClick={() => handleWeekSave(false)}
                 variant="contained"
               >
-                {disable_admin_mode ? "Cerrar Semana" : "Modificar semana"}
+                {!disable_admin_mode && !selected_week_is_current_week
+                  ? "Modificar semana"
+                  : "Cerrar Semana"}
               </Button>
             </Grid>
             <Grid item md={6} xs={12}>
