@@ -1,4 +1,10 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, {
+  createContext,
+  Fragment,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import {
   Button,
   Card,
@@ -26,26 +32,6 @@ import DateField from "../../../common/DateField.jsx";
 import SelectField from "../../../common/SelectField.jsx";
 import ReviewDialog from "../common/ReviewDialog.jsx";
 import ReviewerCardForm from "./components/ReviewerCardForm.jsx";
-
-//TODO
-//The fetching of the text warning or any parameters should be globally defined(like generators)
-//Replace for top level await when we switch to Deno compiler
-let AVATAR_UPLOAD_WARNING = (
-  "No fue posible cargar las recomendaciones de carga. " +
-  "Sea profesional al escoger la foto  que desea para su perfil."
-);
-(async () =>
-  await fetchParameterApi("valor/TEXTO_CARGA_FOTO")
-    .then(async (response) => {
-      if (response.ok) {
-        AVATAR_UPLOAD_WARNING = await response.text();
-      } else {
-        throw new Error();
-      }
-    })
-    .catch(() => {
-      console.error("The avatar upload warning couldnt be loaded");
-    }))();
 
 const getGenders = () => fetchGenderApi();
 const getMaritalStatuses = () => fetchMaritalStatus();
@@ -115,6 +101,14 @@ const updatePersonReview = async (
     method: "PUT",
   });
 
+const DEFAULT_PARAMETERS = {
+  avatar_upload_warning: (
+    "No fue posible cargar las recomendaciones de carga. " +
+    "Sea profesional al escoger la foto  que desea para su perfil."
+  ),
+};
+const ParameterContext = createContext(DEFAULT_PARAMETERS);
+
 const useProfilePictureStyles = makeStyles(() => ({
   input: {
     display: "none",
@@ -128,8 +122,13 @@ const useProfilePictureStyles = makeStyles(() => ({
 
 const UploadProfilePicture = () => {
   const classes = useProfilePictureStyles();
+
+  const {
+    avatar_upload_warning,
+  } = useContext(ParameterContext);
+
+  const [modal_open, setModalOpen] = useState(false);
   const [picture_key, setPictureKey] = useState(0);
-  const [is_modal_open, setModalOpen] = useState(false);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -152,14 +151,17 @@ const UploadProfilePicture = () => {
           <Grid container item xs={12} justify="center">
             <CardMedia
               className={classes.image}
+              component="img"
               image={`/api/usuario/foto#${picture_key}`}
+              onError={(e) => {
+                e.target.src = "/resources/img/icon.png";
+              }}
             />
           </Grid>
           <Grid container item xs={12} justify="center">
             <CardActions>
               <Button
                 color="primary"
-                component="span"
                 className={classes.button}
                 endIcon={<UploadIcon />}
                 onClick={() => setModalOpen(true)}
@@ -175,10 +177,10 @@ const UploadProfilePicture = () => {
         fullWidth
         maxWidth="sm"
         onClose={() => setModalOpen(false)}
-        open={is_modal_open}
+        open={modal_open}
       >
         <DialogContent>
-          {AVATAR_UPLOAD_WARNING}
+          {avatar_upload_warning}
         </DialogContent>
         <DialogActions>
           <label>
@@ -234,6 +236,8 @@ export default function MainForm({
   person,
   review_mode = false,
 }) {
+  const [confirm_modal_open, setConfirmModalOpen] = useState(false);
+  const [error, setError] = useState(null);
   const [fields, setFields] = useState({
     approved: false,
     birth_city: "",
@@ -253,34 +257,64 @@ export default function MainForm({
     professional_card_expedition: "",
   });
   const [genders, setGenders] = useState([]);
-  const [marital_statuses, setMaritalStatuses] = useState([]);
-  const [reload_data, setReloadData] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [confirm_modal_open, setConfirmModalOpen] = useState(false);
+  const [marital_statuses, setMaritalStatuses] = useState([]);
+  const [parameters, setParameters] = useState(DEFAULT_PARAMETERS);
+  const [reload_data, setReloadData] = useState(false);
 
   const rejected = !fields.approved && !!fields.comments;
   const disable_review = fields.approved || rejected;
 
   useEffect(() => {
+    let active = true;
+
+    fetchParameterApi("valor/TEXTO_CARGA_FOTO")
+      .then(async (response) => {
+        if (response.ok) {
+          const avatar_upload_warning = await response.text();
+          if (!active) return;
+
+          setParameters((prev_state) => ({
+            ...prev_state,
+            avatar_upload_warning,
+          }));
+        } else {
+          throw new Error();
+        }
+      })
+      .catch(() => {
+        console.error("The avatar upload warning couldnt be loaded");
+      });
+
     getGenders()
       .then(async (response) => {
         if (response.ok) {
-          return await response.json();
+          const genders = await response.json();
+          if (!active) return;
+
+          setGenders(genders);
+        } else {
+          throw new Error();
         }
-        throw new Error();
       })
-      .then((genders) => setGenders(genders))
       .catch(() => console.error("couldnt fetch gender"));
+
     getMaritalStatuses()
       .then(async (response) => {
         if (response.ok) {
-          return await response.json();
+          const marital_statuses = await response.json();
+          if (!active) return;
+
+          setMaritalStatuses(marital_statuses);
+        } else {
+          throw new Error();
         }
-        throw new Error();
       })
-      .then((marital_statuses) => setMaritalStatuses(marital_statuses))
       .catch(() => console.error("couldnt fetch marital status"));
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -628,7 +662,9 @@ export default function MainForm({
             />
           </Grid>
           <Grid item md={6} xs={12}>
-            <UploadProfilePicture />
+            <ParameterContext.Provider value={parameters}>
+              <UploadProfilePicture />
+            </ParameterContext.Provider>
             <br />
             <SelectField
               blank_value={false}

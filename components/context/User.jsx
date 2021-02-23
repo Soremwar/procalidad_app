@@ -15,7 +15,6 @@ const createSession = (email) =>
 export const UserContext = createContext({
   email: "",
   id: "",
-  image: "",
   is_authenticated: false,
   name: "",
   profiles: [],
@@ -32,7 +31,6 @@ const loginReducer = (state, action) => {
       return {
         email: action.value.email,
         id: action.value.id,
-        image: action.value.image,
         is_authenticated: true,
         name: action.value.name,
         profiles: action.value.profiles,
@@ -41,7 +39,6 @@ const loginReducer = (state, action) => {
       return {
         email: "",
         id: "",
-        image: "",
         is_authenticated: false,
         name: "",
         profiles: [],
@@ -72,7 +69,6 @@ export const attemptGoogleLogin = (
         value: {
           email: api_data.profileObj.email,
           id,
-          image: "/api/usuario/foto",
           name: api_data.profileObj.name,
           profiles,
         },
@@ -98,12 +94,10 @@ export const signOutUser = (dispatch, history) => {
 
 //TODO
 //Improve session check
-//Get google avatar from server
 const decodeSessionCookie = (session_token) => {
   const session = {
     email: "",
     id: "",
-    image: "",
     is_authenticated: false,
     name: "",
     profiles: [],
