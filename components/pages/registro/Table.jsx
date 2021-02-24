@@ -142,7 +142,7 @@ export default function RegistryTable({
                 value,
               );
             }}
-            value={row.used_hours || 0}
+            value={row.used_hours || ""}
           />
         );
       },
@@ -176,7 +176,7 @@ export default function RegistryTable({
                   event.target.value,
                 )}
               style={{ maxWidth: "400px" }}
-              value={row.reason}
+              value={row.reason || ""}
             />
           );
         },
