@@ -49,41 +49,37 @@ const loginReducer = (state, action) => {
   }
 };
 
-export const attemptGoogleLogin = (
+export const attemptServerAuthentication = async (
   dispatch,
-  api_data,
+  username,
   history,
   setLoginError,
 ) => {
-  createSession(api_data.profileObj.email)
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        throw new Error(response.status);
-      }
-    })
-    .then(({ id, profiles }) => {
-      dispatch({
-        type: ACTIONS.LOGIN,
-        value: {
-          email: api_data.profileObj.email,
-          id,
-          name: api_data.profileObj.name,
-          profiles,
-        },
-      });
-      history.push("/");
-    })
-    .catch(({ message }) => {
-      switch (message) {
-        case "401":
-          setLoginError("El usuario no se encuentra registrado");
-          break;
-        default:
-          setLoginError("Ocurrio un error al procesar el usuario");
-      }
+  const response = await createSession(username);
+  const response_body = await response.json();
+
+  if (response.ok) {
+    dispatch({
+      type: ACTIONS.LOGIN,
+      value: {
+        email: response_body.email,
+        id: response_body.id,
+        name: response_body.name,
+        profiles: response_body.profiles,
+      },
     });
+    history.push("/");
+  } else {
+    switch (response.status) {
+      case 401:
+        setLoginError("El usuario no se encuentra registrado");
+        break;
+      default:
+        setLoginError(
+          response_body?.message || "Ocurrio un error al procesar el usuario",
+        );
+    }
+  }
 };
 
 export const signOutUser = (dispatch, history) => {

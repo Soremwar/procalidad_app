@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 
 import { UserContext } from "./context/User.jsx";
-import Login from "./login/Login.jsx";
+import Login from "./pages/Login";
 import Layout from "./layout/Layout.jsx";
 import NotFound from "./pages/errors/NotFound.jsx";
 
