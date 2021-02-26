@@ -1,4 +1,4 @@
-import { Application, send } from "oak";
+import { Application, httpErrors, send, Status } from "oak";
 import { allowedMethods, routes } from "./web/routes.ts";
 import { address, port } from "./config/api_deno.js";
 import { errorHandler } from "./web/middleware.ts";
@@ -14,23 +14,30 @@ app.use(errorHandler);
 app.use(routes);
 app.use(allowedMethods);
 
-//If route not found in API router
-//Default to static file (React App)
+// If route not found in API router or in public folder
+// Default to static file (React App)
 app.use(async (context) => {
-  let resource;
-  switch (context.request.url.pathname.split("/")[1]) {
-    case "resources":
-      resource = context.request.url.pathname;
-      break;
-    default:
-      resource = "index.html";
-  }
-
-  await send(context, resource, {
+  await send(context, context.request.url.pathname, {
+    hidden: true,
+    index: "index.html",
     root: "public",
-  });
+  })
+    .catch(async (e) => {
+      if (e instanceof httpErrors.NotFound) {
+        const app_fallback = await Deno.readFile(
+          new URL("./public/index.html", import.meta.url),
+        );
+        context.response.body = app_fallback;
+        context.response.headers.set("Content-Type", "text/html");
+        context.response.status = Status.NotFound;
+      } else {
+        throw e;
+      }
+    });
 });
 
-console.log(`Server running on ${address}:${port}`);
+app.addEventListener("listen", ({ hostname, port }) => {
+  console.log(`Server running on ${hostname}:${port}`);
+});
 
 await app.listen({ hostname: address, port });
