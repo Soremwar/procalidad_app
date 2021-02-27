@@ -65,10 +65,10 @@ if (tls) {
   });
 } else {
   await app.listen({
+    certFile: cert_file,
     hostname: address,
+    keyFile: key_file,
     port,
     secure: true,
-    certFile: cert_file,
-    keyFile: key_file,
   });
 }
