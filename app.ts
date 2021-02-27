@@ -58,7 +58,7 @@ app.addEventListener("listen", ({ hostname, port }) => {
   );
 });
 
-if (tls) {
+if (!tls) {
   await app.listen({
     hostname: address,
     port,
