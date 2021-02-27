@@ -1,10 +1,15 @@
-.vscode/
+# Development
 .idea/
 .parcel-cache/
+.vscode/
+*.bat
+*.log
+*.sh
 node_modules/
+
+# App internals
 /storage
 api_config.json
 app_config.json
-*.bat
-*.sh
-*.log
+server.crt
+server.key
