@@ -2,19 +2,20 @@ import React, { useContext, useState } from "react";
 import { Button, Fade, Grid, Typography } from "@material-ui/core";
 import { withRouter } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
-import { authentication } from "../../config/app";
-import { attemptServerAuthentication, UserContext } from "../context/User.jsx";
 import {
   AccountInfo,
   AuthenticationResult,
   Configuration,
   PublicClientApplication,
 } from "@azure/msal-browser";
+import { authentication } from "../../config/app";
+import { attemptServerAuthentication, UserContext } from "../context/User.jsx";
+import { generateUrl } from "../../lib/api/request";
 
 export const MSAL_CONFIG: Configuration = {
   auth: {
     clientId: authentication.client_id,
-    redirectUri: "http://localhost",
+    redirectUri: generateUrl().toString(),
   },
   cache: {
     cacheLocation: "sessionStorage",

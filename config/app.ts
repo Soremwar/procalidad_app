@@ -12,7 +12,8 @@ const api: {
   prefix: config?.api?.prefix || "api",
 };
 const port = Number(config?.port) || window.location.port;
-const protocol: string = config?.protocol || "http";
+const protocol: string = config?.protocol ||
+  window.location.protocol.substr(0, window.location.protocol.length - 1);
 const version: string = config?.version || "NA";
 
 export { address, api, authentication, port, protocol, version };

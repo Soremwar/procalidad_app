@@ -46,6 +46,22 @@ interface ObjectURL {
   params: { [key: string]: any };
 }
 
+export function generateUrl(
+  path: string[] = [],
+  params?: { [key: string]: any },
+): URL {
+  const url = new URL(`${protocol}://${address}:${port}/${path.join("/")}`);
+
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      // Filter undefined values
+      value && url.searchParams.append(key, value);
+    }
+  }
+
+  return url;
+}
+
 export function requestGenerator(
   base_url = "",
 ) {
@@ -63,7 +79,7 @@ export function requestGenerator(
       ].filter((x) => x);
 
       return timedFetch<T>(
-        `${protocol}://${address}:${port}/${url_parameters.join("/")}`,
+        generateUrl(url_parameters),
         options,
         timeout,
       );
@@ -74,19 +90,11 @@ export function requestGenerator(
         url.path || "",
       ].filter((x) => x);
 
-      const targetURI = new URL(
-        `${protocol}://${address}:${port}/${url_parameters.join("/")}`,
-      );
-      if (isObject(url.params)) {
-        for (const key in url.params) {
-          // Filter undefined values
-          url.params[key] &&
-            targetURI.searchParams.append(key, url.params[key]);
-        }
-      }
-
       return timedFetch<T>(
-        targetURI,
+        generateUrl(
+          url_parameters,
+          isObject(url.params) ? url.params : undefined,
+        ),
         options,
         timeout,
       );
