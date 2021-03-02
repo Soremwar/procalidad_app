@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import MuiDataTable from "mui-datatables";
 
 export interface Column {
@@ -9,7 +9,7 @@ export interface Column {
       value: unknown,
       table_metadata: unknown,
       updateValue: (value: unknown) => void,
-    ) => Element;
+    ) => ReactElement | string;
     /** If false, the column won't be displayed in the column filter selection */
     filter?: boolean;
     /** If false, the column won't be selectable in the search section */
@@ -34,13 +34,13 @@ interface SelectedRows {
 }
 
 export interface Options {
-  customToolbar: (display_data: unknown) => Element;
+  customToolbar: (display_data: unknown) => ReactElement;
   customToolbarSelect: (
     selected_rows: SelectedRows,
     display_data: unknown,
     /** The table ids of the rows to select */
     setSelectedRows: (rows: number[]) => void,
-  ) => Element;
+  ) => ReactElement;
   /**
    * This will display the download option in the toolbar
    *

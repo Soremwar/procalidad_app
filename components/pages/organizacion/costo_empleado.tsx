@@ -488,8 +488,13 @@ const InternalCostModal = ({
                   latest_entry_end_date.getDate() + 1,
                 );
 
-                const new_entry = {
+                // It's necessary to delete the id of the latest entry otherwise
+                // the new entry will have a duplicated id that will cause
+                // problems when saving the data
+                const new_entry: InternalCostParameters = {
                   ...latest_entry,
+                  // @ts-ignore
+                  id: undefined,
                   start_date: formatDateToStandardString(
                     latest_entry_end_date,
                     false,
