@@ -14,7 +14,10 @@ import {
   STANDARD_DATE_STRING,
   STRING,
 } from "../../../lib/ajv/types.js";
-import { multipleDateRangesOverlap } from "../../../lib/date/util.ts";
+import {
+  multipleDateRangesAreContinuous,
+  multipleDateRangesOverlap,
+} from "../../../lib/date/util.ts";
 import { RouterContext } from "../../state.ts";
 
 const update_request = {
@@ -152,6 +155,20 @@ export const updateCost = async (
   ) {
     throw new RequestSyntaxError(
       "Los rangos de los periodos no pueden entrecuzarse",
+    );
+  }
+
+  if (
+    value.costs.length > 1 &&
+    !multipleDateRangesAreContinuous(
+      value.costs.map((
+        { start_date, end_date },
+        // Use the max possible date in case the end date was not specified
+      ) => [new Date(start_date), new Date(end_date || 8640000000000000)]),
+    )
+  ) {
+    throw new RequestSyntaxError(
+      "Los rangos de los periodos deben ser continuos",
     );
   }
 
