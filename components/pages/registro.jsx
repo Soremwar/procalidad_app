@@ -26,6 +26,7 @@ import {
   fetchProjectApi,
   fetchRoleApi,
   fetchTimeApi,
+  fetchWeekApi,
   fetchWeekDetailApi,
 } from "../../lib/api/generator.js";
 import { UserContext } from "../context/User.jsx";
@@ -59,6 +60,7 @@ const getBlacklistedDates = (start_date, end_date) =>
     },
   });
 const getClients = () => fetchClientApi().then((x) => x.json());
+const getCurrentWeek = () => fetchWeekApi("actual");
 const getPeople = () => fetchPeopleApi();
 const getProjects = () => fetchProjectApi();
 const getProjectBudget = (project) =>
@@ -511,6 +513,7 @@ export default function Registro({
   const [confirm_request_modal_open, setConfirmRequestModalOpen] = useState(
     false,
   );
+  const [current_week, setCurrentWeek] = useState();
   const [early_close_modal_open, setEarlyCloseModalOpen] = useState(false);
   const [error, setError] = useState(null);
   const [is_planning_modal_open, setPlanningModalOpen] = useState(false);
@@ -526,6 +529,7 @@ export default function Registro({
     expected_hours: 0,
     id: null,
     requested_hours: 0,
+    used_hours: 0,
   });
 
   /**
@@ -541,10 +545,14 @@ export default function Registro({
     (Number(selected_week) === Number(week_details.id))
   );
 
-  const selected_week_is_current_week = parameters.available_weeks?.length &&
-    Number(
-        parameters.available_weeks[parameters.available_weeks.length - 1].id,
-      ) === Number(selected_week);
+  const open_week_id = parameters.available_weeks?.length
+    ? Number(
+      parameters.available_weeks[parameters.available_weeks.length - 1].id,
+    )
+    : undefined;
+
+  const selected_week_is_open_week =
+    open_week_id === Number(selected_week);
 
   useEffect(() => {
     let active = true;
@@ -570,6 +578,20 @@ export default function Registro({
       .catch(() =>
         console.error("Couldnt load the banned dates for the calendar")
       );
+
+    getCurrentWeek()
+      .then(async (response) => {
+        if (response.ok) {
+          const week = await response.json();
+          if (!active) return;
+
+          setCurrentWeek(week);
+        } else {
+          throw new Error();
+        }
+      })
+      .catch((e) => console.error("Couldnt fetch current week", e));
+
     getClients().then((clients) => {
       const entries = clients
         .map(({ pk_cliente, nombre }) => [pk_cliente, nombre])
@@ -882,10 +904,14 @@ export default function Registro({
           header={disable_admin_mode && (
             <Button
               onClick={() => {
-                if (week_details.is_current_week === false) {
-                  setRequestModalOpen(true);
-                } else if (week_details.is_current_week) {
+                // If the user is requesting assignation, check if we the current registry
+                // week doesn't match the current calendar week
+                // If it does, open a warning telling people that the current week will not
+                // have data loaded until it finishes
+                if (Number(week_details.id) === Number(current_week?.id)) {
                   setConfirmRequestModalOpen(true);
+                } else {
+                  setRequestModalOpen(true);
                 }
               }}
               variant="contained"
@@ -897,12 +923,12 @@ export default function Registro({
             <Grid item md={6} xs={12}>
               <Button
                 // Disable if reasons are not filled out in admin mode or or hours are not valid
-                disabled={Array.from(table_data).some(([_index, {
+                disabled={Array.from(table_data.values()).some(({
                   expected_hours,
                   previous_used_hours,
                   reason,
                   used_hours,
-                }]) =>
+                }) =>
                   // Check only if admin mode is enabled
                   (!disable_admin_mode &&
                     reasonHasError(reason, used_hours, previous_used_hours)) ||
@@ -911,7 +937,7 @@ export default function Registro({
                 onClick={() => handleWeekSave(false)}
                 variant="contained"
               >
-                {!disable_admin_mode && !selected_week_is_current_week
+                {!disable_admin_mode && !selected_week_is_open_week
                   ? "Modificar semana"
                   : "Cerrar Semana"}
               </Button>

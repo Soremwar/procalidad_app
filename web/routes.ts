@@ -127,6 +127,7 @@ import { searchBudgetDetails } from "./handlers/operaciones/presupuesto_detalle.
 import * as parameter from "./handlers/maestro/parametro.ts";
 import * as parameter_definition from "./handlers/maestro/parametro_definicion.ts";
 import { getBlacklistedDays } from "./handlers/maestro/tiempo.ts";
+import * as week from "./handlers/maestro/semana.ts";
 import { getProfile, getProfiles } from "./handlers/maestro/permiso.ts";
 import {
   createAccess,
@@ -649,6 +650,13 @@ main_router
     "/api/maestro/tiempo/blacklist",
     checkUserAccess(),
     getBlacklistedDays,
+  );
+
+main_router
+  .get(
+    "/api/maestro/semana/actual",
+    checkUserAccess(),
+    week.getCurrentWeek,
   );
 
 main_router
