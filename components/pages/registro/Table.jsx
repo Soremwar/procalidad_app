@@ -245,6 +245,9 @@ export default function RegistryTable({
                     {Number(week_details.assignated_hours || 0) +
                       Number(week_details.requested_hours || 0)}
                   </Typography>
+                  <Typography variant="subtitle2">
+                    Horas registradas: {Number(week_details.used_hours || 0)}
+                  </Typography>
                 </div>
               </Grid>
               <Grid container item xs={6}>{header}</Grid>

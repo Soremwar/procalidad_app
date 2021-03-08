@@ -551,8 +551,7 @@ export default function Registro({
     )
     : undefined;
 
-  const selected_week_is_open_week =
-    open_week_id === Number(selected_week);
+  const selected_week_is_open_week = open_week_id === Number(selected_week);
 
   useEffect(() => {
     let active = true;
@@ -955,7 +954,13 @@ export default function Registro({
           </Grid>}
           onHourChange={updateHours}
           onReasonChange={updateReason}
-          week_details={week_details}
+          week_details={{
+            ...week_details,
+            used_hours: Array.from(table_data.values()).reduce(
+              (agg, { used_hours }) => agg + Number(used_hours),
+              0,
+            ),
+          }}
         />
       )}
       <Snackbar
@@ -1000,8 +1005,18 @@ export default function Registro({
         open={overflow_week_modal_open}
         title="Asignación excedida"
       >
-        Usted va a cerrar la semana con más horas de las laborales de la semana,
-        por favor revise que su registro sea correcto.
+        Usted va a cerrar el registro con más horas a las laborables de esta
+        semana, por favor revise que su registro sea correcto.
+        <br />
+        <br />
+        Horas de la semana: <b>{week_details.expected_hours}</b>
+        <br />
+        Horas registradas:{" "}
+        <b>
+          {Array.from(table_data.values()).reduce((agg, { used_hours }) =>
+            agg + Number(used_hours), 0)}
+        </b>
+        <br />
         <br />
         Recuerde que las horas adicionales solo tendran reconocimiento económico
         si fueron aprobadas <b>previamente</b>
