@@ -13,7 +13,7 @@ import { EmployeeType } from "../../../api/models/enums.ts";
 
 const getPerson = (id) => fetchPeopleApi(id).then((x) => x.json());
 
-const createPerson = async (
+const createPerson = ({
   employee_type,
   email,
   identification,
@@ -21,7 +21,7 @@ const createPerson = async (
   phone,
   start_date,
   type,
-) =>
+}) =>
   fetchPeopleApi("", {
     body: JSON.stringify({
       employee_type,
@@ -38,16 +38,18 @@ const createPerson = async (
     method: "POST",
   });
 
-const updatePerson = async (
+const updatePerson = (
   id,
-  employee_type,
-  email,
-  identification,
-  name,
-  phone,
-  retirement_date,
-  start_date,
-  type,
+  {
+    employee_type,
+    email,
+    identification,
+    name,
+    phone,
+    retirement_date,
+    start_date,
+    type,
+  },
 ) =>
   fetchPeopleApi(id, {
     body: JSON.stringify({
@@ -66,7 +68,7 @@ const updatePerson = async (
     method: "PUT",
   });
 
-const deletePerson = async (id) =>
+const deletePerson = (id) =>
   fetchPeopleApi(id, {
     method: "DELETE",
   });
@@ -139,15 +141,7 @@ const AddModal = ({
     setLoading(true);
     setError(null);
 
-    const request = await createPerson(
-      fields.employee_type,
-      fields.email,
-      fields.identification,
-      fields.name,
-      fields.phone,
-      fields.start_date,
-      fields.type,
-    );
+    const request = await createPerson(fields);
 
     if (request.ok) {
       setModalOpen(false);
@@ -233,7 +227,7 @@ const AddModal = ({
       </SelectField>
       <DateField
         fullWidth
-        label="Fecha de inicio(en la compañía)"
+        label="Fecha de inicio (en la compañía)"
         name="start_date"
         onChange={handleChange}
         required
@@ -281,14 +275,10 @@ const EditModal = ({
 
     const request = await updatePerson(
       data.pk_persona,
-      fields.employee_type,
-      fields.email,
-      fields.identification,
-      fields.name,
-      fields.phone,
-      fields.retirement_date || null,
-      fields.start_date,
-      fields.type,
+      {
+        ...fields,
+        retirement_date: fields.retirement_date || null,
+      },
     );
 
     if (request.ok) {
@@ -375,7 +365,7 @@ const EditModal = ({
       </SelectField>
       <DateField
         fullWidth
-        label="Fecha de inicio(en la compañía)"
+        label="Fecha de inicio (en la compañía)"
         name="start_date"
         onChange={handleChange}
         required
@@ -462,7 +452,7 @@ export default () => {
     setEditModalOpen(true);
   };
 
-  const handleDeleteModalOpen = async (selected) => {
+  const handleDeleteModalOpen = (selected) => {
     setSelected(selected);
     setDeleteModalOpen(true);
   };

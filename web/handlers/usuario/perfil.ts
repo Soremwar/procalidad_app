@@ -28,6 +28,8 @@ import {
   CELLPHONE,
   STANDARD_DATE_STRING,
   STANDARD_DATE_STRING_OR_NULL,
+  STRING,
+  STRING_OR_NULL,
   TRUTHY_INTEGER,
   TRUTHY_INTEGER_OR_NULL,
 } from "../../../lib/ajv/types.js";
@@ -38,10 +40,7 @@ const children_request = {
   $id: "children",
   properties: {
     "gender": TRUTHY_INTEGER,
-    "name": {
-      maxLength: 255,
-      type: "string",
-    },
+    "name": STRING(255),
     "born_date": STANDARD_DATE_STRING,
   },
   required: [
@@ -55,19 +54,12 @@ const contact_request = {
   $id: "contact",
   properties: {
     "cellphone": CELLPHONE,
-    "employee_relationship": {
-      pattern: `^(${
-        Object
-          .values(contact_model.Relationships)
-          .map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-          .join("|")
-      })$`,
-      type: "string",
-    },
-    "name": {
-      maxLength: 255,
-      type: "string",
-    },
+    "employee_relationship": STRING(
+      undefined,
+      undefined,
+      Object.values(contact_model.Relationships),
+    ),
+    "name": STRING(255),
   },
   required: [
     "cellphone",
@@ -81,30 +73,18 @@ const information_request = {
   properties: {
     "birth_date": STANDARD_DATE_STRING_OR_NULL,
     "birth_city": TRUTHY_INTEGER_OR_NULL,
-    "blood_type": {
-      pattern: `^(${
-        Object
-          .values(TipoSangre)
-          .map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-          .join("|")
-      })$`,
-      type: ["string", "null"],
-    },
+    "blood_type": STRING_OR_NULL({
+      values: Object.values(TipoSangre),
+    }),
     "document_expedition_date": STANDARD_DATE_STRING_OR_NULL,
     "document_expedition_city": TRUTHY_INTEGER_OR_NULL,
     "gender": TRUTHY_INTEGER_OR_NULL,
     "marital_status": TRUTHY_INTEGER_OR_NULL,
     "military_passbook": TRUTHY_INTEGER_OR_NULL,
-    "personal_email": {
-      maxLength: 320,
-      type: ["string", "null"],
-    },
+    "personal_email": STRING_OR_NULL({ max: 320 }),
     "phone": TRUTHY_INTEGER_OR_NULL,
     "professional_card_expedition": STANDARD_DATE_STRING_OR_NULL,
-    "residence_address": {
-      maxLength: 95,
-      type: ["string", "null"],
-    },
+    "residence_address": STRING_OR_NULL({ max: 95 }),
     "residence_city": TRUTHY_INTEGER_OR_NULL,
   },
 };
@@ -319,7 +299,21 @@ export const updateUserInformation = async (
   if (!request.hasBody) throw new RequestSyntaxError();
   const { id } = await decodeToken(cookies.get("PA_AUTH") || "");
 
-  const value = await request.body({ type: "json" }).value;
+  const value: {
+    document_expedition_date?: string | null;
+    document_expedition_city?: number | null;
+    birth_date?: string | null;
+    birth_city?: number | null;
+    military_passbook?: number | null;
+    gender?: number | null;
+    civil_status: number | null;
+    personal_email?: string | null;
+    phone?: number | null;
+    blood_type?: TipoSangre | null;
+    residence_city?: number | null;
+    residence_address?: string | null;
+    professional_card_expedition?: string | null;
+  } = await request.body({ type: "json" }).value;
   if (
     !request_validator.validate("information", value)
   ) {
@@ -329,27 +323,20 @@ export const updateUserInformation = async (
   let user = await findReviewById(id);
   if (!user) throw new NotFoundError();
 
-  await user.update(
-    undefined,
-    undefined,
-    value.document_expedition_date,
-    value.document_expedition_city,
-    undefined,
-    undefined,
-    value.birth_date,
-    value.birth_city,
-    value.military_passbook,
-    value.gender,
-    value.civil_status,
-    value.personal_email,
-    value.phone,
-    value.blood_type,
-    value.residence_city,
-    value.residence_address,
-    undefined,
-    undefined,
-    value.professional_card_expedition,
-  );
+  await user.update({
+    fec_expedicion_identificacion: value.document_expedition_date,
+    fk_ciudad_expedicion_identificacion: value.document_expedition_city,
+    fec_nacimiento: value.birth_date,
+    fk_ciudad_nacimiento: value.birth_city,
+    libreta_militar: value.military_passbook,
+    fk_genero: value.gender,
+    fk_estado_civil: value.civil_status,
+    correo_personal: value.personal_email,
+    telefono_fijo: value.phone,
+    tipo_sangre: value.blood_type,
+    fk_ciudad_residencia: value.residence_city,
+    direccion_residencia: value.residence_address,
+  });
 
   // TODO
   // Refactor this, obviously

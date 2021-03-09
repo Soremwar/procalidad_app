@@ -95,7 +95,7 @@ export class People implements PeopleInterface {
     });
   }
 
-  async update(
+  async update({
     tipo_identificacion = this.tipo_identificacion,
     identificacion = this.identificacion,
     fec_expedicion_identificacion = this.fec_expedicion_identificacion,
@@ -117,7 +117,7 @@ export class People implements PeopleInterface {
     fecha_retiro = this.fecha_retiro,
     expedicion_tarjeta_profesional = this.expedicion_tarjeta_profesional,
     tipo_empleado = this.tipo_empleado,
-  ): Promise<People> {
+  }): Promise<People> {
     Object.assign(this, {
       tipo_identificacion,
       identificacion,

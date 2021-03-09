@@ -1,7 +1,6 @@
-import { helpers } from "oak";
-import type { RouterContext } from "oak";
-import { PostgresError } from "deno_postgres";
 import Ajv from "ajv";
+import { helpers } from "oak";
+import { PostgresError } from "deno_postgres";
 import {
   create,
   findById,
@@ -10,10 +9,6 @@ import {
   getCostTableData,
   getTableData,
 } from "../../../api/models/ORGANIZACION/people.ts";
-import { EmployeeType, TipoIdentificacion } from "../../../api/models/enums.ts";
-import {
-  findByDate as findWeekByDate,
-} from "../../../api/models/MAESTRO/dim_semana.ts";
 import {
   findByCode as findParameter,
 } from "../../../api/models/MAESTRO/parametro.ts";
@@ -21,24 +16,19 @@ import {
   getActiveDefinition as findParameterValue,
 } from "../../../api/models/MAESTRO/parametro_definicion.ts";
 import {
+  findByDate as findWeekByDate,
+  findById as findWeek,
+} from "../../../api/models/MAESTRO/dim_semana.ts";
+import {
   create as createNewControl,
+  findOpenWeek as findPersonOpenControl,
 } from "../../../api/models/OPERACIONES/control_semana.ts";
 import { Message } from "../../http_utils.ts";
 import { NotFoundError, RequestSyntaxError } from "../../exceptions.ts";
 import { tableRequestHandler } from "../../../api/common/table.ts";
 import {
-  BOOLEAN,
-  EMAIL,
-  STANDARD_DATE_STRING,
-  STANDARD_DATE_STRING_OR_NULL,
-  STRING,
-} from "../../../lib/ajv/types.js";
-import { castStringToBoolean } from "../../../lib/utils/boolean.js";
-import { formatStandardStringToStandardNumber } from "../../../lib/date/mod.js";
-import {
   getFile as getTemplateFile,
 } from "../../../api/storage/template_file.ts";
-import { decodeToken } from "../../../lib/jwt.ts";
 import {
   createApprovedReview as approveIdentificationReview,
 } from "../../../api/reviews/user_identification.ts";
@@ -48,6 +38,17 @@ import {
 import {
   createApprovedReview as approveResidenceReview,
 } from "../../../api/reviews/user_residence.ts";
+import { RouterContext } from "../../state.ts";
+import { EmployeeType, TipoIdentificacion } from "../../../api/models/enums.ts";
+import {
+  BOOLEAN,
+  EMAIL,
+  STANDARD_DATE_STRING,
+  STANDARD_DATE_STRING_OR_NULL,
+  STRING,
+} from "../../../lib/ajv/types.js";
+import { castStringToBoolean } from "../../../lib/utils/boolean.js";
+import { formatStandardStringToStandardNumber } from "../../../lib/date/mod.js";
 
 const get_request = {
   $id: "get",
@@ -88,13 +89,13 @@ const update_request = {
 const create_request = Object.assign({}, update_request, {
   $id: "create",
   required: [
-    "employee_type",
     "email",
+    "employee_type",
     "identification",
     "name",
     "phone",
-    "type",
     "start_date",
+    "type",
   ],
 });
 
@@ -108,14 +109,11 @@ const request_validator = new Ajv({
 });
 
 export const createPerson = async (
-  { cookies, request, response }: RouterContext,
+  { request, response, state }: RouterContext,
 ) => {
-  const session_cookie = cookies.get("PA_AUTH") || "";
-  const { id: reviewer } = await decodeToken(session_cookie);
   if (!request.hasBody) throw new RequestSyntaxError();
 
   const value = await request.body({ type: "json" }).value;
-
   if (!request_validator.validate("create", value)) {
     throw new RequestSyntaxError();
   }
@@ -147,6 +145,8 @@ export const createPerson = async (
       await person.delete();
       throw e;
     });
+
+  const reviewer = state.user.id;
 
   const personal_data_review = await approvePersonalDataReview(
     String(person.pk_persona),
@@ -187,7 +187,7 @@ export const createPerson = async (
 export const deletePerson = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
   const person = await findById(id);
@@ -236,11 +236,14 @@ export const getPeopleTable = (context: RouterContext) =>
   );
 
 export const getPerson = async (ctx: RouterContext<{ id: string }>) => {
-  const query_params = helpers.getQuery(ctx, {
+  const query_params: {
+    id?: string;
+    review?: string;
+  } = helpers.getQuery(ctx, {
     mergeParams: true,
   });
 
-  const id: number = Number(query_params.id);
+  const id = Number(query_params.id);
   if (!id) throw new RequestSyntaxError();
 
   if (!request_validator.validate("get", query_params)) {
@@ -259,43 +262,74 @@ export const getPerson = async (ctx: RouterContext<{ id: string }>) => {
 export const updatePerson = async (
   { params, request, response }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
   const person = await findById(id);
   if (!person) throw new NotFoundError();
 
-  const value = await request.body({ type: "json" }).value;
-
+  const value: {
+    employee_type: EmployeeType;
+    identification: string;
+    name: string;
+    phone: string;
+    retirement_date?: string;
+    start_date: string;
+    type: TipoIdentificacion;
+  } = await request.body({ type: "json" }).value;
   if (!request_validator.validate("update", value)) {
     throw new RequestSyntaxError();
+  }
+
+  const open_control = await findPersonOpenControl(id);
+  if (open_control) {
+    if (value.retirement_date) {
+      const retirement_week = await findWeekByDate(
+        formatStandardStringToStandardNumber(value.retirement_date),
+      );
+      if (!retirement_week) {
+        throw new RequestSyntaxError(
+          "La fecha de retiro no fue encontrada en el rango de fechas validas para registro de semana",
+        );
+      }
+
+      const open_week = await findWeek(open_control.week);
+      if (!open_week) {
+        throw new Error(
+          "La semana actual de registro no fue encontrada en el rango de fechas validas para registro de semana",
+        );
+      }
+
+      // The retirement date can only be set if it matches the open week
+      // or if it's older than the open week
+      if (
+        (retirement_week.id !== open_week.id) &&
+        (new Date(retirement_week.end_date).getTime() >
+          new Date(open_week.end_date).getTime())
+      ) {
+        throw new RequestSyntaxError(
+          "La fecha de retiro seleccionada es superior a la fecha de registro de la persona.\n" +
+            "No es posible cerrar la semana",
+        );
+      }
+
+      // We close the current open week, independently of what retirement date
+      // was set by the user (we don't want to delete the registry)
+      await open_control.close(false);
+    }
   }
 
   //TODO
   //Allow start_date to be updated and update control accordingly
 
-  await person.update(
-    value.type,
-    value.identification,
-    undefined,
-    undefined,
-    value.name,
-    value.phone,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    value.retirement_date,
-    undefined,
-    value.employee_type,
-  )
+  await person.update({
+    tipo_identificacion: value.type,
+    identificacion: value.identification,
+    nombre: value.name,
+    telefono: value.phone,
+    fecha_retiro: value.retirement_date,
+    tipo_empleado: value.employee_type,
+  })
     .catch(() => {
       throw new Error(
         "No fue posible actualizar a la persona",
