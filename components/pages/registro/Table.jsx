@@ -220,37 +220,51 @@ export default function RegistryTable({
       <Paper className={classes.paper}>
         <AppBar className={classes.menu} position="static">
           <Toolbar>
-            <Grid container alignItems="center">
-              <Grid container item xs={6} justify="flex-start">
-                <div>
-                  <Typography variant="h5">
-                    {week_details.date
-                      ? parseStandardNumberAsWeek(week_details.date)
-                      : "Semana no disponible"}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Horas totales de la semana:
-                    {week_details.expected_hours ||
-                      0}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Horas asignadas: {week_details.assignated_hours || 0}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Horas solicitadas:
-                    {week_details.requested_hours || 0}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Horas asignadas + solicitadas:
-                    {Number(week_details.assignated_hours || 0) +
-                      Number(week_details.requested_hours || 0)}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Horas registradas: {Number(week_details.used_hours || 0)}
-                  </Typography>
-                </div>
+            <Grid container>
+              <Grid container item md={6} direction="column">
+                <Typography variant="h4">
+                  {week_details.date
+                    ? parseStandardNumberAsWeek(week_details.date)
+                    : "Semana no disponible"}
+                </Typography>
+                <Typography className={classes.bold} variant="subtitle2">
+                  <b>Horas totales de la semana:</b>&nbsp;
+                  {week_details.expected_hours ||
+                    0}
+                </Typography>
+                <Typography className={classes.bold} variant="subtitle2">
+                  <b>
+                    Horas asignadas:
+                  </b>&nbsp;{week_details.assignated_hours || 0}
+                </Typography>
+                <Typography className={classes.bold} variant="subtitle2">
+                  <b>Horas solicitadas:</b>&nbsp;
+                  {week_details.requested_hours || 0}
+                </Typography>
+                <Typography className={classes.bold} variant="subtitle2">
+                  <b>Horas asignadas + solicitadas:</b>&nbsp;
+                  {Number(week_details.assignated_hours || 0) +
+                    Number(week_details.requested_hours || 0)}
+                </Typography>
+                <Typography className={classes.bold} variant="subtitle2">
+                  <b>Horas registradas:</b>&nbsp;{Number(
+                    week_details.used_hours || 0,
+                  )}
+                </Typography>
               </Grid>
-              <Grid container item xs={6}>{header}</Grid>
+              <Grid
+                alignItems="center"
+                container
+                direction="column"
+                item
+                justify="center"
+                md={6}
+                style={{
+                  padding: "20px",
+                }}
+              >
+                {header}
+              </Grid>
             </Grid>
           </Toolbar>
         </AppBar>

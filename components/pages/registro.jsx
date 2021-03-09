@@ -837,7 +837,7 @@ export default function Registro({
       <Title title="Registro" />
       {admin_access
         ? (<Grid container spacing={3}>
-          <Grid item md={6}>
+          <Grid item md={6} xs={12}>
             <SelectField
               blank_value={false}
               label="Persona"
@@ -851,7 +851,7 @@ export default function Registro({
               ))}
             </SelectField>
           </Grid>
-          <Grid item md={6}>
+          <Grid item md={6} xs={12}>
             <SelectField
               disabled={!selected_person}
               label="Semana"
@@ -1013,8 +1013,10 @@ export default function Registro({
         <br />
         Horas registradas:{" "}
         <b>
-          {Array.from(table_data.values()).reduce((agg, { used_hours }) =>
-            agg + Number(used_hours), 0)}
+          {Array.from(table_data.values()).reduce(
+            (agg, { used_hours }) => agg + Number(used_hours),
+            0,
+          )}
         </b>
         <br />
         <br />
