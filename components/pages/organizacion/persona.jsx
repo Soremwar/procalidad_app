@@ -4,6 +4,7 @@ import { formatResponseJson } from "../../../lib/api/request.ts";
 import { fetchPeopleApi } from "../../../lib/api/generator.js";
 
 import AsyncTable from "../../common/AsyncTable/Table.jsx";
+import ConfirmDialog from "../../common/ConfirmDialog.jsx";
 import DateField from "../../common/DateField.jsx";
 import DialogForm from "../../common/DialogForm.jsx";
 import Title from "../../common/Title.jsx";
@@ -50,8 +51,14 @@ const updatePerson = (
     start_date,
     type,
   },
+  actualizar_fecha_inicio,
 ) =>
-  fetchPeopleApi(id, {
+  fetchPeopleApi({
+    path: id,
+    params: {
+      actualizar_fecha_inicio,
+    },
+  }, {
     body: JSON.stringify({
       employee_type,
       email,
@@ -243,9 +250,15 @@ const EditModal = ({
   setModalOpen,
   updateTable,
 }) => {
+  const [error, setError] = useState("");
   const [fields, setFields] = useState(DEFAULT_FIELDS);
   const [is_loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [update_warning_modal_open, setUpdateWarningModalOpen] = useState(
+    false,
+  );
+  const [update_warning_modal_text, setUpdateWarningModalText] = useState(
+    false,
+  );
 
   useEffect(() => {
     if (is_open) {
@@ -259,7 +272,7 @@ const EditModal = ({
         start_date: data.fecha_inicio || "",
         type: data.tipo_identificacion,
       });
-      setError(null);
+      setError("");
       setLoading(false);
     }
   }, [is_open]);
@@ -269,9 +282,9 @@ const EditModal = ({
     setFields((prev_state) => ({ ...prev_state, [name]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (update_start_date = false) => {
     setLoading(true);
-    setError(null);
+    setError("");
 
     const request = await updatePerson(
       data.pk_persona,
@@ -279,106 +292,126 @@ const EditModal = ({
         ...fields,
         retirement_date: fields.retirement_date || null,
       },
-    );
+      update_start_date,
+    )
+      .catch((e) => console.error("Couldn't update people data", e));
+
+    const { code, message } = await request.json();
 
     if (request.ok) {
-      setModalOpen(false);
-      updateTable();
+      if (request.status === 202) {
+        if (code === "CONFIRM_UPDATE_REGISTRY_DATE") {
+          setUpdateWarningModalText(message);
+          setUpdateWarningModalOpen(true);
+        }
+      } else {
+        setModalOpen(false);
+        updateTable();
+      }
     } else {
-      const { message } = await request.json();
       setError(message);
     }
     setLoading(false);
   };
 
   return (
-    <DialogForm
-      error={error}
-      handleSubmit={handleSubmit}
-      is_loading={is_loading}
-      is_open={is_open}
-      setIsOpen={setModalOpen}
-      title={"Editar"}
-    >
-      <SelectField
-        label="Tipo de identificación"
-        fullWidth
-        name="type"
-        onChange={handleChange}
-        required
-        value={fields.type}
+    <Fragment>
+      <DialogForm
+        error={error}
+        handleSubmit={() => handleSubmit(false)}
+        is_loading={is_loading}
+        is_open={is_open}
+        setIsOpen={setModalOpen}
+        title={"Editar"}
       >
-        <option value="CC">Cedula de Ciudadania</option>
-        <option value="CE">Cedula de Extranjeria</option>
-        <option value="PA">Pasaporte</option>
-        <option value="RC">Registro Civil</option>
-        <option value="TI">Tarjeta de Identidad</option>
-      </SelectField>
-      <TextField
-        fullWidth
-        label="Identificación"
-        margin="dense"
-        name="identification"
-        onChange={handleChange}
-        required
-        value={fields.identification}
-      />
-      <TextField
-        fullWidth
-        label="Nombre"
-        margin="dense"
-        name="name"
-        onChange={handleChange}
-        required
-        value={fields.name}
-      />
-      <TextField
-        fullWidth
-        label="Teléfono"
-        margin="dense"
-        name="phone"
-        onChange={handleChange}
-        required
-        value={fields.phone}
-      />
-      <TextField
-        disabled
-        fullWidth
-        label="Correo"
-        margin="dense"
-        name="email"
-        onChange={handleChange}
-        type="email"
-        value={fields.email}
-      />
-      <SelectField
-        blank_value={false}
-        fullWidth
-        label="Tipo de empleado"
-        name="employee_type"
-        onChange={handleChange}
-        required
-        value={fields.employee_type}
+        <SelectField
+          label="Tipo de identificación"
+          fullWidth
+          name="type"
+          onChange={handleChange}
+          required
+          value={fields.type}
+        >
+          <option value="CC">Cedula de Ciudadania</option>
+          <option value="CE">Cedula de Extranjeria</option>
+          <option value="PA">Pasaporte</option>
+          <option value="RC">Registro Civil</option>
+          <option value="TI">Tarjeta de Identidad</option>
+        </SelectField>
+        <TextField
+          fullWidth
+          label="Identificación"
+          margin="dense"
+          name="identification"
+          onChange={handleChange}
+          required
+          value={fields.identification}
+        />
+        <TextField
+          fullWidth
+          label="Nombre"
+          margin="dense"
+          name="name"
+          onChange={handleChange}
+          required
+          value={fields.name}
+        />
+        <TextField
+          fullWidth
+          label="Teléfono"
+          margin="dense"
+          name="phone"
+          onChange={handleChange}
+          required
+          value={fields.phone}
+        />
+        <TextField
+          disabled
+          fullWidth
+          label="Correo"
+          margin="dense"
+          name="email"
+          onChange={handleChange}
+          type="email"
+          value={fields.email}
+        />
+        <SelectField
+          blank_value={false}
+          fullWidth
+          label="Tipo de empleado"
+          name="employee_type"
+          onChange={handleChange}
+          required
+          value={fields.employee_type}
+        >
+          <option value={EmployeeType.INTERNAL}>Interno</option>
+          <option value={EmployeeType.EXTERNAL}>Externo</option>
+        </SelectField>
+        <DateField
+          fullWidth
+          label="Fecha de inicio (en la compañía)"
+          name="start_date"
+          onChange={handleChange}
+          required
+          value={fields.start_date}
+        />
+        <DateField
+          fullWidth
+          label="Fecha de retiro"
+          name="retirement_date"
+          onChange={handleChange}
+          value={fields.retirement_date}
+        />
+      </DialogForm>
+      <ConfirmDialog
+        onClose={() => setUpdateWarningModalOpen(false)}
+        onConfirm={() => handleSubmit(true)}
+        open={update_warning_modal_open}
+        title="Advertencia"
       >
-        <option value={EmployeeType.INTERNAL}>Interno</option>
-        <option value={EmployeeType.EXTERNAL}>Externo</option>
-      </SelectField>
-      <DateField
-        fullWidth
-        label="Fecha de inicio (en la compañía)"
-        name="start_date"
-        onChange={handleChange}
-        required
-        value={fields.start_date}
-      />
-      <DateField
-        fullWidth
-        label="Fecha de retiro"
-        name="retirement_date"
-        onChange={handleChange}
-        value={fields.retirement_date}
-      />
-    </DialogForm>
+        {update_warning_modal_text}
+      </ConfirmDialog>
+    </Fragment>
   );
 };
 

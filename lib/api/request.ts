@@ -55,7 +55,8 @@ export function generateUrl(
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       // Filter undefined values
-      value && url.searchParams.append(key, value);
+      value !== undefined && value !== "" &&
+        url.searchParams.append(key, value);
     }
   }
 

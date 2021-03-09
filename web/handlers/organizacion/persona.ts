@@ -1,5 +1,5 @@
 import Ajv from "ajv";
-import { helpers } from "oak";
+import { helpers, Status } from "oak";
 import { PostgresError } from "deno_postgres";
 import {
   create,
@@ -48,7 +48,11 @@ import {
   STRING,
 } from "../../../lib/ajv/types.js";
 import { castStringToBoolean } from "../../../lib/utils/boolean.js";
-import { formatStandardStringToStandardNumber } from "../../../lib/date/mod.js";
+import {
+  formatDateToStandardString,
+  formatStandardStringToStandardNumber,
+  parseStandardString,
+} from "../../../lib/date/mod.js";
 
 const get_request = {
   $id: "get",
@@ -260,10 +264,26 @@ export const getPerson = async (ctx: RouterContext<{ id: string }>) => {
 };
 
 export const updatePerson = async (
-  { params, request, response }: RouterContext<{ id: string }>,
+  ctx: RouterContext<{ id: string }>,
 ) => {
-  const id = Number(params.id);
-  if (!request.hasBody || !id) throw new RequestSyntaxError();
+  const query_params: {
+    id?: string;
+    actualizar_fecha_inicio?: string;
+  } = helpers.getQuery(ctx, {
+    mergeParams: true,
+  });
+
+  const id = Number(query_params.id);
+  if (
+    !ctx.request.hasBody ||
+    !id
+  ) {
+    throw new RequestSyntaxError();
+  }
+
+  const update_start_date = castStringToBoolean(
+    query_params.actualizar_fecha_inicio,
+  );
 
   const person = await findById(id);
   if (!person) throw new NotFoundError();
@@ -276,27 +296,79 @@ export const updatePerson = async (
     retirement_date?: string;
     start_date: string;
     type: TipoIdentificacion;
-  } = await request.body({ type: "json" }).value;
+  } = await ctx.request.body({ type: "json" }).value;
   if (!request_validator.validate("update", value)) {
     throw new RequestSyntaxError();
   }
 
+  // Throw error if start_date is higher than retirement_date
+  if (value.retirement_date) {
+    const start_date = parseStandardString(value.start_date) as Date;
+    const retirement_date = parseStandardString(value.retirement_date) as Date;
+    if (
+      (start_date.getTime() !== retirement_date.getTime()) &&
+      start_date > retirement_date
+    ) {
+      throw new RequestSyntaxError(
+        "La fecha de retiro no puede ser menor a la fecha de inicio en la compañía ",
+      );
+    }
+  }
+
+  // This date overrides the current open week
+  const new_start_week = await findWeekByDate(
+    formatStandardStringToStandardNumber(value.start_date),
+  );
+  if (!new_start_week) {
+    throw new RequestSyntaxError(
+      "La fecha de inicio no fue encontrada en el rango de fechas validas para registro de semana",
+    );
+  }
+
   const open_control = await findPersonOpenControl(id);
   if (open_control) {
-    if (value.retirement_date) {
+    const open_week = await findWeek(open_control.week);
+    if (!open_week) {
+      throw new Error(
+        "La semana actual de registro no fue encontrada en el rango de fechas validas para registro de semana",
+      );
+    }
+
+    let control_closed = false;
+
+    // Throw warning at updating the start date
+    if (Number(new_start_week.id) !== Number(open_control.week)) {
+      if (!update_start_date) {
+        ctx.response.status = Status.Accepted;
+        ctx.response.body = {
+          code: "CONFIRM_UPDATE_REGISTRY_DATE",
+          message: (
+            `Esta persona ya cuenta con registro dentro de la aplicacion\n` +
+            `Al continuar, usted cambiara la semana abierta de la semana del "${
+              formatDateToStandardString(open_week.start_date, false)
+            }" a la semana del "${
+              formatDateToStandardString(new_start_week.start_date, false)
+            }"`
+          ),
+        };
+
+        return;
+      } else {
+        await open_control.close(false);
+        await createNewControl(id, new_start_week.id);
+        // It is important to indicate we closed the control here so retirement date
+        // validations are skipped
+        control_closed = true;
+      }
+    }
+
+    if (value.retirement_date && !control_closed) {
       const retirement_week = await findWeekByDate(
         formatStandardStringToStandardNumber(value.retirement_date),
       );
       if (!retirement_week) {
         throw new RequestSyntaxError(
           "La fecha de retiro no fue encontrada en el rango de fechas validas para registro de semana",
-        );
-      }
-
-      const open_week = await findWeek(open_control.week);
-      if (!open_week) {
-        throw new Error(
-          "La semana actual de registro no fue encontrada en el rango de fechas validas para registro de semana",
         );
       }
 
@@ -319,24 +391,20 @@ export const updatePerson = async (
     }
   }
 
-  //TODO
-  //Allow start_date to be updated and update control accordingly
-
-  await person.update({
-    tipo_identificacion: value.type,
+  ctx.response.body = await person.update({
+    fecha_inicio: value.start_date,
+    fecha_retiro: value.retirement_date,
     identificacion: value.identification,
     nombre: value.name,
     telefono: value.phone,
-    fecha_retiro: value.retirement_date,
     tipo_empleado: value.employee_type,
+    tipo_identificacion: value.type,
   })
     .catch(() => {
       throw new Error(
         "No fue posible actualizar a la persona",
       );
     });
-
-  response.body = person;
 };
 
 export const getPicture = async (
