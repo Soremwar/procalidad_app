@@ -1,5 +1,5 @@
 import { create, getNumericDate, verify } from "djwt";
-import { encryption_key } from "../config/api_deno.js";
+import { encryption_key } from "../config/api.js";
 
 export const algorithm = "HS256";
 

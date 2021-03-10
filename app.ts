@@ -1,8 +1,6 @@
 import { Application, httpErrors, send, Status } from "oak";
-import { fromFileUrl } from "path";
-import { existsSync } from "fs";
 import { allowedMethods, routes } from "./web/routes.ts";
-import { address, port } from "./config/api_deno.js";
+import { address, port, tls } from "./config/api.js";
 import { errorHandler } from "./web/middleware.ts";
 import { State } from "./web/state.ts";
 
@@ -38,14 +36,7 @@ app.use(async (context) => {
     });
 });
 
-let tls = false;
-let cert_file = fromFileUrl(new URL("server.crt", import.meta.url));
-let key_file = fromFileUrl(new URL("server.key", import.meta.url));
-if (existsSync(cert_file) && existsSync(key_file)) {
-  tls = true;
-}
-
-if (!tls) {
+if (!tls.secure) {
   console.error(
     "No TLS certificates were found\n" +
       'Place your certificate "server.crt" and private key "server.key" on the project root',
@@ -54,20 +45,20 @@ if (!tls) {
 
 app.addEventListener("listen", ({ hostname, port }) => {
   console.log(
-    `${tls ? "HTTPS" : "HTTP"} server running on ${hostname}:${port}`,
+    `${tls.secure ? "HTTPS" : "HTTP"} server running on ${hostname}:${port}`,
   );
 });
 
-if (!tls) {
+if (!tls.secure) {
   await app.listen({
     hostname: address,
     port,
   });
 } else {
   await app.listen({
-    certFile: cert_file,
+    certFile: tls.cert_file,
     hostname: address,
-    keyFile: key_file,
+    keyFile: tls.key_file,
     port,
     secure: true,
   });

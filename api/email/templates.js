@@ -1,8 +1,9 @@
-import { address, port, protocol } from "../../config/app_deno.js";
+import { address, port, tls } from "../../config/api.js";
 import HtmlEncoder from "html-entities";
 import Handlebars from "handlebars";
 
-const getAppRoute = (route) => `${protocol}://${address}:${port}/${route}`;
+const getAppRoute = (route) =>
+  `${tls.secure ? "https" : "http"}://${address}:${port}/${route}`;
 
 Handlebars.registerHelper("AppUrl", function (app_route = "") {
   return new Handlebars.SafeString(getAppRoute(app_route));
