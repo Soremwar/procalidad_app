@@ -19,7 +19,7 @@ const fields = [
   "ESTADO",
 ];
 
-class Budget implements BudgetInterface {
+class Budget {
   constructor(
     public readonly pk_presupuesto: number,
     public fk_cliente: number | undefined,

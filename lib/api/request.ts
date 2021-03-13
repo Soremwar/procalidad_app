@@ -2,7 +2,7 @@ import { address, api, port, protocol } from "../../config/app";
 import { messages } from "../errors/mod.js";
 import { isObject } from "../utils/object.js";
 
-export interface Response<T = any> {
+export interface JsonResponse<T = any> extends Response {
   json(): Promise<T>;
 }
 
@@ -13,10 +13,10 @@ const sanitizeUrl = (url) => {
 };
 
 export function timedFetch<T>(
-  url,
+  url: URL,
   options: RequestInit = {},
   timeout = 15000,
-): Promise<Response<T>> {
+): Promise<JsonResponse<T>> {
   if (options.signal) {
     throw new Error(
       'Propiedad "signal" personalizada no permitida en esta instancia de fetch',
@@ -103,7 +103,7 @@ export function requestGenerator(
   };
 }
 
-export const formatResponseJson = (response) => {
+export const formatResponseJson = (response: Response) => {
   return response.json()
     .then((x) => x.message || messages.UNEXPECTED_RESPONSE)
     .catch(() => messages.UNEXPECTED_RESPONSE);

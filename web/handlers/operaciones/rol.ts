@@ -37,7 +37,7 @@ export const getRoles = async (context: RouterContext) => {
   });
 };
 
-export const getRolesTable = async (context: RouterContext) =>
+export const getRolesTable = (context: RouterContext) =>
   tableRequestHandler(
     context,
     getTableData,

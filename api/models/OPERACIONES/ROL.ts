@@ -1,6 +1,8 @@
 import postgres from "../../services/postgres.ts";
 import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
+import { TABLE as BUDGET_TABLE } from "./budget.ts";
+import { TABLE as BUDGET_DETAIL_TABLE } from "./budget_detail.ts";
 
 export const TABLE = "OPERACIONES.ROL";
 const ERROR_DEPENDENCY =
@@ -59,10 +61,10 @@ export const findAll = async ({
       project
         ? `WHERE PK_ROL IN (
             SELECT FK_ROL
-            FROM OPERACIONES.PRESUPUESTO_DETALLE
+            FROM ${BUDGET_DETAIL_TABLE}
             WHERE FK_PRESUPUESTO IN (
               SELECT PK_PRESUPUESTO
-              FROM OPERACIONES.PRESUPUESTO
+              FROM ${BUDGET_TABLE}
               WHERE FK_PROYECTO = ${project}
               AND ESTADO = TRUE
             )
@@ -101,8 +103,8 @@ export const findByProject = async (project: number): Promise<Rol[]> => {
     FROM ${TABLE}
     WHERE PK_ROL IN (
       SELECT FK_ROL
-      FROM OPERACIONES.PRESUPUESTO_DETALLE PD
-      JOIN OPERACIONES.PRESUPUESTO P 
+      FROM ${BUDGET_DETAIL_TABLE} PD
+      JOIN ${BUDGET_TABLE} P 
       ON PD.FK_PRESUPUESTO = P.PK_PRESUPUESTO
       WHERE P.FK_PROYECTO = $1
     )`,

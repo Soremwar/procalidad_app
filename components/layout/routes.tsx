@@ -30,7 +30,7 @@ import PlaneacionProyecto from "../pages/planeacion/proyecto.jsx";
 import PlaneacionRecurso from "../pages/planeacion/recurso.jsx";
 import Plantilla from "../pages/maestro/plantilla.jsx";
 import PlantillaCertificacion from "../pages/maestro/certificacion/plantilla.jsx";
-import Presupuesto from "../pages/operaciones/Presupuesto.jsx";
+import Presupuesto from "../pages/operaciones/presupuesto.tsx";
 import ProveedorCertificacion from "../pages/maestro/certificacion/proveedor.jsx";
 import Proyecto from "../pages/operaciones/proyecto.jsx";
 import Registro from "../pages/registro.jsx";

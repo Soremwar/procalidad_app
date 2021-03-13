@@ -1580,9 +1580,7 @@ main_router
       Profiles.SALES,
     ]),
     budget.deleteBudget,
-  );
-
-main_router
+  )
   .get<{ id: string }>(
     "/api/operaciones/presupuesto_detalle/:id",
     checkUserAccess(),

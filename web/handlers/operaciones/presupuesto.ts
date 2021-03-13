@@ -14,7 +14,7 @@ import {
   createNew as createBudgetDetail,
   deleteByBudget as deleteBudgetDetail,
   findUseByBudget as findBudgetDetail,
-} from "../../../api/models/OPERACIONES/PRESUPUESTO_DETALLE.ts";
+} from "../../../api/models/OPERACIONES/budget_detail.ts";
 import {
   findById as findProject,
 } from "../../../api/models/OPERACIONES/PROYECTO.ts";
@@ -25,12 +25,7 @@ import { tableRequestHandler } from "../../../api/common/table.ts";
 import { BOOLEAN, INTEGER, NUMBER, STRING } from "../../../lib/ajv/types.js";
 import { castStringToBoolean } from "../../../lib/utils/boolean.js";
 import { RouterContext } from "../../state.ts";
-
-interface Role {
-  id: number;
-  price: number;
-  time: number;
-}
+import { BudgetDetail } from "../../../api/models/interfaces.ts";
 
 const list_request = {
   $id: "list",
@@ -50,14 +45,14 @@ const update_request = {
     "roles": {
       type: "object",
       properties: {
-        "id": INTEGER({ min: 1 }),
-        "price": NUMBER({ min: 0 }),
-        "time": NUMBER({ min: 0 }),
+        "hour_cost": NUMBER({ min: 0 }),
+        "hours": NUMBER({ min: 0 }),
+        "role": INTEGER({ min: 1 }),
       },
       required: [
-        "id",
-        "price",
-        "time",
+        "hour_cost",
+        "hours",
+        "role",
       ],
     },
     "status": BOOLEAN,
@@ -103,7 +98,7 @@ export const createBudget = async (
     description: string;
     name: string;
     project: number;
-    roles: Role[];
+    roles: BudgetDetail[];
     status: boolean;
   } = await request.body({ type: "json" }).value;
   if (request_validator.validate("create", value)) {
@@ -136,12 +131,10 @@ export const createBudget = async (
   );
 
   for (const role of value.roles) {
-    await createBudgetDetail(
-      budget_id,
-      role.id,
-      role.time,
-      role.price,
-    );
+    await createBudgetDetail({
+      ...role,
+      budget: budget_id,
+    });
   }
 
   response.body = Message.OK;
@@ -166,7 +159,7 @@ export const deleteBudget = async (
 export const getBudget = async (
   { params, response }: RouterContext<{ id: string }>,
 ) => {
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!id) throw new RequestSyntaxError();
 
   const budget = await budget_model.findById(id);
@@ -192,7 +185,7 @@ export const getBudgets = async (context: RouterContext) => {
   });
 };
 
-export const getBudgetTable = async (context: RouterContext) =>
+export const getBudgetTable = (context: RouterContext) =>
   tableRequestHandler(
     context,
     budget_model.getTableData,
@@ -243,7 +236,7 @@ export const updateBudget = async (
     budget_type: number;
     description: string;
     name: string;
-    roles: Role[];
+    roles: BudgetDetail[];
     status: boolean;
   } = await request.body({ type: "json" }).value;
   if (request_validator.validate("update", value)) {
@@ -301,16 +294,23 @@ export const updateBudget = async (
 
   //Only add/edit roles, deletion is only allowed for non used roles
   const current_roles = await findBudgetDetail(id);
-  const new_roles: Role[] = value.roles.reduce(
+  const new_roles = value.roles.reduce(
     (current_roles, role) => {
       const current_role_index = current_roles.findIndex((current_role) =>
-        current_role.id === role.id
+        current_role.budget === role.budget
       );
 
       //Update if found
       if (current_role_index !== -1) {
-        current_roles[current_role_index].price = role.price;
-        current_roles[current_role_index].time = role.time;
+        current_roles[current_role_index].direct_cost = role.direct_cost;
+        current_roles[current_role_index].hour_cost = role.hour_cost;
+        current_roles[current_role_index].hours = role.hours;
+        current_roles[current_role_index].productivity_percentage =
+          role.productivity_percentage;
+        current_roles[current_role_index].third_party_cost =
+          role.third_party_cost;
+        current_roles[current_role_index].unforeseen_cost =
+          role.unforeseen_cost;
         //Insert otherwise
       } else {
         current_roles.push(role);
@@ -319,24 +319,16 @@ export const updateBudget = async (
       return current_roles;
     },
     //Roles that need to be keeped
-    current_roles
-      .filter(({ used }) => used)
-      .map(({ role, hours, hour_cost }) => ({
-        id: role,
-        time: hours,
-        price: hour_cost,
-      })),
+    current_roles.filter(({ used }) => used),
   );
 
   await deleteBudgetDetail(id);
 
   for (const role of new_roles) {
-    await createBudgetDetail(
-      id,
-      role.id,
-      role.time,
-      role.price,
-    );
+    await createBudgetDetail({
+      ...role,
+      budget: id,
+    });
   }
 
   response.body = budget;
