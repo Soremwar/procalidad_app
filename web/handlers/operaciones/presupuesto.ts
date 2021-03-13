@@ -45,14 +45,22 @@ const update_request = {
     "roles": {
       type: "object",
       properties: {
+        "direct_cost": INTEGER({ min: 0 }),
         "hour_cost": NUMBER({ min: 0 }),
         "hours": NUMBER({ min: 0 }),
+        "productivity_percentage": INTEGER({ min: 0 }),
         "role": INTEGER({ min: 1 }),
+        "third_party_cost": NUMBER({ min: 0 }),
+        "unforeseen_cost": NUMBER({ min: 0 }),
       },
       required: [
+        "direct_cost",
         "hour_cost",
         "hours",
+        "productivity_percentage",
         "role",
+        "third_party_cost",
+        "unforeseen_cost",
       ],
     },
     "status": BOOLEAN,
@@ -206,7 +214,7 @@ export const updateBudget = async (
 
   const { params, request, response, state } = context;
 
-  const id: number = Number(params.id);
+  const id = Number(params.id);
   if (!request.hasBody || !id) throw new RequestSyntaxError();
 
   let budget = await budget_model.findById(id);
@@ -302,15 +310,10 @@ export const updateBudget = async (
 
       //Update if found
       if (current_role_index !== -1) {
-        current_roles[current_role_index].direct_cost = role.direct_cost;
-        current_roles[current_role_index].hour_cost = role.hour_cost;
-        current_roles[current_role_index].hours = role.hours;
-        current_roles[current_role_index].productivity_percentage =
-          role.productivity_percentage;
-        current_roles[current_role_index].third_party_cost =
-          role.third_party_cost;
-        current_roles[current_role_index].unforeseen_cost =
-          role.unforeseen_cost;
+        Object.assign(current_roles[current_role_index], {
+          ...role,
+          budget: id,
+        });
         //Insert otherwise
       } else {
         current_roles.push(role);

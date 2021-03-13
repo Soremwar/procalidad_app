@@ -53,43 +53,59 @@ class BudgetDetail implements BudgetDetailInterface {
 
 export const createNew = async ({
   budget,
-  direct_cost = 0,
+  direct_cost,
   hour_cost,
   hours,
-  productivity_percentage = 0,
+  productivity_percentage,
   role,
-  third_party_cost = 0,
-  unforeseen_cost = 0,
+  third_party_cost,
+  unforeseen_cost,
 }: BudgetDetailInterface) => {
-  await postgres.query(
-    `INSERT INTO ${TABLE} (
-      FK_PRESUPUESTO,
-      FK_ROL,
-      HORAS,
-      COSTO_DIRECTO,
-      COSTO_TERCEROS,
-      COSTO_IMPREVISTO,
-      FACTOR_PRODUCTIVIDAD,
-      TARIFA_HORA
-    ) VALUES (
-      $1,
-      $2,
-      $3,
-      $4,
-      $5,
-      $6,
-      $7,
-      $8
-    )`,
+  await queryObject({
+    text: (
+      `INSERT INTO ${TABLE} (
+        FK_PRESUPUESTO,
+        FK_ROL,
+        HORAS,
+        COSTO_DIRECTO,
+        COSTO_TERCEROS,
+        COSTO_IMPREVISTO,
+        FACTOR_PRODUCTIVIDAD,
+        TARIFA_HORA
+      ) VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8
+      )`
+    ),
+    args: [
+      budget,
+      role,
+      hours,
+      direct_cost,
+      third_party_cost,
+      unforeseen_cost,
+      productivity_percentage,
+      hour_cost,
+    ],
+  });
+
+  return new BudgetDetail({
     budget,
-    role,
-    hours,
     direct_cost,
+    hour_cost,
+    hours,
+    productivity_percentage,
+    role,
     third_party_cost,
     unforeseen_cost,
-    productivity_percentage,
-    hour_cost,
-  );
+    used: false,
+  });
 };
 
 export const findByBudget = async (budget: number) => {
