@@ -48,7 +48,7 @@ const update_request = {
         "direct_cost": INTEGER({ min: 0 }),
         "hour_cost": NUMBER({ min: 0 }),
         "hours": NUMBER({ min: 0 }),
-        "productivity_percentage": INTEGER({ min: 0 }),
+        "productivity_percentage": NUMBER({ min: 0, max: 1, multipleOf: 0.01 }),
         "role": INTEGER({ min: 1 }),
         "third_party_cost": NUMBER({ min: 0 }),
         "unforeseen_cost": NUMBER({ min: 0 }),

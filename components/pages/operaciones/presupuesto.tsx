@@ -7,9 +7,9 @@ import React, {
 } from "react";
 import {
   Button,
-  Checkbox,
   DialogContentText,
   Grid,
+  InputAdornment,
   Paper,
   Table,
   TableBody,
@@ -239,16 +239,27 @@ const BudgetDetailRow = ({
         />
       </TableCell>
       <TableCell width="10%">
+        {
+          /**
+           * Percentage is represented by the API as a decimal number from 0 to 1
+           * Here we represent it as a percentage
+            */
+        }
         <CurrencyField
           currencySymbol="%"
-          decimalPlaces={0}
+          decimalPlaces="0"
           maximumValue="100"
           minimumValue="0"
           onChange={(_event, value) =>
-            handleChange("productivity_percentage", value)}
+            handleChange(
+              "productivity_percentage",
+              value === "" ? "" : value / 100,
+            )}
           outputFormat="number"
           required
-          value={data.productivity_percentage}
+          value={data.productivity_percentage === ""
+            ? ""
+            : (data.productivity_percentage * 100)}
           variant="outlined"
         />
       </TableCell>
@@ -267,6 +278,7 @@ const BudgetDetailRow = ({
       <TableCell width="10%">
         <CurrencyField
           currencySymbol="$"
+          decimalPlaces="0"
           disabled
           value={data.hours * data.hour_cost}
         />
@@ -285,8 +297,6 @@ const BudgetDetailTable = ({
   const {
     roles,
   } = useContext(ParameterContext);
-
-  const [distribute, setDistribute] = useState(false);
 
   const used_roles = budget_details.map(({ role }) => Number(role));
   const available_roles = roles.filter(({ id }) =>
@@ -347,98 +357,99 @@ const BudgetDetailTable = ({
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell width="5%">
-              <Tooltip
-                placement="top"
-                title={!available_roles.length
-                  ? "No hay mas roles disponibles para agregar"
-                  : ""}
-              >
-                <div>
-                  <Button
-                    color="primary"
-                    disabled={!available_roles.length}
-                    onClick={addBudgetDetail}
-                    variant="contained"
-                  >
-                    +
-                  </Button>
-                </div>
-              </Tooltip>
-            </TableCell>
-            <TableCell width="25%">Rol</TableCell>
-            <TableCell width="10%">Horas</TableCell>
-            <TableCell width="10%">Costo directo</TableCell>
-            <TableCell width="10%">Costo terceros</TableCell>
-            <TableCell width="10%">Costo imprevisto</TableCell>
-            <TableCell width="10%">Factor productividad</TableCell>
-            <TableCell width="10%">Tarifa</TableCell>
-            <TableCell width="10%">Total costo</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {budget_details.map((budget_detail) => (
-            <BudgetDetailRow
-              data={budget_detail}
-              deleteBudgetDetail={deleteBudgetDetail}
-              key={budget_detail.role}
-              // The system won't allow you to use one role twice
-              // So all used roles are excluded
-              // Hence, you must append the current role to available roles
-              roles={[
-                ...available_roles,
-                roles.find(({ id }) =>
-                  Number(id) === Number(budget_detail.role)
-                ),
-              ]}
-              updateBudgetDetail={updateBudgetDetail}
-            />
-          ))}
-        </TableBody>
-      </Table>
-      <Grid container style={{ padding: "10px" }}>
-        <Grid item xs={6}>
-          <Typography variant="h6" gutterBottom>
-            Total de horas: {budget_details.reduce(
+    <Fragment>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell width="5%">
+                <Tooltip
+                  placement="top"
+                  title={!available_roles.length
+                    ? "No hay mas roles disponibles para agregar"
+                    : ""}
+                >
+                  <div>
+                    <Button
+                      color="primary"
+                      disabled={!available_roles.length}
+                      onClick={addBudgetDetail}
+                      variant="contained"
+                    >
+                      +
+                    </Button>
+                  </div>
+                </Tooltip>
+              </TableCell>
+              <TableCell width="25%">Rol</TableCell>
+              <TableCell width="10%">Horas</TableCell>
+              <TableCell width="10%">Costo directo</TableCell>
+              <TableCell width="10%">Costo terceros</TableCell>
+              <TableCell width="10%">Costo imprevisto</TableCell>
+              <TableCell width="10%">Factor productividad</TableCell>
+              <TableCell width="10%">Tarifa</TableCell>
+              <TableCell width="10%">Valor venta recursos</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {budget_details.map((budget_detail) => (
+              <BudgetDetailRow
+                data={budget_detail}
+                deleteBudgetDetail={deleteBudgetDetail}
+                key={budget_detail.role}
+                // The system won't allow you to use one role twice
+                // So all used roles are excluded
+                // Hence, you must append the current role to available roles
+                roles={[
+                  ...available_roles,
+                  roles.find(({ id }) =>
+                    Number(id) === Number(budget_detail.role)
+                  ),
+                ]}
+                updateBudgetDetail={updateBudgetDetail}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Grid container spacing={5} style={{ padding: "20px 20px 0 20px" }}>
+        <Grid item md={4}>
+          <TextField
+            disabled
+            fullWidth
+            label="Total de horas"
+            value={budget_details.reduce(
               (sum, { hours }) => (sum + Number(hours)),
               0,
             )}
-          </Typography>
+          />
         </Grid>
-        <Grid item xs={6}>
-          <Typography variant="h6" gutterBottom>
-            Valor total: &nbsp; &nbsp;
-            <CurrencyField
-              currencySymbol="$"
-              disabled
-              value={budget_details.reduce(
-                (sum, { hour_cost, hours }) => (sum + (hour_cost * hours)),
-                0,
-              )}
-            />
-          </Typography>
+        <Grid item md={4}>
+          <CurrencyField
+            currencySymbol="$"
+            decimalPlaces="0"
+            disabled
+            fullWidth
+            label="Valor total de venta"
+            value={budget_details.reduce(
+              (sum, { hour_cost, hours }) => (sum + (hour_cost * hours)),
+              0,
+            )}
+          />
+        </Grid>
+        <Grid item md={4}>
+          <CurrencyField
+            currencySymbol="$"
+            decimalPlaces="0"
+            fullWidth
+            label="Distribuir tarifas por valor de venta"
+            minimumValue="0"
+            onChange={(_event, value) => distributeValue(value)}
+            outputFormat="number"
+          />
         </Grid>
       </Grid>
-      <Typography variant="h6" gutterBottom>
-        <Checkbox
-          checked={distribute}
-          onChange={(event) => setDistribute(event.target.checked)}
-        />
-        Distribuir tarifas por valor &nbsp; &nbsp;
-        <CurrencyField
-          currencySymbol="$"
-          disabled={!distribute}
-          minimumValue="0"
-          onChange={(_event, value) => distributeValue(value)}
-          outputFormat="number"
-          required
-        />
-      </Typography>
-    </TableContainer>
+    </Fragment>
   );
 };
 
@@ -513,7 +524,7 @@ const AddModal = ({
       is_loading={is_loading}
       is_open={is_open}
       setIsOpen={setModalOpen}
-      size="lg"
+      size="xl"
       title="Crear Nuevo"
     >
       <SelectField
@@ -690,7 +701,7 @@ const EditModal = ({
         is_loading={loading}
         is_open={is_open}
         setIsOpen={setModalOpen}
-        size="lg"
+        size="xl"
         title="Editar"
       >
         <SelectField
