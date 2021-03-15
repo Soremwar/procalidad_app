@@ -173,7 +173,7 @@ const BudgetDetailRow = ({
           -
         </Button>
       </TableCell>
-      <TableCell width="25%">
+      <TableCell width="35%">
         <SelectField
           blank_value={false}
           fullWidth
@@ -186,8 +186,9 @@ const BudgetDetailRow = ({
           ))}
         </SelectField>
       </TableCell>
-      <TableCell width="10%">
+      <TableCell width="20%">
         <TextField
+          fullWidth
           inputProps={{
             min: 0,
             step: 0.5,
@@ -202,71 +203,11 @@ const BudgetDetailRow = ({
           variant="outlined"
         />
       </TableCell>
-      <TableCell width="10%">
+      <TableCell width="20%">
         <CurrencyField
           currencySymbol="$"
           decimalPlaces={0}
-          minimumValue="0"
-          onChange={(_event, value) => handleChange("direct_cost", value)}
-          outputFormat="number"
-          required
-          value={data.direct_cost}
-          variant="outlined"
-        />
-      </TableCell>
-      <TableCell width="10%">
-        <CurrencyField
-          currencySymbol="$"
-          decimalPlaces={0}
-          minimumValue="0"
-          onChange={(_event, value) => handleChange("third_party_cost", value)}
-          outputFormat="number"
-          required
-          value={data.third_party_cost}
-          variant="outlined"
-        />
-      </TableCell>
-      <TableCell width="10%">
-        <CurrencyField
-          currencySymbol="$"
-          decimalPlaces={0}
-          minimumValue="0"
-          onChange={(_event, value) => handleChange("unforeseen_cost", value)}
-          outputFormat="number"
-          required
-          value={data.unforeseen_cost}
-          variant="outlined"
-        />
-      </TableCell>
-      <TableCell width="10%">
-        {
-          /**
-           * Percentage is represented by the API as a decimal number from 0 to 1
-           * Here we represent it as a percentage
-            */
-        }
-        <CurrencyField
-          currencySymbol="%"
-          decimalPlaces="0"
-          maximumValue="100"
-          minimumValue="0"
-          onChange={(_event, value) =>
-            handleChange(
-              "productivity_percentage",
-              value === "" ? "" : value / 100,
-            )}
-          outputFormat="number"
-          required
-          value={data.productivity_percentage === ""
-            ? ""
-            : (data.productivity_percentage * 100)}
-          variant="outlined"
-        />
-      </TableCell>
-      <TableCell width="10%">
-        <CurrencyField
-          currencySymbol="$"
-          decimalPlaces={0}
+          fullWidth
           minimumValue="0"
           onChange={(_event, value) => handleChange("hour_cost", value)}
           outputFormat="number"
@@ -275,11 +216,12 @@ const BudgetDetailRow = ({
           variant="outlined"
         />
       </TableCell>
-      <TableCell width="10%">
+      <TableCell width="20%">
         <CurrencyField
           currencySymbol="$"
           decimalPlaces="0"
           disabled
+          fullWidth
           value={data.hours * data.hour_cost}
         />
       </TableCell>
@@ -309,13 +251,9 @@ const BudgetDetailTable = ({
     const role = available_roles[0];
 
     const new_budget_detail: BudgetDetailParameters = {
-      direct_cost: 0,
       hour_cost: 0,
       hours: 0,
-      productivity_percentage: 0,
       role: role.id,
-      third_party_cost: 0,
-      unforeseen_cost: 0,
       used: false,
     };
 
@@ -381,14 +319,10 @@ const BudgetDetailTable = ({
                   </div>
                 </Tooltip>
               </TableCell>
-              <TableCell width="25%">Rol</TableCell>
-              <TableCell width="10%">Horas</TableCell>
-              <TableCell width="10%">Costo directo</TableCell>
-              <TableCell width="10%">Costo terceros</TableCell>
-              <TableCell width="10%">Costo imprevisto</TableCell>
-              <TableCell width="10%">Factor productividad</TableCell>
-              <TableCell width="10%">Tarifa</TableCell>
-              <TableCell width="10%">Valor venta recursos</TableCell>
+              <TableCell width="35%">Rol</TableCell>
+              <TableCell width="20%">Horas</TableCell>
+              <TableCell width="20%">Tarifa</TableCell>
+              <TableCell width="20%">Valor venta recursos</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -412,43 +346,45 @@ const BudgetDetailTable = ({
           </TableBody>
         </Table>
       </TableContainer>
-      <Grid container spacing={5} style={{ padding: "20px 20px 0 20px" }}>
-        <Grid item md={4}>
-          <TextField
-            disabled
-            fullWidth
-            label="Total de horas"
-            value={budget_details.reduce(
-              (sum, { hours }) => (sum + Number(hours)),
-              0,
-            )}
-          />
+      <div style={{ padding: "20px 0 0 0" }}>
+        <Grid container spacing={1}>
+          <Grid item md={4}>
+            <TextField
+              disabled
+              fullWidth
+              label="Total de horas"
+              value={budget_details.reduce(
+                (sum, { hours }) => (sum + Number(hours)),
+                0,
+              )}
+            />
+          </Grid>
+          <Grid item md={4}>
+            <CurrencyField
+              currencySymbol="$"
+              decimalPlaces="0"
+              disabled
+              fullWidth
+              label="Valor total de venta"
+              value={budget_details.reduce(
+                (sum, { hour_cost, hours }) => (sum + (hour_cost * hours)),
+                0,
+              )}
+            />
+          </Grid>
+          <Grid item md={4}>
+            <CurrencyField
+              currencySymbol="$"
+              decimalPlaces="0"
+              fullWidth
+              label="Distribuir tarifas por valor de venta"
+              minimumValue="0"
+              onChange={(_event, value) => distributeValue(value)}
+              outputFormat="number"
+            />
+          </Grid>
         </Grid>
-        <Grid item md={4}>
-          <CurrencyField
-            currencySymbol="$"
-            decimalPlaces="0"
-            disabled
-            fullWidth
-            label="Valor total de venta"
-            value={budget_details.reduce(
-              (sum, { hour_cost, hours }) => (sum + (hour_cost * hours)),
-              0,
-            )}
-          />
-        </Grid>
-        <Grid item md={4}>
-          <CurrencyField
-            currencySymbol="$"
-            decimalPlaces="0"
-            fullWidth
-            label="Distribuir tarifas por valor de venta"
-            minimumValue="0"
-            onChange={(_event, value) => distributeValue(value)}
-            outputFormat="number"
-          />
-        </Grid>
-      </Grid>
+      </div>
     </Fragment>
   );
 };
@@ -474,9 +410,9 @@ const AddModal = ({
     projects,
   } = useContext(ParameterContext);
 
-  const [is_loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fields, setFields] = useState(DEFAULT_FIELDS);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
     const {
@@ -521,39 +457,45 @@ const AddModal = ({
     <DialogForm
       error={error}
       handleSubmit={handleSubmit}
-      is_loading={is_loading}
+      is_loading={loading}
       is_open={is_open}
       setIsOpen={setModalOpen}
       size="xl"
       title="Crear Nuevo"
     >
-      <SelectField
-        name="client"
-        label="Cliente"
-        fullWidth
-        onChange={handleChange}
-        required
-        value={fields.client}
-      >
-        {clients.map(({ pk_cliente, nombre }) => (
-          <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
-        ))}
-      </SelectField>
-      <SelectField
-        disabled={!fields.client}
-        name="project"
-        label="Proyecto"
-        fullWidth
-        onChange={handleChange}
-        required
-        value={fields.project}
-      >
-        {projects
-          .filter(({ fk_cliente }) => fk_cliente == fields.client)
-          .map(({ pk_proyecto, nombre }) => (
-            <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
-          ))}
-      </SelectField>
+      <Grid container spacing={3}>
+        <Grid item md={6}>
+          <SelectField
+            name="client"
+            label="Cliente"
+            fullWidth
+            onChange={handleChange}
+            required
+            value={fields.client}
+          >
+            {clients.map(({ pk_cliente, nombre }) => (
+              <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
+            ))}
+          </SelectField>
+        </Grid>
+        <Grid item md={6}>
+          <SelectField
+            disabled={!fields.client}
+            name="project"
+            label="Proyecto"
+            fullWidth
+            onChange={handleChange}
+            required
+            value={fields.project}
+          >
+            {projects
+              .filter(({ fk_cliente }) => fk_cliente == fields.client)
+              .map(({ pk_proyecto, nombre }) => (
+                <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
+              ))}
+          </SelectField>
+        </Grid>
+      </Grid>
       <SelectField
         name="budget_type"
         label="Tipo de presupuesto"
@@ -704,34 +646,42 @@ const EditModal = ({
         size="xl"
         title="Editar"
       >
-        <SelectField
-          disabled
-          name="client"
-          label="Cliente"
-          fullWidth
-          onChange={handleChange}
-          required
-          value={fields.client}
-        >
-          {clients.map(({ pk_cliente, nombre }) => (
-            <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
-          ))}
-        </SelectField>
-        <SelectField
-          disabled
-          name="project"
-          label="Proyecto"
-          fullWidth
-          onChange={handleChange}
-          required
-          value={fields.project}
-        >
-          {projects
-            .filter(({ fk_cliente }) => fk_cliente == fields.client)
-            .map(({ pk_proyecto, nombre }) => (
-              <option key={pk_proyecto} value={pk_proyecto}>{nombre}</option>
-            ))}
-        </SelectField>
+        <Grid container spacing={3}>
+          <Grid item md={6}>
+            <SelectField
+              disabled
+              name="client"
+              label="Cliente"
+              fullWidth
+              onChange={handleChange}
+              required
+              value={fields.client}
+            >
+              {clients.map(({ pk_cliente, nombre }) => (
+                <option key={pk_cliente} value={pk_cliente}>{nombre}</option>
+              ))}
+            </SelectField>
+          </Grid>
+          <Grid item md={6}>
+            <SelectField
+              disabled
+              name="project"
+              label="Proyecto"
+              fullWidth
+              onChange={handleChange}
+              required
+              value={fields.project}
+            >
+              {projects
+                .filter(({ fk_cliente }) => fk_cliente == fields.client)
+                .map(({ pk_proyecto, nombre }) => (
+                  <option key={pk_proyecto} value={pk_proyecto}>
+                    {nombre}
+                  </option>
+                ))}
+            </SelectField>
+          </Grid>
+        </Grid>
         <SelectField
           name="budget_type"
           label="Tipo de presupuesto"

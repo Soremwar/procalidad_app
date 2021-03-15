@@ -10,10 +10,6 @@ const fields = [
   "budget",
   "role",
   "hours",
-  "direct_cost",
-  "third_party_cost",
-  "unforeseen_cost",
-  "productivity_percentage",
   "hour_cost",
   "used",
 ];
@@ -29,37 +25,25 @@ class PresupuestoDetalle {
 
 class BudgetDetail implements BudgetDetailInterface {
   readonly budget: number;
-  readonly direct_cost: number;
   readonly hour_cost: number;
   readonly hours: number;
-  readonly productivity_percentage: number;
   readonly role: number;
-  readonly third_party_cost: number;
-  readonly unforeseen_cost: number;
   readonly used: boolean;
 
   constructor(bd: BudgetDetail) {
     this.budget = bd.budget;
-    this.direct_cost = bd.direct_cost;
     this.hours = bd.hours;
     this.hour_cost = bd.hour_cost;
-    this.productivity_percentage = bd.productivity_percentage;
     this.role = bd.role;
-    this.third_party_cost = bd.third_party_cost;
-    this.unforeseen_cost = bd.unforeseen_cost;
     this.used = bd.used;
   }
 }
 
 export const createNew = async ({
   budget,
-  direct_cost,
   hour_cost,
   hours,
-  productivity_percentage,
   role,
-  third_party_cost,
-  unforeseen_cost,
 }: BudgetDetailInterface) => {
   await queryObject({
     text: (
@@ -67,43 +51,27 @@ export const createNew = async ({
         FK_PRESUPUESTO,
         FK_ROL,
         HORAS,
-        COSTO_DIRECTO,
-        COSTO_TERCEROS,
-        COSTO_IMPREVISTO,
-        FACTOR_PRODUCTIVIDAD,
         TARIFA_HORA
       ) VALUES (
         $1,
         $2,
         $3,
-        $4,
-        $5,
-        $6,
-        $7,
-        $8
+        $4
       )`
     ),
     args: [
       budget,
       role,
       hours,
-      direct_cost,
-      third_party_cost,
-      unforeseen_cost,
-      productivity_percentage,
       hour_cost,
     ],
   });
 
   return new BudgetDetail({
     budget,
-    direct_cost,
     hour_cost,
     hours,
-    productivity_percentage,
     role,
-    third_party_cost,
-    unforeseen_cost,
     used: false,
   });
 };
@@ -138,10 +106,6 @@ export const findUseByBudget = async (
         D.FK_PRESUPUESTO,
         D.FK_ROL,
         D.HORAS,
-        D.COSTO_DIRECTO,
-        D.COSTO_TERCEROS,
-        D.COSTO_IMPREVISTO,
-        D.FACTOR_PRODUCTIVIDAD,
         D.TARIFA_HORA,
         CASE
           WHEN (COUNT(P.FK_ROL) + COUNT(A.FK_ROL) + COUNT(R.FK_ROL)) > 0
@@ -151,19 +115,17 @@ export const findUseByBudget = async (
       FROM ${TABLE} D
       LEFT JOIN ${PLANNING_TABLE} P
         ON D.FK_ROL = P.FK_ROL
+        AND P.FK_PRESUPUESTO = $1
       LEFT JOIN ${ASSIGNATION_TABLE} A
         ON D.FK_ROL = A.FK_ROL
+        AND A.FK_PRESUPUESTO = $1
       LEFT JOIN ${REGISTRY_TABLE} R
         ON D.FK_ROL = R.FK_ROL
-      WHERE D.FK_PRESUPUESTO = $1
+        AND R.FK_PRESUPUESTO = $1
       GROUP BY
         D.FK_PRESUPUESTO,
         D.FK_ROL,
         D.HORAS,
-        D.COSTO_DIRECTO,
-        D.COSTO_TERCEROS,
-        D.COSTO_IMPREVISTO,
-        D.FACTOR_PRODUCTIVIDAD,
         D.TARIFA_HORA`
     ),
     args: [budget],

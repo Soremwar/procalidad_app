@@ -18,13 +18,9 @@ export type Budget = {
 
 export type BudgetDetail = {
   budget: number;
-  direct_cost: number;
   hour_cost: number;
   hours: number;
-  productivity_percentage: number;
   role: number;
-  third_party_cost: number;
-  unforeseen_cost: number;
   used: boolean;
 };
 
