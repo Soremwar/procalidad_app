@@ -122,6 +122,7 @@ export const findUseByBudget = async (
       LEFT JOIN ${REGISTRY_TABLE} R
         ON D.FK_ROL = R.FK_ROL
         AND R.FK_PRESUPUESTO = $1
+      WHERE D.FK_PRESUPUESTO = $1
       GROUP BY
         D.FK_PRESUPUESTO,
         D.FK_ROL,
