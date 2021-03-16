@@ -40,7 +40,9 @@ const update_request = {
   properties: {
     "budget_type": INTEGER({ min: 1 }),
     "description": STRING(255),
+    "direct_cost": INTEGER({ min: 0 }),
     "name": STRING(255),
+    "productivity_percentage": NUMBER({ min: 0, max: 1, multipleOf: 0.01 }),
     "project": NUMBER({ min: 1 }),
     "roles": {
       type: "object",
@@ -56,6 +58,8 @@ const update_request = {
       ],
     },
     "status": BOOLEAN,
+    "third_party_cost": NUMBER({ min: 0 }),
+    "unforeseen_cost": NUMBER({ min: 0 }),
   },
 };
 
@@ -71,10 +75,14 @@ const create_request = Object.assign({}, update_request, {
   required: [
     "budget_type",
     "description",
+    "direct_cost",
     "name",
+    "productivity_percentage",
     "project",
     "roles",
     "status",
+    "third_party_cost",
+    "unforeseen_cost",
   ],
 });
 
@@ -96,10 +104,14 @@ export const createBudget = async (
   const value: {
     budget_type: number;
     description: string;
+    direct_cost: number;
     name: string;
+    productivity_percentage: number;
     project: number;
     roles: BudgetDetail[];
     status: boolean;
+    third_party_cost: number;
+    unforeseen_cost: number;
   } = await request.body({ type: "json" }).value;
   if (request_validator.validate("create", value)) {
     throw new RequestSyntaxError();
@@ -128,6 +140,10 @@ export const createBudget = async (
     value.name,
     value.description,
     value.status,
+    value.direct_cost,
+    value.third_party_cost,
+    value.unforeseen_cost,
+    value.productivity_percentage,
   );
 
   for (const role of value.roles) {
@@ -235,9 +251,13 @@ export const updateBudget = async (
   const value: {
     budget_type: number;
     description: string;
+    direct_cost: number;
     name: string;
+    productivity_percentage: number;
     roles: BudgetDetail[];
     status: boolean;
+    third_party_cost: number;
+    unforeseen_cost: number;
   } = await request.body({ type: "json" }).value;
   if (request_validator.validate("update", value)) {
     throw new RequestSyntaxError();
@@ -290,6 +310,10 @@ export const updateBudget = async (
     value.name,
     value.description,
     value.status,
+    value.direct_cost,
+    value.third_party_cost,
+    value.unforeseen_cost,
+    value.productivity_percentage,
   );
 
   //Only add/edit roles, deletion is only allowed for non used roles

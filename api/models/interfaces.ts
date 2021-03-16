@@ -7,8 +7,13 @@ import {
 } from "./enums.ts";
 
 export type Budget = {
+  costo_directo: number;
+  costo_imprevisto: number;
+  costo_terceros: number;
   descripcion: string;
   estado: boolean;
+  factor_productividad: number;
+  fk_cliente?: number;
   fk_proyecto: number;
   fk_tipo_presupuesto: number;
   nombre: string;

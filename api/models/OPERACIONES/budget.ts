@@ -1,4 +1,4 @@
-import postgres, { queryObject } from "../../services/postgres.ts";
+import { queryArray, queryObject } from "../../services/postgres.ts";
 import type { PostgresError } from "deno_postgres";
 import { getTableModels, TableOrder, TableResult } from "../../common/table.ts";
 import { findById as findProject, TABLE as PROJECT_TABLE } from "./PROYECTO.ts";
@@ -12,14 +12,21 @@ const ERROR_DEPENDENCY =
 
 const fields = [
   "PK_PRESUPUESTO",
+  "FK_CLIENTE",
   "FK_PROYECTO",
   "FK_TIPO_PRESUPUESTO",
   "NOMBRE",
   "DESCRIPCION",
   "ESTADO",
+  "COSTO_DIRECTO",
+  "COSTO_TERCEROS",
+  "COSTO_IMPREVISTO",
+  "FACTOR_PRODUCTIVIDAD",
 ];
 
-class Budget {
+class Budget implements BudgetInterface {
+  roles = [];
+
   constructor(
     public readonly pk_presupuesto: number,
     public fk_cliente: number | undefined,
@@ -28,13 +35,21 @@ class Budget {
     public nombre: string,
     public descripcion: string,
     public estado: boolean,
+    public costo_directo: number,
+    public costo_terceros: number,
+    public costo_imprevisto: number,
+    public factor_productividad: number,
   ) {}
 
   async update(
-    fk_tipo_presupuesto: number = this.fk_tipo_presupuesto,
-    nombre: string = this.nombre,
-    descripcion: string = this.descripcion,
-    nuevo_estado?: boolean,
+    fk_tipo_presupuesto = this.fk_tipo_presupuesto,
+    nombre = this.nombre,
+    descripcion = this.descripcion,
+    nuevo_estado = this.estado,
+    costo_directo = this.costo_directo,
+    costo_terceros = this.costo_terceros,
+    costo_imprevisto = this.costo_imprevisto,
+    factor_productividad = this.factor_productividad,
   ): Promise<
     Budget
   > {
@@ -55,20 +70,29 @@ class Budget {
         );
       }
     }
+
     Object.assign(this, {
       fk_tipo_presupuesto,
       nombre,
       descripcion,
       estado: nuevo_estado ?? this.estado,
+      costo_directo,
+      costo_terceros,
+      costo_imprevisto,
+      factor_productividad,
     });
-    await postgres.query(
-      `UPDATE ${TABLE}
-      SET
+
+    await queryArray(
+      `UPDATE ${TABLE} SET
         FK_PROYECTO = $2,
         FK_TIPO_PRESUPUESTO = $3,
         NOMBRE = $4,
         DESCRIPCION = $5,
-        ESTADO = $6
+        ESTADO = $6,
+        COSTO_DIRECTO = $7,
+        COSTO_TERCEROS = $8,
+        COSTO_IMPREVISTO = $9,
+        FACTOR_PRODUCTIVIDAD = $10
       WHERE PK_PRESUPUESTO = $1`,
       this.pk_presupuesto,
       this.fk_proyecto,
@@ -76,13 +100,17 @@ class Budget {
       this.nombre,
       this.descripcion,
       nuevo_estado ?? this.estado,
+      this.costo_directo,
+      this.costo_terceros,
+      this.costo_imprevisto,
+      this.factor_productividad,
     );
 
     return this;
   }
 
   async delete(): Promise<void> {
-    await postgres.query(
+    await queryArray(
       `DELETE FROM ${TABLE} WHERE PK_PRESUPUESTO = $1`,
       this.pk_presupuesto,
     ).catch((e: PostgresError) => {
@@ -106,11 +134,16 @@ export const findAll = async ({
     text: (
       `SELECT
         PK_PRESUPUESTO,
+        0,
         FK_PROYECTO,
         FK_TIPO_PRESUPUESTO,
         NOMBRE,
         DESCRIPCION,
-        ESTADO
+        ESTADO,
+        COSTO_DIRECTO,
+        COSTO_TERCEROS,
+        COSTO_IMPREVISTO,
+        FACTOR_PRODUCTIVIDAD
       FROM ${TABLE}
       WHERE 1 = 1
       ${open ? `AND ESTADO = ${open}` : ""}
@@ -128,35 +161,51 @@ export const findAll = async ({
       row.nombre,
       row.descripcion,
       row.estado,
+      row.costo_directo,
+      row.costo_terceros,
+      row.costo_imprevisto,
+      row.factor_productividad,
     )
   );
 };
 
 export const findById = async (id: number): Promise<Budget | null> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      PK_PRESUPUESTO,
-      (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = FK_PROYECTO) AS FK_CLIENTE,
-      FK_PROYECTO,
-      FK_TIPO_PRESUPUESTO,
-      NOMBRE,
-      DESCRIPCION,
-      ESTADO
-    FROM ${TABLE}
-    WHERE PK_PRESUPUESTO = $1`,
-    id,
+  const { rows } = await queryObject<BudgetInterface>({
+    text: (
+      `SELECT
+        PK_PRESUPUESTO,
+        (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = FK_PROYECTO) AS FK_CLIENTE,
+        FK_PROYECTO,
+        FK_TIPO_PRESUPUESTO,
+        NOMBRE,
+        DESCRIPCION,
+        ESTADO,
+        COSTO_DIRECTO,
+        COSTO_TERCEROS,
+        COSTO_IMPREVISTO,
+        FACTOR_PRODUCTIVIDAD
+      FROM ${TABLE}
+      WHERE PK_PRESUPUESTO = $1`
+    ),
+    fields,
+    args: [id],
+  });
+
+  if (!rows.length) return null;
+
+  return new Budget(
+    rows[0].pk_presupuesto,
+    rows[0].fk_cliente,
+    rows[0].fk_proyecto,
+    rows[0].fk_tipo_presupuesto,
+    rows[0].nombre,
+    rows[0].descripcion,
+    rows[0].estado,
+    rows[0].costo_directo,
+    rows[0].costo_terceros,
+    rows[0].costo_imprevisto,
+    rows[0].factor_productividad,
   );
-  if (!rows[0]) return null;
-  const result: [
-    number,
-    number,
-    number,
-    number,
-    string,
-    string,
-    boolean,
-  ] = rows[0];
-  return new Budget(...result);
 };
 
 /*
@@ -167,33 +216,42 @@ export const findById = async (id: number): Promise<Budget | null> => {
 export const findOpenBudgetByProject = async (
   project: number,
 ): Promise<Budget | null> => {
-  const { rows } = await postgres.query(
-    `SELECT
-      PK_PRESUPUESTO,
-      (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = FK_PROYECTO) AS FK_CLIENTE,
-      FK_PROYECTO,
-      FK_TIPO_PRESUPUESTO,
-      NOMBRE,
-      DESCRIPCION,
-      ESTADO
-    FROM ${TABLE}
-    WHERE FK_PROYECTO = $1
-    AND ESTADO = TRUE`,
-    project,
-  );
+  const { rows } = await queryObject<BudgetInterface>({
+    text: (
+      `SELECT
+        PK_PRESUPUESTO,
+        (SELECT FK_CLIENTE FROM OPERACIONES.PROYECTO WHERE PK_PROYECTO = FK_PROYECTO) AS FK_CLIENTE,
+        FK_PROYECTO,
+        FK_TIPO_PRESUPUESTO,
+        NOMBRE,
+        DESCRIPCION,
+        ESTADO,
+        COSTO_DIRECTO,
+        COSTO_TERCEROS,
+        COSTO_IMPREVISTO,
+        FACTOR_PRODUCTIVIDAD
+      FROM ${TABLE}
+      WHERE FK_PROYECTO = $1
+      AND ESTADO = TRUE`
+    ),
+    args: [project],
+    fields,
+  });
 
   if (!rows[0]) return null;
 
   return new Budget(
-    ...rows[0] as [
-      number,
-      number,
-      number,
-      number,
-      string,
-      string,
-      boolean,
-    ],
+    rows[0].pk_presupuesto,
+    rows[0].fk_cliente,
+    rows[0].fk_proyecto,
+    rows[0].fk_tipo_presupuesto,
+    rows[0].nombre,
+    rows[0].descripcion,
+    rows[0].estado,
+    rows[0].costo_directo,
+    rows[0].costo_terceros,
+    rows[0].costo_imprevisto,
+    rows[0].factor_productividad,
   );
 };
 
@@ -203,6 +261,10 @@ export const createNew = async (
   nombre: string,
   descripcion: string,
   abierto: boolean,
+  costo_directo: number,
+  costo_terceros: number,
+  costo_imprevisto: number,
+  factor_productividad: number,
 ): Promise<number> => {
   if (abierto) {
     const project = await findProject(fk_proyecto);
@@ -217,20 +279,37 @@ export const createNew = async (
     }
   }
 
-  const { rows } = await postgres.query(
+  const { rows } = await queryArray(
     `INSERT INTO ${TABLE} (
       FK_PROYECTO,
       FK_TIPO_PRESUPUESTO,
       NOMBRE,
       DESCRIPCION,
-      ESTADO
-    ) VALUES ($1, $2, $3, $4, $5)
-    RETURNING PK_PRESUPUESTO`,
+      ESTADO,
+      COSTO_DIRECTO,
+      COSTO_TERCEROS,
+      COSTO_IMPREVISTO,
+      FACTOR_PRODUCTIVIDAD
+    ) VALUES (
+      $1,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6,
+      $7,
+      $8,
+      $9
+    ) RETURNING PK_PRESUPUESTO`,
     fk_proyecto,
     fk_tipo_presupuesto,
     nombre,
     descripcion,
     abierto,
+    costo_directo,
+    costo_terceros,
+    costo_imprevisto,
+    factor_productividad,
   );
 
   //Returns created id

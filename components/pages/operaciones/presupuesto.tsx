@@ -39,14 +39,11 @@ import Title from "../../common/Title.jsx";
 import SelectField from "../../common/SelectField.jsx";
 import Widget from "../../common/Widget.jsx";
 
-/** @return Promise<Array<{nombre: string}>> */
-const getBudgetTypes = () => fetchBudgetTypeApi().then((x) => x.json());
-/** @return Promise<Array<{nombre: string}>> */
-const getClients = () => fetchClientApi().then((x) => x.json());
-/** @return Promise<Array<{nombre: string}>> */
-const getProjects = () => fetchProjectApi().then((x) => x.json());
-/** @return Promise<Array<{pk_rol: number, nombre: string}>> */
-const getRoles = () => fetchRoleApi().then((x) => x.json());
+const getBudgetTypes = () => fetchBudgetTypeApi<Array<{ nombre: string }>>();
+const getClients = () => fetchClientApi<Array<{ nombre: string }>>();
+const getProjects = () => fetchProjectApi<Array<{ nombre: string }>>();
+const getRoles = () =>
+  fetchRoleApi<Array<{ pk_rol: number; nombre: string }>>();
 
 type BudgetDetailParameters = Omit<BudgetDetail, "budget">;
 
@@ -54,10 +51,14 @@ type BudgetParameters = {
   budget_type: string;
   client: string;
   description: string;
+  direct_cost: string;
   name: string;
+  productivity_percentage: string;
   project: string;
   roles: BudgetDetailParameters[];
   status: boolean;
+  third_party_cost: string;
+  unforeseen_cost: string;
 };
 
 const getBudget = (id: number) => fetchBudgetApi<Budget>(id);
@@ -206,7 +207,7 @@ const BudgetDetailRow = ({
       <TableCell width="20%">
         <CurrencyField
           currencySymbol="$"
-          decimalPlaces={0}
+          decimalPlaces="0"
           fullWidth
           minimumValue="0"
           onChange={(_event, value) => handleChange("hour_cost", value)}
@@ -390,13 +391,17 @@ const BudgetDetailTable = ({
 };
 
 const DEFAULT_FIELDS: BudgetParameters = {
-  client: "",
-  project: "",
   budget_type: "",
-  name: "",
+  client: "",
   description: "",
+  direct_cost: "",
+  name: "",
+  productivity_percentage: "",
+  project: "",
   roles: [],
   status: true,
+  third_party_cost: "",
+  unforeseen_cost: "",
 };
 
 const AddModal = ({
@@ -538,8 +543,69 @@ const AddModal = ({
         <option value="0">Cerrado</option>
         <option value="1">Abierto</option>
       </SelectField>
-      <br />
-      <br />
+      <Grid container spacing={3}>
+        <Grid item md={6} xs={12}>
+          <CurrencyField
+            currencySymbol="$"
+            decimalPlaces="0"
+            fullWidth
+            label="Costo directo"
+            minimumValue="0"
+            onChange={(_event, direct_cost) =>
+              setFields((prev_state) => ({ ...prev_state, direct_cost }))}
+            outputFormat="number"
+            required
+            value={fields.direct_cost}
+          />
+        </Grid>
+        <Grid item md={6} xs={12}>
+          <CurrencyField
+            currencySymbol="$"
+            decimalPlaces="0"
+            fullWidth
+            label="Costo terceros"
+            minimumValue="0"
+            onChange={(_event, third_party_cost) =>
+              setFields((prev_state) => ({ ...prev_state, third_party_cost }))}
+            outputFormat="number"
+            required
+            value={fields.third_party_cost}
+          />
+        </Grid>
+        <Grid item md={6} xs={12}>
+          <CurrencyField
+            currencySymbol="$"
+            decimalPlaces="0"
+            fullWidth
+            label="Costo imprevisto"
+            minimumValue="0"
+            onChange={(_event, unforeseen_cost) =>
+              setFields((prev_state) => ({ ...prev_state, unforeseen_cost }))}
+            outputFormat="number"
+            required
+            value={fields.unforeseen_cost}
+          />
+        </Grid>
+        <Grid item md={6} xs={12}>
+          <CurrencyField
+            currencySymbol="%"
+            decimalPlaces="0"
+            fullWidth
+            label="Factor productividad"
+            minimumValue="0"
+            onChange={(_event, value) =>
+              setFields((prev_state) => ({
+                ...prev_state,
+                productivity_percentage: value === "" ? "" : value / 100,
+              }))}
+            outputFormat="number"
+            required
+            value={fields.productivity_percentage === ""
+              ? ""
+              : fields.productivity_percentage * 100}
+          />
+        </Grid>
+      </Grid>
       <br />
       <BudgetDetailTable
         budget_details={fields.roles}
@@ -587,10 +653,14 @@ const EditModal = ({
         budget_type: data.fk_tipo_presupuesto,
         client: data.fk_cliente,
         description: data.descripcion,
+        direct_cost: data.costo_directo,
         name: data.nombre,
+        productivity_percentage: data.factor_productividad,
         project: String(data.fk_proyecto),
         roles: data.roles,
         status: data.estado,
+        third_party_cost: data.costo_terceros,
+        unforeseen_cost: data.costo_imprevisto,
       });
     }
   }, [is_open]);
@@ -724,8 +794,72 @@ const EditModal = ({
           <option value="0">Cerrado</option>
           <option value="1">Abierto</option>
         </SelectField>
-        <br />
-        <br />
+        <Grid container spacing={3}>
+          <Grid item md={6} xs={12}>
+            <CurrencyField
+              currencySymbol="$"
+              decimalPlaces="0"
+              fullWidth
+              label="Costo directo"
+              minimumValue="0"
+              onChange={(_event, direct_cost) =>
+                setFields((prev_state) => ({ ...prev_state, direct_cost }))}
+              outputFormat="number"
+              required
+              value={fields.direct_cost}
+            />
+          </Grid>
+          <Grid item md={6} xs={12}>
+            <CurrencyField
+              currencySymbol="$"
+              decimalPlaces="0"
+              fullWidth
+              label="Costo terceros"
+              minimumValue="0"
+              onChange={(_event, third_party_cost) =>
+                setFields((prev_state) => ({
+                  ...prev_state,
+                  third_party_cost,
+                }))}
+              outputFormat="number"
+              required
+              value={fields.third_party_cost}
+            />
+          </Grid>
+          <Grid item md={6} xs={12}>
+            <CurrencyField
+              currencySymbol="$"
+              decimalPlaces="0"
+              fullWidth
+              label="Costo imprevisto"
+              minimumValue="0"
+              onChange={(_event, unforeseen_cost) =>
+                setFields((prev_state) => ({ ...prev_state, unforeseen_cost }))}
+              outputFormat="number"
+              required
+              value={fields.unforeseen_cost}
+            />
+          </Grid>
+          <Grid item md={6} xs={12}>
+            <CurrencyField
+              currencySymbol="%"
+              decimalPlaces="0"
+              fullWidth
+              label="Factor productividad"
+              minimumValue="0"
+              onChange={(_event, value) =>
+                setFields((prev_state) => ({
+                  ...prev_state,
+                  productivity_percentage: value === "" ? "" : value / 100,
+                }))}
+              outputFormat="number"
+              required
+              value={fields.productivity_percentage === ""
+                ? ""
+                : fields.productivity_percentage * 100}
+            />
+          </Grid>
+        </Grid>
         <br />
         <BudgetDetailTable
           budget_details={fields.roles}
@@ -828,40 +962,66 @@ export default function Presupuesto() {
     let active = true;
 
     getBudgetTypes()
-      .then((budget_types) => {
-        if (!active) return;
+      .then(async (response) => {
+        if (response.ok) {
+          const budget_types = await response.json();
+          if (!active) return;
 
-        setParameters((prev_state) => ({
-          ...prev_state,
-          budget_types: budget_types.sort(({ nombre: x }, { nombre: y }) =>
-            x.localeCompare(y)
-          ),
-        }));
-      });
+          setParameters((prev_state) => ({
+            ...prev_state,
+            budget_types: budget_types.sort(({ nombre: x }, { nombre: y }) =>
+              x.localeCompare(y)
+            ),
+          }));
+        } else {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+      })
+      .catch((e) => console.log("Couldn't load the budget types", e));
 
-    getClients().then((clients) => {
-      if (!active) return;
+    getClients()
+      .then(async (response) => {
+        if (response.ok) {
+          const clients = await response.json();
+          if (!active) return;
 
-      setParameters((prev_state) => ({
-        ...prev_state,
-        clients: clients.sort(({ nombre: x }, { nombre: y }) =>
-          x.localeCompare(y)
-        ),
-      }));
-    });
+          setParameters((prev_state) => ({
+            ...prev_state,
+            clients: clients.sort(({ nombre: x }, { nombre: y }) =>
+              x.localeCompare(y)
+            ),
+          }));
+        } else {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+      })
+      .catch((e) => console.log("Couldn't load the clients", e));
 
-    getProjects().then((projects) => {
-      if (!active) return;
+    getProjects()
+      .then(async (response) => {
+        if (response.ok) {
+          const projects = await response.json();
+          if (!active) return;
 
-      setParameters((prev_state) => ({
-        ...prev_state,
-        projects: projects.sort(({ nombre: x }, { nombre: y }) =>
-          x.localeCompare(y)
-        ),
-      }));
-    });
+          setParameters((prev_state) => ({
+            ...prev_state,
+            projects: projects.sort(({ nombre: x }, { nombre: y }) =>
+              x.localeCompare(y)
+            ),
+          }));
+        } else {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+      })
+      .catch((e) => console.log("Couldn't load the projects", e));
 
     getRoles()
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error(`Request failed with status ${response.status}`);
+      })
       .then((raw_roles) => {
         const roles = raw_roles
           .map((role) => {
@@ -878,7 +1038,8 @@ export default function Presupuesto() {
           ...prev_state,
           roles,
         }));
-      });
+      })
+      .catch((e) => console.log("Couldn't load the roles", e));
 
     updateTable();
 

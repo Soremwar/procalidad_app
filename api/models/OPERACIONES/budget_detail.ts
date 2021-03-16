@@ -87,14 +87,13 @@ export const findByBudget = async (budget: number) => {
     WHERE FK_PRESUPUESTO = $1`,
     budget,
   );
-  const result = rows.map((row: [
+
+  return rows.map((row: [
     number,
     number,
     number,
     number,
   ]) => new PresupuestoDetalle(...row));
-
-  return result;
 };
 
 export const findUseByBudget = async (
